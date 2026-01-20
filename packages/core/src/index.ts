@@ -22,6 +22,16 @@ export {
   type SecretsManagerInterface
 } from './auth/jwt';
 
+// Secrets Management (JWT Key Rotation)
+export {
+  DatabaseSecretsManager,
+  InMemorySecretsStorage,
+  createInMemorySecretsManager,
+  type SecretKeyRecord,
+  type SecretsStorage,
+  type SecretsManagerConfig
+} from './auth/secrets-manager';
+
 // Logger
 export {
   Logger,

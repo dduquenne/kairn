@@ -1,0 +1,372 @@
+// =============================================================================
+// KAIRN PLATFORM - DATABASE SCHEMA
+// =============================================================================
+// This schema defines the database structure for the Kairn practitioner platform.
+// It supports multi-tenant sites with shared infrastructure.
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// MULTI-TENANCY: SITES
+// =============================================================================
+
+/// Represents a practitioner's website/site in the platform
+model Site {
+  id        String   @id @default(cuid())
+  /// Unique identifier used in configuration (e.g., "psypnos")
+  slug      String   @unique
+  /// Display name of the site
+  name      String
+  /// Primary domain for the site
+  domain    String   @unique
+  /// Whether the site is active
+  isActive  Boolean  @default(true)
+  /// Site configuration as JSON
+  config    Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  users        User[]
+  blogPosts    BlogPost[]
+  testimonials Testimonial[]
+  contacts     Contact[]
+  analytics    AnalyticsEvent[]
+
+  @@index([slug])
+  @@index([domain])
+}
+
+// =============================================================================
+// AUTHENTICATION & USERS
+// =============================================================================
+
+/// User roles in the system
+enum UserRole {
+  ADMIN       // Full access to site management
+  EDITOR      // Can edit content
+  PRACTITIONER // The main practitioner
+  USER        // Regular authenticated user
+}
+
+/// User account
+model User {
+  id            String    @id @default(cuid())
+  email         String
+  passwordHash  String?
+  firstName     String?
+  lastName      String?
+  role          UserRole  @default(USER)
+  isActive      Boolean   @default(true)
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Multi-tenancy
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  // Relations
+  sessions     Session[]
+  blogPosts    BlogPost[]    @relation("author")
+  refreshTokens RefreshToken[]
+
+  @@unique([email, siteId])
+  @@index([email])
+  @@index([siteId])
+}
+
+/// User session for authentication
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Session token (hashed)
+  tokenHash    String   @unique
+  /// User agent for session tracking
+  userAgent    String?
+  /// IP address
+  ipAddress    String?
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  lastActiveAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+/// Refresh tokens for JWT rotation
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Token hash (never store plain tokens)
+  tokenHash String   @unique
+  /// Token family for rotation detection
+  family    String
+  /// Whether this token has been used (for replay detection)
+  isUsed    Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([family])
+  @@index([expiresAt])
+}
+
+// =============================================================================
+// SECRETS MANAGEMENT (for JWT rotation)
+// =============================================================================
+
+/// Secret key versions for JWT signing
+model SecretKey {
+  id        String   @id @default(cuid())
+  /// Key identifier (kid in JWT header)
+  kid       String   @unique
+  /// Encrypted secret value
+  secret    String
+  /// Algorithm used (HS256, HS384, HS512)
+  algorithm String   @default("HS256")
+  /// Whether this is the current signing key
+  isCurrent Boolean  @default(false)
+  /// Whether this key can still verify tokens
+  isValid   Boolean  @default(true)
+  /// When this key was activated
+  activatedAt DateTime @default(now())
+  /// When this key expires for verification
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([isCurrent])
+  @@index([isValid])
+}
+
+// =============================================================================
+// CONTENT: BLOG
+// =============================================================================
+
+/// Blog post status
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+/// Blog post
+model BlogPost {
+  id          String     @id @default(cuid())
+  /// URL-friendly slug
+  slug        String
+  title       String
+  /// Short description for SEO/previews
+  excerpt     String?
+  /// Full content (Markdown)
+  content     String
+  /// Featured image URL
+  coverImage  String?
+  status      PostStatus @default(DRAFT)
+  /// SEO meta description
+  metaDescription String?
+  /// Reading time in minutes
+  readingTime Int?
+  publishedAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Multi-tenancy
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  // Author
+  authorId String
+  author   User   @relation("author", fields: [authorId], references: [id])
+
+  // Relations
+  tags BlogPostTag[]
+
+  @@unique([slug, siteId])
+  @@index([siteId, status])
+  @@index([publishedAt])
+}
+
+/// Tag for categorizing blog posts
+model Tag {
+  id        String        @id @default(cuid())
+  name      String
+  slug      String
+  color     String?
+  createdAt DateTime      @default(now())
+  posts     BlogPostTag[]
+
+  @@unique([slug])
+}
+
+/// Many-to-many relation between posts and tags
+model BlogPostTag {
+  postId String
+  post   BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tagId  String
+  tag    Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+}
+
+// =============================================================================
+// CONTENT: TESTIMONIALS
+// =============================================================================
+
+/// Client testimonial
+model Testimonial {
+  id          String   @id @default(cuid())
+  /// Client name (can be anonymized)
+  clientName  String
+  /// Client initials for anonymized display
+  clientInitials String?
+  /// Testimonial text
+  content     String
+  /// Rating out of 5
+  rating      Int?
+  /// Whether approved for display
+  isApproved  Boolean  @default(false)
+  /// Display order
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Multi-tenancy
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, isApproved])
+}
+
+// =============================================================================
+// CONTACT & LEADS
+// =============================================================================
+
+/// Contact form submission status
+enum ContactStatus {
+  NEW
+  READ
+  REPLIED
+  ARCHIVED
+  SPAM
+}
+
+/// Contact form submission
+model Contact {
+  id        String        @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String?
+  message   String
+  status    ContactStatus @default(NEW)
+  /// Source page
+  source    String?
+  /// IP address for spam detection
+  ipAddress String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  // Multi-tenancy
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, status])
+  @@index([createdAt])
+}
+
+// =============================================================================
+// ANALYTICS
+// =============================================================================
+
+/// Analytics event types
+enum EventType {
+  PAGE_VIEW
+  CLICK
+  FORM_SUBMIT
+  DOWNLOAD
+  CUSTOM
+}
+
+/// Analytics event
+model AnalyticsEvent {
+  id        String    @id @default(cuid())
+  type      EventType
+  /// Page path
+  path      String
+  /// Event name for custom events
+  name      String?
+  /// Additional event data
+  data      Json?
+  /// Session identifier (anonymized)
+  sessionId String?
+  /// User agent
+  userAgent String?
+  /// Referrer
+  referrer  String?
+  /// Country code
+  country   String?
+  createdAt DateTime  @default(now())
+
+  // Multi-tenancy
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, type, createdAt])
+  @@index([path])
+  @@index([createdAt])
+}
+
+// =============================================================================
+// APPOINTMENTS (Optional feature)
+// =============================================================================
+
+/// Appointment status
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+/// Appointment booking
+model Appointment {
+  id          String            @id @default(cuid())
+  /// Client name
+  clientName  String
+  /// Client email
+  clientEmail String
+  /// Client phone
+  clientPhone String?
+  /// Appointment date and time
+  startTime   DateTime
+  /// End time
+  endTime     DateTime
+  /// Service type
+  serviceType String?
+  /// Additional notes
+  notes       String?
+  status      AppointmentStatus @default(PENDING)
+  /// Confirmation token
+  confirmToken String?          @unique
+  /// Cancellation reason
+  cancelReason String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@index([clientEmail])
+  @@index([startTime])
+  @@index([status])
+}
