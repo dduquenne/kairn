@@ -1,0 +1,36 @@
+{
+  "name": "@kairn/social",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Module réseaux sociaux pour les sites Kairn",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./oauth": {
+      "types": "./dist/oauth/index.d.ts",
+      "import": "./dist/oauth/index.js"
+    },
+    "./posting": {
+      "types": "./dist/posting/index.d.ts",
+      "import": "./dist/posting/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@kairn/config": "workspace:*",
+    "@kairn/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@kairn/typescript-config": "workspace:*",
+    "typescript": "^5.4.0"
+  }
+}

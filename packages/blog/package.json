@@ -1,0 +1,39 @@
+{
+  "name": "@kairn/blog",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Module blog et génération de contenu pour les sites Kairn",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./generation": {
+      "types": "./dist/generation/index.d.ts",
+      "import": "./dist/generation/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@kairn/config": "workspace:*",
+    "@kairn/core": "workspace:*",
+    "remark": "^15.0.0",
+    "remark-html": "^16.0.0",
+    "gray-matter": "^4.0.3"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0"
+  },
+  "devDependencies": {
+    "@kairn/typescript-config": "workspace:*",
+    "@types/react": "^18.2.0",
+    "typescript": "^5.4.0"
+  }
+}

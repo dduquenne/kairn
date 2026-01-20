@@ -1,0 +1,48 @@
+{
+  "name": "@kairn/admin",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Dashboard admin pour les sites Kairn",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./components": {
+      "types": "./dist/components/index.d.ts",
+      "import": "./dist/components/index.js"
+    },
+    "./pages": {
+      "types": "./dist/pages/index.d.ts",
+      "import": "./dist/pages/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@kairn/config": "workspace:*",
+    "@kairn/core": "workspace:*",
+    "@kairn/ui": "workspace:*",
+    "@kairn/analytics": "workspace:*",
+    "@kairn/blog": "workspace:*",
+    "@kairn/social": "workspace:*",
+    "recharts": "^2.12.0"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "next": "^14.0.0"
+  },
+  "devDependencies": {
+    "@kairn/typescript-config": "workspace:*",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "typescript": "^5.4.0"
+  }
+}

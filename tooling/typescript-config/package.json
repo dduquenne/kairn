@@ -1,0 +1,11 @@
+{
+  "name": "@kairn/typescript-config",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Configurations TypeScript partagées pour Kairn",
+  "files": [
+    "base.json",
+    "nextjs.json",
+    "react-library.json"
+  ]
+}

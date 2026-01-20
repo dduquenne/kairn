@@ -1,0 +1,22 @@
+{
+  "name": "@kairn/tailwind-preset",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Preset Tailwind partagé pour les sites Kairn",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./index.js",
+      "import": "./index.js",
+      "types": "./index.d.ts"
+    }
+  },
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ],
+  "peerDependencies": {
+    "tailwindcss": "^3.4.0"
+  }
+}

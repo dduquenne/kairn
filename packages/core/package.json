@@ -1,0 +1,43 @@
+{
+  "name": "@kairn/core",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Core utilities, database, auth pour les sites Kairn",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./db": {
+      "types": "./dist/db/index.d.ts",
+      "import": "./dist/db/index.js"
+    },
+    "./auth": {
+      "types": "./dist/auth/index.d.ts",
+      "import": "./dist/auth/index.js"
+    },
+    "./middleware": {
+      "types": "./dist/middleware/index.d.ts",
+      "import": "./dist/middleware/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@kairn/config": "workspace:*",
+    "@prisma/client": "^6.0.0",
+    "jose": "^5.2.0",
+    "bcryptjs": "^2.4.3"
+  },
+  "devDependencies": {
+    "@kairn/typescript-config": "workspace:*",
+    "@types/bcryptjs": "^2.4.6",
+    "typescript": "^5.4.0"
+  }
+}

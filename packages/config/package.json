@@ -1,0 +1,28 @@
+{
+  "name": "@kairn/config",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Types et schémas de configuration pour les sites Kairn",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@kairn/typescript-config": "workspace:*",
+    "typescript": "^5.4.0"
+  }
+}
