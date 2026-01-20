@@ -43,7 +43,7 @@ export function formatPrismaPostToBlogPost(post: {
     slug: post.slug,
     title: post.title,
     description: post.description || excerpt,
-    date: post.date.toISOString().split('T')[0],
+    date: post.date.toISOString().split('T')[0] ?? '',
     author: post.author,
     category: post.category,
     tags: post.tags,

@@ -209,35 +209,46 @@ export async function markdownToHtml(
 ): Promise<string> {
   const { classMap, highlight = true, githubAlerts = true } = options;
 
-  let processor = unified()
-    .use(remarkParse)
-    .use(remarkGfm);
-
+  // Build plugins array dynamically
+  const remarkPlugins: any[] = [remarkParse, remarkGfm];
   if (githubAlerts) {
-    processor = processor.use(remarkMarkAlerts);
+    remarkPlugins.push(remarkMarkAlerts);
   }
 
-  processor = processor
-    .use(remarkRehype, { allowDangerousHtml: true })
-    .use(rehypeSlug)
-    .use(rehypeAutolinkHeadings, {
+  const rehypePlugins: any[] = [
+    [remarkRehype, { allowDangerousHtml: true }],
+    rehypeSlug,
+    [rehypeAutolinkHeadings, {
       behavior: 'wrap',
       properties: {
         className: ['anchor-link'],
       },
-    });
+    }],
+  ];
 
   if (highlight) {
-    processor = processor.use(rehypeHighlight);
+    rehypePlugins.push(rehypeHighlight);
   }
 
   if (githubAlerts) {
-    processor = processor.use(rehypeGitHubAlerts);
+    rehypePlugins.push(rehypeGitHubAlerts);
   }
 
-  processor = processor
-    .use(rehypeAddClasses, { classMap })
-    .use(rehypeStringify, { allowDangerousHtml: true });
+  rehypePlugins.push([rehypeAddClasses, { classMap }]);
+  rehypePlugins.push([rehypeStringify, { allowDangerousHtml: true }]);
+
+  // Create processor with all plugins
+  let processor: any = unified();
+  for (const plugin of remarkPlugins) {
+    processor = processor.use(plugin);
+  }
+  for (const plugin of rehypePlugins) {
+    if (Array.isArray(plugin)) {
+      processor = processor.use(plugin[0], plugin[1]);
+    } else {
+      processor = processor.use(plugin);
+    }
+  }
 
   const result = await processor.process(markdown);
   return result.toString();
@@ -252,8 +263,12 @@ export function extractHeadings(markdown: string): TocHeading[] {
   let match;
 
   while ((match = headingRegex.exec(markdown)) !== null) {
-    const level = match[1].length;
-    const text = match[2].trim();
+    const hashPart = match[1];
+    const textPart = match[2];
+    if (!hashPart || !textPart) continue;
+
+    const level = hashPart.length;
+    const text = textPart.trim();
     const id = text
       .toLowerCase()
       .replace(/[^\w\s-]/g, '')
