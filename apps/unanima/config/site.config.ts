@@ -31,11 +31,12 @@ export const siteConfig = defineSiteConfig({
         institution: 'Institution 2',
       },
     ],
-    socialLinks: {
-      facebook: '',
-      linkedin: '',
-      instagram: '',
-    },
+    // Réseaux sociaux (à ajouter si nécessaire avec des URLs valides)
+    // socialLinks: {
+    //   facebook: 'https://facebook.com/votre-page',
+    //   linkedin: 'https://linkedin.com/in/votre-profil',
+    //   instagram: 'https://instagram.com/votre-compte',
+    // },
   },
 
   // Contact

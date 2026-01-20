@@ -304,15 +304,21 @@ const ContentSchema = z.object({
 // Navigation Configuration
 // =============================================================================
 
-const NavigationItemSchema = z.object({
+interface NavigationItem {
+  label: string;
+  href: string;
+  external?: boolean;
+  icon?: string;
+  children?: NavigationItem[];
+}
+
+const NavigationItemSchema: z.ZodType<NavigationItem> = z.object({
   label: z.string(),
   href: z.string(),
   external: z.boolean().default(false),
   icon: z.string().optional(),
-  children: z.array(z.lazy(() => NavigationItemSchema)).optional(),
+  children: z.lazy(() => z.array(NavigationItemSchema)).optional(),
 });
-
-type NavigationItem = z.infer<typeof NavigationItemSchema>;
 
 const NavigationSchema = z.object({
   /** Main navigation items */
@@ -443,7 +449,7 @@ export function safeParseSiteConfig(config: unknown): z.SafeParseReturnType<unkn
 /**
  * Create a partial config with defaults
  */
-export function createSiteConfig(config: Partial<SiteConfig> & Pick<SiteConfig, 'slug' | 'name' | 'theme' | 'seo'>): SiteConfig {
+export function createSiteConfig(config: Partial<SiteConfig> & { slug: string; name: string; theme: SiteConfig['theme']; seo: { title: string } & Partial<Omit<SiteConfig['seo'], 'title'>> }): SiteConfig {
   return SiteConfigSchema.parse(config);
 }
 

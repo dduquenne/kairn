@@ -397,7 +397,7 @@ export const API_CACHE_PRESETS = {
     cacheControl: {
       noStore: true,
     },
-    shouldCache: () => false,
+    shouldCache: (_response) => false,
   } satisfies ApiCacheConfig,
 } as const;
 

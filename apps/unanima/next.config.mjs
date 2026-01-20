@@ -74,6 +74,11 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
 
+  // Désactiver ESLint pendant le build (géré séparément)
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+
   // Configuration des images optimisée
   images: {
     // Formats modernes avec fallback

@@ -216,8 +216,8 @@ export const tailwindExtend = {
     cream: brandColors.cream,
   },
   fontFamily: {
-    display: typography.fonts.display,
-    body: typography.fonts.body,
+    display: [...typography.fonts.display],
+    body: [...typography.fonts.body],
   },
 };
 

@@ -280,25 +280,25 @@ export class EnvConfigSource implements ConfigSource {
       },
       [`${sitePrefix}GOOGLE_ANALYTICS_ID`]: (v) => {
         config.integrations = {
-          ...config.integrations,
+          ...(config.integrations ?? {}),
           googleAnalytics: {
             enabled: true,
             measurementId: v,
             anonymizeIp: true,
           },
-        };
+        } as SiteConfig['integrations'];
       },
       [`${sitePrefix}CONTACT_EMAIL`]: (v) => {
         config.contact = {
-          ...config.contact,
+          ...(config.contact ?? {}),
           email: v,
-        };
+        } as SiteConfig['contact'];
       },
       [`${sitePrefix}CONTACT_PHONE`]: (v) => {
         config.contact = {
-          ...config.contact,
+          ...(config.contact ?? {}),
           phone: v,
-        };
+        } as SiteConfig['contact'];
       },
     };
 

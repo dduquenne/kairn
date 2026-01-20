@@ -24,14 +24,14 @@ export default function HomePage() {
             {siteConfig.practitioner.name}
           </p>
 
-          {/* Specialties */}
+          {/* Services */}
           <div className="flex flex-wrap justify-center gap-4 mb-12">
-            {siteConfig.practitioner.specialties.map((specialty) => (
+            {siteConfig.services.filter(s => s.enabled).map((service) => (
               <span
-                key={specialty}
+                key={service.id}
                 className="px-4 py-2 border border-gold/30 text-gold text-sm rounded-full"
               >
-                {specialty}
+                {service.name}
               </span>
             ))}
           </div>
@@ -197,10 +197,10 @@ export default function HomePage() {
               Prendre rendez-vous
             </a>
             <a
-              href={`tel:${siteConfig.contact.phone.replace(/\s/g, '')}`}
+              href={`mailto:${siteConfig.contact.email}`}
               className="btn btn-outline"
             >
-              {siteConfig.contact.phone}
+              {siteConfig.contact.email}
             </a>
           </div>
 

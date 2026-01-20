@@ -43,20 +43,22 @@ export const metadata: Metadata = {
     siteName: siteConfig.name,
     title: `${siteConfig.name} - ${siteConfig.practitioner.title}`,
     description: siteConfig.seo.description,
-    images: [
-      {
-        url: siteConfig.seo.ogImage,
-        width: 1200,
-        height: 630,
-        alt: siteConfig.name,
-      },
-    ],
+    ...(siteConfig.seo.ogImage && {
+      images: [
+        {
+          url: siteConfig.seo.ogImage,
+          width: 1200,
+          height: 630,
+          alt: siteConfig.name,
+        },
+      ],
+    }),
   },
   twitter: {
     card: 'summary_large_image',
     title: `${siteConfig.name} - ${siteConfig.practitioner.title}`,
     description: siteConfig.seo.description,
-    images: [siteConfig.seo.ogImage],
+    ...(siteConfig.seo.ogImage && { images: [siteConfig.seo.ogImage] }),
   },
   robots: {
     index: true,

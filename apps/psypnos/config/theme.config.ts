@@ -216,8 +216,8 @@ export const tailwindExtend = {
     ivory: brandColors.ivory,
   },
   fontFamily: {
-    display: typography.fonts.display,
-    body: typography.fonts.body,
+    display: [...typography.fonts.display],
+    body: [...typography.fonts.body],
   },
 };
 

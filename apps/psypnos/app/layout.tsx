@@ -43,20 +43,22 @@ export const metadata: Metadata = {
     siteName: siteConfig.name,
     title: `${siteConfig.name} - ${siteConfig.practitioner.title}`,
     description: siteConfig.seo.description,
-    images: [
-      {
-        url: siteConfig.seo.ogImage,
-        width: 1200,
-        height: 630,
-        alt: siteConfig.name,
-      },
-    ],
+    ...(siteConfig.seo.ogImage && {
+      images: [
+        {
+          url: siteConfig.seo.ogImage,
+          width: 1200,
+          height: 630,
+          alt: siteConfig.name,
+        },
+      ],
+    }),
   },
   twitter: {
     card: 'summary_large_image',
     title: `${siteConfig.name} - ${siteConfig.practitioner.title}`,
     description: siteConfig.seo.description,
-    images: [siteConfig.seo.ogImage],
+    ...(siteConfig.seo.ogImage && { images: [siteConfig.seo.ogImage] }),
   },
   robots: {
     index: true,
@@ -69,9 +71,7 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  verification: {
-    google: siteConfig.seo.googleVerification,
-  },
+  // verification: google verification is set in the site config if needed
   alternates: {
     canonical: `https://${siteConfig.domain}`,
   },
@@ -104,8 +104,8 @@ function generateStructuredData() {
     },
     geo: {
       '@type': 'GeoCoordinates',
-      latitude: siteConfig.contact.coordinates.latitude,
-      longitude: siteConfig.contact.coordinates.longitude,
+      latitude: siteConfig.contact.coordinates.lat,
+      longitude: siteConfig.contact.coordinates.lng,
     },
     priceRange: '€€',
     image: `https://${siteConfig.domain}/images/og-image.jpg`,

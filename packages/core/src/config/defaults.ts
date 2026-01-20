@@ -451,18 +451,34 @@ export function createConfigFromTemplate(
         enabled: true,
         organization: {
           name: overrides.name,
+          sameAs: [],
         },
         localBusiness: {
           enabled: false,
           type: 'LocalBusiness',
-          address: {},
+          address: {
+            addressCountry: 'FR',
+          },
           geo: {},
           openingHours: [],
         },
       },
     },
     content: templateConfig.content,
-    contact: overrides.contact ?? {},
+    contact: {
+      address: { country: 'France' },
+      social: {},
+      form: {
+        subjectPrefix: '[Contact]',
+        successMessage: 'Merci pour votre message.',
+        fields: {
+          phone: { enabled: true, required: false },
+          subject: { enabled: true, required: false },
+          message: { minLength: 10, maxLength: 2000 },
+        },
+      },
+      ...(overrides.contact ?? {}),
+    },
     navigation: DEFAULT_NAVIGATION,
   };
 }
