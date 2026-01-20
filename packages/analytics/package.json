@@ -1,40 +1,44 @@
 {
   "name": "@kairn/analytics",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
-  "description": "Module analytics pour les sites Kairn",
+  "description": "Analytics tracking system for Kairn platform",
   "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     },
-    "./tracking": {
-      "types": "./dist/tracking/index.d.ts",
-      "import": "./dist/tracking/index.js"
-    },
-    "./dashboard": {
-      "types": "./dist/dashboard/index.d.ts",
-      "import": "./dist/dashboard/index.js"
+    "./client": {
+      "import": "./dist/client.mjs",
+      "require": "./dist/client.js",
+      "types": "./dist/client.d.ts"
     }
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "type-check": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint src/",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@kairn/config": "workspace:*",
-    "@kairn/core": "workspace:*"
+    "ua-parser-js": "^1.0.37"
+  },
+  "devDependencies": {
+    "@kairn/typescript-config": "workspace:*",
+    "@types/ua-parser-js": "^0.7.39",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0"
   },
   "peerDependencies": {
     "react": "^18.0.0"
   },
-  "devDependencies": {
-    "@kairn/typescript-config": "workspace:*",
-    "@types/react": "^18.2.0",
-    "typescript": "^5.4.0"
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
   }
 }

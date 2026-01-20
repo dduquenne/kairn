@@ -1,39 +1,48 @@
 {
   "name": "@kairn/blog",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "private": true,
-  "description": "Module blog et génération de contenu pour les sites Kairn",
+  "description": "Blog management system for Kairn platform",
   "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    },
-    "./generation": {
-      "types": "./dist/generation/index.d.ts",
-      "import": "./dist/generation/index.js"
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     }
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "type-check": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "lint": "eslint src/",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@kairn/config": "workspace:*",
-    "@kairn/core": "workspace:*",
-    "remark": "^15.0.0",
-    "remark-html": "^16.0.0",
-    "gray-matter": "^4.0.3"
-  },
-  "peerDependencies": {
-    "react": "^18.0.0"
+    "reading-time": "^1.5.0",
+    "unified": "^11.0.0",
+    "remark-parse": "^11.0.0",
+    "remark-gfm": "^4.0.0",
+    "remark-rehype": "^11.0.0",
+    "rehype-slug": "^6.0.0",
+    "rehype-autolink-headings": "^7.0.0",
+    "rehype-highlight": "^7.0.0",
+    "rehype-stringify": "^10.0.0",
+    "unist-util-visit": "^5.0.0"
   },
   "devDependencies": {
     "@kairn/typescript-config": "workspace:*",
-    "@types/react": "^18.2.0",
+    "@prisma/client": "^6.0.0",
+    "tsup": "^8.0.0",
     "typescript": "^5.4.0"
+  },
+  "peerDependencies": {
+    "@prisma/client": "^5.0.0 || ^6.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@prisma/client": {
+      "optional": true
+    }
   }
 }
