@@ -1,0 +1,37 @@
+{
+  "name": "@kairn/cli",
+  "version": "0.0.1",
+  "description": "CLI tool for managing Kairn platform sites",
+  "type": "module",
+  "bin": {
+    "kairn": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts",
+    "dev": "tsx src/index.ts",
+    "lint": "eslint src/",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@kairn/core": "workspace:*",
+    "chalk": "^5.3.0",
+    "commander": "^12.0.0",
+    "inquirer": "^9.2.0",
+    "ora": "^8.0.0"
+  },
+  "devDependencies": {
+    "@kairn/eslint-config": "workspace:*",
+    "@kairn/typescript-config": "workspace:*",
+    "@types/inquirer": "^9.0.0",
+    "@types/node": "^20.11.0",
+    "tsup": "^8.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}
