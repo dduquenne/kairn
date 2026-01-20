@@ -17,9 +17,10 @@
     --color-accent: 199 169 98;
     --color-accent-foreground: 255 255 255;
 
-    /* Typography */
-    --font-sans: 'Open Sans', ui-sans-serif, system-ui, sans-serif;
-    --font-heading: 'Cormorant Garamond', ui-serif, Georgia, serif;
+    /* Typography - System font stacks with similar aesthetics */
+    /* To use Google Fonts: run scripts/download-fonts.sh and update these variables */
+    --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-heading: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
 
     /* Spacing & Layout */
     --header-height: 4rem;

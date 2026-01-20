@@ -25,16 +25,18 @@ export default function HomePage() {
           </p>
 
           {/* Specialties */}
-          <div className="flex flex-wrap justify-center gap-4 mb-12">
-            {siteConfig.practitioner.specialties.map((specialty) => (
-              <span
-                key={specialty}
-                className="px-4 py-2 border border-gold/30 text-gold text-sm rounded-full"
-              >
-                {specialty}
-              </span>
-            ))}
-          </div>
+          {siteConfig.practitioner.specialties && (
+            <div className="flex flex-wrap justify-center gap-4 mb-12">
+              {siteConfig.practitioner.specialties.map((specialty) => (
+                <span
+                  key={specialty}
+                  className="px-4 py-2 border border-gold/30 text-gold text-sm rounded-full"
+                >
+                  {specialty}
+                </span>
+              ))}
+            </div>
+          )}
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -196,12 +198,14 @@ export default function HomePage() {
             <a href="/contact" className="btn btn-primary">
               Prendre rendez-vous
             </a>
-            <a
-              href={`tel:${siteConfig.contact.phone.replace(/\s/g, '')}`}
-              className="btn btn-outline"
-            >
-              {siteConfig.contact.phone}
-            </a>
+            {siteConfig.contact.phone && (
+              <a
+                href={`tel:${siteConfig.contact.phone.replace(/\s/g, '')}`}
+                className="btn btn-outline"
+              >
+                {siteConfig.contact.phone}
+              </a>
+            )}
           </div>
 
           {/* Location */}

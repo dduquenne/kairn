@@ -1,23 +1,20 @@
 import type { Metadata, Viewport } from 'next';
-import { Open_Sans, Cormorant_Garamond } from 'next/font/google';
 import { ToastProvider } from '@kairn/ui';
 import { siteConfig } from '@/config/site.config';
 import './globals.css';
 
 // Fonts configuration
-const openSans = Open_Sans({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-sans',
-  weight: ['300', '400', '500', '600', '700'],
-});
+// Option 1: Google Fonts (requires network at build time)
+// import { Open_Sans, Cormorant_Garamond } from 'next/font/google';
+// const openSans = Open_Sans({ subsets: ['latin'], display: 'swap', variable: '--font-sans', weight: ['300', '400', '500', '600', '700'] });
+// const cormorantGaramond = Cormorant_Garamond({ subsets: ['latin'], display: 'swap', variable: '--font-heading', weight: ['400', '500', '600', '700'] });
 
-const cormorantGaramond = Cormorant_Garamond({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-heading',
-  weight: ['400', '500', '600', '700'],
-});
+// Option 2: Local fonts (run scripts/download-fonts.sh first)
+// import localFont from 'next/font/local';
+// const openSans = localFont({ src: [...], variable: '--font-sans' });
+
+// Option 3: System fonts fallback (no network/files needed) - CURRENT
+// CSS variables are set in globals.css for system font stacks
 
 // Metadata
 export const metadata: Metadata = {
@@ -43,20 +40,22 @@ export const metadata: Metadata = {
     siteName: siteConfig.name,
     title: `${siteConfig.name} - ${siteConfig.practitioner.title}`,
     description: siteConfig.seo.description,
-    images: [
-      {
-        url: siteConfig.seo.ogImage,
-        width: 1200,
-        height: 630,
-        alt: siteConfig.name,
-      },
-    ],
+    ...(siteConfig.seo.ogImage && {
+      images: [
+        {
+          url: siteConfig.seo.ogImage,
+          width: 1200,
+          height: 630,
+          alt: siteConfig.name,
+        },
+      ],
+    }),
   },
   twitter: {
     card: 'summary_large_image',
     title: `${siteConfig.name} - ${siteConfig.practitioner.title}`,
     description: siteConfig.seo.description,
-    images: [siteConfig.seo.ogImage],
+    ...(siteConfig.seo.ogImage && { images: [siteConfig.seo.ogImage] }),
   },
   robots: {
     index: true,
@@ -69,9 +68,7 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  verification: {
-    google: siteConfig.seo.googleVerification,
-  },
+  // verification: { google: 'YOUR_GOOGLE_VERIFICATION_CODE' },
   alternates: {
     canonical: `https://${siteConfig.domain}`,
   },
@@ -104,8 +101,8 @@ function generateStructuredData() {
     },
     geo: {
       '@type': 'GeoCoordinates',
-      latitude: siteConfig.contact.coordinates.latitude,
-      longitude: siteConfig.contact.coordinates.longitude,
+      latitude: siteConfig.contact.coordinates.lat,
+      longitude: siteConfig.contact.coordinates.lng,
     },
     priceRange: '€€',
     image: `https://${siteConfig.domain}/images/og-image.jpg`,
@@ -125,7 +122,6 @@ export default function RootLayout({
   return (
     <html
       lang={siteConfig.locale}
-      className={`${openSans.variable} ${cormorantGaramond.variable}`}
       suppressHydrationWarning
     >
       <head>

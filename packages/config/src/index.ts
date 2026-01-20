@@ -36,6 +36,7 @@ export const practitionerSchema = z.object({
   subtitle: z.string().optional(),
   bio: z.string().min(100),
   image: z.string(),
+  specialties: z.array(z.string()).optional(),
   credentials: z.array(z.object({
     title: z.string(),
     institution: z.string().optional(),
@@ -46,6 +47,8 @@ export const practitionerSchema = z.object({
     facebook: z.string().url().optional(),
     instagram: z.string().url().optional(),
     twitter: z.string().url().optional(),
+    threads: z.string().url().optional(),
+    youtube: z.string().url().optional(),
   }).optional(),
 });
 

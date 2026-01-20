@@ -40,6 +40,11 @@ ses patients avec bienveillance et professionnalisme dans leur cheminement perso
         institution: 'Grof Transpersonal Training',
       },
     ],
+    specialties: [
+      'Psychothérapie',
+      'Hypnose Ericksonienne',
+      'Respiration Holotropique',
+    ],
     socialLinks: {
       facebook: 'https://www.facebook.com/profile.php?id=61565498498498',
       linkedin: 'https://www.linkedin.com/in/david-duquenne-psypnos/',
@@ -50,6 +55,7 @@ ses patients avec bienveillance et professionnalisme dans leur cheminement perso
   // Contact
   contact: {
     email: 'contact@psypnos.fr',
+    phone: '06 00 00 00 00',
     address: {
       street: 'Le Moulin d\'en Bas',
       city: 'Saint-Julien-du-Sault',
