@@ -1,0 +1,280 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Colors - PSYPNOS Brand */
+    --color-primary: 199 169 98;
+    --color-primary-light: 240 217 163;
+    --color-primary-dark: 139 122 63;
+    --color-secondary: 14 31 47;
+    --color-secondary-light: 30 58 82;
+    --color-background: 245 241 230;
+    --color-foreground: 14 31 47;
+    --color-muted: 229 225 214;
+    --color-muted-foreground: 107 114 128;
+    --color-accent: 199 169 98;
+    --color-accent-foreground: 255 255 255;
+
+    /* Typography */
+    --font-sans: 'Open Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-heading: 'Cormorant Garamond', ui-serif, Georgia, serif;
+
+    /* Spacing & Layout */
+    --header-height: 4rem;
+    --container-max-width: 1280px;
+    --section-padding: 5rem;
+
+    /* Animations */
+    --transition-fast: 150ms;
+    --transition-base: 200ms;
+    --transition-slow: 300ms;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+    /* Border Radius */
+    --radius-sm: 0.25rem;
+    --radius-md: 0.375rem;
+    --radius-lg: 0.5rem;
+    --radius-xl: 0.75rem;
+  }
+
+  /* Dark mode support (future) */
+  .dark {
+    --color-background: 14 31 47;
+    --color-foreground: 245 241 230;
+    --color-muted: 30 58 82;
+    --color-muted-foreground: 156 163 175;
+  }
+
+  /* Base styles */
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: rgb(var(--color-background));
+    color: rgb(var(--color-foreground));
+    line-height: 1.6;
+  }
+
+  /* Typography */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    line-height: 1.2;
+    color: rgb(var(--color-secondary));
+  }
+
+  h1 { font-size: 2.5rem; }
+  h2 { font-size: 2rem; }
+  h3 { font-size: 1.5rem; }
+  h4 { font-size: 1.25rem; }
+
+  @media (min-width: 768px) {
+    h1 { font-size: 3.5rem; }
+    h2 { font-size: 2.5rem; }
+    h3 { font-size: 1.75rem; }
+  }
+
+  /* Focus styles for accessibility */
+  :focus-visible {
+    outline: 2px solid rgb(var(--color-primary));
+    outline-offset: 2px;
+  }
+
+  /* Selection */
+  ::selection {
+    background-color: rgb(var(--color-primary) / 0.2);
+    color: rgb(var(--color-secondary));
+  }
+}
+
+@layer components {
+  /* Container */
+  .container-site {
+    width: 100%;
+    max-width: var(--container-max-width);
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .container-site {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+
+  /* Section padding */
+  .section-padding {
+    padding-top: var(--section-padding);
+    padding-bottom: var(--section-padding);
+  }
+
+  /* Gold accent text */
+  .text-gold {
+    color: rgb(var(--color-primary));
+  }
+
+  /* Gold gradient text */
+  .text-gold-gradient {
+    background: linear-gradient(
+      135deg,
+      rgb(var(--color-primary-light)) 0%,
+      rgb(var(--color-primary)) 50%,
+      rgb(var(--color-primary-dark)) 100%
+    );
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Button base styles */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    border-radius: var(--radius-md);
+    transition: all var(--transition-base) ease-in-out;
+    cursor: pointer;
+  }
+
+  .btn-primary {
+    background-color: rgb(var(--color-primary));
+    color: rgb(var(--color-secondary));
+  }
+
+  .btn-primary:hover {
+    background-color: rgb(var(--color-primary-dark));
+  }
+
+  .btn-secondary {
+    background-color: rgb(var(--color-secondary));
+    color: rgb(var(--color-background));
+  }
+
+  .btn-secondary:hover {
+    background-color: rgb(var(--color-secondary-light));
+  }
+
+  .btn-outline {
+    border: 2px solid rgb(var(--color-primary));
+    color: rgb(var(--color-primary));
+    background-color: transparent;
+  }
+
+  .btn-outline:hover {
+    background-color: rgb(var(--color-primary));
+    color: rgb(var(--color-secondary));
+  }
+
+  /* Card styles */
+  .card {
+    background-color: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    transition: box-shadow var(--transition-base) ease-in-out;
+  }
+
+  .card:hover {
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Decorative gold line */
+  .gold-line {
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(
+      90deg,
+      rgb(var(--color-primary-light)),
+      rgb(var(--color-primary)),
+      rgb(var(--color-primary-dark))
+    );
+    border-radius: 2px;
+  }
+
+  /* Link styles */
+  .link {
+    color: rgb(var(--color-primary-dark));
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color var(--transition-fast) ease-in-out;
+  }
+
+  .link:hover {
+    color: rgb(var(--color-primary));
+  }
+}
+
+@layer utilities {
+  /* Smooth fade-in animation */
+  .animate-fade-in {
+    animation: fadeIn var(--transition-slow) ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Stagger animations for lists */
+  .stagger-children > * {
+    opacity: 0;
+    animation: fadeIn var(--transition-slow) ease-in-out forwards;
+  }
+
+  .stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger-children > *:nth-child(2) { animation-delay: 100ms; }
+  .stagger-children > *:nth-child(3) { animation-delay: 200ms; }
+  .stagger-children > *:nth-child(4) { animation-delay: 300ms; }
+  .stagger-children > *:nth-child(5) { animation-delay: 400ms; }
+
+  /* Aspect ratios */
+  .aspect-golden { aspect-ratio: 1.618 / 1; }
+  .aspect-portrait { aspect-ratio: 3 / 4; }
+  .aspect-landscape { aspect-ratio: 4 / 3; }
+
+  /* Prose styles for content */
+  .prose-psypnos {
+    @apply text-gray-700 leading-relaxed;
+  }
+
+  .prose-psypnos p {
+    @apply mb-4;
+  }
+
+  .prose-psypnos a {
+    @apply text-gold-dark underline hover:text-gold;
+  }
+
+  .prose-psypnos ul {
+    @apply list-disc list-inside mb-4;
+  }
+
+  .prose-psypnos ol {
+    @apply list-decimal list-inside mb-4;
+  }
+
+  .prose-psypnos blockquote {
+    @apply border-l-4 border-gold pl-4 italic my-4;
+  }
+}
