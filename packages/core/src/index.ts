@@ -45,3 +45,50 @@ export {
   serializeCookie,
   type CookieOptions
 } from './utils/cookies';
+
+// Errors
+export {
+  AppError,
+  ValidationError,
+  AuthenticationError,
+  AuthorizationError,
+  NotFoundError,
+  ConflictError,
+  RateLimitError,
+  InternalError,
+  ServiceUnavailableError,
+  ConfigurationError,
+  isAppError,
+  isOperationalError,
+  normalizeError,
+  handleApiError
+} from './errors';
+
+// Environment
+export {
+  validateEnv,
+  assertValidEnv,
+  checkProductionReadiness,
+  getEnv,
+  requireEnv,
+  isProduction,
+  isDevelopment,
+  isTest,
+  type ServerEnv,
+  type ClientEnv,
+  type Env,
+  type EnvValidationResult
+} from './env';
+
+// Rate Limiting
+export {
+  createRateLimiter,
+  MemoryRateLimitStore,
+  RATE_LIMIT_PRESETS,
+  rateLimiters,
+  checkMultipleRateLimits,
+  type RateLimitConfig,
+  type RateLimitRequest,
+  type RateLimitInfo,
+  type RateLimitStore
+} from './middleware/rate-limit';
