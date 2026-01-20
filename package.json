@@ -9,7 +9,10 @@
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint -- --fix",
     "type-check": "turbo run type-check",
-    "clean": "turbo run clean && rm -rf node_modules .turbo",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "clean": "turbo run clean && rm -rf node_modules .turbo coverage",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
     "audit": "pnpm audit --audit-level=moderate",
@@ -18,17 +21,30 @@
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
+    "@vitest/coverage-v8": "^2.0.0",
     "eslint": "^8.57.0",
     "husky": "^9.0.0",
     "lint-staged": "^15.2.0",
     "prettier": "^3.2.0",
     "prettier-plugin-tailwindcss": "^0.5.0",
     "turbo": "^2.0.0",
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "vitest": "^2.0.0"
   },
   "lint-staged": {
-    "*.{ts,tsx,js,jsx}": [
+    "apps/**/*.{ts,tsx,js,jsx}": [
       "eslint --fix",
+      "prettier --write"
+    ],
+    "packages/**/*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "tooling/**/*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{ts,tsx,js,jsx}": [
       "prettier --write"
     ],
     "*.{json,md,css,yaml,yml}": [
