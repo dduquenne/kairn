@@ -201,8 +201,11 @@ export function decodeToken(token: string): JWTPayload | null {
     const parts = token.split('.');
     if (parts.length !== 3) return null;
 
+    const payloadPart = parts[1];
+    if (!payloadPart) return null;
+
     const payload = JSON.parse(
-      Buffer.from(parts[1], 'base64url').toString('utf-8')
+      Buffer.from(payloadPart, 'base64url').toString('utf-8')
     );
     return payload as JWTPayload;
   } catch {

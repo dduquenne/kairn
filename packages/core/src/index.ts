@@ -1,10 +1,12 @@
 // Database
 export {
-  prisma,
+  createPrismaClient,
+  getPrisma,
   isDatabaseConnected,
   disconnectPrisma,
   withDatabase,
-  type PrismaClientConfig
+  type PrismaClientConfig,
+  type PrismaClientLike
 } from './db/prisma';
 
 // Authentication

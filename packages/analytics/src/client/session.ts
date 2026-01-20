@@ -395,10 +395,16 @@ export class SessionManager {
 
 let sessionManagerInstance: SessionManager | null = null;
 
+export interface SessionManagerConfig {
+  sessionStorageKey?: string;
+  sessionTimeout?: number;
+  visitorIdKey?: string;
+}
+
 /**
  * Gets the SessionManager singleton instance
  */
-export function getSessionManager(config?: Parameters<typeof SessionManager>[0]): SessionManager {
+export function getSessionManager(config?: SessionManagerConfig): SessionManager {
   if (typeof window === 'undefined') {
     // Server-side, return empty manager
     return new SessionManager(config);

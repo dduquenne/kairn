@@ -3,14 +3,23 @@
  *
  * Provides a singleton instance of the Prisma client
  * to be used throughout the application.
+ *
+ * Note: This module requires @prisma/client to be installed
+ * and Prisma to be generated in the consuming application.
  */
 
-import { PrismaClient } from "@prisma/client";
+// Generic type for Prisma client (to work without schema generation)
+export type PrismaClientLike = {
+  $connect: () => Promise<void>;
+  $disconnect: () => Promise<void>;
+  $queryRaw: <T = unknown>(query: TemplateStringsArray, ...values: unknown[]) => Promise<T>;
+  [key: string]: unknown;
+};
 
 // Declare global type for the Prisma client in development
 declare global {
   // eslint-disable-next-line no-var
-  var prisma: PrismaClient | undefined;
+  var prisma: PrismaClientLike | undefined;
 }
 
 export interface PrismaClientConfig {
@@ -20,30 +29,51 @@ export interface PrismaClientConfig {
   log?: Array<'query' | 'info' | 'warn' | 'error'>;
 }
 
+let prismaClient: PrismaClientLike | null = null;
+
 /**
  * Create Prisma client with logging configuration
+ * @param PrismaClientClass The PrismaClient class from @prisma/client
+ * @param config Configuration options
  */
-function createPrismaClient(config?: PrismaClientConfig) {
+export function createPrismaClient<T extends new (opts: unknown) => PrismaClientLike>(
+  PrismaClientClass: T,
+  config?: PrismaClientConfig
+): InstanceType<T> {
   const isDev = process.env.NODE_ENV === "development";
   const logConfig = config?.log ?? (isDev && config?.logQueries !== false
     ? ["query", "error", "warn"]
     : ["error"]);
 
-  return new PrismaClient({
+  const client = new PrismaClientClass({
     log: logConfig as Array<'query' | 'info' | 'warn' | 'error'>,
     errorFormat: "pretty",
-  });
+  }) as InstanceType<T>;
+
+  // Cache in development
+  if (process.env.NODE_ENV !== "production") {
+    globalThis.prisma = client;
+  }
+
+  prismaClient = client;
+  return client;
 }
 
-// Use global instance in development to prevent too many connections during hot reloading
-const prisma = globalThis.prisma ?? createPrismaClient();
-
-if (process.env.NODE_ENV !== "production") {
-  globalThis.prisma = prisma;
+/**
+ * Get the Prisma client instance
+ * @throws Error if client hasn't been initialized
+ */
+export function getPrisma(): PrismaClientLike {
+  if (globalThis.prisma) {
+    return globalThis.prisma;
+  }
+  if (prismaClient) {
+    return prismaClient;
+  }
+  throw new Error(
+    "Prisma client not initialized. Call createPrismaClient first with your PrismaClient class."
+  );
 }
-
-export { prisma };
-export default prisma;
 
 /**
  * Check if database is configured and connected
@@ -54,6 +84,7 @@ export async function isDatabaseConnected(): Promise<boolean> {
   }
 
   try {
+    const prisma = getPrisma();
     await prisma.$queryRaw`SELECT 1`;
     return true;
   } catch {
@@ -65,7 +96,12 @@ export async function isDatabaseConnected(): Promise<boolean> {
  * Graceful shutdown helper
  */
 export async function disconnectPrisma(): Promise<void> {
-  await prisma.$disconnect();
+  try {
+    const prisma = getPrisma();
+    await prisma.$disconnect();
+  } catch {
+    // Client not initialized, nothing to disconnect
+  }
 }
 
 /**
