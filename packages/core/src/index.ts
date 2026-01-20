@@ -102,3 +102,33 @@ export {
   type RateLimitInfo,
   type RateLimitStore
 } from './middleware/rate-limit';
+
+// Cache
+export {
+  Cache,
+  MemoryCacheStore,
+  createMemoryCache,
+  getCache,
+  setCache,
+  cacheKeys,
+  CACHE_TTL,
+  type CacheEntry,
+  type CacheSetOptions,
+  type CacheGetOptions,
+  type CacheStats,
+  type CacheStore,
+  type CacheConfig
+} from './cache';
+
+// API Cache
+export {
+  ApiCacheManager,
+  getApiCacheManager,
+  buildCacheControlHeader,
+  API_CACHE_PRESETS,
+  type ApiCacheConfig,
+  type ApiCacheRequest,
+  type ApiCacheResponse,
+  type CacheControlOptions,
+  type CacheResult
+} from './middleware/api-cache';
