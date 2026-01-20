@@ -8,36 +8,47 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
     },
     "./db": {
-      "types": "./dist/db/index.d.ts",
-      "import": "./dist/db/index.js"
+      "types": "./dist/db/prisma.d.ts",
+      "import": "./dist/db/prisma.js"
     },
     "./auth": {
-      "types": "./dist/auth/index.d.ts",
-      "import": "./dist/auth/index.js"
+      "types": "./dist/auth/jwt.d.ts",
+      "import": "./dist/auth/jwt.js"
     },
-    "./middleware": {
-      "types": "./dist/middleware/index.d.ts",
-      "import": "./dist/middleware/index.js"
+    "./logger": {
+      "types": "./dist/logger/index.d.ts",
+      "import": "./dist/logger/index.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/cookies.d.ts",
+      "import": "./dist/utils/cookies.js"
     }
   },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
     "type-check": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "lint": "eslint src --ext .ts"
   },
   "dependencies": {
-    "@kairn/config": "workspace:*",
-    "@prisma/client": "^6.0.0",
-    "jose": "^5.2.0",
-    "bcryptjs": "^2.4.3"
+    "jose": "^5.2.0"
+  },
+  "peerDependencies": {
+    "@prisma/client": "^6.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@prisma/client": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@kairn/typescript-config": "workspace:*",
-    "@types/bcryptjs": "^2.4.6",
+    "@prisma/client": "^6.0.0",
     "typescript": "^5.4.0"
   }
 }
