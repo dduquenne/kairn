@@ -2,7 +2,7 @@
   "name": "@kairn/social",
   "version": "0.0.1",
   "private": true,
-  "description": "Module réseaux sociaux pour les sites Kairn",
+  "description": "Social media integration module for Kairn sites - OAuth and publishing",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -17,6 +17,10 @@
     "./posting": {
       "types": "./dist/posting/index.d.ts",
       "import": "./dist/posting/index.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils/index.js"
     }
   },
   "scripts": {
@@ -30,7 +34,21 @@
     "@kairn/core": "workspace:*"
   },
   "devDependencies": {
+    "@kairn/eslint-config": "workspace:*",
     "@kairn/typescript-config": "workspace:*",
+    "@types/node": "^20.10.0",
     "typescript": "^5.4.0"
-  }
+  },
+  "keywords": [
+    "social-media",
+    "oauth",
+    "facebook",
+    "instagram",
+    "linkedin",
+    "twitter",
+    "threads",
+    "publishing"
+  ],
+  "author": "Kairn Team",
+  "license": "UNLICENSED"
 }
