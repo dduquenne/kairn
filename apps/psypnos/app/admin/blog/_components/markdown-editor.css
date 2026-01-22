@@ -1,0 +1,139 @@
+/* Styles personnalisés pour l'éditeur Markdown */
+.markdown-editor-wrapper {
+  @apply rounded-lg overflow-hidden;
+}
+
+/* Override des styles par défaut de @uiw/react-md-editor pour le thème sombre */
+.markdown-editor-wrapper[data-color-mode="dark"] .w-md-editor {
+  @apply bg-night/50 border border-ivory/20 rounded-lg shadow-lg;
+  color: #e8dfc4; /* ivory */
+}
+
+.markdown-editor-wrapper[data-color-mode="dark"] .w-md-editor-toolbar {
+  @apply bg-night/80 border-b border-ivory/10;
+}
+
+.markdown-editor-wrapper[data-color-mode="dark"] .w-md-editor-toolbar button {
+  @apply text-ivory/70 hover:text-gold hover:bg-gold/10 transition-colors;
+}
+
+.markdown-editor-wrapper[data-color-mode="dark"] .w-md-editor-toolbar button.active {
+  @apply text-gold bg-gold/20;
+}
+
+.markdown-editor-wrapper[data-color-mode="dark"] .w-md-editor-toolbar li {
+  @apply border-ivory/10;
+}
+
+.markdown-editor-wrapper[data-color-mode="dark"] .w-md-editor-text-pre,
+.markdown-editor-wrapper[data-color-mode="dark"] .w-md-editor-text-input {
+  @apply bg-transparent text-ivory;
+  caret-color: #d4af37; /* gold */
+}
+
+.markdown-editor-wrapper[data-color-mode="dark"] .w-md-editor-text-pre > code,
+.markdown-editor-wrapper[data-color-mode="dark"] .w-md-editor-text-input {
+  font-size: 14px !important;
+  line-height: 1.7 !important;
+}
+
+.markdown-editor-wrapper[data-color-mode="dark"] .w-md-editor-preview {
+  @apply bg-night/30;
+}
+
+.markdown-editor-wrapper[data-color-mode="dark"] .wmde-markdown {
+  @apply bg-transparent text-ivory/85;
+}
+
+/* Sélection de texte */
+.markdown-editor-wrapper[data-color-mode="dark"] .w-md-editor-text-input::selection,
+.markdown-editor-wrapper[data-color-mode="dark"] .w-md-editor-text-pre code::selection {
+  @apply bg-gold/30;
+}
+
+/* Scrollbar personnalisée */
+.markdown-editor-wrapper[data-color-mode="dark"] .w-md-editor-text-pre::-webkit-scrollbar,
+.markdown-editor-wrapper[data-color-mode="dark"] .w-md-editor-preview::-webkit-scrollbar {
+  @apply w-2;
+}
+
+.markdown-editor-wrapper[data-color-mode="dark"] .w-md-editor-text-pre::-webkit-scrollbar-track,
+.markdown-editor-wrapper[data-color-mode="dark"] .w-md-editor-preview::-webkit-scrollbar-track {
+  @apply bg-night/50;
+}
+
+.markdown-editor-wrapper[data-color-mode="dark"] .w-md-editor-text-pre::-webkit-scrollbar-thumb,
+.markdown-editor-wrapper[data-color-mode="dark"] .w-md-editor-preview::-webkit-scrollbar-thumb {
+  @apply bg-ivory/20 rounded-full;
+}
+
+.markdown-editor-wrapper[data-color-mode="dark"] .w-md-editor-text-pre::-webkit-scrollbar-thumb:hover,
+.markdown-editor-wrapper[data-color-mode="dark"] .w-md-editor-preview::-webkit-scrollbar-thumb:hover {
+  @apply bg-gold/40;
+}
+
+/* Placeholder */
+.markdown-editor-wrapper[data-color-mode="dark"] .w-md-editor-text-input::placeholder {
+  @apply text-ivory/40;
+}
+
+/* Focus states */
+.markdown-editor-wrapper[data-color-mode="dark"] .w-md-editor:focus-within {
+  @apply border-gold ring-2 ring-gold/20;
+}
+
+/* Sync les styles de prévisualisation avec le blog */
+.markdown-editor-wrapper .wmde-markdown {
+  @apply text-ivory/85 leading-relaxed;
+  font-size: 1.0625rem;
+  line-height: 1.75;
+}
+
+.markdown-editor-wrapper .wmde-markdown h2 {
+  @apply text-3xl font-bold text-ivory mt-12 mb-6 border-b border-gold/20 pb-3;
+}
+
+.markdown-editor-wrapper .wmde-markdown h3 {
+  @apply text-2xl font-bold text-ivory mt-10 mb-4;
+}
+
+.markdown-editor-wrapper .wmde-markdown p {
+  @apply mb-6;
+}
+
+.markdown-editor-wrapper .wmde-markdown a {
+  @apply text-gold hover:text-gold/80 underline decoration-gold/30 hover:decoration-gold/60 transition-colors;
+}
+
+.markdown-editor-wrapper .wmde-markdown blockquote {
+  @apply border-l-4 border-gold pl-6 py-4 my-8 bg-gradient-to-r from-gold/10 to-transparent rounded-r-lg italic text-ivory/90;
+}
+
+.markdown-editor-wrapper .wmde-markdown code {
+  @apply bg-ivory/10 text-gold px-1.5 py-0.5 rounded text-sm;
+}
+
+.markdown-editor-wrapper .wmde-markdown pre {
+  @apply bg-night/80 rounded-lg p-6 my-8 overflow-x-auto border border-ivory/10;
+}
+
+.markdown-editor-wrapper .wmde-markdown pre code {
+  @apply bg-transparent text-ivory/90 px-0 py-0;
+}
+
+.markdown-editor-wrapper .wmde-markdown ul,
+.markdown-editor-wrapper .wmde-markdown ol {
+  @apply mb-6 pl-6 space-y-2;
+}
+
+.markdown-editor-wrapper .wmde-markdown li {
+  @apply text-ivory/85;
+}
+
+.markdown-editor-wrapper .wmde-markdown strong {
+  @apply text-ivory font-semibold;
+}
+
+.markdown-editor-wrapper .wmde-markdown em {
+  @apply text-ivory/90 italic;
+}

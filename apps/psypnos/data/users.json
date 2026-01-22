@@ -1,0 +1,12 @@
+{
+  "items": [
+    {
+      "id": "cb3a8164-6cf0-4dc3-b158-85aa8949afa0",
+      "email": "david@psypnos.fr",
+      "passwordHash": "$2b$12$cd3Wv16m47927Bw5sZ88D.WrwXWIOh40wBGxiPFbC2S3TKNm6gH8C",
+      "role": "admin",
+      "createdAt": "2025-11-17T18:46:14.345Z",
+      "updatedAt": "2025-11-17T18:46:14.345Z"
+    }
+  ]
+}

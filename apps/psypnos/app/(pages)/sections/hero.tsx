@@ -1,0 +1,321 @@
+"use client";
+
+import { useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import Image from "next/image";
+import Link from "next/link";
+import { CTAButton } from "../../../components/CTAButton";
+
+const heroContent = {
+  title1: "Accueillir ce qui est.",
+  title2: "Explorer ce qui vient.",
+  subtitle:
+    "Traversez les crises, réveillez votre sagesse intérieure et redonnez du sens à votre vie.",
+  ctas: {
+    primary: "Prendre un rendez-vous",
+    secondary: "S'inscrire à un séminaire",
+    tertiary: "Découvrir mon approche",
+  },
+};
+
+const heroPractitioner = {
+  name: "David Duquenne",
+  headline: "Psychothérapie & Hypnose",
+  address: "Le Moulin d'en Bas – 89330 Saint-Julien du Sault",
+  description:
+    "Praticien certifié en psychothérapie et en hypnose, je suis spécialisé dans l'accompagnement des personnes traversant des périodes de transition émotionnelle ou psychologique. Qu'il s'agisse de gérer le stress, de surmonter des blocages ou de vivre un deuil, mon approche allie écoute bienveillante et techniques thérapeutiques adaptées à chaque besoin spécifique. Je suis convaincu que chaque individu possède en lui les ressources nécessaires pour évoluer vers un mieux-être, et mon rôle est de vous aider à les découvrir.",
+};
+
+export function HeroSection() {
+  const heroRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+  const heroParallax = useTransform(scrollYProgress, [0, 1], [0, -140]);
+  const secondaryParallax = useTransform(scrollYProgress, [0, 1], [0, -70]);
+  const glowOpacity = useTransform(scrollYProgress, [0, 1], [0.6, 0.2]);
+
+  return (
+    <header
+      ref={heroRef}
+      className="relative overflow-hidden bg-night px-6 pb-24 pt-24 sm:px-8 lg:px-16"
+      aria-label="Introduction"
+    >
+      {/* Gradient glow effects */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{ opacity: glowOpacity }}
+      >
+        <motion.div
+          className="absolute -left-40 top-10 h-96 w-96 rounded-full bg-[radial-gradient(circle_at_center,_rgba(199,169,98,0.35),_transparent_70%)]"
+          style={{ y: heroParallax }}
+        />
+        <motion.div
+          className="absolute right-0 top-40 h-[28rem] w-[28rem] translate-x-1/3 rounded-full bg-[radial-gradient(circle_at_center,_rgba(245,241,230,0.25),_transparent_70%)]"
+          style={{ y: secondaryParallax }}
+        />
+      </motion.div>
+
+      <div className="mx-auto flex max-w-6xl flex-col items-center gap-10 text-center">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 2, ease: "easeOut" }}
+          className="flex h-24 w-24 flex-col items-center justify-center bg-night/40 "
+        >
+          <motion.svg
+            initial={{ scale: 0.5, rotate: -360 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ duration: 2.2, ease: "easeOut" }}
+            width="100"
+            height="100"
+            viewBox="0 0 600 600"
+            aria-label="Logo spiralé"
+          >
+            <motion.circle
+              cx="300"
+              cy="300"
+              r="250"
+              fill="none"
+              stroke="#c7a962"
+              strokeWidth="25"
+            />
+            <motion.path
+              d="
+                M 300 550
+                a 200,200 0 0 0 200,-200
+                a 180,180 0 0 0 -180,-180
+                a 144,144 0 0 0 -144,144
+                a 100.8,100.8 0 0 0 100.8,100.8
+                a 60.48,60.48 0 0 0 60.48,-60.48"
+              fill="none"
+              stroke="#c7a962"
+              strokeWidth="25"
+              strokeLinecap="round"
+            />
+          </motion.svg>
+          <motion.svg
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 2, delay: 1, ease: "easeOut" }}
+            width="100"
+            height="50"
+            viewBox="0 0 1000 500"
+            aria-label="Psypnos"
+            className="flex h-24 w-24 items-center justify-center bg-night/40 "
+          >
+            <motion.text
+              x="50%"
+              y="50%"
+              fill="#c7a962"
+              textAnchor="middle"
+              fontFamily="Georgia,Times,serif"
+              fontSize="180"
+              fontWeight="bold"
+            >
+              Psypnos
+            </motion.text>
+          </motion.svg>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 3.3, ease: "easeOut" }}
+          className="max-w-3xl"
+        >
+          <h1 className="text-4xl font-semibold text-ivory sm:text-5xl lg:text-6xl">
+            <span className="block">{heroContent.title1}</span>
+            <span className="block">{heroContent.title2}</span>
+          </h1>
+          <p className="mt-6 text-base text-ivory/80 sm:text-lg">
+            {heroContent.subtitle}
+          </p>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 3.5, ease: "easeOut" }}
+          className="flex flex-col items-center gap-6"
+        >
+          {/* Boutons principaux */}
+          <div className="flex flex-col gap-4 sm:flex-row sm:gap-5">
+            <CTAButton variant="primary" href="/demande-rendez-vous">
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+              {heroContent.ctas.primary}
+            </CTAButton>
+            <CTAButton variant="secondary" href="/inscription-seminaire">
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                />
+              </svg>
+              {heroContent.ctas.secondary}
+            </CTAButton>
+          </div>
+
+          {/* Lien tertiaire */}
+          <Link
+            href="#approche"
+            className="group inline-flex items-center gap-2 text-sm text-ivory/70 transition-colors duration-300 hover:text-gold"
+          >
+            <span>{heroContent.ctas.tertiary}</span>
+            <svg
+              className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </Link>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 2, delay: 3.6, ease: "easeOut" }}
+          className="relative flex w-full flex-col items-center justify-center gap-8 overflow-hidden lg:flex-row lg:items-start lg:justify-center"
+        >
+          <Image
+            src="/images/David_Duquenne.webp"
+            alt="David Duquenne"
+            className="fade-mask"
+            width={400}
+            height={225}
+          />
+          <div className="max-w-xl text-center lg:text-left">
+            <br />
+            <br />
+            <br />
+            <p className="mb-2 text-sm uppercase tracking-[0.3em] text-gold/80">
+              {heroPractitioner.headline}
+            </p>
+            <h2 className="text-3xl font-semibold text-ivory sm:text-4xl">
+              {heroPractitioner.name}
+            </h2>
+            <p className="mt-6 text-base text-gold sm:text-lg">
+              {heroPractitioner.address}
+            </p>
+            <p className="mt-4 text-base text-ivory/80 sm:text-lg">
+              {heroPractitioner.description}
+            </p>
+            {/* Liens vers les pratiques */}
+            <div className="mt-10 flex flex-wrap justify-center gap-x-8 gap-y-4 lg:justify-start">
+              <Link
+                href="/a-propos"
+                className="group inline-flex items-center gap-2 text-sm text-ivory/60 transition-all duration-300 hover:text-gold"
+              >
+                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-ivory/20 bg-ivory/5 transition-all duration-300 group-hover:border-gold/50 group-hover:bg-gold/10">
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+                    />
+                  </svg>
+                </span>
+                <span className="font-medium">Mon parcours</span>
+              </Link>
+              <Link
+                href="#psychotherapie"
+                className="group inline-flex items-center gap-2 text-sm text-ivory/60 transition-all duration-300 hover:text-gold"
+              >
+                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-ivory/20 bg-ivory/5 transition-all duration-300 group-hover:border-gold/50 group-hover:bg-gold/10">
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"
+                    />
+                  </svg>
+                </span>
+                <span className="font-medium">Psychothérapie</span>
+              </Link>
+              <Link
+                href="#hypnose"
+                className="group inline-flex items-center gap-2 text-sm text-ivory/60 transition-all duration-300 hover:text-gold"
+              >
+                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-ivory/20 bg-ivory/5 transition-all duration-300 group-hover:border-gold/50 group-hover:bg-gold/10">
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"
+                    />
+                  </svg>
+                </span>
+                <span className="font-medium">Hypnose</span>
+              </Link>
+              <Link
+                href="#respiration-holotropique"
+                className="group inline-flex items-center gap-2 text-sm text-ivory/60 transition-all duration-300 hover:text-gold"
+              >
+                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-ivory/20 bg-ivory/5 transition-all duration-300 group-hover:border-gold/50 group-hover:bg-gold/10">
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </span>
+                <span className="font-medium">Respiration holotropique</span>
+              </Link>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </header>
+  );
+}

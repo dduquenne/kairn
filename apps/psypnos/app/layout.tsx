@@ -1,120 +1,252 @@
-import type { Metadata, Viewport } from 'next';
-import { Open_Sans, Cormorant_Garamond } from 'next/font/google';
-import { ToastProvider } from '@kairn/ui';
-import { siteConfig } from '@/config/site.config';
-import './globals.css';
+import type { Metadata, Viewport } from "next";
+import { Inter, Playfair_Display } from "next/font/google";
+import { ToastProvider } from "@kairn/ui";
+import "./globals.css";
 
-// Fonts configuration
-const openSans = Open_Sans({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-sans',
-  weight: ['300', '400', '500', '600', '700'],
+// PERFORMANCE : ISR avec revalidation toutes les 24h
+export const revalidate = 86400;
+
+// Fonts configuration - identique au projet source
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-sans",
 });
 
-const cormorantGaramond = Cormorant_Garamond({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-heading',
-  weight: ['400', '500', '600', '700'],
+const playfairDisplay = Playfair_Display({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-display",
 });
 
 // Metadata
 export const metadata: Metadata = {
-  metadataBase: new URL(`https://${siteConfig.domain}`),
+  metadataBase: new URL("https://psypnos.fr"),
+
   title: {
-    default: `${siteConfig.name} - ${siteConfig.practitioner.title}`,
-    template: `%s | ${siteConfig.name}`,
+    default:
+      "Psypnos - Psychothérapie, Hypnose & Respiration Holotropique | Saint-Julien-du-Sault, Yonne",
+    template: "%s | Psypnos",
   },
-  description: siteConfig.seo.description,
-  keywords: siteConfig.seo.keywords,
-  authors: [{ name: siteConfig.practitioner.name }],
-  creator: siteConfig.practitioner.name,
-  publisher: siteConfig.name,
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
+
+  description:
+    "David Duquenne, psychothérapeute et praticien en hypnose ericksonienne. Accompagnement des crises de vie, anxiété, deuil, burn-out. Séminaires de respiration holotropique dans l'Yonne (89).",
+
+  keywords: [
+    "psychothérapie",
+    "hypnose ericksonienne",
+    "respiration holotropique",
+    "psychothérapeute Yonne",
+    "hypnose Saint-Julien-du-Sault",
+    "thérapie anxiété",
+    "accompagnement burn-out",
+    "gestion deuil",
+    "crise de vie",
+    "séminaire respiration",
+    "David Duquenne",
+  ],
+
+  authors: [{ name: "David Duquenne" }],
+  creator: "Psypnos",
+
   openGraph: {
-    type: 'website',
-    locale: siteConfig.locale,
-    url: `https://${siteConfig.domain}`,
-    siteName: siteConfig.name,
-    title: `${siteConfig.name} - ${siteConfig.practitioner.title}`,
-    description: siteConfig.seo.description,
-    ...(siteConfig.seo.ogImage && {
-      images: [
-        {
-          url: siteConfig.seo.ogImage,
-          width: 1200,
-          height: 630,
-          alt: siteConfig.name,
-        },
-      ],
-    }),
+    type: "website",
+    locale: "fr_FR",
+    url: "https://psypnos.fr",
+    title: "Psypnos - Psychothérapie & Hypnose avec David Duquenne",
+    description:
+      "Accompagnement thérapeutique personnalisé : psychothérapie transpersonnelle, hypnose ericksonienne et respiration holotropique. Consultations à Saint-Julien-du-Sault et en visio.",
+    siteName: "Psypnos",
+    images: [
+      {
+        url: "/images/David_Duquenne.webp",
+        width: 1029,
+        height: 973,
+        alt: "David Duquenne - Psychothérapeute et Praticien en Hypnose",
+      },
+    ],
   },
+
   twitter: {
-    card: 'summary_large_image',
-    title: `${siteConfig.name} - ${siteConfig.practitioner.title}`,
-    description: siteConfig.seo.description,
-    ...(siteConfig.seo.ogImage && { images: [siteConfig.seo.ogImage] }),
+    card: "summary_large_image",
+    title: "Psypnos - Psychothérapie & Hypnose",
+    description:
+      "Accompagnement thérapeutique avec David Duquenne : psychothérapie, hypnose et respiration holotropique dans l'Yonne.",
+    images: ["/images/David_Duquenne.webp"],
   },
+
+  alternates: {
+    canonical: "https://psypnos.fr",
+  },
+
   robots: {
     index: true,
     follow: true,
     googleBot: {
       index: true,
       follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
     },
   },
-  // verification: google verification is set in the site config if needed
-  alternates: {
-    canonical: `https://${siteConfig.domain}`,
+
+  icons: {
+    icon: [
+      {
+        url: "/favicon.svg",
+        type: "image/svg+xml",
+        sizes: "any",
+      },
+      {
+        url: "/favicon-32x32.png",
+        type: "image/png",
+        sizes: "32x32",
+      },
+      {
+        url: "/favicon-16x16.png",
+        type: "image/png",
+        sizes: "16x16",
+      },
+    ],
+    apple: [
+      {
+        url: "/apple-touch-icon.png",
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Psypnos",
+  },
+  manifest: "/manifest.webmanifest",
 };
 
 export const viewport: Viewport = {
-  themeColor: siteConfig.theme.colors.primary,
-  width: 'device-width',
+  themeColor: "#0e1f2f",
+  width: "device-width",
   initialScale: 1,
   maximumScale: 5,
+  colorScheme: "dark",
 };
 
 // JSON-LD Structured Data
 function generateStructuredData() {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'LocalBusiness',
-    '@id': `https://${siteConfig.domain}`,
-    name: siteConfig.name,
-    description: siteConfig.seo.description,
-    url: `https://${siteConfig.domain}`,
-    telephone: siteConfig.contact.phone,
-    email: siteConfig.contact.email,
+  const organizationSchema = {
+    "@context": "https://schema.org",
+    "@type": ["MedicalBusiness", "LocalBusiness", "HealthAndBeautyBusiness"],
+    "@id": "https://psypnos.fr/#organization",
+    name: "Psypnos",
+    alternateName: "Psypnos - David Duquenne Psychothérapeute",
+    description:
+      "Cabinet de psychothérapie transpersonnelle, hypnose ericksonienne et respiration holotropique à Saint-Julien-du-Sault dans l'Yonne (89). Accompagnement personnalisé pour anxiété, burn-out, deuil et crises de vie.",
+    url: "https://psypnos.fr",
+    logo: {
+      "@type": "ImageObject",
+      url: "https://psypnos.fr/favicon.svg",
+      width: 512,
+      height: 512,
+    },
+    image: {
+      "@type": "ImageObject",
+      url: "https://psypnos.fr/images/David_Duquenne.webp",
+      width: 1029,
+      height: 973,
+      caption: "David Duquenne - Psychothérapeute et Praticien en Hypnose",
+    },
     address: {
-      '@type': 'PostalAddress',
-      streetAddress: siteConfig.contact.address.street,
-      addressLocality: siteConfig.contact.address.city,
-      postalCode: siteConfig.contact.address.postalCode,
-      addressCountry: siteConfig.contact.address.country,
+      "@type": "PostalAddress",
+      streetAddress: "Le Moulin d'en Bas",
+      addressLocality: "Saint-Julien-du-Sault",
+      addressRegion: "Bourgogne-Franche-Comté",
+      postalCode: "89330",
+      addressCountry: "FR",
     },
     geo: {
-      '@type': 'GeoCoordinates',
-      latitude: siteConfig.contact.coordinates.lat,
-      longitude: siteConfig.contact.coordinates.lng,
+      "@type": "GeoCoordinates",
+      latitude: 48.0167,
+      longitude: 3.2833,
     },
-    priceRange: '€€',
-    image: `https://${siteConfig.domain}/images/og-image.jpg`,
+    contactPoint: {
+      "@type": "ContactPoint",
+      email: "contact@psypnos.fr",
+      contactType: "customer service",
+      availableLanguage: ["French"],
+    },
     founder: {
-      '@type': 'Person',
-      name: siteConfig.practitioner.name,
-      jobTitle: siteConfig.practitioner.title,
+      "@type": "Person",
+      "@id": "https://psypnos.fr/#david-duquenne",
+      name: "David Duquenne",
+      jobTitle: "Psychothérapeute",
+      description:
+        "Praticien certifié en psychothérapie transpersonnelle et hypnose ericksonienne",
+      image: "https://psypnos.fr/images/David_Duquenne.webp",
     },
+    medicalSpecialty: ["Psychotherapy", "Hypnotherapy"],
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: "Services thérapeutiques",
+      itemListElement: [
+        {
+          "@type": "Offer",
+          itemOffered: {
+            "@type": "Service",
+            name: "Psychothérapie transpersonnelle",
+            description:
+              "Accompagnement thérapeutique personnalisé pour traverser les épreuves de vie",
+          },
+        },
+        {
+          "@type": "Offer",
+          itemOffered: {
+            "@type": "Service",
+            name: "Hypnose ericksonienne",
+            description:
+              "Séances d'hypnose pour anxiété, phobies et changement comportemental",
+          },
+        },
+        {
+          "@type": "Offer",
+          itemOffered: {
+            "@type": "Service",
+            name: "Séminaires de respiration holotropique",
+            description:
+              "Ateliers collectifs de respiration holotropique pour exploration intérieure",
+          },
+        },
+      ],
+    },
+    priceRange: "€€",
+    openingHoursSpecification: [
+      {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        opens: "09:00",
+        closes: "19:00",
+      },
+    ],
+    paymentAccepted: ["Cash", "Check"],
+    currenciesAccepted: "EUR",
   };
+
+  const websiteSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": "https://psypnos.fr/#website",
+    url: "https://psypnos.fr",
+    name: "Psypnos",
+    description:
+      "Site officiel de Psypnos - Psychothérapie, Hypnose et Respiration Holotropique",
+    publisher: {
+      "@id": "https://psypnos.fr/#organization",
+    },
+    inLanguage: "fr-FR",
+  };
+
+  return [organizationSchema, websiteSchema];
 }
 
 export default function RootLayout({
@@ -124,15 +256,11 @@ export default function RootLayout({
 }) {
   return (
     <html
-      lang={siteConfig.locale}
-      className={`${openSans.variable} ${cormorantGaramond.variable}`}
+      lang="fr"
+      className={`${inter.variable} ${playfairDisplay.variable}`}
       suppressHydrationWarning
     >
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <link rel="manifest" href="/manifest.json" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -140,28 +268,8 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-screen bg-background font-sans antialiased">
-        <ToastProvider position="top-right">
-          {/* Skip to main content for accessibility */}
-          <a
-            href="#main-content"
-            className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-primary focus:text-white"
-          >
-            Aller au contenu principal
-          </a>
-
-          {/* Main layout structure */}
-          <div className="relative flex min-h-screen flex-col">
-            {/* Header will be added here */}
-
-            {/* Main content */}
-            <main id="main-content" className="flex-1">
-              {children}
-            </main>
-
-            {/* Footer will be added here */}
-          </div>
-        </ToastProvider>
+      <body className="bg-night text-ivory antialiased">
+        <ToastProvider position="top-right">{children}</ToastProvider>
       </body>
     </html>
   );

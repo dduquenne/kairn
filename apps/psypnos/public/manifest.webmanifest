@@ -1,0 +1,85 @@
+{
+  "name": "Psypnos Analytics",
+  "short_name": "Analytics",
+  "description": "Tableau de bord analytics mobile pour Psypnos - Suivez vos statistiques en temps réel",
+  "start_url": "/admin/analytics/mobile",
+  "display": "standalone",
+  "scope": "/admin/analytics/",
+  "theme_color": "#1a1a2e",
+  "background_color": "#1a1a2e",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity", "analytics"],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Vue d'ensemble des statistiques",
+      "url": "/admin/analytics/mobile/dashboard",
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Blog Stats",
+      "short_name": "Blog",
+      "description": "Statistiques des articles de blog",
+      "url": "/admin/analytics/mobile/blog",
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Alertes",
+      "short_name": "Alertes",
+      "description": "Anomalies et alertes",
+      "url": "/admin/analytics/mobile/alerts",
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/images/David_Duquenne.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Dashboard Analytics Mobile"
+    }
+  ]
+}

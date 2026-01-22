@@ -1,0 +1,299 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+
+import { GlobalHeader } from "../../components/GlobalHeader";
+
+export const dynamic = "force-static";
+
+export const metadata: Metadata = {
+  title: "Conditions d'Utilisation",
+  description: "Conditions générales d'utilisation du site Psypnos. Règles d'utilisation, responsabilités et droits relatifs à l'utilisation de nos services.",
+  openGraph: {
+    title: "Conditions d'Utilisation | Psypnos",
+    description: "Conditions générales d'utilisation du site et des services Psypnos.",
+    url: "https://psypnos.fr/conditions-utilisation",
+    type: "website",
+  },
+  alternates: {
+    canonical: "https://psypnos.fr/conditions-utilisation"
+  }
+};
+
+const lastUpdatedLabel = "8 janvier 2026";
+
+export default function TermsOfServicePage() {
+  return (
+    <>
+      <GlobalHeader context="privacy" />
+      <main className="min-h-screen bg-gradient-to-b from-night via-night/95 to-night px-6 py-24 sm:px-10 lg:px-16">
+        <article className="mx-auto max-w-4xl space-y-12 rounded-3xl border border-ivory/10 bg-night/60 p-10 shadow-xl shadow-night/40">
+          <header className="space-y-6 text-center">
+            <p className="text-sm uppercase tracking-[0.3em] text-gold/80">Psypnos</p>
+            <h1 className="text-3xl font-semibold text-ivory sm:text-4xl">Conditions d'Utilisation</h1>
+            <p className="text-sm text-ivory/60">Dernière mise à jour : {lastUpdatedLabel}</p>
+          </header>
+
+          <div className="space-y-10">
+            {/* Introduction */}
+            <section className="space-y-4">
+              <p className="text-base leading-relaxed text-ivory/80">
+                Bienvenue sur Psypnos. En accédant à ce site web et en utilisant nos services, vous acceptez d'être lié
+                par les présentes conditions d'utilisation. Veuillez les lire attentivement avant d'utiliser notre site.
+              </p>
+            </section>
+
+            {/* Définitions */}
+            <section className="space-y-4">
+              <h2 className="text-2xl font-semibold text-ivory">1. Définitions</h2>
+              <div className="space-y-3 text-ivory/80">
+                <ul className="space-y-2">
+                  <li className="rounded-xl border border-ivory/10 bg-night/60 px-4 py-3">
+                    <span className="font-semibold text-ivory">"Site"</span> désigne le site web psypnos.fr et l'ensemble
+                    de ses pages et fonctionnalités.
+                  </li>
+                  <li className="rounded-xl border border-ivory/10 bg-night/60 px-4 py-3">
+                    <span className="font-semibold text-ivory">"Services"</span> désigne l'ensemble des services proposés
+                    par Psypnos, incluant les fonctionnalités du site, les publications sur les réseaux sociaux et les
+                    communications associées.
+                  </li>
+                  <li className="rounded-xl border border-ivory/10 bg-night/60 px-4 py-3">
+                    <span className="font-semibold text-ivory">"Utilisateur"</span> désigne toute personne qui accède au
+                    Site ou utilise les Services.
+                  </li>
+                  <li className="rounded-xl border border-ivory/10 bg-night/60 px-4 py-3">
+                    <span className="font-semibold text-ivory">"Contenu"</span> désigne tout texte, image, vidéo ou autre
+                    matériel publié sur le Site ou via les Services.
+                  </li>
+                </ul>
+              </div>
+            </section>
+
+            {/* Acceptation des conditions */}
+            <section className="space-y-4">
+              <h2 className="text-2xl font-semibold text-ivory">2. Acceptation des conditions</h2>
+              <div className="space-y-3 text-ivory/80">
+                <p>
+                  En utilisant ce Site ou nos Services, vous confirmez avoir lu, compris et accepté les présentes
+                  Conditions d'Utilisation ainsi que notre{" "}
+                  <Link
+                    href="/politique-de-confidentialite"
+                    className="text-gold transition hover:text-gold/80 focus:outline-none focus:ring-2 focus:ring-gold/60 focus:ring-offset-2 focus:ring-offset-night"
+                  >
+                    Politique de Confidentialité
+                  </Link>
+                  . Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser notre Site ni nos Services.
+                </p>
+              </div>
+            </section>
+
+            {/* Utilisation du site */}
+            <section className="space-y-4">
+              <h2 className="text-2xl font-semibold text-ivory">3. Utilisation du Site</h2>
+              <div className="space-y-4 text-ivory/80">
+                <p>En utilisant ce Site, vous vous engagez à :</p>
+                <ul className="space-y-2">
+                  {[
+                    "Utiliser le Site uniquement à des fins légales et conformes aux présentes conditions",
+                    "Ne pas tenter d'accéder de manière non autorisée à des parties sécurisées du Site",
+                    "Ne pas utiliser le Site d'une manière qui pourrait l'endommager ou en affecter les performances",
+                    "Ne pas collecter ou récolter des informations personnelles d'autres utilisateurs",
+                    "Ne pas utiliser de robots, scrapers ou autres moyens automatisés pour accéder au Site",
+                  ].map((item) => (
+                    <li key={item} className="rounded-xl border border-ivory/10 bg-night/60 px-4 py-3">
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </section>
+
+            {/* Intégration réseaux sociaux */}
+            <section className="space-y-4">
+              <h2 className="text-2xl font-semibold text-ivory">4. Intégration avec les réseaux sociaux</h2>
+              <div className="space-y-4 text-ivory/80">
+                <p>
+                  Nos Services peuvent inclure des fonctionnalités d'intégration avec des plateformes de réseaux sociaux
+                  telles que Facebook, Instagram et LinkedIn.
+                </p>
+                <h3 className="text-lg font-semibold text-ivory">4.1 Autorisation de publication</h3>
+                <p>
+                  En connectant votre compte de réseau social à nos Services, vous nous autorisez à publier du contenu
+                  sur vos pages ou profils selon les permissions que vous avez accordées. Vous pouvez révoquer ces
+                  autorisations à tout moment.
+                </p>
+                <h3 className="text-lg font-semibold text-ivory">4.2 Responsabilité du contenu</h3>
+                <p>
+                  Vous restez responsable de tout contenu publié via nos Services sur vos comptes de réseaux sociaux.
+                  Assurez-vous que le contenu respecte les conditions d'utilisation des plateformes concernées.
+                </p>
+                <h3 className="text-lg font-semibold text-ivory">4.3 Conditions des tiers</h3>
+                <p>
+                  L'utilisation des fonctionnalités de réseaux sociaux est également soumise aux conditions d'utilisation
+                  et politiques de confidentialité des plateformes tierces (Facebook, Instagram, LinkedIn, etc.).
+                </p>
+              </div>
+            </section>
+
+            {/* Propriété intellectuelle */}
+            <section className="space-y-4">
+              <h2 className="text-2xl font-semibold text-ivory">5. Propriété intellectuelle</h2>
+              <div className="space-y-4 text-ivory/80">
+                <p>
+                  Le Site et son contenu original (textes, graphiques, logos, images, et logiciels) sont la propriété de
+                  Psypnos et sont protégés par les lois françaises et internationales sur la propriété intellectuelle.
+                </p>
+                <ul className="space-y-2">
+                  {[
+                    "Vous ne pouvez pas copier, modifier ou distribuer le contenu du Site sans autorisation écrite",
+                    "Les marques, logos et noms commerciaux affichés sont la propriété de leurs détenteurs respectifs",
+                    "Toute utilisation non autorisée peut donner lieu à des poursuites judiciaires",
+                  ].map((item) => (
+                    <li key={item} className="rounded-xl border border-ivory/10 bg-night/60 px-4 py-3">
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </section>
+
+            {/* Limitation de responsabilité */}
+            <section className="space-y-4">
+              <h2 className="text-2xl font-semibold text-ivory">6. Limitation de responsabilité</h2>
+              <div className="space-y-4 text-ivory/80">
+                <p>
+                  Dans les limites autorisées par la loi applicable :
+                </p>
+                <ul className="space-y-2">
+                  {[
+                    "Le Site est fourni \"tel quel\" sans garantie d'aucune sorte",
+                    "Psypnos ne garantit pas que le Site sera disponible de manière ininterrompue ou sans erreur",
+                    "Psypnos n'est pas responsable des dommages indirects résultant de l'utilisation du Site",
+                    "La responsabilité totale de Psypnos est limitée au montant que vous avez payé pour les Services",
+                  ].map((item) => (
+                    <li key={item} className="rounded-xl border border-ivory/10 bg-night/60 px-4 py-3">
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </section>
+
+            {/* Indemnisation */}
+            <section className="space-y-4">
+              <h2 className="text-2xl font-semibold text-ivory">7. Indemnisation</h2>
+              <div className="space-y-3 text-ivory/80">
+                <p>
+                  Vous acceptez d'indemniser et de dégager de toute responsabilité Psypnos contre toute réclamation,
+                  dommage, perte et dépense (y compris les frais juridiques) résultant de votre violation des présentes
+                  Conditions d'Utilisation ou de votre utilisation des Services.
+                </p>
+              </div>
+            </section>
+
+            {/* Liens externes */}
+            <section className="space-y-4">
+              <h2 className="text-2xl font-semibold text-ivory">8. Liens externes</h2>
+              <div className="space-y-3 text-ivory/80">
+                <p>
+                  Le Site peut contenir des liens vers des sites web tiers. Ces liens sont fournis à titre informatif
+                  uniquement. Psypnos n'a aucun contrôle sur le contenu de ces sites et n'assume aucune responsabilité
+                  quant à leur contenu ou leurs pratiques de confidentialité.
+                </p>
+              </div>
+            </section>
+
+            {/* Résiliation */}
+            <section className="space-y-4">
+              <h2 className="text-2xl font-semibold text-ivory">9. Résiliation</h2>
+              <div className="space-y-3 text-ivory/80">
+                <p>
+                  Psypnos se réserve le droit de suspendre ou de résilier votre accès aux Services à tout moment, sans
+                  préavis, en cas de violation des présentes Conditions d'Utilisation. Vous pouvez également cesser
+                  d'utiliser les Services à tout moment.
+                </p>
+              </div>
+            </section>
+
+            {/* Modifications */}
+            <section className="space-y-4">
+              <h2 className="text-2xl font-semibold text-ivory">10. Modifications des conditions</h2>
+              <div className="space-y-3 text-ivory/80">
+                <p>
+                  Psypnos se réserve le droit de modifier les présentes Conditions d'Utilisation à tout moment. Les
+                  modifications prennent effet dès leur publication sur le Site. Votre utilisation continue des Services
+                  après la publication des modifications constitue votre acceptation des nouvelles conditions.
+                </p>
+              </div>
+            </section>
+
+            {/* Droit applicable */}
+            <section className="space-y-4">
+              <h2 className="text-2xl font-semibold text-ivory">11. Droit applicable</h2>
+              <div className="space-y-3 text-ivory/80">
+                <p>
+                  Les présentes Conditions d'Utilisation sont régies par le droit français. Tout litige relatif à leur
+                  interprétation ou à leur exécution relève de la compétence exclusive des tribunaux français.
+                </p>
+              </div>
+            </section>
+
+            {/* Divisibilité */}
+            <section className="space-y-4">
+              <h2 className="text-2xl font-semibold text-ivory">12. Divisibilité</h2>
+              <div className="space-y-3 text-ivory/80">
+                <p>
+                  Si une disposition des présentes Conditions d'Utilisation est jugée invalide ou inapplicable, les
+                  autres dispositions resteront pleinement en vigueur.
+                </p>
+              </div>
+            </section>
+
+            {/* Contact */}
+            <section className="space-y-4">
+              <h2 className="text-2xl font-semibold text-ivory">13. Contact</h2>
+              <div className="space-y-3 text-ivory/80">
+                <p>
+                  Pour toute question concernant ces Conditions d'Utilisation, veuillez nous contacter :
+                </p>
+                <div className="rounded-xl border border-ivory/10 bg-night/60 px-4 py-4">
+                  <p>
+                    <span className="font-semibold text-ivory">Psypnos</span>
+                    <br />
+                    David Duquenne
+                    <br />
+                    Le Moulin d'en Bas
+                    <br />
+                    Saint-Julien-du-Sault, 89330, France
+                    <br />
+                    E-mail :{" "}
+                    <Link
+                      href="mailto:contact@psypnos.fr"
+                      className="text-gold transition hover:text-gold/80 focus:outline-none focus:ring-2 focus:ring-gold/60 focus:ring-offset-2 focus:ring-offset-night"
+                    >
+                      contact@psypnos.fr
+                    </Link>
+                  </p>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          {/* Footer */}
+          <footer className="border-t border-ivory/10 pt-8 text-center">
+            <p className="text-sm text-ivory/60">
+              © {new Date().getFullYear()} Psypnos - Tous droits réservés
+            </p>
+            <p className="mt-2 text-sm text-ivory/60">
+              <Link
+                href="/politique-de-confidentialite"
+                className="text-gold transition hover:text-gold/80"
+              >
+                Politique de confidentialité
+              </Link>
+            </p>
+          </footer>
+        </article>
+      </main>
+    </>
+  );
+}
