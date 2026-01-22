@@ -44,12 +44,24 @@ importers:
       '@anthropic-ai/sdk':
         specifier: ^0.71.2
         version: 0.71.2(zod@3.25.76)
+      '@kairn/admin':
+        specifier: workspace:*
+        version: link:../../packages/admin
+      '@kairn/ai':
+        specifier: workspace:*
+        version: link:../../packages/ai
+      '@kairn/api':
+        specifier: workspace:*
+        version: link:../../packages/api
       '@kairn/config':
         specifier: workspace:*
         version: link:../../packages/config
       '@kairn/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@kairn/social':
+        specifier: workspace:*
+        version: link:../../packages/social
       '@kairn/ui':
         specifier: workspace:*
         version: link:../../packages/ui
