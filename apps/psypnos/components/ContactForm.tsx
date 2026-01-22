@@ -293,7 +293,7 @@ export function ContactForm({ className }: ContactFormProps) {
           variant="primary"
           disabled={status === "pending" || csrfLoading || !csrfToken || !!csrfError}
         >
-          {status === "pending" ? "Envoi en cours…" : csrfLoading ? "Chargement…" : "Envoyer"}
+          {status === "pending" ? "Envoi en cours…" : "Envoyer"}
         </CTAButton>
       </div>
     </form>

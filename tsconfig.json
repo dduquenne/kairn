@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true
+  },
+  "files": [],
+  "references": [
+    { "path": "apps/psypnos" },
+    { "path": "apps/unanima" },
+    { "path": "packages/admin" },
+    { "path": "packages/analytics" },
+    { "path": "packages/blog" },
+    { "path": "packages/cli" },
+    { "path": "packages/config" },
+    { "path": "packages/core" },
+    { "path": "packages/db" },
+    { "path": "packages/social" },
+    { "path": "packages/ui" }
+  ]
+}

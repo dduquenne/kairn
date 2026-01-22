@@ -9,7 +9,8 @@ import { useCallback, useEffect, useState } from "react";
  */
 export function useCSRF() {
   const [csrfToken, setCSRFToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Initialize to false to avoid hydration mismatch - will be set to true when fetch starts
+  const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   /**
@@ -17,7 +18,7 @@ export function useCSRF() {
    */
   const fetchCSRFToken = useCallback(async () => {
     try {
-      setIsLoading(true);
+      setIsFetching(true);
       setError(null);
 
       const response = await fetch("/api/csrf-token", {
@@ -44,7 +45,7 @@ export function useCSRF() {
       setError(message);
       console.error("Erreur CSRF:", err);
     } finally {
-      setIsLoading(false);
+      setIsFetching(false);
     }
   }, []);
 
@@ -64,7 +65,7 @@ export function useCSRF() {
 
   return {
     csrfToken,
-    isLoading,
+    isLoading: isFetching,
     error,
     refreshToken,
   };
