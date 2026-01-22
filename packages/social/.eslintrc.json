@@ -1,0 +1,10 @@
+{
+  "extends": ["@kairn/eslint-config"],
+  "parserOptions": {
+    "project": true
+  },
+  "rules": {
+    "no-console": "off"
+  },
+  "ignorePatterns": ["dist/"]
+}

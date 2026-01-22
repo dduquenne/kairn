@@ -494,9 +494,15 @@ importers:
         specifier: workspace:*
         version: link:../core
     devDependencies:
+      '@kairn/eslint-config':
+        specifier: workspace:*
+        version: link:../../tooling/eslint-config
       '@kairn/typescript-config':
         specifier: workspace:*
         version: link:../../tooling/typescript-config
+      '@types/node':
+        specifier: ^20.10.0
+        version: 20.19.30
       typescript:
         specifier: ^5.4.0
         version: 5.9.3
