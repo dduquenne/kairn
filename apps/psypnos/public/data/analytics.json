@@ -1,0 +1,76 @@
+{
+  "pageVisits": [
+    {
+      "id": "pv_1769073566313_ieu6sn696",
+      "timestamp": "2026-01-22T09:19:17.059Z",
+      "sessionId": "ses_mkp8pwsh_wl3g7p82q_b273",
+      "page": "/psychotherapie",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+      "deviceType": "desktop",
+      "browser": "Chrome",
+      "os": "Mac OS",
+      "isBot": false
+    }
+  ],
+  "sectionTimes": [],
+  "conversionEvents": [],
+  "customEvents": [
+    {
+      "id": "evt_1769073567241_i5rojukx4",
+      "timestamp": "2026-01-22T09:19:25.410Z",
+      "sessionId": "ses_mkp8pwsh_wl3g7p82q_b273",
+      "category": "Engagement",
+      "action": "scroll_depth",
+      "label": "/psychotherapie"
+    },
+    {
+      "id": "evt_1769073567246_emwzw5kma",
+      "timestamp": "2026-01-22T09:19:25.411Z",
+      "sessionId": "ses_mkp8pwsh_wl3g7p82q_b273",
+      "category": "Engagement",
+      "action": "scroll_depth",
+      "label": "/psychotherapie"
+    },
+    {
+      "id": "evt_1769073572157_kk1e8cglv",
+      "timestamp": "2026-01-22T09:19:29.510Z",
+      "sessionId": "ses_mkp8pwsh_wl3g7p82q_b273",
+      "category": "Engagement",
+      "action": "scroll_depth",
+      "label": "/psychotherapie"
+    },
+    {
+      "id": "evt_1769073577157_i4a7dsp5n",
+      "timestamp": "2026-01-22T09:19:36.360Z",
+      "sessionId": "ses_mkp8pwsh_wl3g7p82q_b273",
+      "category": "Engagement",
+      "action": "scroll_depth",
+      "label": "/psychotherapie"
+    },
+    {
+      "id": "evt_1769073577158_5pwjrq04w",
+      "timestamp": "2026-01-22T09:19:36.360Z",
+      "sessionId": "ses_mkp8pwsh_wl3g7p82q_b273",
+      "category": "Engagement",
+      "action": "scroll_depth",
+      "label": "/psychotherapie"
+    },
+    {
+      "timestamp": "2026-01-22T09:20:05.846Z",
+      "sessionId": "ses_mkp8pwsh_wl3g7p82q_b273",
+      "category": "Engagement",
+      "action": "page_exit",
+      "label": "/psychotherapie",
+      "metadata": {},
+      "id": "evt_1769073605992_s21lapx36"
+    }
+  ],
+  "goals": [],
+  "goalCompletions": [],
+  "funnelSteps": [],
+  "alerts": [],
+  "alertHistory": [],
+  "dashboardConfigs": [],
+  "scheduledReports": [],
+  "anomalies": []
+}
