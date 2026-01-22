@@ -23,13 +23,13 @@ interface Seminar {
 function formatSeminarDate(startAt: string, endAt: string): string {
   const start = new Date(startAt);
   const end = new Date(endAt);
-  const options: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" };
+  const options: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric", timeZone: "Europe/Paris" };
 
   if (start.toDateString() === end.toDateString()) {
     return start.toLocaleDateString("fr-FR", options);
   }
 
-  const startStr = start.toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
+  const startStr = start.toLocaleDateString("fr-FR", { day: "numeric", month: "long", timeZone: "Europe/Paris" });
   const endStr = end.toLocaleDateString("fr-FR", options);
   return `${startStr} - ${endStr}`;
 }
@@ -37,6 +37,12 @@ function formatSeminarDate(startAt: string, endAt: string): string {
 export function SeminarsSection() {
   const [upcomingSeminars, setUpcomingSeminars] = useState<Seminar[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  // Track mounting to avoid hydration mismatch
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   useEffect(() => {
     async function fetchSeminars() {
@@ -55,8 +61,40 @@ export function SeminarsSection() {
     fetchSeminars();
   }, []);
 
-  if (loading) {
-    return null;
+  // During SSR and initial client render, show skeleton to prevent hydration mismatch
+  if (!hasMounted || loading) {
+    return (
+      <section
+        id="seminaires"
+        className="bg-night/60 px-6 py-20 sm:px-10 lg:px-16"
+      >
+        <div className="mx-auto max-w-6xl space-y-12">
+          <SectionTitle
+            eyebrow="Séminaires à venir"
+            title="Une exploration profonde au Cœur de Soi"
+            description="Nos séminaires sont limités en places pour préserver une attention personnalisée et un cercle intime."
+          />
+          <div className="grid gap-10 md:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="flex h-full flex-col overflow-hidden rounded-3xl border border-ivory/10 bg-night/50 shadow-xl shadow-night/60 animate-pulse"
+              >
+                <div className="aspect-[16/9] w-full bg-night/80" />
+                <div className="flex flex-1 flex-col justify-between p-6 space-y-4">
+                  <div className="h-6 bg-ivory/10 rounded w-3/4" />
+                  <div className="space-y-2">
+                    <div className="h-4 bg-ivory/10 rounded" />
+                    <div className="h-4 bg-ivory/10 rounded w-5/6" />
+                  </div>
+                  <div className="h-10 bg-ivory/10 rounded-full w-1/2 mx-auto" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
   }
 
   return (
