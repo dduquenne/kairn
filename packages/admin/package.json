@@ -14,6 +14,42 @@
       "types": "./dist/components/index.d.ts",
       "import": "./dist/components/index.js"
     },
+    "./components/layout": {
+      "types": "./dist/components/layout/index.d.ts",
+      "import": "./dist/components/layout/index.js"
+    },
+    "./components/common": {
+      "types": "./dist/components/common/index.d.ts",
+      "import": "./dist/components/common/index.js"
+    },
+    "./components/charts": {
+      "types": "./dist/components/charts/index.d.ts",
+      "import": "./dist/components/charts/index.js"
+    },
+    "./components/analytics": {
+      "types": "./dist/components/analytics/index.d.ts",
+      "import": "./dist/components/analytics/index.js"
+    },
+    "./components/blog": {
+      "types": "./dist/components/blog/index.d.ts",
+      "import": "./dist/components/blog/index.js"
+    },
+    "./components/social": {
+      "types": "./dist/components/social/index.d.ts",
+      "import": "./dist/components/social/index.js"
+    },
+    "./components/testimonials": {
+      "types": "./dist/components/testimonials/index.d.ts",
+      "import": "./dist/components/testimonials/index.js"
+    },
+    "./components/seminars": {
+      "types": "./dist/components/seminars/index.d.ts",
+      "import": "./dist/components/seminars/index.js"
+    },
+    "./hooks": {
+      "types": "./dist/hooks/index.d.ts",
+      "import": "./dist/hooks/index.js"
+    },
     "./pages": {
       "types": "./dist/pages/index.d.ts",
       "import": "./dist/pages/index.js"
@@ -32,6 +68,8 @@
     "@kairn/analytics": "workspace:*",
     "@kairn/blog": "workspace:*",
     "@kairn/social": "workspace:*",
+    "framer-motion": "^11.0.0",
+    "lucide-react": "^0.330.0",
     "recharts": "^2.12.0"
   },
   "peerDependencies": {
