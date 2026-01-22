@@ -1,13 +1,13 @@
 {
   "name": "@kairn/cli",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "CLI tool for managing Kairn platform sites",
   "type": "module",
   "bin": {
     "kairn": "./dist/index.js"
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts",
+    "build": "tsup src/index.ts --format esm --dts --clean",
     "dev": "tsx src/index.ts",
     "lint": "eslint src/",
     "type-check": "tsc --noEmit"
