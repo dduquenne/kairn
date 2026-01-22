@@ -1,37 +1,23 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { CTAButton } from "../../../components/CTAButton";
 import { SectionTitle } from "../../../components/SectionTitle";
 
-// Articles statiques (à remplacer par API plus tard)
-const blogPosts = [
-  {
-    slug: "comprendre-anxiete",
-    title: "Comprendre l'anxiété : origines et accompagnement",
-    excerpt: "L'anxiété est une réponse naturelle du corps face au stress. Découvrez comment la psychothérapie et l'hypnose peuvent vous aider à mieux la gérer.",
-    category: "Psychothérapie",
-    date: "2024-01-15",
-    readingTime: "5 min",
-  },
-  {
-    slug: "hypnose-mythes-realites",
-    title: "L'hypnose ericksonienne : mythes et réalités",
-    excerpt: "Loin des clichés du spectacle, l'hypnose ericksonienne est un outil thérapeutique puissant et respectueux de votre autonomie.",
-    category: "Hypnose",
-    date: "2024-01-10",
-    readingTime: "7 min",
-  },
-  {
-    slug: "respiration-holotropique-introduction",
-    title: "Introduction à la respiration holotropique",
-    excerpt: "Découvrez cette technique de respiration profonde qui permet d'accéder à des états modifiés de conscience pour la guérison et la transformation.",
-    category: "Respiration",
-    date: "2024-01-05",
-    readingTime: "6 min",
-  },
-];
+interface BlogPost {
+  slug: string;
+  title: string;
+  description?: string;
+  author: string;
+  category: string;
+  tags: string[];
+  image?: string;
+  published: boolean;
+  featured: boolean;
+  date: string;
+}
 
 const defaultColors = { bg: "bg-gold/20", text: "text-gold", gradient: "from-gold to-gold/60" };
 
@@ -42,7 +28,31 @@ const categoryColors: Record<string, { bg: string; text: string; gradient: strin
 };
 
 export function BlogSection() {
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchPosts() {
+      try {
+        const response = await fetch("/api/blog/posts?limit=3&featuredFirst=true");
+        if (response.ok) {
+          const data = await response.json();
+          setBlogPosts(data);
+        }
+      } catch (error) {
+        console.error("Erreur lors du chargement des articles:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchPosts();
+  }, []);
+
   // Ne pas afficher la section si pas d'articles
+  if (loading) {
+    return null;
+  }
+
   if (blogPosts.length === 0) {
     return null;
   }
@@ -100,9 +110,9 @@ export function BlogSection() {
                     {post.title}
                   </h3>
 
-                  {/* Excerpt */}
+                  {/* Description */}
                   <p className="mb-4 flex-1 line-clamp-3 text-sm text-ivory/70">
-                    {post.excerpt}
+                    {post.description}
                   </p>
 
                   {/* Métadonnées */}
@@ -112,12 +122,6 @@ export function BlogSection() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
                       <time dateTime={post.date}>{formattedDate}</time>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span>{post.readingTime}</span>
                     </div>
                   </div>
 
