@@ -1,31 +1,17 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { SectionTitle } from "../../../components/SectionTitle";
 
-// Témoignages statiques (à remplacer par API plus tard)
-const testimonials = [
-  {
-    id: "1",
-    quote: "David m'a accompagné avec une bienveillance rare dans une période très difficile de ma vie. Grâce à son écoute et à l'hypnose, j'ai pu traverser mon deuil et retrouver un équilibre intérieur.",
-    author: "Marie L.",
-    role: "Accompagnement deuil",
-  },
-  {
-    id: "2",
-    quote: "Les séances d'hypnose avec David ont été transformatrices. J'ai enfin pu me libérer de mon anxiété chronique et retrouver confiance en moi. Une approche douce et profondément humaine.",
-    author: "Thomas B.",
-    role: "Gestion de l'anxiété",
-  },
-  {
-    id: "3",
-    quote: "Le séminaire de respiration holotropique au Moulin d'en Bas a été une expérience unique. Un cadre magnifique, un accompagnement sécurisant et une transformation profonde.",
-    author: "Sophie M.",
-    role: "Séminaire respiration holotropique",
-  },
-];
+interface Testimonial {
+  id: string;
+  quote: string;
+  author: string;
+  role?: string;
+}
 
-function TestimonialCard({ quote, author, role, index }: { quote: string; author: string; role: string; index: number }) {
+function TestimonialCard({ quote, author, role, index }: { quote: string; author: string; role?: string; index: number }) {
   return (
     <motion.article
       initial={{ opacity: 0, y: 24 }}
@@ -42,13 +28,37 @@ function TestimonialCard({ quote, author, role, index }: { quote: string; author
       </div>
       <div className="mt-6 border-t border-ivory/10 pt-4">
         <p className="font-semibold text-gold">{author}</p>
-        <p className="text-sm text-ivory/60">{role}</p>
+        {role && <p className="text-sm text-ivory/60">{role}</p>}
       </div>
     </motion.article>
   );
 }
 
 export function TestimonialsSection() {
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchTestimonials() {
+      try {
+        const response = await fetch("/api/testimonials?limit=3");
+        if (response.ok) {
+          const data = await response.json();
+          setTestimonials(data);
+        }
+      } catch (error) {
+        console.error("Erreur lors du chargement des témoignages:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchTestimonials();
+  }, []);
+
+  if (loading) {
+    return null;
+  }
+
   return (
     <section className="bg-night/60 px-6 py-20 sm:px-10 lg:px-16">
       <div className="mx-auto max-w-6xl space-y-12">

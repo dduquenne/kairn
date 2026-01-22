@@ -1,22 +1,64 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { CTAButton } from "../../../components/CTAButton";
 import { SectionTitle } from "../../../components/SectionTitle";
 
-// Données statiques pour les séminaires à venir (à remplacer par API plus tard)
-const upcomingSeminars = [
-  {
-    id: "1",
-    title: "Séminaire de Respiration Holotropique",
-    description: "Un week-end d'exploration intérieure à travers la respiration holotropique, dans le cadre enchanteur du Moulin d'en Bas.",
-    date: "Dates à venir",
-    location: "Le Moulin d'en Bas, Saint-Julien du Sault",
-    seminarType: "Respiration Holotropique",
-  },
-];
+interface Seminar {
+  id: string;
+  title: string;
+  description: string;
+  speakers: Array<{ firstName: string; lastName: string }>;
+  startAt: string;
+  endAt: string;
+  capacity: number;
+  price?: number;
+  deposit?: number;
+  tags: string[];
+  thumbnail?: string;
+  seminarType?: string;
+}
+
+function formatSeminarDate(startAt: string, endAt: string): string {
+  const start = new Date(startAt);
+  const end = new Date(endAt);
+  const options: Intl.DateTimeFormatOptions = { day: "numeric", month: "long", year: "numeric" };
+
+  if (start.toDateString() === end.toDateString()) {
+    return start.toLocaleDateString("fr-FR", options);
+  }
+
+  const startStr = start.toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
+  const endStr = end.toLocaleDateString("fr-FR", options);
+  return `${startStr} - ${endStr}`;
+}
 
 export function SeminarsSection() {
+  const [upcomingSeminars, setUpcomingSeminars] = useState<Seminar[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchSeminars() {
+      try {
+        const response = await fetch("/api/seminars?upcoming=true&limit=3");
+        if (response.ok) {
+          const data = await response.json();
+          setUpcomingSeminars(data);
+        }
+      } catch (error) {
+        console.error("Erreur lors du chargement des séminaires:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchSeminars();
+  }, []);
+
+  if (loading) {
+    return null;
+  }
+
   return (
     <section
       id="seminaires"
@@ -30,7 +72,7 @@ export function SeminarsSection() {
         />
         <div className="grid gap-10 md:grid-cols-3">
           {upcomingSeminars.length > 0 ? (
-            upcomingSeminars.map(({ id, title, description, date, location, seminarType }, index) => (
+            upcomingSeminars.map(({ id, title, description, startAt, endAt, seminarType, capacity }, index) => (
               <motion.article
                 key={id}
                 initial={{ opacity: 0, y: 24 }}
@@ -61,14 +103,13 @@ export function SeminarsSection() {
                       <svg className="h-4 w-4 flex-shrink-0 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                       </svg>
-                      <span>{date}</span>
+                      <span>{formatSeminarDate(startAt, endAt)}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <svg className="h-4 w-4 flex-shrink-0 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                       </svg>
-                      <span>{location}</span>
+                      <span>{capacity} places</span>
                     </div>
                   </dl>
                   <div className="mt-6 flex justify-center">
