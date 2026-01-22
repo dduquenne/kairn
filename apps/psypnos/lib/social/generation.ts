@@ -3,6 +3,11 @@
 /**
  * Service de génération de contenu pour les réseaux sociaux
  *
+ * MIGRATION PHASE 6 NOTE: Ce module utilise directement l'API Anthropic
+ * car il a des prompts et un parsing de réponse spécifiques à Psypnos.
+ * Une migration vers @kairn/ai pourrait être envisagée si les prompts
+ * sont standardisés dans une phase future.
+ *
  * Utilise Claude API pour générer du contenu adapté à chaque plateforme
  * à partir d'articles de blog.
  */

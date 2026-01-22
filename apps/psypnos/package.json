@@ -12,8 +12,12 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
+    "@kairn/admin": "workspace:*",
+    "@kairn/ai": "workspace:*",
+    "@kairn/api": "workspace:*",
     "@kairn/config": "workspace:*",
     "@kairn/core": "workspace:*",
+    "@kairn/social": "workspace:*",
     "@kairn/ui": "workspace:*",
     "@prisma/client": "^6.0.0",
     "@supabase/supabase-js": "^2.91.0",

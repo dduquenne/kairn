@@ -4,10 +4,20 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
 
-import { AdminSidebar } from "../../components/admin/AdminSidebar";
-import { LogoutButton } from "../../components/admin/LogoutButton";
-import { MobileNav } from "../../components/admin/MobileNav";
+import { AdminSidebar, MobileNav, type NavigationItem } from "@kairn/ui";
+import { LogoutButton } from "@kairn/admin";
 import { verifyAdminToken } from "../api/auth/middleware";
+
+// Navigation configuration for Psypnos admin
+const psypnosAdminNavigation: NavigationItem[] = [
+  { href: "/admin/analytics", label: "Analytiques", icon: "📊" },
+  { href: "/admin/blog", label: "Blog", icon: "📝" },
+  { href: "/admin/social", label: "Réseaux sociaux", icon: "📱" },
+  { href: "/admin/seminars", label: "Séminaires", icon: "🎓" },
+  { href: "/admin/testimonials", label: "Témoignages", icon: "⭐" },
+  { href: "/admin/users", label: "Utilisateurs", icon: "👥" },
+  { href: "/admin/deployment", label: "Déploiement", icon: "🚀" },
+];
 
 export const dynamic = 'force-dynamic';
 
@@ -35,12 +45,12 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
   return (
     <div className="flex min-h-screen bg-night/95 text-ivory">
-      <AdminSidebar />
+      <AdminSidebar navigation={psypnosAdminNavigation} siteName="Psypnos" />
       <div className="flex flex-1 flex-col">
         <header className="border-b border-night/50 bg-night/80 px-4 py-3 backdrop-blur sm:px-6 sm:py-4">
           <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <MobileNav />
+              <MobileNav navigation={psypnosAdminNavigation} siteName="Psypnos" />
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-gold sm:tracking-[0.3em]">Tableau de bord</p>
                 <h1 className="text-lg font-semibold sm:text-2xl">Administration Psypnos</h1>
