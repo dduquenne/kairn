@@ -1,0 +1,74 @@
+{
+  "name": "@kairn/api",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Handlers API réutilisables pour les sites Kairn",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./middleware": {
+      "types": "./dist/middleware/index.d.ts",
+      "import": "./dist/middleware/index.js"
+    },
+    "./handlers/auth": {
+      "types": "./dist/handlers/auth/index.d.ts",
+      "import": "./dist/handlers/auth/index.js"
+    },
+    "./handlers/blog": {
+      "types": "./dist/handlers/blog/index.d.ts",
+      "import": "./dist/handlers/blog/index.js"
+    },
+    "./handlers/analytics": {
+      "types": "./dist/handlers/analytics/index.d.ts",
+      "import": "./dist/handlers/analytics/index.js"
+    },
+    "./handlers/contact": {
+      "types": "./dist/handlers/contact/index.d.ts",
+      "import": "./dist/handlers/contact/index.js"
+    },
+    "./handlers/testimonials": {
+      "types": "./dist/handlers/testimonials/index.d.ts",
+      "import": "./dist/handlers/testimonials/index.js"
+    },
+    "./handlers/seminars": {
+      "types": "./dist/handlers/seminars/index.d.ts",
+      "import": "./dist/handlers/seminars/index.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@kairn/config": "workspace:*",
+    "@kairn/core": "workspace:*",
+    "@kairn/db": "workspace:*",
+    "@kairn/blog": "workspace:*",
+    "@kairn/analytics": "workspace:*",
+    "zod": "^3.22.0"
+  },
+  "peerDependencies": {
+    "@prisma/client": "^6.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@prisma/client": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@kairn/typescript-config": "workspace:*",
+    "@prisma/client": "^6.0.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0"
+  }
+}

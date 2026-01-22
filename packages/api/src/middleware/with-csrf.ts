@@ -1,0 +1,268 @@
+/**
+ * CSRF Protection Middleware
+ *
+ * Implements CSRF token validation using HMAC-signed tokens.
+ */
+
+import { createHmac, randomBytes, timingSafeEqual } from 'crypto';
+
+import type { ApiErrorResponse, ApiRequest, CSRFConfig } from './types';
+
+/**
+ * CSRF token structure
+ */
+interface CSRFToken {
+  value: string;
+  timestamp: number;
+  signature: string;
+}
+
+/**
+ * Default CSRF configuration
+ */
+const defaultConfig: Required<Omit<CSRFConfig, 'secret'>> = {
+  cookieName: 'csrf_token',
+  headerName: 'x-csrf-token',
+  tokenLifetime: 3600, // 1 hour
+};
+
+/**
+ * CSRF validation result
+ */
+export type CSRFResult = { success: true } | { success: false; error: ApiErrorResponse };
+
+/**
+ * Get CSRF secret from config or environment
+ */
+function getCSRFSecret(config?: CSRFConfig): string {
+  const secret = config?.secret || process.env.CSRF_SECRET || process.env.JWT_SECRET;
+
+  if (!secret) {
+    throw new Error('CSRF_SECRET or JWT_SECRET must be defined in environment variables');
+  }
+
+  return secret;
+}
+
+/**
+ * Generate a new CSRF token
+ *
+ * @param config - Optional CSRF configuration
+ * @returns Base64-encoded CSRF token
+ *
+ * @example
+ * ```typescript
+ * // Generate a token to send to the client
+ * const token = generateCSRFToken();
+ *
+ * // Set it in a cookie
+ * response.cookies.set('csrf_token', token, {
+ *   httpOnly: true,
+ *   secure: process.env.NODE_ENV === 'production',
+ *   sameSite: 'strict',
+ *   maxAge: 3600,
+ * });
+ * ```
+ */
+export function generateCSRFToken(config?: CSRFConfig): string {
+  const value = randomBytes(32).toString('base64');
+  const timestamp = Date.now();
+  const secret = getCSRFSecret(config);
+
+  // Create HMAC signature
+  const signature = createHmac('sha256', secret).update(`${value}:${timestamp}`).digest('base64');
+
+  const token: CSRFToken = {
+    value,
+    timestamp,
+    signature,
+  };
+
+  return Buffer.from(JSON.stringify(token)).toString('base64');
+}
+
+/**
+ * Validate a CSRF token
+ *
+ * @param token - Token to validate
+ * @param cookieToken - Optional token from cookie to compare against
+ * @param config - Optional CSRF configuration
+ * @returns True if token is valid
+ */
+export function validateCSRFToken(
+  token: string | null | undefined,
+  cookieToken?: string | null,
+  config?: CSRFConfig
+): boolean {
+  if (!token) {
+    return false;
+  }
+
+  const { tokenLifetime } = { ...defaultConfig, ...config };
+
+  try {
+    // Decode the token
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf-8')) as CSRFToken;
+
+    // Verify required fields
+    if (!decoded.value || !decoded.timestamp || !decoded.signature) {
+      return false;
+    }
+
+    // Check expiration
+    const now = Date.now();
+    const age = (now - decoded.timestamp) / 1000;
+
+    if (age > tokenLifetime) {
+      return false;
+    }
+
+    // Verify signature
+    const secret = getCSRFSecret(config);
+    const expectedSignature = createHmac('sha256', secret)
+      .update(`${decoded.value}:${decoded.timestamp}`)
+      .digest('base64');
+
+    const tokenSignatureBuffer = Buffer.from(decoded.signature, 'base64');
+    const expectedSignatureBuffer = Buffer.from(expectedSignature, 'base64');
+
+    if (tokenSignatureBuffer.length !== expectedSignatureBuffer.length) {
+      return false;
+    }
+
+    // Use timing-safe comparison to prevent timing attacks
+    if (!timingSafeEqual(tokenSignatureBuffer, expectedSignatureBuffer)) {
+      return false;
+    }
+
+    // If cookie token is provided, verify it matches
+    if (cookieToken && cookieToken !== token) {
+      return false;
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Extract CSRF token from request
+ */
+async function getCSRFTokenFromRequest(
+  request: ApiRequest,
+  config?: CSRFConfig
+): Promise<string | null> {
+  const { headerName } = { ...defaultConfig, ...config };
+
+  // Try header first
+  const headerToken = request.headers.get(headerName);
+  if (headerToken) {
+    return headerToken;
+  }
+
+  // Try body for JSON or form data
+  try {
+    const contentType = request.headers.get('content-type') || '';
+
+    if (contentType.includes('application/json')) {
+      const clonedRequest = request.clone();
+      const body = (await clonedRequest.json()) as Record<string, unknown>;
+      return (body.csrf_token as string) || null;
+    }
+
+    if (
+      contentType.includes('application/x-www-form-urlencoded') ||
+      contentType.includes('multipart/form-data')
+    ) {
+      const clonedRequest = request.clone();
+      const formData = await clonedRequest.formData();
+      return formData.get('csrf_token') as string | null;
+    }
+  } catch {
+    // Parsing error
+  }
+
+  return null;
+}
+
+/**
+ * Get CSRF token from Cookie header
+ */
+function getCSRFTokenFromCookies(request: ApiRequest, config?: CSRFConfig): string | null {
+  const { cookieName } = { ...defaultConfig, ...config };
+  const cookieHeader = request.headers.get('Cookie');
+
+  if (!cookieHeader) {
+    return null;
+  }
+
+  const cookies = cookieHeader.split(';');
+  for (const cookie of cookies) {
+    const [key, ...valueParts] = cookie.trim().split('=');
+    if (key === cookieName) {
+      return valueParts.join('=');
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Validate CSRF protection for a request
+ *
+ * @param request - The incoming request
+ * @param config - Optional CSRF configuration
+ * @returns CSRF validation result
+ *
+ * @example
+ * ```typescript
+ * export async function POST(request: Request) {
+ *   const csrfResult = await withCSRF(request);
+ *
+ *   if (!csrfResult.success) {
+ *     return NextResponse.json(csrfResult.error, { status: csrfResult.error.statusCode });
+ *   }
+ *
+ *   // Continue with protected operation...
+ * }
+ * ```
+ */
+export async function withCSRF(request: ApiRequest, config?: CSRFConfig): Promise<CSRFResult> {
+  const requestToken = await getCSRFTokenFromRequest(request, config);
+  const cookieToken = getCSRFTokenFromCookies(request, config);
+
+  const isValid = validateCSRFToken(requestToken, cookieToken, config);
+
+  if (!isValid) {
+    return {
+      success: false,
+      error: {
+        code: 'CSRF_INVALID',
+        message: 'Token CSRF invalide ou expiré. Veuillez rafraîchir la page.',
+        statusCode: 403,
+      },
+    };
+  }
+
+  return { success: true };
+}
+
+/**
+ * Create a CSRF middleware with preset configuration
+ *
+ * @param config - Default configuration
+ * @returns Configured CSRF middleware function
+ */
+export function createCSRFMiddleware(config?: CSRFConfig) {
+  return (request: ApiRequest, overrides?: CSRFConfig) =>
+    withCSRF(request, { ...config, ...overrides });
+}
+
+/**
+ * Get CSRF configuration names (useful for client-side forms)
+ */
+export function getCSRFConfig(config?: CSRFConfig) {
+  const { cookieName, headerName } = { ...defaultConfig, ...config };
+  return { cookieName, headerName };
+}
