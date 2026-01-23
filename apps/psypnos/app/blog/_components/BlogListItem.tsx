@@ -41,6 +41,7 @@ export function BlogListItem({ post, index = 0 }: BlogListItemProps) {
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: "Europe/Paris",
   });
 
   return (

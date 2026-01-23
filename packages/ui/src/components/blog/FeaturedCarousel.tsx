@@ -199,6 +199,7 @@ export function FeaturedCarousel({
           day: "numeric",
           month: "long",
           year: "numeric",
+          timeZone: "Europe/Paris",
         });
         const imageUrl = resolveImageUrl?.(post) ?? post.imageUrl;
 

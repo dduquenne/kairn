@@ -249,7 +249,8 @@ export default async function BlogPostPage({ params }: PageProps) {
 
         {/* Footer */}
         <footer className="border-t border-ivory/10 bg-night/80 px-6 py-10 text-center text-xs text-ivory/50 sm:px-10 lg:px-16">
-          {new Date().getFullYear()} Psypnos. Tous droits réservés.
+          © <span suppressHydrationWarning>{new Date().getFullYear()}</span>{" "}
+          Psypnos. Tous droits réservés.
         </footer>
       </div>
     </>

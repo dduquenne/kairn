@@ -88,6 +88,7 @@ export function RelatedPosts({
               day: "numeric",
               month: "long",
               year: "numeric",
+              timeZone: "Europe/Paris",
             }
           );
 

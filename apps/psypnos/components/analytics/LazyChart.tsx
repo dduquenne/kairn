@@ -167,16 +167,19 @@ export const BarChartSkeleton = memo(function BarChartSkeleton() {
   );
 });
 
+// Deterministic opacity values for heatmap skeleton to avoid hydration mismatch
+const HEATMAP_OPACITIES = [0.45, 0.72, 0.38, 0.91, 0.56, 0.83, 0.41, 0.67, 0.95, 0.52, 0.78, 0.34, 0.89, 0.61, 0.74];
+
 export const HeatmapSkeleton = memo(function HeatmapSkeleton() {
   return (
     <div className="animate-pulse p-4 bg-gray-50 dark:bg-gray-800 rounded-lg" style={{ minHeight: 300 }}>
       <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-4" />
       <div className="grid grid-cols-5 gap-2">
-        {Array.from({ length: 15 }).map((_, i) => (
+        {HEATMAP_OPACITIES.map((opacity, i) => (
           <div
             key={i}
             className="h-12 bg-gray-200 dark:bg-gray-700 rounded"
-            style={{ opacity: 0.3 + Math.random() * 0.7 }}
+            style={{ opacity }}
           />
         ))}
       </div>

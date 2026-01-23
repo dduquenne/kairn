@@ -104,6 +104,7 @@ export function BlogCard({
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: "Europe/Paris",
   });
 
   const postUrl = `${blogBaseUrl}/${post.slug}`;

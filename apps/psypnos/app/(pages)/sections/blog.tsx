@@ -110,6 +110,7 @@ export function BlogSection() {
               day: "numeric",
               month: "long",
               year: "numeric",
+              timeZone: "Europe/Paris",
             });
 
             return (

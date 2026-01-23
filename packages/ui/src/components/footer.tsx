@@ -60,7 +60,9 @@ export function Footer({
           className
         )}
       >
-        © {currentYear} {siteName}. Tous droits réservés.
+        ©{" "}
+        <span suppressHydrationWarning>{currentYear}</span> {siteName}. Tous
+        droits réservés.
       </footer>
     );
   }
@@ -91,7 +93,8 @@ export function Footer({
           className={`flex flex-col items-center gap-2 text-center text-xs text-${text}/50 sm:flex-row sm:justify-center sm:gap-4`}
         >
           <span>
-            © {currentYear} {siteName}. Tous droits réservés.
+            © <span suppressHydrationWarning>{currentYear}</span> {siteName}.
+            Tous droits réservés.
           </span>
 
           {links.map((link, index) => (

@@ -34,6 +34,7 @@ export function BlogCard({ post, index = 0 }: BlogCardProps) {
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: "Europe/Paris",
   });
 
   return (

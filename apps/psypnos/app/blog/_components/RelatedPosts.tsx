@@ -25,6 +25,7 @@ export function RelatedPosts({ posts }: RelatedPostsProps) {
             day: "numeric",
             month: "long",
             year: "numeric",
+            timeZone: "Europe/Paris",
           });
 
           return (
