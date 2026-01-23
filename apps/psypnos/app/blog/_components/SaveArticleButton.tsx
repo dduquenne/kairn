@@ -53,7 +53,16 @@ export function SaveArticleButton({ slug, title }: SaveArticleButtonProps) {
   };
 
   if (isLoading) {
-    return null;
+    // Skeleton pour éviter l'erreur d'hydratation
+    return (
+      <div
+        className="flex items-center gap-2 rounded-full border border-ivory/20 bg-transparent px-4 py-2 text-sm font-medium"
+        aria-hidden="true"
+      >
+        <div className="h-4 w-4 animate-pulse rounded bg-ivory/20" />
+        <div className="h-4 w-20 animate-pulse rounded bg-ivory/20" />
+      </div>
+    );
   }
 
   return (
