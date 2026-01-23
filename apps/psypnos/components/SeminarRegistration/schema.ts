@@ -6,9 +6,20 @@
 
 import { z } from "zod";
 
-const CURRENT_YEAR = new Date().getFullYear();
-const MIN_BIRTH_YEAR = CURRENT_YEAR - 100;
-const MAX_BIRTH_YEAR = CURRENT_YEAR - 16;
+// Use a fixed reference year for schema validation to avoid hydration mismatches
+// The schema uses conservative bounds that will always be valid
+const REFERENCE_YEAR = 2025;
+const SCHEMA_MIN_BIRTH_YEAR = REFERENCE_YEAR - 100; // 1925
+const SCHEMA_MAX_BIRTH_YEAR = REFERENCE_YEAR - 16;  // 2009
+
+// Runtime function to get accurate birth year bounds (use in UI only)
+export function getBirthYearBounds() {
+  const currentYear = new Date().getFullYear();
+  return {
+    minBirthYear: currentYear - 100,
+    maxBirthYear: currentYear - 16,
+  };
+}
 
 const sexSchema = z
   .union([z.literal("homme"), z.literal("femme"), z.literal("autre"), z.literal("")])
@@ -54,8 +65,8 @@ export const seminarRegistrationSchema = z.object({
   birthYear: z.coerce
     .number()
     .int("L'année doit être un nombre entier.")
-    .gte(MIN_BIRTH_YEAR, `Veuillez indiquer une année ≥ ${MIN_BIRTH_YEAR}.`)
-    .lte(MAX_BIRTH_YEAR, `Veuillez indiquer une année ≤ ${MAX_BIRTH_YEAR}.`),
+    .gte(SCHEMA_MIN_BIRTH_YEAR, `Veuillez indiquer une année valide.`)
+    .lte(SCHEMA_MAX_BIRTH_YEAR, `Veuillez indiquer une année valide (vous devez avoir au moins 16 ans).`),
   sex: sexSchema,
   sexOther: z
     .string()
@@ -119,4 +130,6 @@ export const seminarRegistrationSchema = z.object({
   }
 });
 
-export { MIN_BIRTH_YEAR, MAX_BIRTH_YEAR };
+// Export for backwards compatibility if needed elsewhere
+export const MIN_BIRTH_YEAR = SCHEMA_MIN_BIRTH_YEAR;
+export const MAX_BIRTH_YEAR = SCHEMA_MAX_BIRTH_YEAR;

@@ -7,7 +7,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 
@@ -21,7 +21,7 @@ import { IdentitySection } from "./components/IdentitySection";
 import { SeminarSection } from "./components/SeminarSection";
 import { FormField } from "./components/FormField";
 import { FORM_VARIANTS, FIELD_MOTION, ALL_FIELDS_TOUCHED, COUNTRY_LIST, REASSURANCE_MESSAGES } from "./constants";
-import { MIN_BIRTH_YEAR, MAX_BIRTH_YEAR } from "./schema";
+import { getBirthYearBounds } from "./schema";
 import { joinClassNames } from "./utils";
 
 const CARD_SECTION_CLASS =
@@ -35,6 +35,15 @@ export default function SeminarRegistrationForm() {
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [isMutationPending, setIsMutationPending] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  // Get birth year bounds at runtime to avoid hydration mismatch
+  const { minBirthYear, maxBirthYear } = useMemo(() => getBirthYearBounds(), []);
+
+  // Track mounting to avoid hydration mismatch with date-based filtering
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const {
     formValues,
@@ -51,11 +60,20 @@ export default function SeminarRegistrationForm() {
   const { executeRecaptcha } = useGoogleReCaptcha();
   const { csrfToken, isLoading: csrfLoading, error: csrfError, refreshToken } = useCSRF();
 
-  // Séminaires depuis le JSON
+  // Séminaires depuis le JSON - defer date filtering to client-side only
   const seminars: Seminar[] = useMemo(() => {
     const list = Array.isArray((seminarsData as any)?.seminars)
       ? ((seminarsData as any).seminars as Seminar[])
       : [];
+
+    // On server/initial render, return all seminars sorted by date
+    // On client after mount, filter by current date
+    if (!hasMounted) {
+      return list.sort(
+        (a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime()
+      );
+    }
+
     const now = new Date();
     const upcomingSeminars = list.filter(
       (seminar) => new Date(seminar.startAt).getTime() >= now.getTime()
@@ -63,7 +81,7 @@ export default function SeminarRegistrationForm() {
     return upcomingSeminars.sort(
       (a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime()
     );
-  }, []);
+  }, [hasMounted]);
 
   const selectedSeminar = useMemo(
     () => seminars.find((s) => s.id === formValues.seminarId),
@@ -218,8 +236,8 @@ export default function SeminarRegistrationForm() {
               label="Année de naissance"
               type="number"
               placeholder="YYYY"
-              min={MIN_BIRTH_YEAR}
-              max={MAX_BIRTH_YEAR}
+              min={minBirthYear}
+              max={maxBirthYear}
               inputMode="numeric"
               value={formValues.birthYear}
               onChange={handleChange("birthYear")}
