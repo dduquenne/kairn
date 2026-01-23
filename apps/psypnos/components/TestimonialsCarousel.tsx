@@ -20,14 +20,21 @@ type TestimonialsCarouselProps = {
 
 export function TestimonialsCarousel({ testimonials }: TestimonialsCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [hasMounted, setHasMounted] = useState(false);
   const totalSlides = testimonials.length;
+
+  // Mark component as mounted to avoid hydration issues
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   useEffect(() => {
     setCurrentIndex(0);
   }, [totalSlides]);
 
-    useEffect(() => {
-    if (totalSlides <= 1) {
+  useEffect(() => {
+    // Only start interval after component has mounted on client
+    if (!hasMounted || totalSlides <= 1) {
       return;
     }
 
@@ -38,7 +45,7 @@ export function TestimonialsCarousel({ testimonials }: TestimonialsCarouselProps
     return () => {
       window.clearInterval(timer);
     };
-    }, [totalSlides]);
+  }, [totalSlides, hasMounted]);
 
   if (totalSlides === 0) {
     return null;

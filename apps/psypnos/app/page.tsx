@@ -10,6 +10,7 @@ import { Suspense, lazy } from "react";
 import Link from "next/link";
 import { HeroSection } from "./(pages)/sections/hero";
 import { SocialLinks } from "../components/SocialLinks";
+import { CurrentYear } from "../components/CurrentYear";
 import {
   ApproachSectionSkeleton,
   JourneySectionSkeleton,
@@ -135,7 +136,7 @@ export default function HomePage() {
 
           {/* Copyright et liens */}
           <div className="flex flex-col items-center gap-2 text-center text-xs text-ivory/50 sm:flex-row sm:justify-center sm:gap-4">
-            <span>{new Date().getFullYear()} Psypnos. Tous droits réservés.</span>
+            <span><CurrentYear /> Psypnos. Tous droits réservés.</span>
             <span className="hidden sm:inline text-ivory/30">|</span>
             <Link
               href="/blog"

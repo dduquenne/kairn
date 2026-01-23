@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRef } from "react";
 import { CTAButton } from "../../components/CTAButton";
 import { GlobalHeader } from "../../components/GlobalHeader";
+import { CurrentYear } from "../../components/CurrentYear";
 
 /**
  * Client Component - Contenu biographique de David Duquenne
@@ -412,7 +413,7 @@ export function AProposContent() {
 
       {/* Footer */}
       <footer className="border-t border-ivory/10 bg-night/80 px-6 py-10 text-center text-xs text-ivory/50 sm:px-10 lg:px-16">
-        {new Date().getFullYear()} Psypnos. Tous droits réservés.
+        <CurrentYear /> Psypnos. Tous droits réservés.
         <Link
           href="/blog"
           className="ml-4 text-ivory/60 hover:text-gold"

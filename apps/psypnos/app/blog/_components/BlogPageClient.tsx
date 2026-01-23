@@ -11,6 +11,7 @@ import { Breadcrumb } from "./Breadcrumb";
 import { SearchBar } from "./SearchBar";
 import { FeaturedCarousel } from "./FeaturedCarousel";
 import { Pagination } from "./Pagination";
+import { CurrentYear } from "@/components/CurrentYear";
 import type { BlogPostSummary } from "@/lib/blog";
 
 interface BlogPageClientProps {
@@ -245,7 +246,7 @@ export function BlogPageClient({ allPosts, categories }: BlogPageClientProps) {
 
       {/* Footer */}
       <footer className="border-t border-ivory/10 bg-night/80 px-6 py-10 text-center text-xs text-ivory/50 sm:px-10 lg:px-16">
-        © {new Date().getFullYear()} Psypnos. Tous droits réservés.
+        © <CurrentYear /> Psypnos. Tous droits réservés.
       </footer>
     </div>
   );
