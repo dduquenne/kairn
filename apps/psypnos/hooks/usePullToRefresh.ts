@@ -9,12 +9,14 @@ export function usePullToRefresh(onRefresh: () => Promise<void>) {
   const startY = useRef<number | null>(null);
 
   const handleTouchStart = useCallback((e: TouchEvent) => {
+    if (typeof window === 'undefined') return;
     if (window.scrollY === 0) {
       startY.current = e.touches[0].clientY;
     }
   }, []);
 
   const handleTouchMove = useCallback((e: TouchEvent) => {
+    if (typeof window === 'undefined') return;
     if (startY.current === null || window.scrollY > 0) return;
 
     const currentY = e.touches[0].clientY;
@@ -42,6 +44,7 @@ export function usePullToRefresh(onRefresh: () => Promise<void>) {
   }, [isPulling, isRefreshing, onRefresh]);
 
   useEffect(() => {
+    if (typeof document === 'undefined') return;
     const element = document.getElementById('pull-to-refresh-container');
     if (!element) return;
 

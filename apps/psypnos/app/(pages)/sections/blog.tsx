@@ -48,11 +48,44 @@ export function BlogSection() {
     fetchPosts();
   }, []);
 
-  // Ne pas afficher la section si pas d'articles
+  // Skeleton pendant le chargement pour éviter l'erreur d'hydratation
   if (loading) {
-    return null;
+    return (
+      <section
+        id="blog"
+        className="bg-night/60 px-6 py-20 sm:px-10 lg:px-16"
+      >
+        <div className="mx-auto max-w-6xl space-y-12">
+          <div className="space-y-4">
+            <div className="h-4 w-32 animate-pulse rounded bg-ivory/10" />
+            <div className="h-8 w-80 max-w-full animate-pulse rounded bg-ivory/10" />
+            <div className="h-4 w-full max-w-2xl animate-pulse rounded bg-ivory/10" />
+          </div>
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="relative flex h-72 flex-col overflow-hidden rounded-2xl border border-ivory/10 bg-night/50 p-6"
+              >
+                <div className="absolute left-0 top-0 bottom-0 w-1 animate-pulse bg-ivory/10" />
+                <div className="pl-2 space-y-4">
+                  <div className="h-6 w-24 animate-pulse rounded-full bg-ivory/10" />
+                  <div className="h-6 w-full animate-pulse rounded bg-ivory/10" />
+                  <div className="space-y-2">
+                    <div className="h-4 w-full animate-pulse rounded bg-ivory/10" />
+                    <div className="h-4 w-3/4 animate-pulse rounded bg-ivory/10" />
+                  </div>
+                  <div className="h-4 w-32 animate-pulse rounded bg-ivory/10" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    );
   }
 
+  // Ne pas afficher la section si pas d'articles
   if (blogPosts.length === 0) {
     return null;
   }
