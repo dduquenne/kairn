@@ -41,10 +41,12 @@ function MiniArticleCard({
     checkImage();
   }, [post.slug]);
 
+  // Use explicit timezone to avoid hydration mismatch between server and client
   const formattedDate = new Date(post.date).toLocaleDateString("fr-FR", {
     day: "numeric",
     month: "short",
     year: "numeric",
+    timeZone: "Europe/Paris",
   });
 
   return (
@@ -274,10 +276,12 @@ export function ArticlesList({ posts, postsPerPage = 10 }: ArticlesListProps) {
   // Gestion du changement de page
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    // Scroll vers le haut de la liste
-    const articlesSection = document.getElementById("articles-list");
-    if (articlesSection) {
-      articlesSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    // Scroll vers le haut de la liste (with SSR safety check)
+    if (typeof document !== "undefined") {
+      const articlesSection = document.getElementById("articles-list");
+      if (articlesSection) {
+        articlesSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     }
   };
 

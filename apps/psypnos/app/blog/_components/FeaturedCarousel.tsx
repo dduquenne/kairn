@@ -132,10 +132,12 @@ export function FeaturedCarousel({ posts }: FeaturedCarouselProps) {
             >
               {visiblePosts.map((post, index) => {
                 const colors = getCategoryColors(post.category);
+                // Use explicit timezone to avoid hydration mismatch between server and client
                 const formattedDate = new Date(post.date).toLocaleDateString("fr-FR", {
                   day: "numeric",
                   month: "long",
                   year: "numeric",
+                  timeZone: "Europe/Paris",
                 });
 
                 return (

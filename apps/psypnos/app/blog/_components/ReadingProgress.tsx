@@ -11,10 +11,15 @@
 import { useEffect, useState } from "react";
 
 // Composant pour la barre de progression globale en haut
+// IMPORTANT: Ce composant utilise hasMounted pour éviter les erreurs d'hydratation
 export function ReadingProgressBar() {
   const [progress, setProgress] = useState(0);
+  const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
+    // Mark as mounted to avoid hydration mismatch
+    setHasMounted(true);
+
     const updateProgress = () => {
       const scrolled = window.scrollY;
       const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -30,6 +35,19 @@ export function ReadingProgressBar() {
 
     return () => window.removeEventListener("scroll", updateProgress);
   }, []);
+
+  // Don't render the progress bar until mounted on client
+  // This avoids hydration mismatch since scroll position is 0 on server
+  if (!hasMounted) {
+    return (
+      <div className="fixed top-0 left-0 right-0 h-1 bg-night/20 z-50">
+        <div
+          className="h-full bg-gradient-to-r from-gold via-gold to-gold/80 transition-all duration-150 ease-out shadow-lg shadow-gold/20"
+          style={{ width: "0%" }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="fixed top-0 left-0 right-0 h-1 bg-night/20 z-50">

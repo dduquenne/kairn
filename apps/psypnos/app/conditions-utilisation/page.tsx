@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { GlobalHeader } from "../../components/GlobalHeader";
+import { CurrentYear } from "../../components/CurrentYear";
 
 export const dynamic = "force-static";
 
@@ -281,7 +282,7 @@ export default function TermsOfServicePage() {
           {/* Footer */}
           <footer className="border-t border-ivory/10 pt-8 text-center">
             <p className="text-sm text-ivory/60">
-              © {new Date().getFullYear()} Psypnos - Tous droits réservés
+              © <CurrentYear /> Psypnos - Tous droits réservés
             </p>
             <p className="mt-2 text-sm text-ivory/60">
               <Link
