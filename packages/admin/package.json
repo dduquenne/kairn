@@ -3,56 +3,68 @@
   "version": "0.0.1",
   "private": true,
   "description": "Dashboard admin pour les sites Kairn",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
     },
     "./components": {
-      "types": "./dist/components/index.d.ts",
-      "import": "./dist/components/index.js"
+      "types": "./src/components/index.ts",
+      "import": "./src/components/index.ts",
+      "default": "./src/components/index.ts"
     },
     "./components/layout": {
-      "types": "./dist/components/layout/index.d.ts",
-      "import": "./dist/components/layout/index.js"
+      "types": "./src/components/layout/index.ts",
+      "import": "./src/components/layout/index.ts",
+      "default": "./src/components/layout/index.ts"
     },
     "./components/common": {
-      "types": "./dist/components/common/index.d.ts",
-      "import": "./dist/components/common/index.js"
+      "types": "./src/components/common/index.ts",
+      "import": "./src/components/common/index.ts",
+      "default": "./src/components/common/index.ts"
     },
     "./components/charts": {
-      "types": "./dist/components/charts/index.d.ts",
-      "import": "./dist/components/charts/index.js"
+      "types": "./src/components/charts/index.ts",
+      "import": "./src/components/charts/index.ts",
+      "default": "./src/components/charts/index.ts"
     },
     "./components/analytics": {
-      "types": "./dist/components/analytics/index.d.ts",
-      "import": "./dist/components/analytics/index.js"
+      "types": "./src/components/analytics/index.ts",
+      "import": "./src/components/analytics/index.ts",
+      "default": "./src/components/analytics/index.ts"
     },
     "./components/blog": {
-      "types": "./dist/components/blog/index.d.ts",
-      "import": "./dist/components/blog/index.js"
+      "types": "./src/components/blog/index.ts",
+      "import": "./src/components/blog/index.ts",
+      "default": "./src/components/blog/index.ts"
     },
     "./components/social": {
-      "types": "./dist/components/social/index.d.ts",
-      "import": "./dist/components/social/index.js"
+      "types": "./src/components/social/index.ts",
+      "import": "./src/components/social/index.ts",
+      "default": "./src/components/social/index.ts"
     },
     "./components/testimonials": {
-      "types": "./dist/components/testimonials/index.d.ts",
-      "import": "./dist/components/testimonials/index.js"
+      "types": "./src/components/testimonials/index.ts",
+      "import": "./src/components/testimonials/index.ts",
+      "default": "./src/components/testimonials/index.ts"
     },
     "./components/seminars": {
-      "types": "./dist/components/seminars/index.d.ts",
-      "import": "./dist/components/seminars/index.js"
+      "types": "./src/components/seminars/index.ts",
+      "import": "./src/components/seminars/index.ts",
+      "default": "./src/components/seminars/index.ts"
     },
     "./hooks": {
-      "types": "./dist/hooks/index.d.ts",
-      "import": "./dist/hooks/index.js"
+      "types": "./src/hooks/index.ts",
+      "import": "./src/hooks/index.ts",
+      "default": "./src/hooks/index.ts"
     },
     "./pages": {
-      "types": "./dist/pages/index.d.ts",
-      "import": "./dist/pages/index.js"
+      "types": "./src/pages/index.ts",
+      "import": "./src/pages/index.ts",
+      "default": "./src/pages/index.ts"
     }
   },
   "scripts": {

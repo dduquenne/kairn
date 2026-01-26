@@ -46,6 +46,7 @@
     "@kairn/typescript-config": "workspace:*",
     "@types/bcrypt": "^6.0.0",
     "@types/node": "^20.11.0",
+    "@types/pg": "^8.16.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@types/ua-parser-js": "^0.7.39",
