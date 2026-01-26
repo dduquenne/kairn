@@ -3,7 +3,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { deleteAdminUser, updateAdminUser } from "../../../users/prisma-store";
+import { deleteAdminUser, updateAdminUser } from "../../../users/pg-store";
 import { withAdminAuth } from "../../../auth/middleware";
 
 export const dynamic = 'force-dynamic';

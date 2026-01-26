@@ -2,7 +2,7 @@
 // TODO: Migration - Type incompatibilities to fix
 import { NextResponse } from "next/server";
 
-import { resetAdminPasswordByEmail } from "../../users/prisma-store";
+import { resetAdminPasswordByEmail } from "../../users/pg-store";
 
 export async function POST(request: Request) {
   const { email } = await request

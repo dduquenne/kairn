@@ -6,6 +6,9 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+// Site slug for psypnos
+const SITE_SLUG = "psypnos";
+
 export type UserRecord = {
   id: string;
   email: string;
@@ -25,6 +28,7 @@ interface PrismaUserRecord {
   role: string;
   createdAt: Date;
   updatedAt: Date;
+  siteId?: string;
 }
 
 type AdminUserRole = Extract<UserRecord["role"], "admin">;
@@ -56,16 +60,50 @@ export type SanitizedUser = {
 
 const PASSWORD_SALT_ROUNDS = 12;
 
+/**
+ * Map database role (ADMIN, EDITOR, etc.) to API role (admin, speaker, attendee)
+ */
+function mapDatabaseRole(dbRole: string): "admin" | "speaker" | "attendee" {
+  const roleMap: Record<string, "admin" | "speaker" | "attendee"> = {
+    ADMIN: "admin",
+    EDITOR: "admin",
+    PRACTITIONER: "admin",
+    USER: "attendee",
+  };
+  return roleMap[dbRole] || "attendee";
+}
+
+/**
+ * Get the psypnos site ID
+ */
+async function getSiteId(): Promise<string> {
+  const site = await prisma.site.findUnique({
+    where: { slug: SITE_SLUG },
+  });
+  if (!site) {
+    throw new Error(`Site '${SITE_SLUG}' not found`);
+  }
+  return site.id;
+}
+
 export async function findUserByEmail(email: string): Promise<UserRecord | undefined> {
+  const siteId = await getSiteId();
+
   const user = await prisma.user.findUnique({
-    where: { email: email.toLowerCase() },
+    where: {
+      email_siteId: {
+        email: email.toLowerCase(),
+        siteId,
+      }
+    },
   });
 
   if (!user) return undefined;
 
   return {
     ...user,
-    role: user.role as UserRecord["role"],
+    passwordHash: user.passwordHash || "",
+    role: mapDatabaseRole(user.role),
   };
 }
 
@@ -81,24 +119,36 @@ export function sanitizeUser(user: UserRecord): SanitizedUser {
 }
 
 export async function listAdminUsers(): Promise<SanitizedUser[]> {
+  const siteId = await getSiteId();
+
   const users = await prisma.user.findMany({
-    where: { role: "admin" },
+    where: {
+      siteId,
+      role: { in: ["ADMIN", "EDITOR", "PRACTITIONER"] },
+    },
   });
 
   return users.map((user: PrismaUserRecord) =>
     sanitizeUser({
       ...user,
-      role: user.role as UserRecord["role"],
+      passwordHash: user.passwordHash || "",
+      role: mapDatabaseRole(user.role),
     }),
   );
 }
 
 export async function createAdminUser(payload: CreateAdminUserPayload): Promise<SanitizedUser> {
   const email = payload.email.toLowerCase();
+  const siteId = await getSiteId();
 
   // Vérifier si l'utilisateur existe déjà
   const existing = await prisma.user.findUnique({
-    where: { email },
+    where: {
+      email_siteId: {
+        email,
+        siteId,
+      }
+    },
   });
 
   if (existing) {
@@ -112,13 +162,17 @@ export async function createAdminUser(payload: CreateAdminUserPayload): Promise<
       id: randomUUID(),
       email,
       passwordHash,
-      role: payload.role ?? "admin",
+      role: "ADMIN",
+      isActive: true,
+      emailVerified: new Date(),
+      siteId,
     },
   });
 
   return sanitizeUser({
     ...user,
-    role: user.role as UserRecord["role"],
+    passwordHash: user.passwordHash || "",
+    role: mapDatabaseRole(user.role),
   });
 }
 
@@ -127,12 +181,13 @@ export async function updateAdminUser(
   payload: UpdateAdminUserPayload,
 ): Promise<SanitizedUser> {
   const nextEmail = payload.email?.toLowerCase();
+  const siteId = await getSiteId();
 
   // Si l'email est modifié, vérifier qu'il n'existe pas déjà
   if (nextEmail) {
     const existing = await prisma.user.findFirst({
       where: {
-        AND: [{ email: nextEmail }, { NOT: { id } }],
+        AND: [{ email: nextEmail }, { siteId }, { NOT: { id } }],
       },
     });
 
@@ -148,7 +203,7 @@ export async function updateAdminUser(
   } = {};
 
   if (nextEmail) updateData.email = nextEmail;
-  if (payload.role) updateData.role = payload.role;
+  if (payload.role) updateData.role = "ADMIN";
   if (payload.password) updateData.passwordHash = await hashPassword(payload.password);
 
   const updated = await prisma.user.update({
@@ -158,7 +213,8 @@ export async function updateAdminUser(
 
   return sanitizeUser({
     ...updated,
-    role: updated.role as UserRecord["role"],
+    passwordHash: updated.passwordHash || "",
+    role: mapDatabaseRole(updated.role),
   });
 }
 
@@ -180,17 +236,21 @@ export async function resetAdminPasswordById(id: string): Promise<ResetPasswordR
   return {
     user: sanitizeUser({
       ...updated,
-      role: updated.role as UserRecord["role"],
+      passwordHash: updated.passwordHash || "",
+      role: mapDatabaseRole(updated.role),
     }),
     temporaryPassword,
   };
 }
 
 export async function resetAdminPasswordByEmail(email: string): Promise<ResetPasswordResult | null> {
+  const siteId = await getSiteId();
+
   const user = await prisma.user.findFirst({
     where: {
       email: email.toLowerCase(),
-      role: "admin",
+      siteId,
+      role: { in: ["ADMIN", "EDITOR", "PRACTITIONER"] },
     },
   });
 
@@ -209,7 +269,8 @@ export async function resetAdminPasswordByEmail(email: string): Promise<ResetPas
   return {
     user: sanitizeUser({
       ...updated,
-      role: updated.role as UserRecord["role"],
+      passwordHash: updated.passwordHash || "",
+      role: mapDatabaseRole(updated.role),
     }),
     temporaryPassword,
   };
