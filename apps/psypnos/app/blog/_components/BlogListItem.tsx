@@ -16,9 +16,18 @@ interface BlogListItemProps {
 
 export function BlogListItem({ post, index = 0 }: BlogListItemProps) {
   const [imageExists, setImageExists] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
   const colors = getCategoryColors(post.category);
 
+  // Track mounting to avoid hydration mismatch
   useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  useEffect(() => {
+    // Only check images after mounting to avoid hydration mismatch
+    if (!hasMounted) return;
+
     const checkImage = async () => {
       try {
         const imageUrl = resolvePostImage(post);
@@ -35,7 +44,7 @@ export function BlogListItem({ post, index = 0 }: BlogListItemProps) {
     };
 
     checkImage();
-  }, [post]);
+  }, [post, hasMounted]);
 
   const formattedDate = new Date(post.date).toLocaleDateString("fr-FR", {
     day: "numeric",
@@ -43,6 +52,9 @@ export function BlogListItem({ post, index = 0 }: BlogListItemProps) {
     year: "numeric",
     timeZone: "Europe/Paris",
   });
+
+  // Show image only after mounting and check completes to prevent hydration mismatch
+  const showImage = hasMounted && imageExists;
 
   return (
     <motion.article
@@ -60,8 +72,8 @@ export function BlogListItem({ post, index = 0 }: BlogListItemProps) {
 
       <Link href={`/blog/${post.slug}`} className="block focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-night rounded-lg">
         <div className="flex flex-col sm:flex-row">
-          {/* Image à gauche (vignette) */}
-          {imageExists && (
+          {/* Image à gauche (vignette) - only show after client-side check to prevent hydration mismatch */}
+          {showImage && (
             <div className="relative h-40 sm:h-auto sm:w-56 flex-shrink-0 overflow-hidden bg-night/80">
               <Image
                 src={resolvePostImage(post) || ''}

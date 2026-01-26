@@ -1,12 +1,11 @@
 /**
  * Page d'accueil de Psypnos
  *
- * Cette page utilise le lazy loading pour toutes les sections sous le pli
- * afin d'optimiser les performances de chargement initial.
+ * Cette page utilise next/dynamic pour le lazy loading des sections sous le pli.
+ * next/dynamic gère correctement le SSR et évite les erreurs d'hydratation
+ * contrairement à React.lazy() qui ne fonctionne pas bien avec SSR.
  */
-"use client";
-
-import { Suspense, lazy } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { HeroSection } from "./(pages)/sections/hero";
 import { SocialLinks } from "../components/SocialLinks";
@@ -24,45 +23,56 @@ import {
   ContactSectionSkeleton,
 } from "./(pages)/sections/skeletons";
 
-// Lazy load all sections except Hero (above the fold)
-const ApproachSection = lazy(() =>
-  import("./(pages)/sections/approach").then((mod) => ({ default: mod.ApproachSection }))
+// Dynamic import with SSR disabled to prevent hydration mismatches
+// ssr: false ensures the component only renders on the client
+const ApproachSection = dynamic(
+  () => import("./(pages)/sections/approach").then((mod) => mod.ApproachSection),
+  { loading: () => <ApproachSectionSkeleton />, ssr: false }
 );
 
-const JourneySection = lazy(() =>
-  import("./(pages)/sections/journey").then((mod) => ({ default: mod.JourneySection }))
+const JourneySection = dynamic(
+  () => import("./(pages)/sections/journey").then((mod) => mod.JourneySection),
+  { loading: () => <JourneySectionSkeleton />, ssr: false }
 );
 
-const PricingSection = lazy(() =>
-  import("./(pages)/sections/pricing").then((mod) => ({ default: mod.PricingSection }))
+const PricingSection = dynamic(
+  () => import("./(pages)/sections/pricing").then((mod) => mod.PricingSection),
+  { loading: () => <PricingSectionSkeleton />, ssr: false }
 );
 
-const SessionFormatsSection = lazy(() =>
-  import("./(pages)/sections/formats").then((mod) => ({ default: mod.SessionFormatsSection }))
+const SessionFormatsSection = dynamic(
+  () => import("./(pages)/sections/formats").then((mod) => mod.SessionFormatsSection),
+  { loading: () => <FormatsSectionSkeleton />, ssr: false }
 );
 
-const TherapySections = lazy(() =>
-  import("./(pages)/sections/therapy").then((mod) => ({ default: mod.TherapySections }))
+const TherapySections = dynamic(
+  () => import("./(pages)/sections/therapy").then((mod) => mod.TherapySections),
+  { loading: () => <TherapySectionsSkeleton />, ssr: false }
 );
 
-const RespirationSection = lazy(() =>
-  import("./(pages)/sections/respiration").then((mod) => ({ default: mod.RespirationSection }))
+const RespirationSection = dynamic(
+  () => import("./(pages)/sections/respiration").then((mod) => mod.RespirationSection),
+  { loading: () => <RespirationSectionSkeleton />, ssr: false }
 );
 
-const SeminarsSection = lazy(() =>
-  import("./(pages)/sections/seminars").then((mod) => ({ default: mod.SeminarsSection }))
+const SeminarsSection = dynamic(
+  () => import("./(pages)/sections/seminars").then((mod) => mod.SeminarsSection),
+  { loading: () => <SeminarsSectionSkeleton />, ssr: false }
 );
 
-const BlogSection = lazy(() =>
-  import("./(pages)/sections/blog").then((mod) => ({ default: mod.BlogSection }))
+const BlogSection = dynamic(
+  () => import("./(pages)/sections/blog").then((mod) => mod.BlogSection),
+  { loading: () => <BlogSectionSkeleton />, ssr: false }
 );
 
-const TestimonialsSection = lazy(() =>
-  import("./(pages)/sections/testimonials").then((mod) => ({ default: mod.TestimonialsSection }))
+const TestimonialsSection = dynamic(
+  () => import("./(pages)/sections/testimonials").then((mod) => mod.TestimonialsSection),
+  { loading: () => <TestimonialsSectionSkeleton />, ssr: false }
 );
 
-const ContactSection = lazy(() =>
-  import("./(pages)/sections/contact").then((mod) => ({ default: mod.ContactSection }))
+const ContactSection = dynamic(
+  () => import("./(pages)/sections/contact").then((mod) => mod.ContactSection),
+  { loading: () => <ContactSectionSkeleton />, ssr: false }
 );
 
 export default function HomePage() {
@@ -72,55 +82,18 @@ export default function HomePage() {
       <HeroSection />
 
       <main>
-        {/* Approach - lazy loaded with Suspense */}
-        <Suspense fallback={<ApproachSectionSkeleton />}>
-          <ApproachSection />
-        </Suspense>
-
-        {/* Journey - lazy loaded with Suspense */}
-        <Suspense fallback={<JourneySectionSkeleton />}>
-          <JourneySection />
-        </Suspense>
-
-        {/* Session Formats - lazy loaded with Suspense */}
-        <Suspense fallback={<FormatsSectionSkeleton />}>
-          <SessionFormatsSection />
-        </Suspense>
-
-        {/* Tarifs - lazy loaded with Suspense */}
-        <Suspense fallback={<PricingSectionSkeleton />}>
-          <PricingSection />
-        </Suspense>
-
-        {/* Therapy Sections (Psychotherapy + Hypnose) - lazy loaded with Suspense */}
-        <Suspense fallback={<TherapySectionsSkeleton />}>
-          <TherapySections />
-        </Suspense>
-
-        {/* Respiration - lazy loaded with Suspense */}
-        <Suspense fallback={<RespirationSectionSkeleton />}>
-          <RespirationSection />
-        </Suspense>
-
-        {/* Seminars - lazy loaded with Suspense */}
-        <Suspense fallback={<SeminarsSectionSkeleton />}>
-          <SeminarsSection />
-        </Suspense>
-
-        {/* Blog - lazy loaded with Suspense */}
-        <Suspense fallback={<BlogSectionSkeleton />}>
-          <BlogSection />
-        </Suspense>
-
-        {/* Testimonials - lazy loaded with Suspense */}
-        <Suspense fallback={<TestimonialsSectionSkeleton />}>
-          <TestimonialsSection />
-        </Suspense>
-
-        {/* Contact - lazy loaded with Suspense */}
-        <Suspense fallback={<ContactSectionSkeleton />}>
-          <ContactSection />
-        </Suspense>
+        {/* All sections below use next/dynamic with ssr: false */}
+        {/* This ensures they only render on client, preventing hydration mismatches */}
+        <ApproachSection />
+        <JourneySection />
+        <SessionFormatsSection />
+        <PricingSection />
+        <TherapySections />
+        <RespirationSection />
+        <SeminarsSection />
+        <BlogSection />
+        <TestimonialsSection />
+        <ContactSection />
       </main>
 
       <footer className="border-t border-ivory/10 bg-night/80 px-6 py-10 sm:px-10 lg:px-16">

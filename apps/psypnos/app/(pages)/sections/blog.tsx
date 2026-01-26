@@ -30,6 +30,12 @@ const categoryColors: Record<string, { bg: string; text: string; gradient: strin
 export function BlogSection() {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  // Track mounting to avoid hydration mismatch
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   useEffect(() => {
     async function fetchPosts() {
@@ -48,8 +54,8 @@ export function BlogSection() {
     fetchPosts();
   }, []);
 
-  // Skeleton pendant le chargement pour éviter l'erreur d'hydratation
-  if (loading) {
+  // During SSR and initial client render, show skeleton to prevent hydration mismatch
+  if (!hasMounted || loading) {
     return (
       <section
         id="blog"

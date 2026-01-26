@@ -37,6 +37,12 @@ function TestimonialCard({ quote, author, role, index }: { quote: string; author
 export function TestimonialsSection() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  // Track mounting to avoid hydration mismatch
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   useEffect(() => {
     async function fetchTestimonials() {
@@ -55,7 +61,8 @@ export function TestimonialsSection() {
     fetchTestimonials();
   }, []);
 
-  if (loading) {
+  // During SSR and initial client render, show skeleton to prevent hydration mismatch
+  if (!hasMounted || loading) {
     // Skeleton pour éviter l'erreur d'hydratation
     return (
       <section className="bg-night/60 px-6 py-20 sm:px-10 lg:px-16">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { BookOpen, List } from "lucide-react";
 import Link from "next/link";
@@ -26,6 +26,12 @@ export function BlogPageClient({ allPosts, categories }: BlogPageClientProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchFilteredPosts, setSearchFilteredPosts] = useState<BlogPostSummary[]>(allPosts);
   const [currentPage, setCurrentPage] = useState(1);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  // Track mounting to enable animations only after hydration
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   // Effets parallaxes pour le hero
   const { scrollYProgress } = useScroll({
@@ -36,6 +42,13 @@ export function BlogPageClient({ allPosts, categories }: BlogPageClientProps) {
   const secondaryParallax = useTransform(scrollYProgress, [0, 1], [0, -60]);
   const imageParallax = useTransform(scrollYProgress, [0, 1], [0, 50]);
   const glowOpacity = useTransform(scrollYProgress, [0, 1], [0.5, 0.1]);
+
+  // Animation props - only animate after hydration to prevent mismatch
+  const getAnimationProps = (delay = 0) => ({
+    initial: hasMounted ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 },
+    animate: { opacity: 1, y: 0 },
+    transition: hasMounted ? { duration: 0.5, delay, ease: "easeOut" } : { duration: 0 },
+  });
 
   // Séparer les articles featured et tous les articles pour affichage
   const { featuredPosts, allFilteredPosts } = useMemo(() => {
@@ -112,25 +125,19 @@ export function BlogPageClient({ allPosts, categories }: BlogPageClientProps) {
 
         <div className="relative mx-auto max-w-7xl px-6 py-16 sm:py-20 lg:py-24 sm:px-10 lg:px-16">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            {...getAnimationProps(0)}
             className="text-center"
           >
             <br/>
             <motion.h1
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
+              {...getAnimationProps(0.2)}
               className="text-4xl font-bold text-gold sm:text-5xl lg:text-6xl mb-4"
             >
               Voyages au Cœur de Soi
             </motion.h1>
 
             <motion.blockquote
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+              {...getAnimationProps(0.4)}
               className="max-w-2xl mx-auto mb-6 text-lg text-gold/70 italic"
             >
               <h2 className="text-2xl font-semibold">Carnets d'exploration à destination des psychonautes</h2>
@@ -145,11 +152,7 @@ export function BlogPageClient({ allPosts, categories }: BlogPageClientProps) {
         <Breadcrumb currentPage="list" />
 
         {/* Barre de recherche avancée */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-        >
+        <motion.div {...getAnimationProps(0.1)}>
           <SearchBar
             posts={allPosts}
             onResultsChange={handleSearchChange}
@@ -158,11 +161,7 @@ export function BlogPageClient({ allPosts, categories }: BlogPageClientProps) {
 
         {/* Filtres par catégorie */}
         {categories.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.2 }}
-          >
+          <motion.div {...getAnimationProps(0.2)}>
             <CategoryFilter
               categories={categories}
               selectedCategory={selectedCategory}
@@ -173,11 +172,7 @@ export function BlogPageClient({ allPosts, categories }: BlogPageClientProps) {
 
         {/* Carrousel des articles mis en avant */}
         {featuredPosts.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
-          >
+          <motion.div {...getAnimationProps(0.3)}>
             <FeaturedCarousel posts={featuredPosts} />
           </motion.div>
         )}
@@ -185,9 +180,9 @@ export function BlogPageClient({ allPosts, categories }: BlogPageClientProps) {
         {/* Séparateur entre featured et tous les articles */}
         {featuredPosts.length > 0 && allArticlesSorted.length > 0 && (
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={hasMounted ? { opacity: 0 } : { opacity: 1 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.4, delay: 0.4 }}
+            transition={hasMounted ? { duration: 0.4, delay: 0.4 } : { duration: 0 }}
             className="mb-12 mt-8"
           >
             <div className="flex items-center gap-3">
@@ -216,8 +211,9 @@ export function BlogPageClient({ allPosts, categories }: BlogPageClientProps) {
           </>
         ) : (
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={hasMounted ? { opacity: 0 } : { opacity: 1 }}
             animate={{ opacity: 1 }}
+            transition={hasMounted ? { duration: 0.4 } : { duration: 0 }}
             className="py-20 text-center"
           >
             <p className="text-lg text-ivory/50">
@@ -229,8 +225,9 @@ export function BlogPageClient({ allPosts, categories }: BlogPageClientProps) {
         {/* Message si aucun article */}
         {allPosts.length === 0 && (
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={hasMounted ? { opacity: 0 } : { opacity: 1 }}
             animate={{ opacity: 1 }}
+            transition={hasMounted ? { duration: 0.4 } : { duration: 0 }}
             className="rounded-lg border border-ivory/10 bg-night/50 p-12 text-center backdrop-blur-sm"
           >
             <BookOpen className="mx-auto mb-4 h-12 w-12 text-ivory/30" />

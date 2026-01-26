@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -28,6 +28,13 @@ const heroPractitioner = {
 
 export function HeroSection() {
   const heroRef = useRef<HTMLDivElement>(null);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  // Track mounting to enable animations only after hydration
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
   const { scrollYProgress } = useScroll({
     target: heroRef,
     offset: ["start start", "end start"],
@@ -35,6 +42,12 @@ export function HeroSection() {
   const heroParallax = useTransform(scrollYProgress, [0, 1], [0, -140]);
   const secondaryParallax = useTransform(scrollYProgress, [0, 1], [0, -70]);
   const glowOpacity = useTransform(scrollYProgress, [0, 1], [0.6, 0.2]);
+
+  // Animation variants - only animate after hydration to prevent mismatch
+  const fadeIn = hasMounted ? { opacity: 1 } : { opacity: 1 };
+  const fadeInInitial = hasMounted ? { opacity: 0 } : { opacity: 1 };
+  const slideUp = hasMounted ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 };
+  const slideUpInitial = hasMounted ? { opacity: 0, y: 24 } : { opacity: 1, y: 0 };
 
   return (
     <header
@@ -60,21 +73,21 @@ export function HeroSection() {
 
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-10 text-center">
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 2, ease: "easeOut" }}
+          initial={fadeInInitial}
+          animate={fadeIn}
+          transition={hasMounted ? { duration: 2, ease: "easeOut" } : { duration: 0 }}
           className="flex h-24 w-24 flex-col items-center justify-center bg-night/40 "
         >
           <motion.svg
-            initial={{ scale: 0.5, rotate: -360 }}
+            initial={hasMounted ? { scale: 0.5, rotate: -360 } : { scale: 1, rotate: 0 }}
             animate={{ scale: 1, rotate: 0 }}
-            transition={{ duration: 2.2, ease: "easeOut" }}
+            transition={hasMounted ? { duration: 2.2, ease: "easeOut" } : { duration: 0 }}
             width="100"
             height="100"
             viewBox="0 0 600 600"
             aria-label="Logo spiralé"
           >
-            <motion.circle
+            <circle
               cx="300"
               cy="300"
               r="250"
@@ -82,7 +95,7 @@ export function HeroSection() {
               stroke="#c7a962"
               strokeWidth="25"
             />
-            <motion.path
+            <path
               d="
                 M 300 550
                 a 200,200 0 0 0 200,-200
@@ -97,16 +110,16 @@ export function HeroSection() {
             />
           </motion.svg>
           <motion.svg
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 2, delay: 1, ease: "easeOut" }}
+            initial={fadeInInitial}
+            animate={fadeIn}
+            transition={hasMounted ? { duration: 2, delay: 1, ease: "easeOut" } : { duration: 0 }}
             width="100"
             height="50"
             viewBox="0 0 1000 500"
             aria-label="Psypnos"
             className="flex h-24 w-24 items-center justify-center bg-night/40 "
           >
-            <motion.text
+            <text
               x="50%"
               y="50%"
               fill="#c7a962"
@@ -116,14 +129,14 @@ export function HeroSection() {
               fontWeight="bold"
             >
               Psypnos
-            </motion.text>
+            </text>
           </motion.svg>
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 3.3, ease: "easeOut" }}
+          initial={slideUpInitial}
+          animate={slideUp}
+          transition={hasMounted ? { duration: 0.8, delay: 3.3, ease: "easeOut" } : { duration: 0 }}
           className="max-w-3xl"
         >
           <h1 className="text-4xl font-semibold text-ivory sm:text-5xl lg:text-6xl">
@@ -135,9 +148,9 @@ export function HeroSection() {
           </p>
         </motion.div>
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 3.5, ease: "easeOut" }}
+          initial={slideUpInitial}
+          animate={slideUp}
+          transition={hasMounted ? { duration: 0.8, delay: 3.5, ease: "easeOut" } : { duration: 0 }}
           className="flex flex-col items-center gap-6"
         >
           {/* Boutons principaux */}
@@ -198,9 +211,9 @@ export function HeroSection() {
           </Link>
         </motion.div>
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={hasMounted ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 2, delay: 3.6, ease: "easeOut" }}
+          transition={hasMounted ? { duration: 2, delay: 3.6, ease: "easeOut" } : { duration: 0 }}
           className="relative flex w-full flex-col items-center justify-center gap-8 overflow-hidden lg:flex-row lg:items-start lg:justify-center"
         >
           <Image

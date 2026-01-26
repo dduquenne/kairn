@@ -24,9 +24,18 @@ function MiniArticleCard({
   index?: number;
 }) {
   const [imageExists, setImageExists] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
   const colors = getCategoryColors(post.category);
 
+  // Track mounting to avoid hydration mismatch
   useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  useEffect(() => {
+    // Only check images after mounting to avoid hydration mismatch
+    if (!hasMounted) return;
+
     const checkImage = async () => {
       try {
         const response = await fetch(`/images/blog/${post.slug}.webp`, {
@@ -39,7 +48,7 @@ function MiniArticleCard({
     };
 
     checkImage();
-  }, [post.slug]);
+  }, [post.slug, hasMounted]);
 
   // Use explicit timezone to avoid hydration mismatch between server and client
   const formattedDate = new Date(post.date).toLocaleDateString("fr-FR", {
@@ -49,10 +58,14 @@ function MiniArticleCard({
     timeZone: "Europe/Paris",
   });
 
+  // Show image only after mounting and check completes to prevent hydration mismatch
+  const showImage = hasMounted && imageExists;
+
   return (
     <motion.article
       initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.4, delay: index * 0.05 }}
       className={`group relative overflow-hidden rounded-lg border ${colors.border} ${colors.hover} bg-night/50 backdrop-blur-sm transition-all hover:bg-night/70`}
     >
@@ -66,8 +79,8 @@ function MiniArticleCard({
         className="block rounded-lg focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-night"
       >
         <div className="flex flex-col sm:flex-row">
-          {/* Image (optionnelle) */}
-          {imageExists && (
+          {/* Image (optionnelle) - only show after client-side check to prevent hydration mismatch */}
+          {showImage && (
             <div className="relative h-40 w-full flex-shrink-0 overflow-hidden bg-night/80 sm:h-auto sm:w-40">
               <Image
                 src={`/images/blog/${post.slug}.webp`}

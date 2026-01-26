@@ -15,9 +15,18 @@ interface BlogCardProps {
 
 export function BlogCard({ post, index = 0 }: BlogCardProps) {
   const [imageExists, setImageExists] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
   const colors = getCategoryColors(post.category);
 
+  // Track mounting to avoid hydration mismatch
   useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  useEffect(() => {
+    // Only check images after mounting to avoid hydration mismatch
+    if (!hasMounted) return;
+
     const checkImage = async () => {
       try {
         const response = await fetch(`/images/blog/${post.slug}.webp`, { method: 'HEAD' });
@@ -28,7 +37,7 @@ export function BlogCard({ post, index = 0 }: BlogCardProps) {
     };
 
     checkImage();
-  }, [post.slug]);
+  }, [post.slug, hasMounted]);
 
   const formattedDate = new Date(post.date).toLocaleDateString("fr-FR", {
     day: "numeric",
@@ -37,10 +46,14 @@ export function BlogCard({ post, index = 0 }: BlogCardProps) {
     timeZone: "Europe/Paris",
   });
 
+  // Show image only after mounting and check completes to prevent hydration mismatch
+  const showImage = hasMounted && imageExists;
+
   return (
     <motion.article
       initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.4, delay: index * 0.1 }}
       className={`group relative overflow-hidden rounded-lg border ${colors.border} ${colors.hover} bg-night/50 backdrop-blur-sm transition-all hover:bg-night/70`}
     >
@@ -48,8 +61,8 @@ export function BlogCard({ post, index = 0 }: BlogCardProps) {
       <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${colors.gradient}`} />
 
       <Link href={`/blog/${post.slug}`} className="block focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-night rounded-lg">
-        {/* Image */}
-        {imageExists && (
+        {/* Image - only show after client-side check to prevent hydration mismatch */}
+        {showImage && (
           <div className="relative h-48 overflow-hidden bg-night/80">
             <Image
               src={`/images/blog/${post.slug}.webp`}

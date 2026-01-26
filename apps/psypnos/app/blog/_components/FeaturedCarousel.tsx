@@ -18,13 +18,21 @@ export function FeaturedCarousel({ posts }: FeaturedCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [imageExists, setImageExists] = useState<Record<string, boolean>>({});
+  const [hasMounted, setHasMounted] = useState(false);
 
   // Nombre d'articles visibles par page (responsive)
   const itemsPerPage = 3;
   const totalPages = Math.ceil(posts.length / itemsPerPage);
 
-  // Vérifier l'existence des images pour tous les posts
+  // Track mounting to avoid hydration mismatch
   useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  // Vérifier l'existence des images pour tous les posts (only after mounting)
+  useEffect(() => {
+    if (!hasMounted) return;
+
     const checkImages = async () => {
       const results: Record<string, boolean> = {};
       for (const post of posts) {
@@ -45,18 +53,18 @@ export function FeaturedCarousel({ posts }: FeaturedCarouselProps) {
     };
 
     checkImages();
-  }, [posts]);
+  }, [posts, hasMounted]);
 
-  // Défilement automatique toutes les 7 secondes
+  // Défilement automatique toutes les 7 secondes (only after mounting)
   useEffect(() => {
-    if (!isAutoPlaying || totalPages <= 1) return;
+    if (!hasMounted || !isAutoPlaying || totalPages <= 1) return;
 
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % totalPages);
     }, 7000);
 
     return () => clearInterval(interval);
-  }, [isAutoPlaying, totalPages]);
+  }, [isAutoPlaying, totalPages, hasMounted]);
 
   const goToPrevious = useCallback(() => {
     setIsAutoPlaying(false);
@@ -74,6 +82,43 @@ export function FeaturedCarousel({ posts }: FeaturedCarouselProps) {
   }, []);
 
   if (posts.length === 0) return null;
+
+  // During SSR and initial client render, show skeleton to prevent hydration mismatch
+  if (!hasMounted) {
+    return (
+      <section className="relative mb-16">
+        <div className="mb-8 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Star className="h-6 w-6 text-gold fill-gold" />
+            <h2 className="text-3xl font-bold text-gold">Articles mis en avant</h2>
+          </div>
+        </div>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="relative overflow-hidden rounded-xl border-2 border-ivory/10 bg-gradient-to-br from-night via-night/95 to-night/90 animate-pulse"
+            >
+              <div className="absolute left-0 top-0 bottom-0 w-2 bg-ivory/10" />
+              <div className="h-56 bg-night/80" />
+              <div className="p-6 pl-8 space-y-4">
+                <div className="h-6 w-24 rounded-full bg-ivory/10" />
+                <div className="h-8 w-full rounded bg-ivory/10" />
+                <div className="space-y-2">
+                  <div className="h-4 w-full rounded bg-ivory/10" />
+                  <div className="h-4 w-3/4 rounded bg-ivory/10" />
+                </div>
+                <div className="flex gap-4">
+                  <div className="h-4 w-24 rounded bg-ivory/10" />
+                  <div className="h-4 w-16 rounded bg-ivory/10" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
 
   const startIdx = currentIndex * itemsPerPage;
   const visiblePosts = posts.slice(startIdx, startIdx + itemsPerPage);

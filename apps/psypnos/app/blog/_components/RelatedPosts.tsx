@@ -32,7 +32,8 @@ export function RelatedPosts({ posts }: RelatedPostsProps) {
             <motion.article
               key={post.slug}
               initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
               transition={{ duration: 0.4, delay: index * 0.1 }}
               className={`group relative overflow-hidden rounded-lg border ${colors.border} bg-night/30 backdrop-blur-sm transition-all ${colors.hover} hover:bg-night/50`}
             >
