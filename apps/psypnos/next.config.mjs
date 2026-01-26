@@ -71,7 +71,7 @@ const securityHeaders = [
 
 const nextConfig = {
   // Transpiler les packages du monorepo
-  transpilePackages: ['@kairn/ui', '@kairn/core', '@kairn/config'],
+  transpilePackages: ['@kairn/ui', '@kairn/core', '@kairn/config', '@kairn/admin', '@kairn/analytics', '@kairn/blog', '@kairn/social'],
 
   // Optimisations
   reactStrictMode: true,
