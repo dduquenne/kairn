@@ -40,6 +40,7 @@ model Site {
   testimonials Testimonial[]
   contacts     Contact[]
   analytics    AnalyticsEvent[]
+  seminars     Seminar[]
 
   @@index([slug])
   @@index([domain])
@@ -326,6 +327,49 @@ model AnalyticsEvent {
   @@index([siteId, type, createdAt])
   @@index([path])
   @@index([createdAt])
+}
+
+// =============================================================================
+// SEMINARS & WORKSHOPS
+// =============================================================================
+
+/// Seminar/workshop event
+model Seminar {
+  id          String   @id @default(cuid())
+  /// Seminar title
+  title       String
+  /// Full description
+  description String
+  /// Speakers/facilitators as JSON array [{firstName, lastName}]
+  speakers    Json
+  /// Start date and time
+  startAt     DateTime
+  /// End date and time
+  endAt       DateTime
+  /// Maximum capacity
+  capacity    Int
+  /// Price in euros
+  price       Decimal? @db.Decimal(10, 2)
+  /// Deposit amount
+  deposit     Decimal? @db.Decimal(10, 2)
+  /// Display order for sorting
+  displayOrder String?
+  /// Tags for categorization
+  tags        String[]
+  /// Thumbnail image URL
+  thumbnail   String?
+  /// Type of seminar (e.g., "respiration", "meditation")
+  seminarType String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Multi-tenancy
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId])
+  @@index([startAt])
+  @@index([siteId, startAt])
 }
 
 // =============================================================================

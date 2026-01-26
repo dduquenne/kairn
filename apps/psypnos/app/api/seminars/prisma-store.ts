@@ -1,8 +1,7 @@
-// @ts-nocheck
-// TODO: Migration - Prisma models may not be available in Kairn schema
 /**
  * Seminars Store - PostgreSQL via Prisma
- * Replaces the JSON file-based store for robust data management
+ *
+ * This store manages seminars using the Kairn Prisma schema with multi-tenancy support.
  */
 
 import { Prisma } from "@prisma/client";
@@ -12,8 +11,11 @@ import prisma from "@/lib/db/prisma";
 
 export { SEMINAR_TYPES, type SeminarType } from "./types";
 
+// Site slug for Psypnos (used for multi-tenancy)
+const SITE_SLUG = "psypnos";
+
 // ============================================
-// Validation Schemas (unchanged from original)
+// Validation Schemas
 // ============================================
 
 const speakerSchema = z.object({
@@ -90,6 +92,35 @@ export interface SeminarOutput {
 }
 
 // ============================================
+// Site Helper
+// ============================================
+
+/**
+ * Get or create the Psypnos site for multi-tenancy
+ */
+async function getSiteId(): Promise<string> {
+  let site = await prisma.site.findUnique({
+    where: { slug: SITE_SLUG },
+    select: { id: true },
+  });
+
+  if (!site) {
+    // Create the site if it doesn't exist
+    site = await prisma.site.create({
+      data: {
+        slug: SITE_SLUG,
+        name: "Psypnos",
+        domain: "psypnos.fr",
+        isActive: true,
+      },
+      select: { id: true },
+    });
+  }
+
+  return site.id;
+}
+
+// ============================================
 // Database Operations
 // ============================================
 
@@ -97,7 +128,10 @@ export interface SeminarOutput {
  * Get all seminars from database
  */
 export async function getAllSeminars(): Promise<SeminarOutput[]> {
+  const siteId = await getSiteId();
+
   const seminars = await prisma.seminar.findMany({
+    where: { siteId },
     orderBy: { startAt: "asc" },
   });
 
@@ -108,10 +142,12 @@ export async function getAllSeminars(): Promise<SeminarOutput[]> {
  * Get upcoming seminars (startAt >= now)
  */
 export async function getUpcomingSeminars(limit?: number): Promise<SeminarOutput[]> {
+  const siteId = await getSiteId();
   const now = new Date();
 
   const seminars = await prisma.seminar.findMany({
     where: {
+      siteId,
       startAt: { gte: now },
     },
     orderBy: { startAt: "asc" },
@@ -125,8 +161,10 @@ export async function getUpcomingSeminars(limit?: number): Promise<SeminarOutput
  * Get seminar by ID
  */
 export async function getSeminarById(id: string): Promise<SeminarOutput | null> {
-  const seminar = await prisma.seminar.findUnique({
-    where: { id },
+  const siteId = await getSiteId();
+
+  const seminar = await prisma.seminar.findFirst({
+    where: { id, siteId },
   });
 
   return seminar ? formatSeminarOutput(seminar) : null;
@@ -136,10 +174,12 @@ export async function getSeminarById(id: string): Promise<SeminarOutput | null> 
  * Create a new seminar
  */
 export async function createSeminar(data: SeminarPayload): Promise<SeminarOutput> {
+  const siteId = await getSiteId();
   const normalized = normalizeSeminarInput(data);
 
   const seminar = await prisma.seminar.create({
     data: {
+      siteId,
       title: normalized.title,
       description: normalized.description,
       speakers: normalized.speakers,
@@ -165,51 +205,59 @@ export async function updateSeminar(
   id: string,
   data: SeminarPayload
 ): Promise<SeminarOutput | null> {
+  const siteId = await getSiteId();
   const normalized = normalizeSeminarInput(data);
 
-  try {
-    const seminar = await prisma.seminar.update({
-      where: { id },
-      data: {
-        title: normalized.title,
-        description: normalized.description,
-        speakers: normalized.speakers,
-        startAt: new Date(normalized.startAt),
-        endAt: new Date(normalized.endAt),
-        capacity: normalized.capacity,
-        price: normalized.price ? new Decimal(normalized.price) : null,
-        deposit: normalized.deposit ? new Decimal(normalized.deposit) : null,
-        displayOrder: normalized.order || null,
-        tags: normalized.tags,
-        thumbnail: normalized.thumbnail || null,
-        seminarType: normalized.seminarType || null,
-      },
-    });
+  // First check if seminar exists for this site
+  const existing = await prisma.seminar.findFirst({
+    where: { id, siteId },
+  });
 
-    return formatSeminarOutput(seminar);
-  } catch (error) {
-    if ((error as { code?: string }).code === "P2025") {
-      return null; // Record not found
-    }
-    throw error;
+  if (!existing) {
+    return null;
   }
+
+  const seminar = await prisma.seminar.update({
+    where: { id },
+    data: {
+      title: normalized.title,
+      description: normalized.description,
+      speakers: normalized.speakers,
+      startAt: new Date(normalized.startAt),
+      endAt: new Date(normalized.endAt),
+      capacity: normalized.capacity,
+      price: normalized.price ? new Decimal(normalized.price) : null,
+      deposit: normalized.deposit ? new Decimal(normalized.deposit) : null,
+      displayOrder: normalized.order || null,
+      tags: normalized.tags,
+      thumbnail: normalized.thumbnail || null,
+      seminarType: normalized.seminarType || null,
+    },
+  });
+
+  return formatSeminarOutput(seminar);
 }
 
 /**
  * Delete a seminar
  */
 export async function deleteSeminar(id: string): Promise<boolean> {
-  try {
-    await prisma.seminar.delete({
-      where: { id },
-    });
-    return true;
-  } catch (error) {
-    if ((error as { code?: string }).code === "P2025") {
-      return false; // Record not found
-    }
-    throw error;
+  const siteId = await getSiteId();
+
+  // First check if seminar exists for this site
+  const existing = await prisma.seminar.findFirst({
+    where: { id, siteId },
+  });
+
+  if (!existing) {
+    return false;
   }
+
+  await prisma.seminar.delete({
+    where: { id },
+  });
+
+  return true;
 }
 
 // ============================================
@@ -263,11 +311,11 @@ function toIsoString(value: string): string {
     const [, year, month, day, hours, minutes, seconds = "0", milliseconds = "0"] =
       datetimeLocalMatch;
     const date = new Date(
-      parseInt(year, 10),
-      parseInt(month, 10) - 1,
-      parseInt(day, 10),
-      parseInt(hours, 10),
-      parseInt(minutes, 10),
+      parseInt(year!, 10),
+      parseInt(month!, 10) - 1,
+      parseInt(day!, 10),
+      parseInt(hours!, 10),
+      parseInt(minutes!, 10),
       parseInt(seconds, 10),
       parseInt(milliseconds, 10)
     );

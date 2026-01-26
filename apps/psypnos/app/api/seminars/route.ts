@@ -1,5 +1,3 @@
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 
@@ -11,18 +9,22 @@ import {
 } from "./prisma-store";
 import { withAdminAuth } from "../auth/middleware";
 
+/**
+ * Get all seminars, optionally filtered by upcoming and limited
+ */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const limitParam = searchParams.get("limit");
   const upcomingParam = searchParams.get("upcoming");
 
   try {
-    let seminars;
     const limit = limitParam ? Number.parseInt(limitParam, 10) : undefined;
     const validLimit =
       typeof limit === "number" && Number.isFinite(limit) && limit > 0
         ? limit
         : undefined;
+
+    let seminars;
 
     if (upcomingParam === "true") {
       // Get upcoming seminars
@@ -57,6 +59,9 @@ export async function GET(request: Request) {
   }
 }
 
+/**
+ * Create a new seminar
+ */
 export async function POST(request: Request) {
   // Verify authentication
   const authResult = await withAdminAuth();

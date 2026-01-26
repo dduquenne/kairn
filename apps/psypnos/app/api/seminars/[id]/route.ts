@@ -1,5 +1,3 @@
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 
@@ -12,12 +10,16 @@ import {
 import { withAdminAuth } from "../../auth/middleware";
 
 type RouteContext = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
+/**
+ * Get a seminar by ID
+ */
 export async function GET(_request: Request, { params }: RouteContext) {
   try {
-    const seminar = await getSeminarById(params.id);
+    const { id } = await params;
+    const seminar = await getSeminarById(id);
 
     if (!seminar) {
       return NextResponse.json(
@@ -36,12 +38,16 @@ export async function GET(_request: Request, { params }: RouteContext) {
   }
 }
 
+/**
+ * Update a seminar by ID
+ */
 export async function PUT(request: Request, { params }: RouteContext) {
   // Verify authentication
   const authResult = await withAdminAuth();
   if (authResult.error) return authResult.error;
 
   try {
+    const { id } = await params;
     const payload = await request.json();
     const parsed = seminarPayloadSchema.safeParse(payload);
 
@@ -50,7 +56,7 @@ export async function PUT(request: Request, { params }: RouteContext) {
       return NextResponse.json({ error: issue?.message ?? "Validation error" }, { status: 400 });
     }
 
-    const updated = await updateSeminar(params.id, parsed.data);
+    const updated = await updateSeminar(id, parsed.data);
 
     if (!updated) {
       return NextResponse.json(
@@ -61,7 +67,7 @@ export async function PUT(request: Request, { params }: RouteContext) {
 
     // Invalidate cache after update
     revalidatePath("/api/seminars");
-    revalidatePath(`/api/seminars/${params.id}`);
+    revalidatePath(`/api/seminars/${id}`);
 
     return NextResponse.json(updated);
   } catch (error) {
@@ -72,13 +78,17 @@ export async function PUT(request: Request, { params }: RouteContext) {
   }
 }
 
+/**
+ * Delete a seminar by ID
+ */
 export async function DELETE(_request: Request, { params }: RouteContext) {
   // Verify authentication
   const authResult = await withAdminAuth();
   if (authResult.error) return authResult.error;
 
   try {
-    const deleted = await deleteSeminar(params.id);
+    const { id } = await params;
+    const deleted = await deleteSeminar(id);
 
     if (!deleted) {
       return NextResponse.json(
