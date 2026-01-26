@@ -69,7 +69,7 @@
     "@kairn/blog": "workspace:*",
     "@kairn/social": "workspace:*",
     "framer-motion": "^11.0.0",
-    "lucide-react": "^0.330.0",
+    "lucide-react": "^0.563.0",
     "recharts": "^2.12.0"
   },
   "peerDependencies": {
