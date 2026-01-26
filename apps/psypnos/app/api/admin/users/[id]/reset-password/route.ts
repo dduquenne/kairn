@@ -2,7 +2,7 @@
 // TODO: Migration - Type incompatibilities to fix
 import { NextResponse } from "next/server";
 
-import { resetAdminPasswordById } from "../../../../users/prisma-store";
+import { resetAdminPasswordById } from "../../../../users/pg-store";
 import { withAdminAuth } from "../../../../auth/middleware";
 
 export const dynamic = 'force-dynamic';

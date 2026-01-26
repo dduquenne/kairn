@@ -35,6 +35,8 @@
   },
   "devDependencies": {
     "@kairn/typescript-config": "workspace:*",
+    "@types/bcrypt": "^6.0.0",
+    "bcrypt": "^6.0.0",
     "prisma": "^6.0.0",
     "tsx": "^4.7.0",
     "typescript": "^5.4.0"

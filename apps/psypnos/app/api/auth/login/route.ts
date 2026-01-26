@@ -3,7 +3,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 
-import { findUserByEmail } from "../../users/prisma-store";
+import { findUserByEmail } from "../../users/pg-store";
 import { createToken } from "../jwt";
 import { loginSchema } from "../schemas";
 import { isRateLimited, recordFailedAttempt, clearAttempts } from "../rate-limiter";
