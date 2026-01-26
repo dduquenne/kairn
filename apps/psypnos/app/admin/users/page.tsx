@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { useToast } from "../../../components/ui/toast";
+import { useToast } from "@/lib/toast-context";
 import { DeleteConfirmation } from "../_components/DeleteConfirmation";
 import { UserDrawer } from "./_components/UserDrawer";
 import { UsersSkeleton } from "./_components/UsersSkeleton";

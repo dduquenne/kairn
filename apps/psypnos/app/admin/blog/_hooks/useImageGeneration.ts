@@ -53,7 +53,7 @@
  */
 
 import { useState, useCallback } from "react";
-import { useToast } from "../../../../components/ui/toast";
+import { useToast } from "@/lib/toast-context";
 
 /**
  * Parse une réponse fetch en JSON de manière sécurisée

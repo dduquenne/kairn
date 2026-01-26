@@ -15,7 +15,7 @@ import {
   Eye,
   ExternalLink,
 } from "lucide-react";
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/lib/toast-context";
 import { SocialPlatformIcon } from "../accounts/_components/SocialPlatformIcon";
 import type { SocialPlatform, PostStatus } from "@/lib/social/types";
 

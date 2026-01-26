@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState, Suspense } from "react";
 
-import { useToast } from "../../components/ui/toast";
+import { useToast } from "@/lib/toast-context";
 import { GlobalHeader } from "../../components/GlobalHeader";
 
 function LoginForm() {

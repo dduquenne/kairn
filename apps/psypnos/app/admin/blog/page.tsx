@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { BlogPostSummary } from "@/lib/blog";
 import { DeleteConfirmation } from "../_components/DeleteConfirmation";
-import { useToast } from "../../../components/ui/toast";
+import { useToast } from "@/lib/toast-context";
 
 type SortField = "title" | "category" | "date" | "published";
 type SortOrder = "asc" | "desc";

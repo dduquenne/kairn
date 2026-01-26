@@ -37,7 +37,7 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useToast } from "../../../../components/ui/toast";
+import { useToast } from "@/lib/toast-context";
 import type { FAQItem } from "@/lib/blog";
 
 /**

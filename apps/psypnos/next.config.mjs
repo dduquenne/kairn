@@ -1,3 +1,6 @@
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+
 /** @type {import('next').NextConfig} */
 
 // Content Security Policy
@@ -106,8 +109,21 @@ const nextConfig = {
   },
 
   // Optimisation des packages
+  // Note: @kairn/ui removed from optimizePackageImports to preserve React context sharing
   experimental: {
-    optimizePackageImports: ['@kairn/ui'],
+    optimizePackageImports: [],
+  },
+
+  // Webpack configuration to ensure shared modules are not duplicated
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // Ensure @kairn/ui is treated as a singleton to preserve React context
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        '@kairn/ui': require.resolve('@kairn/ui'),
+      };
+    }
+    return config;
   },
 
   // Headers de sécurité et cache

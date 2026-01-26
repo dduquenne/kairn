@@ -21,7 +21,7 @@ import {
   Play,
   FileEdit,
 } from "lucide-react";
-import { useToast } from "../../../../components/ui/toast";
+import { useToast } from "@/lib/toast-context";
 
 type JobStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
 

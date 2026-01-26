@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
-import { ToastProvider } from "@kairn/ui";
+import { ToastProvider } from "@/lib/toast-context";
 import "./globals.css";
 
 // PERFORMANCE : ISR avec revalidation toutes les 24h

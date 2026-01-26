@@ -1,5 +1,5 @@
 import { useCallback, useState, useRef } from "react";
-import { useToast } from "../../../../components/ui/toast";
+import { useToast } from "@/lib/toast-context";
 
 /**
  * Custom hook for handling image file uploads

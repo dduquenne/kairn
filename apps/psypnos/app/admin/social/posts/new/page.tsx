@@ -16,7 +16,7 @@ import {
   Save,
   FileText,
 } from "lucide-react";
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/lib/toast-context";
 import { SocialPlatformIcon } from "../../accounts/_components/SocialPlatformIcon";
 import { GeneratedContentPreview } from "./_components/GeneratedContentPreview";
 import { ArticleSelector } from "./_components/ArticleSelector";

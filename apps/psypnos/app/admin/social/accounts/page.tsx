@@ -14,7 +14,7 @@ import {
   ExternalLink,
   Settings,
 } from "lucide-react";
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/lib/toast-context";
 import { DeleteConfirmation } from "../../_components/DeleteConfirmation";
 import { SocialPlatformIcon } from "./_components/SocialPlatformIcon";
 import { ConnectAccountModal } from "./_components/ConnectAccountModal";

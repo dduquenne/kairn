@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { X, Save, Loader } from "lucide-react";
 import { BlogPost, BlogPostMetadata } from "@/lib/blog";
-import { useToast } from "../../../../components/ui/toast";
+import { useToast } from "@/lib/toast-context";
 import { MarkdownEditor } from "./MarkdownEditor";
 
 interface BlogPostDrawerProps {

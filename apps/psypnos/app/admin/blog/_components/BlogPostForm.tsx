@@ -26,7 +26,7 @@ import { useArticleGeneration } from "../_hooks/useArticleGeneration";
 import { useTextImprovement } from "../_hooks/useTextImprovement";
 import { useOneClickImageGeneration } from "../_hooks/useOneClickImageGeneration";
 import { useImageUpload } from "../_hooks/useImageUpload";
-import { useToast } from "../../../../components/ui/toast";
+import { useToast } from "@/lib/toast-context";
 import { generateSlugFromTitleAndCategory } from "../_utils/generateSlug";
 
 interface BlogPostFormProps {
