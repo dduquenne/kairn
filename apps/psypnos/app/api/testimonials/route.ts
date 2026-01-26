@@ -1,5 +1,3 @@
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 

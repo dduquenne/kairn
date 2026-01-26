@@ -1,16 +1,20 @@
-// @ts-nocheck
-// TODO: Migration - Prisma models may not be available in Kairn schema
 /**
  * Testimonials Store - PostgreSQL via Prisma
- * Replaces the JSON file-based store for robust data management
+ *
+ * This store manages testimonials using the Kairn Prisma schema with multi-tenancy support.
+ *
+ * Note: The API uses `quote` and `author` fields for backwards compatibility,
+ * but the database schema uses `content` and `clientName`.
  */
 
-import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import prisma from "@/lib/db/prisma";
 
+// Site slug for Psypnos (used for multi-tenancy)
+const SITE_SLUG = "psypnos";
+
 // ============================================
-// Validation Schemas (unchanged from original)
+// Validation Schemas
 // ============================================
 
 const optionalRoleSchema = z.preprocess(
@@ -58,17 +62,75 @@ export interface TestimonialOutput {
 }
 
 // ============================================
+// Site Helper
+// ============================================
+
+/**
+ * Get or create the Psypnos site for multi-tenancy
+ */
+async function getSiteId(): Promise<string> {
+  let site = await prisma.site.findUnique({
+    where: { slug: SITE_SLUG },
+    select: { id: true },
+  });
+
+  if (!site) {
+    // Create the site if it doesn't exist
+    site = await prisma.site.create({
+      data: {
+        slug: SITE_SLUG,
+        name: "Psypnos",
+        domain: "psypnos.fr",
+        isActive: true,
+      },
+      select: { id: true },
+    });
+  }
+
+  return site.id;
+}
+
+// ============================================
 // Database Operations
 // ============================================
 
 /**
- * Get all testimonials from database
+ * Get all testimonials from database (approved only for public)
  */
 export async function getAllTestimonials(
   limit?: number
 ): Promise<TestimonialOutput[]> {
+  const siteId = await getSiteId();
+
   const testimonials = await prisma.testimonial.findMany({
-    orderBy: { createdAt: "desc" },
+    where: {
+      siteId,
+      isApproved: true,
+    },
+    orderBy: [
+      { order: "asc" },
+      { createdAt: "desc" },
+    ],
+    take: limit,
+  });
+
+  return testimonials.map(formatTestimonialOutput);
+}
+
+/**
+ * Get all testimonials (including unapproved) for admin
+ */
+export async function getAllTestimonialsAdmin(
+  limit?: number
+): Promise<TestimonialOutput[]> {
+  const siteId = await getSiteId();
+
+  const testimonials = await prisma.testimonial.findMany({
+    where: { siteId },
+    orderBy: [
+      { order: "asc" },
+      { createdAt: "desc" },
+    ],
     take: limit,
   });
 
@@ -81,8 +143,10 @@ export async function getAllTestimonials(
 export async function getTestimonialById(
   id: string
 ): Promise<TestimonialOutput | null> {
-  const testimonial = await prisma.testimonial.findUnique({
-    where: { id },
+  const siteId = await getSiteId();
+
+  const testimonial = await prisma.testimonial.findFirst({
+    where: { id, siteId },
   });
 
   return testimonial ? formatTestimonialOutput(testimonial) : null;
@@ -94,13 +158,18 @@ export async function getTestimonialById(
 export async function createTestimonial(
   data: TestimonialPayload
 ): Promise<TestimonialOutput> {
+  const siteId = await getSiteId();
   const normalized = normalizeTestimonialInput(data);
 
   const testimonial = await prisma.testimonial.create({
     data: {
-      quote: normalized.quote,
-      author: normalized.author,
-      role: normalized.role || null,
+      siteId,
+      clientName: normalized.author,
+      content: normalized.quote,
+      // Store role in clientInitials field as a workaround
+      clientInitials: normalized.role || null,
+      isApproved: true,
+      order: 0,
     },
   });
 
@@ -114,42 +183,50 @@ export async function updateTestimonial(
   id: string,
   data: TestimonialPayload
 ): Promise<TestimonialOutput | null> {
+  const siteId = await getSiteId();
   const normalized = normalizeTestimonialInput(data);
 
-  try {
-    const testimonial = await prisma.testimonial.update({
-      where: { id },
-      data: {
-        quote: normalized.quote,
-        author: normalized.author,
-        role: normalized.role || null,
-      },
-    });
+  // First check if testimonial exists for this site
+  const existing = await prisma.testimonial.findFirst({
+    where: { id, siteId },
+  });
 
-    return formatTestimonialOutput(testimonial);
-  } catch (error) {
-    if ((error as { code?: string }).code === "P2025") {
-      return null; // Record not found
-    }
-    throw error;
+  if (!existing) {
+    return null;
   }
+
+  const testimonial = await prisma.testimonial.update({
+    where: { id },
+    data: {
+      clientName: normalized.author,
+      content: normalized.quote,
+      clientInitials: normalized.role || null,
+    },
+  });
+
+  return formatTestimonialOutput(testimonial);
 }
 
 /**
  * Delete a testimonial
  */
 export async function deleteTestimonial(id: string): Promise<boolean> {
-  try {
-    await prisma.testimonial.delete({
-      where: { id },
-    });
-    return true;
-  } catch (error) {
-    if ((error as { code?: string }).code === "P2025") {
-      return false; // Record not found
-    }
-    throw error;
+  const siteId = await getSiteId();
+
+  // First check if testimonial exists for this site
+  const existing = await prisma.testimonial.findFirst({
+    where: { id, siteId },
+  });
+
+  if (!existing) {
+    return false;
   }
+
+  await prisma.testimonial.delete({
+    where: { id },
+  });
+
+  return true;
 }
 
 // ============================================
@@ -172,20 +249,24 @@ export function normalizeTestimonialInput(
 
 /**
  * Format database record to API output
+ * Maps database fields to API fields for backwards compatibility
  */
 function formatTestimonialOutput(testimonial: {
   id: string;
-  quote: string;
-  author: string;
-  role: string | null;
+  clientName: string;
+  clientInitials: string | null;
+  content: string;
+  rating: number | null;
+  isApproved: boolean;
+  order: number;
   createdAt: Date;
   updatedAt: Date;
 }): TestimonialOutput {
   return {
     id: testimonial.id,
-    quote: testimonial.quote,
-    author: testimonial.author,
-    ...(testimonial.role && { role: testimonial.role }),
+    quote: testimonial.content,
+    author: testimonial.clientName,
+    ...(testimonial.clientInitials && { role: testimonial.clientInitials }),
     createdAt: testimonial.createdAt.toISOString(),
     updatedAt: testimonial.updatedAt.toISOString(),
   };
