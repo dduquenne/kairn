@@ -297,23 +297,23 @@ export function ConversionsPanel({
             <p className="text-sm text-ivory/50">Aucune donnée de tunnel</p>
           </div>
         ) : (
-          <div className="space-y-4 sm:space-y-3">
+          <div className="space-y-1">
             {funnelSteps.map((step, index) => {
               const widthPercent = step.percentage;
               const isLast = index === funnelSteps.length - 1;
 
               return (
-                <motion.div
-                  key={step.name}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="relative"
-                >
-                  <div className="flex items-start sm:items-center gap-2 sm:gap-4">
+                <div key={step.name}>
+                  {/* Step */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="flex items-center gap-2 sm:gap-3 py-2"
+                  >
                     {/* Step number */}
                     <div
-                      className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold flex-shrink-0 ${
+                      className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
                         index === 0
                           ? "bg-gold/20 text-gold"
                           : "bg-ivory/10 text-ivory/60"
@@ -324,49 +324,45 @@ export function ConversionsPanel({
 
                     {/* Step content */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1 gap-1">
+                      {/* Header with name and stats */}
+                      <div className="flex items-center justify-between gap-2 mb-1.5">
                         <span className="text-xs sm:text-sm font-medium text-ivory truncate">
                           {step.name}
                         </span>
-                        <div className="flex items-center gap-2 sm:gap-3 text-xs">
-                          <span className="text-ivory/70">
-                            {step.visitors.toLocaleString("fr-FR")} visiteurs
+                        <div className="flex items-center gap-2 text-xs flex-shrink-0">
+                          <span className="text-ivory/60 hidden sm:inline">
+                            {step.visitors.toLocaleString("fr-FR")}
                           </span>
-                          <span className="text-gold font-semibold bg-gold/10 px-2 py-0.5 rounded">
+                          <span className="text-gold font-semibold bg-gold/10 px-1.5 py-0.5 rounded text-[11px]">
                             {step.percentage.toFixed(1)}%
                           </span>
                         </div>
                       </div>
 
-                      {/* Progress bar - reduced height for better percentage readability */}
-                      <div className="h-3 sm:h-4 bg-night/40 rounded-md overflow-hidden">
+                      {/* Progress bar */}
+                      <div className="h-2.5 sm:h-3 bg-night/40 rounded overflow-hidden">
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: `${widthPercent}%` }}
                           transition={{ duration: 0.6, delay: index * 0.15 }}
-                          className="h-full bg-gradient-to-r from-gold to-gold/60 rounded-md"
-                          style={{ minWidth: widthPercent > 0 ? '0.5rem' : '0' }}
+                          className="h-full bg-gradient-to-r from-gold to-gold/60 rounded"
+                          style={{ minWidth: widthPercent > 0 ? '4px' : '0' }}
                         />
                       </div>
-
-                      {/* Dropoff indicator - inline on mobile */}
-                      {!isLast && step.dropoff > 0 && (
-                        <div className="flex items-center gap-1 text-xs text-red-400 mt-1 sm:hidden">
-                          <ChevronDown size={12} />
-                          <span>Perte : {step.dropoff.toFixed(1)}%</span>
-                        </div>
-                      )}
                     </div>
-                  </div>
+                  </motion.div>
 
-                  {/* Dropoff indicator - absolute on desktop */}
+                  {/* Dropoff indicator - inline between steps */}
                   {!isLast && step.dropoff > 0 && (
-                    <div className="hidden sm:flex absolute left-3 -bottom-2 items-center text-[10px] text-red-400 bg-night/80 px-1.5 py-0.5 rounded">
-                      <ChevronDown size={12} />
-                      <span>-{step.dropoff.toFixed(1)}%</span>
+                    <div className="flex items-center gap-2 pl-8 sm:pl-10 py-1">
+                      <div className="flex items-center gap-1 text-[10px] sm:text-xs text-red-400/80">
+                        <ChevronDown size={10} className="sm:w-3 sm:h-3" />
+                        <span>-{step.dropoff.toFixed(1)}%</span>
+                      </div>
+                      <div className="flex-1 h-px bg-red-400/20" />
                     </div>
                   )}
-                </motion.div>
+                </div>
               );
             })}
           </div>
