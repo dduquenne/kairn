@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Mail, Users, Download, FileText, Table } from "lucide-react";
 import {
@@ -29,6 +29,7 @@ function AnalyticsPageContent() {
   const [activeTab, setActiveTab] = useState<TabId>("traffic");
   const [isInsightsOpen, setIsInsightsOpen] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [formattedLastUpdated, setFormattedLastUpdated] = useState<string | null>(null);
 
   // Mode simulation
   const { isSimulationMode, toggleSimulationMode } = useSimulation();
@@ -41,6 +42,15 @@ function AnalyticsPageContent() {
     autoRefresh: period === "realtime",
     refreshInterval: 30000,
   });
+
+  // Format lastUpdated on client-side only to avoid hydration mismatch
+  useEffect(() => {
+    if (lastUpdated) {
+      setFormattedLastUpdated(lastUpdated.toLocaleTimeString("fr-FR"));
+    } else {
+      setFormattedLastUpdated(null);
+    }
+  }, [lastUpdated]);
 
   // Handlers
   const handlePeriodChange = useCallback((newPeriod: PeriodType) => {
@@ -221,14 +231,14 @@ function AnalyticsPageContent() {
       )}
 
       {/* Last Updated Indicator */}
-      {lastUpdated && (
+      {formattedLastUpdated && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="flex items-center justify-end gap-2 text-xs text-ivory/40"
         >
           <span>
-            Dernière mise à jour : {lastUpdated.toLocaleTimeString("fr-FR")}
+            Dernière mise à jour : {formattedLastUpdated}
           </span>
           {period === "realtime" && (
             <motion.span

@@ -293,6 +293,21 @@ const calculateHealthScore = (data: any): number => {
   return Math.max(0, Math.min(100, score));
 };
 
+// Helper to format time in HH:mm format (consistent between server and client)
+const formatTime = (date: Date): string => {
+  const hours = date.getHours().toString().padStart(2, "0");
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  return `${hours}:${minutes}`;
+};
+
+// Helper to format short weekday and day (consistent between server and client)
+const formatShortDate = (date: Date): string => {
+  const weekdays = ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."];
+  const day = date.getDate();
+  const weekday = weekdays[date.getDay()];
+  return `${weekday} ${day}`;
+};
+
 // Format chart data from API response
 const formatChartData = (visits: any[], period: PeriodType): ChartDataPoint[] => {
   if (!visits || visits.length === 0) return [];
@@ -309,7 +324,7 @@ const formatChartData = (visits: any[], period: PeriodType): ChartDataPoint[] =>
       date.setSeconds(0);
 
       chartData.push({
-        label: date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+        label: formatTime(date),
         value: 0, // Will be aggregated
       });
     }
@@ -321,7 +336,7 @@ const formatChartData = (visits: any[], period: PeriodType): ChartDataPoint[] =>
       date.setHours(date.getHours() - i);
 
       chartData.push({
-        label: date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+        label: formatTime(date),
         value: 0,
       });
     }
@@ -331,7 +346,7 @@ const formatChartData = (visits: any[], period: PeriodType): ChartDataPoint[] =>
       date.setDate(date.getDate() - i);
 
       chartData.push({
-        label: date.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric" }),
+        label: formatShortDate(date),
         value: 0,
       });
     }
@@ -471,12 +486,13 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
 
       // Build section engagement data
       const heatmapData = dashboardData.heatmap || [];
-      const sectionEngagement: SectionEngagement[] = heatmapData.map((section: any) => ({
+      const sectionEngagement: SectionEngagement[] = heatmapData.map((section: any, index: number) => ({
         section: section.section || "Unknown",
         avgTime: section.avgTimeSeconds || 0,
         scrollDepth: section.scrollRate || 0,
         interactions: section.visitors || 0,
-        bounceRate: Math.random() * 60 + 20, // Placeholder
+        // Deterministic bounce rate based on scroll rate (inverse relationship)
+        bounceRate: section.scrollRate ? Math.max(20, Math.min(80, 100 - section.scrollRate)) : 40 + (index * 5) % 40,
       }));
 
       // Build device breakdown
