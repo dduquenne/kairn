@@ -734,3 +734,388 @@ model Appointment {
   @@index([startTime])
   @@index([status])
 }
+
+// =============================================================================
+// BLOG: EXTENDED CONTENT MODEL (Psypnos-style)
+// =============================================================================
+
+/// Extended blog post model with full content management features
+/// This extends the base BlogPost for sites that need richer blog functionality
+model BlogPostExtended {
+  id           String   @id @default(cuid())
+  /// URL-friendly slug
+  slug         String   @unique
+  title        String
+  /// Short description for SEO/previews
+  description  String?
+  /// Full content (Markdown/HTML)
+  content      String
+  /// Author name
+  author       String
+  /// Category for organization
+  category     String
+  /// Tags as string array
+  tags         String[]
+  /// Cover/featured image URL
+  image        String?
+  /// AI image generation prompt used
+  imagePrompt  String?
+  /// SEO intent/keyword
+  seoIntent    String?
+  /// Target reader persona
+  persona      String?
+  /// Content tones used
+  tones        String[]
+  /// FAQ section as JSON array [{question, answer, id?}]
+  faq          Json?
+  /// Structured data JSON-LD
+  jsonLd       Json?
+  /// Whether published
+  published    Boolean  @default(false)
+  /// Whether featured on homepage
+  featured     Boolean  @default(false)
+  /// Publication date
+  date         DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([published, date])
+  @@index([category])
+  @@index([featured])
+}
+
+// =============================================================================
+// BLOG: ANALYTICS & ENGAGEMENT TRACKING
+// =============================================================================
+
+/// Blog article view/engagement tracking
+model BlogAnalytics {
+  id                String   @id @default(cuid())
+  /// Article slug being tracked
+  articleSlug       String
+  /// Visitor session identifier
+  sessionId         String
+  /// Event timestamp
+  timestamp         DateTime @default(now())
+  /// Scroll depth percentage reached
+  scrollDepthPercent Int?
+  /// Time spent on page in seconds
+  timeOnPage        Int?
+  /// Whether the article was fully read
+  completed         Boolean  @default(false)
+
+  @@index([articleSlug])
+  @@index([timestamp])
+  @@index([sessionId])
+}
+
+/// FAQ accordion click tracking
+model BlogFaqClick {
+  id          String   @id @default(cuid())
+  /// Event timestamp
+  timestamp   DateTime @default(now())
+  /// Article slug
+  articleSlug String
+  /// Visitor session identifier
+  sessionId   String
+  /// FAQ item index (0-based)
+  faqIndex    Int
+  /// FAQ question text (for reporting)
+  question    String?
+
+  @@index([articleSlug])
+  @@index([timestamp])
+}
+
+/// CTA button click tracking (appointment, seminar)
+model BlogCtaClick {
+  id          String   @id @default(cuid())
+  /// Article slug where click occurred
+  articleSlug String
+  /// CTA type: "appointment" or "seminar"
+  ctaType     String
+  /// Visitor session identifier
+  sessionId   String
+  /// Event timestamp
+  timestamp   DateTime @default(now())
+
+  @@index([articleSlug])
+  @@index([ctaType])
+  @@index([timestamp])
+}
+
+// =============================================================================
+// BLOG: AI GENERATION JOBS
+// =============================================================================
+
+/// Blog generation job status
+enum BlogJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+/// Async blog article generation job
+model BlogGenerationJob {
+  id          String        @id @default(uuid())
+  /// Job status
+  status      BlogJobStatus @default(PENDING)
+  /// Progress percentage (0-100)
+  progress    Int           @default(0)
+  /// Current step description
+  currentStep String?
+  /// Total number of steps
+  totalSteps  Int           @default(9)
+  /// Input parameters as JSON
+  input       Json
+  /// Generated result as JSON (article content)
+  result      Json?
+  /// Error message if failed
+  error       String?
+  /// When processing started
+  startedAt   DateTime?
+  /// When processing completed
+  completedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  /// When the job result was used to create an article
+  usedAt      DateTime?
+  /// Slug of created article (for duplicate prevention)
+  articleSlug String?
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+// =============================================================================
+// BOT & CRAWLER TRACKING
+// =============================================================================
+
+/// Bot/crawler visit tracking for SEO monitoring
+model BotVisit {
+  id          String   @id @default(cuid())
+  /// Visit timestamp
+  timestamp   DateTime @default(now())
+  /// Bot name (e.g., "Googlebot", "Bingbot")
+  botName     String
+  /// Bot type category
+  botType     String   // "search_engine", "social", "seo_tool", "monitor", "other"
+  /// Full user agent string
+  userAgent   String?
+  /// Page path visited
+  page        String
+  /// HTTP referrer
+  referrer    String?
+  /// HTTP method
+  method      String   @default("GET")
+  /// Response status code
+  statusCode  Int?
+  /// Country name
+  country     String?
+  /// Country ISO code
+  countryCode String?
+  /// City name
+  city        String?
+  /// Hashed IP for privacy
+  ipHash      String?
+
+  @@index([timestamp])
+  @@index([botName])
+  @@index([botType])
+  @@index([page])
+}
+
+// =============================================================================
+// SOCIAL MEDIA MANAGEMENT
+// =============================================================================
+
+/// Social media platform
+enum SocialPlatform {
+  FACEBOOK
+  INSTAGRAM
+  TWITTER
+  LINKEDIN
+  THREADS
+}
+
+/// Social media account connection
+model SocialAccount {
+  id            String         @id @default(cuid())
+  /// Platform identifier
+  platform      SocialPlatform
+  /// Platform-specific account ID
+  platformId    String
+  /// Display name
+  accountName   String
+  /// Profile image URL
+  profileImage  String?
+  /// OAuth access token (encrypted)
+  accessToken   String
+  /// OAuth refresh token (encrypted)
+  refreshToken  String?
+  /// Token expiration timestamp
+  tokenExpiresAt DateTime?
+  /// Platform-specific metadata as JSON
+  metadata      Json?
+  /// Whether account is active
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  // Relations
+  posts SocialPost[]
+
+  @@unique([platform, platformId])
+  @@index([platform])
+  @@index([isActive])
+}
+
+/// Social post status
+enum SocialPostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHING
+  PUBLISHED
+  FAILED
+}
+
+/// Social media post
+model SocialPost {
+  id             String           @id @default(cuid())
+  /// Target platform
+  platform       SocialPlatform
+  /// Post content/caption
+  content        String
+  /// Associated blog post title (if any)
+  blogTitle      String?
+  /// Associated blog post slug (if any)
+  blogSlug       String?
+  /// Media URLs as JSON array
+  mediaUrls      Json?
+  /// Post status
+  status         SocialPostStatus @default(DRAFT)
+  /// Scheduled publication time
+  scheduledAt    DateTime?
+  /// Actual publication time
+  publishedAt    DateTime?
+  /// Platform-specific post ID after publishing
+  externalPostId String?
+  /// External post URL
+  externalUrl    String?
+  /// Error message if failed
+  errorMessage   String?
+  /// Retry count for failed posts
+  retryCount     Int              @default(0)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  // Relations
+  accountId String
+  account   SocialAccount      @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  analytics SocialPostAnalytics?
+
+  @@index([platform, status])
+  @@index([scheduledAt])
+  @@index([publishedAt])
+  @@index([accountId])
+}
+
+/// Social post performance analytics
+model SocialPostAnalytics {
+  id          String     @id @default(cuid())
+  postId      String     @unique
+  post        SocialPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  /// Number of times shown
+  impressions Int        @default(0)
+  /// Unique accounts reached
+  reach       Int        @default(0)
+  /// Total engagements (likes + comments + shares + saves)
+  engagements Int        @default(0)
+  /// Like/reaction count
+  likes       Int        @default(0)
+  /// Comment count
+  comments    Int        @default(0)
+  /// Share/retweet count
+  shares      Int        @default(0)
+  /// Save/bookmark count
+  saves       Int        @default(0)
+  /// Link click count
+  clicks      Int        @default(0)
+  /// Raw API response data
+  rawData     Json?
+  /// Last sync timestamp
+  lastSyncAt  DateTime   @default(now())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([lastSyncAt])
+}
+
+// =============================================================================
+// DEPLOYMENT & MAINTENANCE
+// =============================================================================
+
+/// Deployment record
+model Deployment {
+  id                String    @id @default(cuid())
+  /// Deployment status (pending, in_progress, success, failed, cancelled, rolled_back)
+  status            String    @default("pending")
+  /// Git branch/tag being deployed
+  targetRef         String?
+  /// Target commit SHA
+  targetCommit      String?
+  /// Previous commit SHA for rollback
+  previousCommit    String?
+  /// User who triggered deployment
+  triggeredBy       String
+  /// When deployment was triggered
+  triggeredAt       DateTime  @default(now())
+  /// When deployment started
+  startedAt         DateTime?
+  /// When deployment completed
+  completedAt       DateTime?
+  /// Current deployment phase
+  currentPhase      String?
+  /// Progress percentage (0-100)
+  progress          Int       @default(0)
+  /// Error message if failed
+  errorMessage      String?
+  /// Whether health check passed
+  healthCheckPassed Boolean?
+  /// When rolled back
+  rolledBackAt      DateTime?
+  /// Reason for rollback
+  rollbackReason    String?
+  /// One-time deploy token for scripts
+  deployToken       String?   @unique
+  /// Token expiration
+  tokenExpiresAt    DateTime?
+  /// Build logs
+  logs              String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([status])
+  @@index([triggeredAt])
+  @@index([targetRef])
+}
+
+/// Maintenance mode singleton
+model MaintenanceMode {
+  id           String    @id @default("singleton")
+  /// Whether maintenance mode is active
+  isActive     Boolean   @default(false)
+  /// Reason for maintenance
+  reason       String?
+  /// Public message to display
+  message      String?
+  /// Who activated maintenance
+  activatedBy  String?
+  /// When activated
+  activatedAt  DateTime?
+  /// Estimated end time
+  estimatedEnd DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}

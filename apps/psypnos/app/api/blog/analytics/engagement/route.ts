@@ -1,9 +1,6 @@
 // @ts-nocheck
-// TODO: Migration - BlogAnalytics model not available in Kairn schema
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/db/prisma';
 
 /**
  * POST - Update reading engagement metrics for a blog article
@@ -133,7 +130,5 @@ export async function POST(request: NextRequest) {
       { error: 'Failed to update engagement metrics' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

@@ -1,10 +1,7 @@
 // @ts-nocheck
-// TODO: Migration - Prisma models may not be available in Kairn schema
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/db/prisma';
 import { isMockMode, generateMockCtaClicks, logDataMode } from '@/lib/pwaDataMode';
-
-const prisma = new PrismaClient();
 
 // Type for blog CTA click record (workaround for ungenerated Prisma client)
 type BlogCtaClickRecord = {
@@ -93,8 +90,6 @@ export async function GET(request: NextRequest) {
       { error: 'Failed to fetch CTA clicks' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -154,8 +149,6 @@ export async function POST(request: NextRequest) {
       { error: 'Failed to track CTA click' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -190,7 +183,5 @@ export async function DELETE(request: NextRequest) {
       { error: 'Failed to delete CTA clicks data' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

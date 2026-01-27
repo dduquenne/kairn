@@ -1,5 +1,4 @@
 // @ts-nocheck
-// TODO: Migration - Deployment model not available in Kairn schema
 /**
  * Health Check API Route
  * Phase 4: Monitoring & Observability

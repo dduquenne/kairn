@@ -109,7 +109,7 @@ export async function getAllBlogPosts(
 ): Promise<BlogPostSummary[]> {
   const { includeUnpublished = false, limit, category, featured, featuredFirst = false } = options;
 
-  const posts = await prisma.blogPost.findMany({
+  const posts = await prisma.blogPostExtended.findMany({
     where: {
       ...(includeUnpublished ? {} : { published: true }),
       ...(category ? { category } : {}),
@@ -151,7 +151,7 @@ export async function getAllBlogPosts(
  * Get all post slugs (for static generation)
  */
 export async function getAllPostSlugs(): Promise<string[]> {
-  const posts = await prisma.blogPost.findMany({
+  const posts = await prisma.blogPostExtended.findMany({
     where: { published: true },
     select: { slug: true },
   });
@@ -166,7 +166,7 @@ export async function getBlogPostBySlug(
   slug: string,
   includeUnpublished = false
 ): Promise<BlogPostOutput | null> {
-  const post = await prisma.blogPost.findUnique({
+  const post = await prisma.blogPostExtended.findUnique({
     where: { slug },
   });
 
@@ -180,7 +180,7 @@ export async function getBlogPostBySlug(
  * Check if slug exists
  */
 export async function slugExists(slug: string): Promise<boolean> {
-  const post = await prisma.blogPost.findUnique({
+  const post = await prisma.blogPostExtended.findUnique({
     where: { slug },
     select: { slug: true },
   });
@@ -219,7 +219,7 @@ export async function createBlogPost(
   // Use transaction to ensure atomicity: create post and mark job as used
   const post = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     // Create the blog post
-    const newPost = await tx.blogPost.create({
+    const newPost = await tx.blogPostExtended.create({
       data: {
         slug: data.slug,
         title: data.title,
@@ -300,7 +300,7 @@ export async function updateBlogPost(
     if (data.featured !== undefined) updateData.featured = data.featured;
     if (data.date !== undefined) updateData.date = new Date(data.date);
 
-    const post = await prisma.blogPost.update({
+    const post = await prisma.blogPostExtended.update({
       where: { slug },
       data: updateData,
     });
@@ -319,7 +319,7 @@ export async function updateBlogPost(
  */
 export async function deleteBlogPost(slug: string): Promise<boolean> {
   try {
-    await prisma.blogPost.delete({
+    await prisma.blogPostExtended.delete({
       where: { slug },
     });
     return true;
@@ -348,7 +348,7 @@ export async function searchBlogPosts(
   query: string,
   limit = 10
 ): Promise<BlogPostSummary[]> {
-  const posts = await prisma.blogPost.findMany({
+  const posts = await prisma.blogPostExtended.findMany({
     where: {
       published: true,
       OR: [
@@ -392,7 +392,7 @@ export async function searchBlogPosts(
  * Get distinct categories
  */
 export async function getCategories(): Promise<string[]> {
-  const posts = await prisma.blogPost.findMany({
+  const posts = await prisma.blogPostExtended.findMany({
     where: { published: true },
     distinct: ["category"],
     select: { category: true },
@@ -407,7 +407,7 @@ export async function getCategories(): Promise<string[]> {
 export async function getTagsWithCounts(): Promise<
   Array<{ tag: string; count: number }>
 > {
-  const posts = await prisma.blogPost.findMany({
+  const posts = await prisma.blogPostExtended.findMany({
     where: { published: true },
     select: { tags: true },
   });

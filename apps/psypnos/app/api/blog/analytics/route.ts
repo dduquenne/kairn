@@ -1,15 +1,12 @@
 // @ts-nocheck
-// TODO: Migration - BlogAnalytics model not available in Kairn schema
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/db/prisma';
 import {
   isMockMode,
   generateMockBlogAnalytics,
   generateMockBlogArticleStats,
   logDataMode
 } from '@/lib/pwaDataMode';
-
-const prisma = new PrismaClient();
 
 // Type for blog analytics record (workaround for ungenerated Prisma client)
 type BlogAnalyticsRecord = {
@@ -248,8 +245,6 @@ export async function GET(request: NextRequest) {
       { error: 'Failed to fetch analytics' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -302,8 +297,6 @@ export async function POST(request: NextRequest) {
       { error: 'Failed to track view' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -339,7 +332,5 @@ export async function DELETE(request: NextRequest) {
       { error: 'Failed to delete analytics' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

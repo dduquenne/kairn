@@ -1,10 +1,7 @@
 // @ts-nocheck
-// TODO: Migration - Prisma models may not be available in Kairn schema
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/db/prisma';
 import { isMockMode, generateMockFaqClicks, logDataMode } from '@/lib/pwaDataMode';
-
-const prisma = new PrismaClient();
 
 /**
  * Type local pour BlogFaqClick (évite les problèmes de génération Prisma)
@@ -97,8 +94,6 @@ export async function GET(request: NextRequest) {
       { error: 'Failed to fetch FAQ clicks' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -154,8 +149,6 @@ export async function POST(request: NextRequest) {
       { error: 'Failed to track FAQ click' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -190,7 +183,5 @@ export async function DELETE(request: NextRequest) {
       { error: 'Failed to delete FAQ clicks data' },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
