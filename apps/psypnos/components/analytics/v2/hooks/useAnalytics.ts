@@ -80,6 +80,7 @@ interface TrafficSource {
 
 interface GeoLocation {
   country: string;
+  countryCode?: string;
   region?: string;
   city?: string;
   visitors: number;
@@ -463,16 +464,16 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
 
       const dashboardData = await dashboardRes.json();
 
-      // Fetch additional data in parallel
+      // Fetch additional data in parallel - all APIs use the same date range
       const [geoRes, goalsRes, botsRes, alertsRes, insightsRes, blogAnalyticsRes, blogCtaRes, blogFaqRes] = await Promise.allSettled([
-        fetch("/api/analytics/geolocation"),
-        fetch("/api/analytics/goals"),
-        fetch(`/api/analytics/bots?timeRange=${period === "realtime" ? "24h" : "7d"}`),
+        fetch(`/api/analytics/geolocation?${params}`),
+        fetch(`/api/analytics/goals?summary=true&startDate=${startDate}&endDate=${endDate}`),
+        fetch(`/api/analytics/bots?${params}`),
         fetch("/api/analytics/alerts"),
-        fetch(`/api/analytics/insights?timeRange=${timeRange}`),
-        fetch("/api/blog/analytics"),
-        fetch("/api/blog/cta-clicks"),
-        fetch("/api/blog/faq-clicks"),
+        fetch(`/api/analytics/insights?timeRange=${timeRange}&startDate=${startDate}&endDate=${endDate}`),
+        fetch(`/api/blog/analytics?startDate=${startDate}&endDate=${endDate}`),
+        fetch(`/api/blog/cta-clicks?startDate=${startDate}&endDate=${endDate}`),
+        fetch(`/api/blog/faq-clicks?startDate=${startDate}&endDate=${endDate}`),
       ]);
 
       const geoData = geoRes.status === "fulfilled" && geoRes.value.ok
@@ -595,12 +596,29 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
         progress: goal.target > 0 ? (goal.completions / goal.target) * 100 : 0,
       }));
 
-      // Build geo data
-      const geoLocations: GeoLocation[] = (geoData.countries || []).map((c: any) => ({
+      // Build geo data - combine countries and cities
+      const totalGeoVisitors = (geoData.byCountry || []).reduce((sum: number, c: any) => sum + (c.visitors || 0), 0);
+
+      // Countries data
+      const geoCountries: GeoLocation[] = (geoData.byCountry || []).map((c: any) => ({
         country: c.country || "Unknown",
+        countryCode: c.countryCode,
         visitors: c.visitors || 0,
-        percentage: c.percentage || 0,
+        percentage: totalGeoVisitors > 0 ? ((c.visitors || 0) / totalGeoVisitors) * 100 : 0,
       }));
+
+      // Cities data
+      const geoCities: GeoLocation[] = (geoData.byCity || []).map((c: any) => ({
+        country: c.country || "Unknown",
+        countryCode: c.countryCode,
+        city: c.city,
+        region: c.region,
+        visitors: c.visitors || 0,
+        percentage: totalGeoVisitors > 0 ? ((c.visitors || 0) / totalGeoVisitors) * 100 : 0,
+      }));
+
+      // Combine both for geoData (cities first if available, then countries)
+      const geoLocations: GeoLocation[] = geoCities.length > 0 ? geoCities : geoCountries;
 
       // Build bot data
       const botTypes: BotType[] = (botsData.bots || []).map((bot: any) => ({

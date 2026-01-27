@@ -31,6 +31,7 @@ interface TrafficSource {
 
 interface GeoLocation {
   country: string;
+  countryCode?: string;
   region?: string;
   city?: string;
   visitors: number;
@@ -237,7 +238,9 @@ export function SourcesPanel({
                   </div>
                   <span className="flex-1 text-xs sm:text-sm text-ivory truncate min-w-0">
                     {geoView === "cities" && location.city
-                      ? `${location.city}, ${location.country}`
+                      ? location.countryCode === "FR"
+                        ? location.city
+                        : `${location.city} (${location.countryCode || location.country})`
                       : location.country}
                   </span>
                   <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
