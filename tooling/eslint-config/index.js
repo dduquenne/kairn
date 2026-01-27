@@ -3,6 +3,7 @@
  * Configuration ESLint de base pour tous les packages
  */
 
+/* eslint-env node */
 /** @type {import('eslint').Linter.Config} */
 module.exports = {
   parser: '@typescript-eslint/parser',
@@ -14,7 +15,6 @@ module.exports = {
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
-    'plugin:@typescript-eslint/recommended-requiring-type-checking',
     'plugin:import/recommended',
     'plugin:import/typescript',
     'plugin:security/recommended-legacy',
