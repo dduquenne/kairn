@@ -131,13 +131,12 @@ export function PeriodSelector({
   // Initialize temp dates when opening custom picker
   useEffect(() => {
     if (showCustomPicker) {
-      setTempStartDate(
-        customStartDate ||
-          new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-            .toISOString()
-            .split("T")[0]
-      );
-      setTempEndDate(customEndDate || new Date().toISOString().split("T")[0]);
+      const defaultStart = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0] ?? "";
+      const defaultEnd = new Date().toISOString().split("T")[0] ?? "";
+      setTempStartDate(customStartDate || defaultStart);
+      setTempEndDate(customEndDate || defaultEnd);
     }
   }, [showCustomPicker, customStartDate, customEndDate]);
 
@@ -180,7 +179,7 @@ export function PeriodSelector({
       {/* Trigger Button */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border transition-colors ${
+        className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-2.5 rounded-lg border transition-colors ${
           isOpen
             ? "border-gold bg-gold/10 text-gold"
             : "border-gold/30 bg-gold/5 text-ivory hover:border-gold/50"
@@ -188,9 +187,14 @@ export function PeriodSelector({
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
-        {selectedOption?.icon || <Calendar size={16} className="text-gold" />}
-        <span className="text-sm font-medium">
-          {value === "custom" ? formatCustomLabel() : selectedOption?.label}
+        {selectedOption?.icon || <Calendar size={16} className="text-gold flex-shrink-0" />}
+        <span className="text-xs sm:text-sm font-medium truncate max-w-[80px] sm:max-w-none">
+          {value === "custom" ? formatCustomLabel() : (
+            <>
+              <span className="hidden sm:inline">{selectedOption?.label}</span>
+              <span className="sm:hidden">{selectedOption?.shortLabel}</span>
+            </>
+          )}
         </span>
         <ChevronDown
           size={16}
@@ -213,7 +217,7 @@ export function PeriodSelector({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full left-0 mt-2 w-72 rounded-xl border border-gold/20 bg-night/95 backdrop-blur-xl shadow-2xl shadow-black/50 overflow-hidden z-50"
+            className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-gold/20 bg-night/95 backdrop-blur-xl shadow-2xl shadow-black/50 overflow-hidden z-[100]"
           >
             {!showCustomPicker ? (
               <>
@@ -302,7 +306,10 @@ export function PeriodSelector({
                 {/* Custom Option */}
                 <div className="p-2">
                   <motion.button
-                    onClick={() => handleOptionClick(PERIOD_OPTIONS[9])}
+                    onClick={() => {
+                      const customOption = PERIOD_OPTIONS.find(opt => opt.value === "custom");
+                      if (customOption) handleOptionClick(customOption);
+                    }}
                     className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-colors ${
                       value === "custom"
                         ? "bg-gold/20 text-gold"

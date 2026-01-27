@@ -15,11 +15,13 @@ import {
   SourcesPanel,
   SEOPanel,
   useAnalytics,
+  SimulationProvider,
+  useSimulation,
   type PeriodType,
   type TabId,
 } from "../../../components/analytics/v2";
 
-export default function AnalyticsPage() {
+function AnalyticsPageContent() {
   // State
   const [period, setPeriod] = useState<PeriodType>("last7days");
   const [customStartDate, setCustomStartDate] = useState<string>("");
@@ -27,6 +29,9 @@ export default function AnalyticsPage() {
   const [activeTab, setActiveTab] = useState<TabId>("traffic");
   const [isInsightsOpen, setIsInsightsOpen] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+
+  // Mode simulation
+  const { isSimulationMode, toggleSimulationMode } = useSimulation();
 
   // Fetch analytics data
   const { data, isLoading, error, refresh, isRefreshing, lastUpdated } = useAnalytics({
@@ -133,9 +138,28 @@ export default function AnalyticsPage() {
   const unreadAlerts = data?.alerts?.filter((a) => !a.isRead).length || 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-x-hidden max-w-full">
       {/* Page Title (hidden but semantic) */}
       <h1 className="sr-only">Analytics Dashboard</h1>
+
+      {/* Simulation Mode Banner */}
+      {isSimulationMode && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-xl border border-purple-500/30 bg-purple-500/10 px-3 sm:px-4 py-2 sm:py-3 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3"
+        >
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse flex-shrink-0" />
+            <span className="text-xs sm:text-sm font-medium text-purple-300">
+              Mode Simulation
+            </span>
+          </div>
+          <span className="text-xs text-purple-300/60 ml-4 sm:ml-0">
+            Données générées aléatoirement
+          </span>
+        </motion.div>
+      )}
 
       {/* Command Center - Sticky Header */}
       <CommandCenter
@@ -144,9 +168,11 @@ export default function AnalyticsPage() {
         isLoading={isLoading}
         isRealtime={period === "realtime"}
         alertCount={unreadAlerts}
+        isSimulationMode={isSimulationMode}
         onRefresh={refresh}
         onAlertsClick={() => setIsInsightsOpen(true)}
         onExportClick={() => setShowExportMenu(!showExportMenu)}
+        onSimulationToggle={toggleSimulationMode}
       >
         <PeriodSelector
           value={period}
@@ -319,5 +345,13 @@ export default function AnalyticsPage() {
         onMarkAlertRead={handleMarkAlertRead}
       />
     </div>
+  );
+}
+
+export default function AnalyticsPage() {
+  return (
+    <SimulationProvider>
+      <AnalyticsPageContent />
+    </SimulationProvider>
   );
 }

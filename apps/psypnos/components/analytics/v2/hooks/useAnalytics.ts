@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { PeriodType } from "../PeriodSelector";
+import { useSimulation, type SimulatedAnalyticsData } from "../context/SimulationContext";
 
 // Types
 interface KPIData {
@@ -364,7 +365,26 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
 
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Mode simulation
+  let simulationContext: ReturnType<typeof useSimulation> | null = null;
+  try {
+    simulationContext = useSimulation();
+  } catch {
+    // Context not available, simulation mode disabled
+  }
+
+  const isSimulationMode = simulationContext?.isSimulationMode ?? false;
+  const generateSimulatedData = simulationContext?.generateSimulatedData;
+
   const fetchData = useCallback(async () => {
+    // Mode simulation: utiliser les données générées côté client
+    if (isSimulationMode && generateSimulatedData) {
+      const simulatedData = generateSimulatedData(period);
+      setData(simulatedData as AnalyticsData);
+      setLastUpdated(new Date());
+      setError(null);
+      return;
+    }
     try {
       const timeRange = mapPeriodToTimeRange(period);
       const { startDate, endDate } = getDateRange(period, customStartDate, customEndDate);
@@ -606,7 +626,7 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       console.error("Error fetching analytics:", err);
       setError(err instanceof Error ? err.message : "Erreur inconnue");
     }
-  }, [period, customStartDate, customEndDate]);
+  }, [period, customStartDate, customEndDate, isSimulationMode, generateSimulatedData]);
 
   // Initial load
   useEffect(() => {

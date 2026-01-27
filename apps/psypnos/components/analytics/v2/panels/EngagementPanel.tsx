@@ -74,21 +74,21 @@ export function EngagementPanel({
   const COLORS = ["#D4AF37", "#3B82F6", "#22C55E", "#A855F7", "#F59E0B", "#EF4444"];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 overflow-x-hidden">
       {/* Key Metrics */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl border border-purple-500/20 bg-gradient-to-br from-night/60 to-night/40 p-4"
+          className="rounded-xl border border-purple-500/20 bg-gradient-to-br from-night/60 to-night/40 p-3 sm:p-4"
         >
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-purple-500/10">
-              <Clock size={20} className="text-purple-400" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 rounded-lg bg-purple-500/10 flex-shrink-0">
+              <Clock size={16} className="text-purple-400 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <p className="text-xs text-ivory/50">Durée session</p>
-              <p className="text-xl font-bold text-ivory">
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs text-ivory/50 truncate">Durée session</p>
+              <p className="text-base sm:text-xl font-bold text-ivory">
                 {isLoading ? "..." : formatDuration(avgSessionDuration)}
               </p>
             </div>
@@ -99,15 +99,15 @@ export function EngagementPanel({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="rounded-xl border border-blue-500/20 bg-gradient-to-br from-night/60 to-night/40 p-4"
+          className="rounded-xl border border-blue-500/20 bg-gradient-to-br from-night/60 to-night/40 p-3 sm:p-4"
         >
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-blue-500/10">
-              <MousePointer size={20} className="text-blue-400" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 rounded-lg bg-blue-500/10 flex-shrink-0">
+              <MousePointer size={16} className="text-blue-400 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <p className="text-xs text-ivory/50">Pages/session</p>
-              <p className="text-xl font-bold text-ivory">
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs text-ivory/50 truncate">Pages/session</p>
+              <p className="text-base sm:text-xl font-bold text-ivory">
                 {isLoading ? "..." : avgPagesPerSession.toFixed(1)}
               </p>
             </div>
@@ -118,15 +118,15 @@ export function EngagementPanel({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="rounded-xl border border-red-500/20 bg-gradient-to-br from-night/60 to-night/40 p-4"
+          className="rounded-xl border border-red-500/20 bg-gradient-to-br from-night/60 to-night/40 p-3 sm:p-4"
         >
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-red-500/10">
-              <Percent size={20} className="text-red-400" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 rounded-lg bg-red-500/10 flex-shrink-0">
+              <Percent size={16} className="text-red-400 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <p className="text-xs text-ivory/50">Taux de rebond</p>
-              <p className="text-xl font-bold text-ivory">
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs text-ivory/50 truncate">Taux de rebond</p>
+              <p className="text-base sm:text-xl font-bold text-ivory">
                 {isLoading ? "..." : `${bounceRate.toFixed(1)}%`}
               </p>
             </div>
@@ -137,15 +137,15 @@ export function EngagementPanel({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="rounded-xl border border-green-500/20 bg-gradient-to-br from-night/60 to-night/40 p-4"
+          className="rounded-xl border border-green-500/20 bg-gradient-to-br from-night/60 to-night/40 p-3 sm:p-4"
         >
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-green-500/10">
-              <Scroll size={20} className="text-green-400" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 rounded-lg bg-green-500/10 flex-shrink-0">
+              <Scroll size={16} className="text-green-400 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <p className="text-xs text-ivory/50">Scroll moyen</p>
-              <p className="text-xl font-bold text-ivory">
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs text-ivory/50 truncate">Scroll moyen</p>
+              <p className="text-base sm:text-xl font-bold text-ivory">
                 {isLoading ? "..." : `${scrollDepth.toFixed(0)}%`}
               </p>
             </div>
@@ -153,22 +153,22 @@ export function EngagementPanel({
         </motion.div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Section Engagement Chart */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="rounded-xl border border-gold/20 bg-gradient-to-br from-night/60 to-night/40 p-6"
+          className="rounded-xl border border-gold/20 bg-gradient-to-br from-night/60 to-night/40 p-4 sm:p-6"
         >
-          <h3 className="text-lg font-semibold text-gold mb-4">Temps par section</h3>
+          <h3 className="text-base sm:text-lg font-semibold text-gold mb-3 sm:mb-4">Temps par section</h3>
 
           {isLoading ? (
-            <div className="h-64 flex items-center justify-center">
+            <div className="h-48 sm:h-64 flex items-center justify-center">
               <div className="w-8 h-8 border-2 border-gold/20 border-t-gold rounded-full animate-spin" />
             </div>
           ) : (
-            <div className="h-64">
+            <div className="h-48 sm:h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={sectionEngagement.slice(0, 6)}
@@ -216,38 +216,38 @@ export function EngagementPanel({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="rounded-xl border border-gold/20 bg-gradient-to-br from-night/60 to-night/40 p-6"
+          className="rounded-xl border border-gold/20 bg-gradient-to-br from-night/60 to-night/40 p-4 sm:p-6"
         >
-          <h3 className="text-lg font-semibold text-gold mb-4">Par appareil</h3>
+          <h3 className="text-base sm:text-lg font-semibold text-gold mb-3 sm:mb-4">Par appareil</h3>
 
           {isLoading ? (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-16 bg-gold/10 animate-pulse rounded-lg" />
+                <div key={i} className="h-14 sm:h-16 bg-gold/10 animate-pulse rounded-lg" />
               ))}
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {deviceBreakdown.map((device, index) => (
                 <motion.div
                   key={device.device}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.1 }}
-                  className="p-4 rounded-lg bg-night/50 border border-gold/10"
+                  className="p-3 sm:p-4 rounded-lg bg-night/50 border border-gold/10"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-ivory capitalize">
+                    <span className="text-xs sm:text-sm font-medium text-ivory capitalize">
                       {device.device}
                     </span>
-                    <div className="flex items-center gap-4 text-xs text-ivory/60">
-                      <span>{device.sessions.toLocaleString("fr-FR")} sessions</span>
+                    <div className="flex items-center gap-2 sm:gap-4 text-[10px] sm:text-xs text-ivory/60">
+                      <span className="hidden sm:inline">{device.sessions.toLocaleString("fr-FR")} sessions</span>
                       <span className="text-gold font-semibold">
                         {device.percentage.toFixed(1)}%
                       </span>
                     </div>
                   </div>
-                  <div className="relative h-2 bg-night/40 rounded-full overflow-hidden">
+                  <div className="relative h-1.5 sm:h-2 bg-night/40 rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: `${device.percentage}%` }}
@@ -255,8 +255,8 @@ export function EngagementPanel({
                       className="absolute inset-y-0 left-0 bg-gradient-to-r from-gold to-gold/60 rounded-full"
                     />
                   </div>
-                  <p className="mt-2 text-xs text-ivory/40">
-                    Durée moyenne : {formatDuration(device.avgDuration)}
+                  <p className="mt-1.5 sm:mt-2 text-[10px] sm:text-xs text-ivory/40">
+                    Durée : {formatDuration(device.avgDuration)}
                   </p>
                 </motion.div>
               ))}
@@ -270,34 +270,34 @@ export function EngagementPanel({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="rounded-xl border border-gold/20 bg-gradient-to-br from-night/60 to-night/40 p-6"
+        className="rounded-xl border border-gold/20 bg-gradient-to-br from-night/60 to-night/40 p-4 sm:p-6"
       >
-        <h3 className="text-lg font-semibold text-gold mb-4">Engagement par section</h3>
+        <h3 className="text-base sm:text-lg font-semibold text-gold mb-3 sm:mb-4">Engagement par section</h3>
 
         {isLoading ? (
           <div className="space-y-2">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-12 bg-gold/10 animate-pulse rounded-lg" />
+              <div key={i} className="h-10 sm:h-12 bg-gold/10 animate-pulse rounded-lg" />
             ))}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+            <table className="w-full min-w-[500px]">
               <thead>
                 <tr className="border-b border-gold/10">
-                  <th className="text-left py-3 px-4 text-xs font-medium text-ivory/50 uppercase tracking-wider">
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-medium text-ivory/50 uppercase tracking-wider">
                     Section
                   </th>
-                  <th className="text-right py-3 px-4 text-xs font-medium text-ivory/50 uppercase tracking-wider">
-                    Temps moy.
+                  <th className="text-right py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-medium text-ivory/50 uppercase tracking-wider">
+                    Temps
                   </th>
-                  <th className="text-right py-3 px-4 text-xs font-medium text-ivory/50 uppercase tracking-wider">
+                  <th className="text-right py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-medium text-ivory/50 uppercase tracking-wider hidden sm:table-cell">
                     Scroll
                   </th>
-                  <th className="text-right py-3 px-4 text-xs font-medium text-ivory/50 uppercase tracking-wider">
+                  <th className="text-right py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-medium text-ivory/50 uppercase tracking-wider hidden sm:table-cell">
                     Interactions
                   </th>
-                  <th className="text-right py-3 px-4 text-xs font-medium text-ivory/50 uppercase tracking-wider">
+                  <th className="text-right py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-medium text-ivory/50 uppercase tracking-wider">
                     Rebond
                   </th>
                 </tr>
@@ -311,37 +311,37 @@ export function EngagementPanel({
                     transition={{ delay: index * 0.05 }}
                     className="border-b border-gold/5 hover:bg-ivory/5 transition-colors"
                   >
-                    <td className="py-3 px-4">
-                      <span className="text-sm font-medium text-ivory">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4">
+                      <span className="text-xs sm:text-sm font-medium text-ivory">
                         {section.section}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right">
-                      <span className="text-sm text-ivory">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4 text-right">
+                      <span className="text-xs sm:text-sm text-ivory">
                         {formatDuration(section.avgTime)}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4 text-right hidden sm:table-cell">
                       <div className="flex items-center justify-end gap-2">
-                        <div className="w-16 h-1.5 bg-night/40 rounded-full overflow-hidden">
+                        <div className="w-12 sm:w-16 h-1.5 bg-night/40 rounded-full overflow-hidden">
                           <div
                             className="h-full bg-green-400"
                             style={{ width: `${section.scrollDepth}%` }}
                           />
                         </div>
-                        <span className="text-sm text-ivory/60 w-10">
+                        <span className="text-xs sm:text-sm text-ivory/60 w-8 sm:w-10">
                           {section.scrollDepth.toFixed(0)}%
                         </span>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-right">
-                      <span className="text-sm text-ivory">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4 text-right hidden sm:table-cell">
+                      <span className="text-xs sm:text-sm text-ivory">
                         {section.interactions.toLocaleString("fr-FR")}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4 text-right">
                       <span
-                        className={`text-sm font-medium ${
+                        className={`text-xs sm:text-sm font-medium ${
                           section.bounceRate > 60
                             ? "text-red-400"
                             : section.bounceRate > 40

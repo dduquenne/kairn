@@ -211,21 +211,21 @@ export function TrafficPanel({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 overflow-x-hidden">
       {/* Mini Stats Row */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl border border-gold/20 bg-gradient-to-br from-night/60 to-night/40 p-4"
+          className="rounded-xl border border-gold/20 bg-gradient-to-br from-night/60 to-night/40 p-3 sm:p-4"
         >
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-gold/10">
-              <Eye size={20} className="text-gold" />
+            <div className="p-2 rounded-lg bg-gold/10 flex-shrink-0">
+              <Eye size={18} className="text-gold sm:w-5 sm:h-5" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-ivory/50">Pages vues</p>
-              <p className="text-xl font-bold text-ivory">
+              <p className="text-lg sm:text-xl font-bold text-ivory truncate">
                 {isLoading ? "..." : totalViews.toLocaleString("fr-FR")}
               </p>
             </div>
@@ -236,15 +236,15 @@ export function TrafficPanel({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="rounded-xl border border-blue-500/20 bg-gradient-to-br from-night/60 to-night/40 p-4"
+          className="rounded-xl border border-blue-500/20 bg-gradient-to-br from-night/60 to-night/40 p-3 sm:p-4"
         >
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-blue-500/10">
-              <Users size={20} className="text-blue-400" />
+            <div className="p-2 rounded-lg bg-blue-500/10 flex-shrink-0">
+              <Users size={18} className="text-blue-400 sm:w-5 sm:h-5" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-ivory/50">Visiteurs uniques</p>
-              <p className="text-xl font-bold text-ivory">
+              <p className="text-lg sm:text-xl font-bold text-ivory truncate">
                 {isLoading ? "..." : totalVisitors.toLocaleString("fr-FR")}
               </p>
             </div>
@@ -255,15 +255,15 @@ export function TrafficPanel({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="rounded-xl border border-green-500/20 bg-gradient-to-br from-night/60 to-night/40 p-4"
+          className="rounded-xl border border-green-500/20 bg-gradient-to-br from-night/60 to-night/40 p-3 sm:p-4"
         >
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-green-500/10">
-              <MousePointer size={20} className="text-green-400" />
+            <div className="p-2 rounded-lg bg-green-500/10 flex-shrink-0">
+              <MousePointer size={18} className="text-green-400 sm:w-5 sm:h-5" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-ivory/50">Nouveaux visiteurs</p>
-              <p className="text-xl font-bold text-ivory">
+              <p className="text-lg sm:text-xl font-bold text-ivory truncate">
                 {isLoading ? "..." : newVisitors.toLocaleString("fr-FR")}
               </p>
             </div>
@@ -276,16 +276,16 @@ export function TrafficPanel({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="rounded-xl border border-gold/20 bg-gradient-to-br from-night/60 to-night/40 p-6"
+        className="rounded-xl border border-gold/20 bg-gradient-to-br from-night/60 to-night/40 p-4 sm:p-6"
       >
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-gold">Visiteurs</h3>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6">
+          <h3 className="text-base sm:text-lg font-semibold text-gold">Visiteurs</h3>
           <div className="flex items-center gap-1 rounded-lg border border-gold/20 p-1">
             {chartTypes.map((type) => (
               <button
                 key={type.value}
                 onClick={() => setChartType(type.value)}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs font-medium transition-colors ${
                   chartType === type.value
                     ? "bg-gold text-night"
                     : "text-ivory/60 hover:text-ivory"
@@ -297,7 +297,7 @@ export function TrafficPanel({
           </div>
         </div>
 
-        <div className="h-80">
+        <div className="h-60 sm:h-80">
           {isLoading ? (
             <div className="h-full flex items-center justify-center">
               <div className="w-8 h-8 border-2 border-gold/20 border-t-gold rounded-full animate-spin" />
@@ -315,9 +315,9 @@ export function TrafficPanel({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="rounded-xl border border-gold/20 bg-gradient-to-br from-night/60 to-night/40 p-6"
+        className="rounded-xl border border-gold/20 bg-gradient-to-br from-night/60 to-night/40 p-4 sm:p-6"
       >
-        <h3 className="text-lg font-semibold text-gold mb-4">Pages populaires</h3>
+        <h3 className="text-base sm:text-lg font-semibold text-gold mb-3 sm:mb-4">Pages populaires</h3>
 
         {isLoading ? (
           <div className="space-y-3">
@@ -333,11 +333,11 @@ export function TrafficPanel({
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="flex items-center gap-4 p-3 rounded-lg hover:bg-ivory/5 transition-colors group"
+                className="flex items-center gap-2 sm:gap-4 p-2 sm:p-3 rounded-lg hover:bg-ivory/5 transition-colors group"
               >
                 {/* Rank */}
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                  className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm font-bold flex-shrink-0 ${
                     index === 0
                       ? "bg-gold/20 text-gold"
                       : index === 1
@@ -352,21 +352,21 @@ export function TrafficPanel({
 
                 {/* Page Path */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-ivory truncate group-hover:text-gold transition-colors">
+                  <p className="text-xs sm:text-sm font-medium text-ivory truncate group-hover:text-gold transition-colors">
                     {page.path}
                   </p>
-                  <p className="text-xs text-ivory/50">
+                  <p className="text-xs text-ivory/50 hidden sm:block">
                     {page.uniqueVisitors.toLocaleString("fr-FR")} visiteurs uniques
                   </p>
                 </div>
 
                 {/* Views */}
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-ivory">
+                <div className="text-right flex-shrink-0">
+                  <p className="text-xs sm:text-sm font-semibold text-ivory">
                     {page.views.toLocaleString("fr-FR")}
                   </p>
                   <div className="flex items-center justify-end gap-1 text-xs">
-                    <span className="text-ivory/50">{page.percentage.toFixed(1)}%</span>
+                    <span className="text-ivory/50 hidden sm:inline">{page.percentage.toFixed(1)}%</span>
                     {page.change !== undefined && (
                       <span
                         className={`flex items-center ${
@@ -384,8 +384,8 @@ export function TrafficPanel({
                   </div>
                 </div>
 
-                {/* Progress Bar */}
-                <div className="w-24 h-1.5 bg-night/40 rounded-full overflow-hidden">
+                {/* Progress Bar - hidden on mobile */}
+                <div className="hidden sm:block w-24 h-1.5 bg-night/40 rounded-full overflow-hidden flex-shrink-0">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${page.percentage}%` }}

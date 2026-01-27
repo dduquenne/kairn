@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { RefreshCw, Settings, Bell, Download, ChevronDown } from "lucide-react";
+import { RefreshCw, Settings, Bell, Download, ChevronDown, Beaker } from "lucide-react";
 import { useState, useEffect } from "react";
 
 interface KPIData {
@@ -19,10 +19,12 @@ interface CommandCenterProps {
   isLoading?: boolean;
   isRealtime?: boolean;
   alertCount?: number;
+  isSimulationMode?: boolean;
   onRefresh: () => void;
   onSettingsClick?: () => void;
   onAlertsClick?: () => void;
   onExportClick?: () => void;
+  onSimulationToggle?: () => void;
   children?: React.ReactNode; // For PeriodSelector
 }
 
@@ -32,10 +34,12 @@ export function CommandCenter({
   isLoading = false,
   isRealtime = false,
   alertCount = 0,
+  isSimulationMode = false,
   onRefresh,
   onSettingsClick,
   onAlertsClick,
   onExportClick,
+  onSimulationToggle,
   children,
 }: CommandCenterProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -98,9 +102,9 @@ export function CommandCenter({
     <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="sticky top-0 z-40 -mx-4 px-4 py-4 backdrop-blur-xl bg-night/90 border-b border-gold/10"
+      className="sticky top-0 z-40 -mx-4 px-4 py-4 backdrop-blur-xl bg-night/90 border-b border-gold/10 overflow-x-hidden"
     >
-      <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center gap-4 max-w-full">
         {/* Health Score */}
         <div className="flex items-center gap-4">
           <motion.div
@@ -163,7 +167,7 @@ export function CommandCenter({
         <div className="hidden lg:block w-px h-12 bg-gold/20" />
 
         {/* KPIs */}
-        <div className="flex flex-1 items-center gap-4 lg:gap-6">
+        <div className="flex flex-1 items-center gap-3 sm:gap-4 lg:gap-6 min-w-0">
           {/* Visitors KPI */}
           <motion.div
             className="flex-1 min-w-0"
@@ -171,18 +175,18 @@ export function CommandCenter({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
-            <p className="text-xs text-ivory/50 uppercase tracking-wider truncate">
+            <p className="text-[10px] sm:text-xs text-ivory/50 uppercase tracking-wider truncate">
               Visiteurs
             </p>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl lg:text-3xl font-bold text-ivory">
+            <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
+              <span className="text-lg sm:text-2xl lg:text-3xl font-bold text-ivory whitespace-nowrap">
                 {isLoading ? (
-                  <span className="inline-block w-16 h-8 bg-gold/20 animate-pulse rounded" />
+                  <span className="inline-block w-12 sm:w-16 h-6 sm:h-8 bg-gold/20 animate-pulse rounded" />
                 ) : (
                   kpis.visitors.toLocaleString("fr-FR")
                 )}
               </span>
-              {!isLoading && formatChange(kpis.visitorsChange)}
+              {!isLoading && <span className="hidden sm:inline">{formatChange(kpis.visitorsChange)}</span>}
             </div>
           </motion.div>
 
@@ -193,18 +197,18 @@ export function CommandCenter({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <p className="text-xs text-ivory/50 uppercase tracking-wider truncate">
+            <p className="text-[10px] sm:text-xs text-ivory/50 uppercase tracking-wider truncate">
               Conversions
             </p>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl lg:text-3xl font-bold text-ivory">
+            <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
+              <span className="text-lg sm:text-2xl lg:text-3xl font-bold text-ivory whitespace-nowrap">
                 {isLoading ? (
-                  <span className="inline-block w-12 h-8 bg-gold/20 animate-pulse rounded" />
+                  <span className="inline-block w-10 sm:w-12 h-6 sm:h-8 bg-gold/20 animate-pulse rounded" />
                 ) : (
                   `${kpis.conversionRate.toFixed(1)}%`
                 )}
               </span>
-              {!isLoading && formatChange(kpis.conversionChange, " pts")}
+              {!isLoading && <span className="hidden sm:inline">{formatChange(kpis.conversionChange, " pts")}</span>}
             </div>
           </motion.div>
 
@@ -215,20 +219,20 @@ export function CommandCenter({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
           >
-            <p className="text-xs text-ivory/50 uppercase tracking-wider truncate">
+            <p className="text-[10px] sm:text-xs text-ivory/50 uppercase tracking-wider truncate">
               Durée moy.
             </p>
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl lg:text-3xl font-bold text-ivory">
+            <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
+              <span className="text-lg sm:text-2xl lg:text-3xl font-bold text-ivory whitespace-nowrap">
                 {isLoading ? (
-                  <span className="inline-block w-14 h-8 bg-gold/20 animate-pulse rounded" />
+                  <span className="inline-block w-10 sm:w-14 h-6 sm:h-8 bg-gold/20 animate-pulse rounded" />
                 ) : (
                   formatDuration(kpis.avgDuration)
                 )}
               </span>
               {!isLoading && (
                 <span
-                  className={`text-xs font-medium ${
+                  className={`hidden sm:inline text-xs font-medium ${
                     kpis.durationChange >= 0 ? "text-green-400" : "text-red-400"
                   }`}
                 >
@@ -242,9 +246,52 @@ export function CommandCenter({
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0 flex-wrap justify-end">
           {/* Period Selector (passed as children) */}
-          {children}
+          <div className="flex-shrink-0">
+            {children}
+          </div>
+
+          {/* Simulation Mode Toggle */}
+          {onSimulationToggle && (
+            <motion.button
+              onClick={onSimulationToggle}
+              className={`relative flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-2 rounded-lg border transition-all flex-shrink-0 ${
+                isSimulationMode
+                  ? "border-purple-500/50 bg-purple-500/20 text-purple-400"
+                  : "border-gold/30 bg-gold/5 text-ivory/60 hover:text-gold hover:bg-gold/10"
+              }`}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              title={isSimulationMode ? "Désactiver le mode simulation" : "Activer le mode simulation"}
+            >
+              <Beaker size={16} className={`flex-shrink-0 ${isSimulationMode ? "text-purple-400" : ""}`} />
+              <span className="text-xs font-medium hidden md:inline">
+                Simulation
+              </span>
+              {/* Toggle Switch */}
+              <div
+                className={`relative w-7 sm:w-8 h-4 rounded-full transition-colors flex-shrink-0 ${
+                  isSimulationMode ? "bg-purple-500" : "bg-ivory/20"
+                }`}
+              >
+                <motion.div
+                  className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow-sm"
+                  animate={{
+                    left: isSimulationMode ? "calc(100% - 14px)" : "2px",
+                  }}
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                />
+              </div>
+              {isSimulationMode && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-1 -right-1 w-2 h-2 bg-purple-500 rounded-full"
+                />
+              )}
+            </motion.button>
+          )}
 
           {/* Refresh Button */}
           <motion.button

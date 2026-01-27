@@ -64,9 +64,9 @@ export function TabNavigation({
   onInsightsClick,
 }: TabNavigationProps) {
   return (
-    <div className="flex items-center justify-between border-b border-gold/10 mb-6">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-gold/10 mb-4 sm:mb-6 gap-2 sm:gap-0">
       {/* Tabs */}
-      <nav className="flex items-center gap-1 -mb-px overflow-x-auto scrollbar-hide">
+      <nav className="flex items-center gap-0.5 sm:gap-1 -mb-px overflow-x-auto scrollbar-hide pb-px">
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;
 
@@ -74,7 +74,7 @@ export function TabNavigation({
             <motion.button
               key={tab.id}
               onClick={() => onChange(tab.id)}
-              className={`relative flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+              className={`relative flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
                 isActive
                   ? "text-gold"
                   : "text-ivory/60 hover:text-ivory"
@@ -83,13 +83,13 @@ export function TabNavigation({
               whileTap={{ y: 0 }}
             >
               <span
-                className={`transition-colors ${
+                className={`transition-colors flex-shrink-0 ${
                   isActive ? "text-gold" : "text-ivory/40"
                 }`}
               >
                 {tab.icon}
               </span>
-              <span>{tab.label}</span>
+              <span className="hidden xs:inline sm:inline">{tab.label}</span>
 
               {/* Active indicator */}
               {isActive && (
@@ -113,12 +113,12 @@ export function TabNavigation({
       {onInsightsClick && (
         <motion.button
           onClick={onInsightsClick}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/30 text-purple-300 hover:border-purple-500/50 transition-colors ml-4"
+          className="flex items-center justify-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/30 text-purple-300 hover:border-purple-500/50 transition-colors sm:ml-4 self-end sm:self-auto"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          <Sparkles size={16} />
-          <span className="text-sm font-medium">Insights</span>
+          <Sparkles size={14} className="sm:w-4 sm:h-4" />
+          <span className="text-xs sm:text-sm font-medium">Insights</span>
         </motion.button>
       )}
     </div>

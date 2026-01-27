@@ -80,6 +80,7 @@ async function migrate() {
 
     for (let i = 0; i < data.testimonials.length; i++) {
       const testimonial = data.testimonials[i];
+      if (!testimonial) continue;
 
       if (existingIds.has(testimonial.id)) {
         console.log(`⏭️  Skipping "${testimonial.author}" (already exists)`);

@@ -67,7 +67,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             </div>
           </div>
         </header>
-        <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-8 lg:px-8">
+        <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-8 lg:px-8 overflow-x-hidden">
           {children}
         </main>
       </div>

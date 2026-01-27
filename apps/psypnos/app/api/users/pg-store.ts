@@ -85,7 +85,11 @@ async function getSiteId(): Promise<string> {
   if (result.rows.length === 0) {
     throw new Error(`Site '${SITE_SLUG}' not found`);
   }
-  return result.rows[0].id;
+  const row = result.rows[0];
+  if (!row) {
+    throw new Error(`Site '${SITE_SLUG}' not found`);
+  }
+  return row.id;
 }
 
 export function sanitizeUser(user: UserRecord): SanitizedUser {
@@ -109,6 +113,8 @@ export async function findUserByEmail(email: string): Promise<UserRecord | undef
   if (result.rows.length === 0) return undefined;
 
   const row = result.rows[0];
+  if (!row) return undefined;
+
   return {
     id: row.id,
     email: row.email,
@@ -213,6 +219,9 @@ export async function updateAdminUser(
   );
 
   const row = result.rows[0];
+  if (!row) {
+    throw new Error(`User with id '${id}' not found`);
+  }
   return {
     id: row.id,
     email: row.email,
@@ -236,6 +245,9 @@ export async function resetAdminPasswordById(id: string): Promise<ResetPasswordR
   );
 
   const row = result.rows[0];
+  if (!row) {
+    throw new Error(`User with id '${id}' not found`);
+  }
   return {
     user: {
       id: row.id,
@@ -260,7 +272,12 @@ export async function resetAdminPasswordByEmail(email: string): Promise<ResetPas
     return null;
   }
 
-  return resetAdminPasswordById(userResult.rows[0].id);
+  const user = userResult.rows[0];
+  if (!user) {
+    return null;
+  }
+
+  return resetAdminPasswordById(user.id);
 }
 
 async function hashPassword(password: string): Promise<string> {
@@ -270,5 +287,8 @@ async function hashPassword(password: string): Promise<string> {
 function generateTemporaryPassword(length = 12): string {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
   const bytes = randomBytes(length);
-  return Array.from({ length }, (_, index) => alphabet[bytes[index] % alphabet.length]).join("");
+  return Array.from({ length }, (_, index) => {
+    const byte = bytes[index];
+    return byte !== undefined ? alphabet[byte % alphabet.length] : alphabet[0];
+  }).join("");
 }

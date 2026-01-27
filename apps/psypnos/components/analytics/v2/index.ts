@@ -13,3 +13,6 @@ export { SEOPanel } from "./panels/SEOPanel";
 
 // Hooks
 export { useAnalytics } from "./hooks/useAnalytics";
+
+// Context
+export { SimulationProvider, useSimulation } from "./context/SimulationContext";

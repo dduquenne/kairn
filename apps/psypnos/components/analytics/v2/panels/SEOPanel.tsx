@@ -110,21 +110,21 @@ export function SEOPanel({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 overflow-x-hidden">
       {/* Key Metrics */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl border border-green-500/20 bg-gradient-to-br from-night/60 to-night/40 p-4"
+          className="rounded-xl border border-green-500/20 bg-gradient-to-br from-night/60 to-night/40 p-3 sm:p-4"
         >
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-green-500/10">
-              <Bot size={20} className="text-green-400" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 rounded-lg bg-green-500/10 flex-shrink-0">
+              <Bot size={16} className="text-green-400 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <p className="text-xs text-ivory/50">Visites bots</p>
-              <p className="text-xl font-bold text-ivory">
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs text-ivory/50 truncate">Visites bots</p>
+              <p className="text-base sm:text-xl font-bold text-ivory">
                 {isLoading ? "..." : totalBotVisits.toLocaleString("fr-FR")}
               </p>
             </div>
@@ -135,15 +135,15 @@ export function SEOPanel({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="rounded-xl border border-blue-500/20 bg-gradient-to-br from-night/60 to-night/40 p-4"
+          className="rounded-xl border border-blue-500/20 bg-gradient-to-br from-night/60 to-night/40 p-3 sm:p-4"
         >
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-blue-500/10">
-              <Search size={20} className="text-blue-400" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 rounded-lg bg-blue-500/10 flex-shrink-0">
+              <Search size={16} className="text-blue-400 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <p className="text-xs text-ivory/50">Bots uniques</p>
-              <p className="text-xl font-bold text-ivory">
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs text-ivory/50 truncate">Bots uniques</p>
+              <p className="text-base sm:text-xl font-bold text-ivory">
                 {isLoading ? "..." : uniqueBots}
               </p>
             </div>
@@ -154,15 +154,15 @@ export function SEOPanel({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="rounded-xl border border-purple-500/20 bg-gradient-to-br from-night/60 to-night/40 p-4"
+          className="rounded-xl border border-purple-500/20 bg-gradient-to-br from-night/60 to-night/40 p-3 sm:p-4"
         >
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-purple-500/10">
-              <FileSearch size={20} className="text-purple-400" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 rounded-lg bg-purple-500/10 flex-shrink-0">
+              <FileSearch size={16} className="text-purple-400 sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <p className="text-xs text-ivory/50">Pages crawlées</p>
-              <p className="text-xl font-bold text-ivory">
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs text-ivory/50 truncate">Pages crawlées</p>
+              <p className="text-base sm:text-xl font-bold text-ivory">
                 {isLoading ? "..." : crawledPages}
               </p>
             </div>
@@ -173,15 +173,15 @@ export function SEOPanel({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="rounded-xl border border-gold/20 bg-gradient-to-br from-night/60 to-night/40 p-4"
+          className="rounded-xl border border-gold/20 bg-gradient-to-br from-night/60 to-night/40 p-3 sm:p-4"
         >
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-gold/10">
-              <Clock size={20} className="text-gold" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="p-1.5 sm:p-2 rounded-lg bg-gold/10 flex-shrink-0">
+              <Clock size={16} className="text-gold sm:w-5 sm:h-5" />
             </div>
-            <div>
-              <p className="text-xs text-ivory/50">Crawl/jour</p>
-              <p className="text-xl font-bold text-ivory">
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs text-ivory/50 truncate">Crawl/jour</p>
+              <p className="text-base sm:text-xl font-bold text-ivory">
                 {isLoading ? "..." : avgCrawlRate.toFixed(0)}
               </p>
             </div>
@@ -189,24 +189,24 @@ export function SEOPanel({
         </motion.div>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Bot Visits Timeline */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="rounded-xl border border-green-500/20 bg-gradient-to-br from-night/60 to-night/40 p-6"
+          className="rounded-xl border border-green-500/20 bg-gradient-to-br from-night/60 to-night/40 p-4 sm:p-6"
         >
-          <h3 className="text-lg font-semibold text-green-400 mb-4">
+          <h3 className="text-base sm:text-lg font-semibold text-green-400 mb-3 sm:mb-4">
             Activité des bots
           </h3>
 
           {isLoading ? (
-            <div className="h-48 flex items-center justify-center">
+            <div className="h-40 sm:h-48 flex items-center justify-center">
               <div className="w-8 h-8 border-2 border-green-500/20 border-t-green-400 rounded-full animate-spin" />
             </div>
           ) : (
-            <div className="h-48">
+            <div className="h-40 sm:h-48">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={botVisitsTimeline}
@@ -256,49 +256,49 @@ export function SEOPanel({
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="rounded-xl border border-green-500/20 bg-gradient-to-br from-night/60 to-night/40 p-6"
+          className="rounded-xl border border-green-500/20 bg-gradient-to-br from-night/60 to-night/40 p-4 sm:p-6"
         >
-          <h3 className="text-lg font-semibold text-green-400 mb-4">
+          <h3 className="text-base sm:text-lg font-semibold text-green-400 mb-3 sm:mb-4">
             Bots identifiés
           </h3>
 
           {isLoading ? (
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-14 bg-green-500/10 animate-pulse rounded-lg" />
+                <div key={i} className="h-12 sm:h-14 bg-green-500/10 animate-pulse rounded-lg" />
               ))}
             </div>
           ) : botTypes.length === 0 ? (
-            <div className="text-center py-8">
-              <Bot size={40} className="mx-auto text-ivory/20 mb-3" />
-              <p className="text-sm text-ivory/50">Aucun bot détecté</p>
+            <div className="text-center py-6 sm:py-8">
+              <Bot size={32} className="mx-auto text-ivory/20 mb-2 sm:mb-3 sm:w-10 sm:h-10" />
+              <p className="text-xs sm:text-sm text-ivory/50">Aucun bot détecté</p>
             </div>
           ) : (
-            <div className="space-y-2 max-h-48 overflow-y-auto">
+            <div className="space-y-1.5 sm:space-y-2 max-h-40 sm:max-h-48 overflow-y-auto">
               {botTypes.map((bot, index) => (
                 <motion.div
                   key={bot.name}
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="flex items-center gap-3 p-3 rounded-lg bg-night/50 border border-green-500/10 hover:border-green-500/30 transition-colors"
+                  className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-night/50 border border-green-500/10 hover:border-green-500/30 transition-colors"
                 >
-                  <div className="p-1.5 rounded-lg bg-green-500/10">
+                  <div className="p-1 sm:p-1.5 rounded-lg bg-green-500/10 flex-shrink-0">
                     {getBotIcon(bot.type)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-ivory truncate">
+                    <p className="text-xs sm:text-sm font-medium text-ivory truncate">
                       {bot.name}
                     </p>
-                    <p className="text-xs text-ivory/40">
+                    <p className="text-[10px] sm:text-xs text-ivory/40 truncate">
                       {getBotTypeLabel(bot.type)}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold text-green-400">
+                  <div className="text-right flex-shrink-0">
+                    <p className="text-xs sm:text-sm font-semibold text-green-400">
                       {bot.visits}
                     </p>
-                    <p className="text-xs text-ivory/40">{bot.pages} pages</p>
+                    <p className="text-[10px] sm:text-xs text-ivory/40">{bot.pages} pages</p>
                   </div>
                 </motion.div>
               ))}
@@ -312,38 +312,38 @@ export function SEOPanel({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="rounded-xl border border-green-500/20 bg-gradient-to-br from-night/60 to-night/40 p-6"
+        className="rounded-xl border border-green-500/20 bg-gradient-to-br from-night/60 to-night/40 p-4 sm:p-6"
       >
-        <h3 className="text-lg font-semibold text-green-400 mb-4">
+        <h3 className="text-base sm:text-lg font-semibold text-green-400 mb-3 sm:mb-4">
           Pages les plus crawlées
         </h3>
 
         {isLoading ? (
           <div className="space-y-2">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-12 bg-green-500/10 animate-pulse rounded-lg" />
+              <div key={i} className="h-10 sm:h-12 bg-green-500/10 animate-pulse rounded-lg" />
             ))}
           </div>
         ) : topCrawledPages.length === 0 ? (
-          <div className="text-center py-8">
-            <FileSearch size={40} className="mx-auto text-ivory/20 mb-3" />
-            <p className="text-sm text-ivory/50">Aucune donnée de crawl</p>
+          <div className="text-center py-6 sm:py-8">
+            <FileSearch size={32} className="mx-auto text-ivory/20 mb-2 sm:mb-3 sm:w-10 sm:h-10" />
+            <p className="text-xs sm:text-sm text-ivory/50">Aucune donnée de crawl</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+            <table className="w-full min-w-[400px]">
               <thead>
                 <tr className="border-b border-green-500/10">
-                  <th className="text-left py-3 px-4 text-xs font-medium text-ivory/50 uppercase tracking-wider">
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-medium text-ivory/50 uppercase tracking-wider">
                     Page
                   </th>
-                  <th className="text-right py-3 px-4 text-xs font-medium text-ivory/50 uppercase tracking-wider">
+                  <th className="text-right py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-medium text-ivory/50 uppercase tracking-wider">
                     Crawls
                   </th>
-                  <th className="text-right py-3 px-4 text-xs font-medium text-ivory/50 uppercase tracking-wider">
-                    Dernier crawl
+                  <th className="text-right py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-medium text-ivory/50 uppercase tracking-wider hidden sm:table-cell">
+                    Dernier
                   </th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-ivory/50 uppercase tracking-wider">
+                  <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-medium text-ivory/50 uppercase tracking-wider hidden md:table-cell">
                     Bots
                   </th>
                 </tr>
@@ -357,34 +357,34 @@ export function SEOPanel({
                     transition={{ delay: index * 0.05 }}
                     className="border-b border-green-500/5 hover:bg-ivory/5 transition-colors"
                   >
-                    <td className="py-3 px-4">
-                      <span className="text-sm font-medium text-ivory truncate block max-w-[200px]">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4">
+                      <span className="text-xs sm:text-sm font-medium text-ivory truncate block max-w-[120px] sm:max-w-[200px]">
                         {page.path}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right">
-                      <span className="text-sm font-semibold text-green-400">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4 text-right">
+                      <span className="text-xs sm:text-sm font-semibold text-green-400">
                         {page.crawlCount}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right">
-                      <span className="text-xs text-ivory/50">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4 text-right hidden sm:table-cell">
+                      <span className="text-[10px] sm:text-xs text-ivory/50">
                         {formatDate(page.lastCrawled)}
                       </span>
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-2 sm:py-3 px-2 sm:px-4 hidden md:table-cell">
                       <div className="flex items-center gap-1 flex-wrap">
-                        {page.botTypes.slice(0, 3).map((botType, i) => (
+                        {page.botTypes.slice(0, 2).map((botType, i) => (
                           <span
                             key={i}
-                            className="text-xs px-2 py-0.5 rounded-full bg-green-500/10 text-green-400"
+                            className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-green-500/10 text-green-400"
                           >
                             {botType}
                           </span>
                         ))}
-                        {page.botTypes.length > 3 && (
-                          <span className="text-xs text-ivory/40">
-                            +{page.botTypes.length - 3}
+                        {page.botTypes.length > 2 && (
+                          <span className="text-[10px] sm:text-xs text-ivory/40">
+                            +{page.botTypes.length - 2}
                           </span>
                         )}
                       </div>
