@@ -14,6 +14,7 @@ import {
   ConversionsPanel,
   SourcesPanel,
   SEOPanel,
+  BlogPanel,
   useAnalytics,
   SimulationProvider,
   useSimulation,
@@ -337,6 +338,15 @@ function AnalyticsPageContent() {
               botVisitsTimeline={data?.botVisitsTimeline || []}
               botTypes={data?.botTypes || []}
               topCrawledPages={data?.topCrawledPages || []}
+              isLoading={isLoading}
+            />
+          </TabContent>
+        )}
+
+        {activeTab === "blog" && (
+          <TabContent tabId="blog">
+            <BlogPanel
+              data={data?.blogData || null}
               isLoading={isLoading}
             />
           </TabContent>

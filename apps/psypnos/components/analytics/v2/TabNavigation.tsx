@@ -8,9 +8,10 @@ import {
   Globe,
   Bot,
   Sparkles,
+  FileText,
 } from "lucide-react";
 
-export type TabId = "traffic" | "engagement" | "conversions" | "sources" | "seo";
+export type TabId = "traffic" | "engagement" | "conversions" | "sources" | "seo" | "blog";
 
 interface Tab {
   id: TabId;
@@ -37,6 +38,12 @@ const TABS: Tab[] = [
     label: "Conversions",
     icon: <Target size={18} />,
     description: "Objectifs et tunnel",
+  },
+  {
+    id: "blog",
+    label: "Blog",
+    icon: <FileText size={18} />,
+    description: "Articles et engagement",
   },
   {
     id: "sources",

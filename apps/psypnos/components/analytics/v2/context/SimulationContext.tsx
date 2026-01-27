@@ -123,6 +123,45 @@ interface Alert {
   isRead: boolean;
 }
 
+// Blog Panel Types
+interface BlogArticleStats {
+  slug: string;
+  title?: string;
+  views: number;
+  uniqueVisitors: number;
+  avgTimeOnPage: number | null;
+  avgScrollDepth: number | null;
+  score: number;
+  lastViewed: string | null;
+}
+
+interface BlogCTAStats {
+  appointment: number;
+  seminar: number;
+  total: number;
+}
+
+interface BlogFAQStats {
+  totalOpens: number;
+  topQuestions: Array<{
+    question: string;
+    articleSlug: string;
+    opens: number;
+  }>;
+}
+
+interface BlogPanelData {
+  articles: BlogArticleStats[];
+  totalViews: number;
+  totalUniqueVisitors: number;
+  avgViewsPerVisitor: number;
+  ctaStats: BlogCTAStats;
+  faqStats: BlogFAQStats;
+  topPerformingArticle: BlogArticleStats | null;
+  viewsChange?: number;
+  visitorsChange?: number;
+}
+
 export interface SimulatedAnalyticsData {
   healthScore: number;
   kpis: KPIData;
@@ -158,6 +197,7 @@ export interface SimulatedAnalyticsData {
   topCrawledPages: CrawledPage[];
   insights: Insight[];
   alerts: Alert[];
+  blogData: BlogPanelData | null;
 }
 
 interface SimulationContextType {
@@ -389,6 +429,63 @@ function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
     { id: "3", severity: "critical", title: "Erreur 500 détectée", message: "5 erreurs 500 détectées sur /api/contact", timestamp: new Date(now.getTime() - 30 * 60 * 1000).toISOString(), isRead: false },
   ];
 
+  // Blog Data
+  const blogArticles: BlogArticleStats[] = [
+    { slug: "comprendre-anxiete-sociale", title: "Comprendre l'anxiété sociale", views: randomInRange(150, 350), uniqueVisitors: randomInRange(100, 280), avgTimeOnPage: randomInRange(120000, 300000), avgScrollDepth: randomInRange(65, 95), score: 0, lastViewed: new Date(now.getTime() - randomInRange(1, 24) * 60 * 60 * 1000).toISOString() },
+    { slug: "bienfaits-meditation", title: "Les bienfaits de la méditation", views: randomInRange(120, 280), uniqueVisitors: randomInRange(90, 220), avgTimeOnPage: randomInRange(100000, 250000), avgScrollDepth: randomInRange(60, 90), score: 0, lastViewed: new Date(now.getTime() - randomInRange(1, 48) * 60 * 60 * 1000).toISOString() },
+    { slug: "gerer-stress-quotidien", title: "Gérer le stress au quotidien", views: randomInRange(100, 250), uniqueVisitors: randomInRange(80, 200), avgTimeOnPage: randomInRange(90000, 220000), avgScrollDepth: randomInRange(55, 88), score: 0, lastViewed: new Date(now.getTime() - randomInRange(2, 72) * 60 * 60 * 1000).toISOString() },
+    { slug: "hypnose-therapeutique", title: "L'hypnose thérapeutique expliquée", views: randomInRange(80, 200), uniqueVisitors: randomInRange(60, 160), avgTimeOnPage: randomInRange(150000, 350000), avgScrollDepth: randomInRange(70, 98), score: 0, lastViewed: new Date(now.getTime() - randomInRange(1, 36) * 60 * 60 * 1000).toISOString() },
+    { slug: "sommeil-reparateur", title: "Retrouver un sommeil réparateur", views: randomInRange(70, 180), uniqueVisitors: randomInRange(55, 145), avgTimeOnPage: randomInRange(80000, 200000), avgScrollDepth: randomInRange(50, 85), score: 0, lastViewed: new Date(now.getTime() - randomInRange(3, 96) * 60 * 60 * 1000).toISOString() },
+    { slug: "confiance-en-soi", title: "Développer sa confiance en soi", views: randomInRange(60, 150), uniqueVisitors: randomInRange(50, 120), avgTimeOnPage: randomInRange(70000, 180000), avgScrollDepth: randomInRange(45, 80), score: 0, lastViewed: new Date(now.getTime() - randomInRange(5, 120) * 60 * 60 * 1000).toISOString() },
+    { slug: "depression-signes-aide", title: "Dépression : signes et aide", views: randomInRange(50, 130), uniqueVisitors: randomInRange(40, 100), avgTimeOnPage: randomInRange(180000, 400000), avgScrollDepth: randomInRange(75, 98), score: 0, lastViewed: new Date(now.getTime() - randomInRange(2, 48) * 60 * 60 * 1000).toISOString() },
+    { slug: "relations-toxiques", title: "Identifier les relations toxiques", views: randomInRange(40, 110), uniqueVisitors: randomInRange(35, 90), avgTimeOnPage: randomInRange(100000, 250000), avgScrollDepth: randomInRange(60, 92), score: 0, lastViewed: new Date(now.getTime() - randomInRange(4, 168) * 60 * 60 * 1000).toISOString() },
+  ];
+
+  // Calculate scores for blog articles
+  blogArticles.forEach(article => {
+    const viewsScore = Math.min(article.views / 350, 1) * 25;
+    const visitorsScore = Math.min(article.uniqueVisitors / 280, 1) * 20;
+    const durationScore = article.avgTimeOnPage ? Math.min(article.avgTimeOnPage / 300000, 1) * 25 : 0;
+    const scrollScore = article.avgScrollDepth ? Math.min(article.avgScrollDepth / 100, 1) * 30 : 0;
+    article.score = Math.round(viewsScore + visitorsScore + durationScore + scrollScore);
+  });
+
+  // Sort by score
+  blogArticles.sort((a, b) => b.score - a.score);
+
+  const blogTotalViews = blogArticles.reduce((sum, a) => sum + a.views, 0);
+  const blogTotalVisitors = blogArticles.reduce((sum, a) => sum + a.uniqueVisitors, 0);
+
+  const blogCtaStats: BlogCTAStats = {
+    appointment: randomInRange(15, 45),
+    seminar: randomInRange(8, 25),
+    total: 0,
+  };
+  blogCtaStats.total = blogCtaStats.appointment + blogCtaStats.seminar;
+
+  const blogFaqStats: BlogFAQStats = {
+    totalOpens: randomInRange(50, 150),
+    topQuestions: [
+      { question: "Combien de séances sont nécessaires ?", articleSlug: "hypnose-therapeutique", opens: randomInRange(20, 50) },
+      { question: "L'hypnose fonctionne-t-elle sur tout le monde ?", articleSlug: "hypnose-therapeutique", opens: randomInRange(15, 40) },
+      { question: "Comment savoir si je souffre d'anxiété sociale ?", articleSlug: "comprendre-anxiete-sociale", opens: randomInRange(12, 35) },
+      { question: "La méditation peut-elle remplacer un traitement ?", articleSlug: "bienfaits-meditation", opens: randomInRange(10, 30) },
+      { question: "Quels sont les premiers signes de la dépression ?", articleSlug: "depression-signes-aide", opens: randomInRange(8, 25) },
+    ],
+  };
+
+  const blogData: BlogPanelData = {
+    articles: blogArticles,
+    totalViews: blogTotalViews,
+    totalUniqueVisitors: blogTotalVisitors,
+    avgViewsPerVisitor: blogTotalVisitors > 0 ? blogTotalViews / blogTotalVisitors : 0,
+    ctaStats: blogCtaStats,
+    faqStats: blogFaqStats,
+    topPerformingArticle: blogArticles[0] || null,
+    viewsChange: randomInRange(-10, 25),
+    visitorsChange: randomInRange(-8, 20),
+  };
+
   // KPIs
   const kpis: KPIData = {
     visitors: totalVisitors,
@@ -447,6 +544,7 @@ function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
     topCrawledPages,
     insights,
     alerts,
+    blogData,
   };
 }
 

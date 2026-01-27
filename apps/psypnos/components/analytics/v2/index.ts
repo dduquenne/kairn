@@ -10,6 +10,7 @@ export { EngagementPanel } from "./panels/EngagementPanel";
 export { ConversionsPanel } from "./panels/ConversionsPanel";
 export { SourcesPanel } from "./panels/SourcesPanel";
 export { SEOPanel } from "./panels/SEOPanel";
+export { BlogPanel, type BlogPanelData, type BlogArticleStats } from "./panels/BlogPanel";
 
 // Hooks
 export { useAnalytics } from "./hooks/useAnalytics";

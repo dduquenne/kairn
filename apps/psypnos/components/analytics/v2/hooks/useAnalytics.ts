@@ -124,6 +124,45 @@ interface Alert {
   isRead: boolean;
 }
 
+// Blog Panel Types
+interface BlogArticleStats {
+  slug: string;
+  title?: string;
+  views: number;
+  uniqueVisitors: number;
+  avgTimeOnPage: number | null;
+  avgScrollDepth: number | null;
+  score: number;
+  lastViewed: string | null;
+}
+
+interface BlogCTAStats {
+  appointment: number;
+  seminar: number;
+  total: number;
+}
+
+interface BlogFAQStats {
+  totalOpens: number;
+  topQuestions: Array<{
+    question: string;
+    articleSlug: string;
+    opens: number;
+  }>;
+}
+
+interface BlogPanelData {
+  articles: BlogArticleStats[];
+  totalViews: number;
+  totalUniqueVisitors: number;
+  avgViewsPerVisitor: number;
+  ctaStats: BlogCTAStats;
+  faqStats: BlogFAQStats;
+  topPerformingArticle: BlogArticleStats | null;
+  viewsChange?: number;
+  visitorsChange?: number;
+}
+
 interface AnalyticsData {
   // KPIs
   healthScore: number;
@@ -172,6 +211,9 @@ interface AnalyticsData {
   // Insights
   insights: Insight[];
   alerts: Alert[];
+
+  // Blog Panel
+  blogData: BlogPanelData | null;
 }
 
 interface UseAnalyticsOptions {
@@ -422,12 +464,15 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       const dashboardData = await dashboardRes.json();
 
       // Fetch additional data in parallel
-      const [geoRes, goalsRes, botsRes, alertsRes, insightsRes] = await Promise.allSettled([
+      const [geoRes, goalsRes, botsRes, alertsRes, insightsRes, blogAnalyticsRes, blogCtaRes, blogFaqRes] = await Promise.allSettled([
         fetch("/api/analytics/geolocation"),
         fetch("/api/analytics/goals"),
         fetch(`/api/analytics/bots?timeRange=${period === "realtime" ? "24h" : "7d"}`),
         fetch("/api/analytics/alerts"),
         fetch(`/api/analytics/insights?timeRange=${timeRange}`),
+        fetch("/api/blog/analytics"),
+        fetch("/api/blog/cta-clicks"),
+        fetch("/api/blog/faq-clicks"),
       ]);
 
       const geoData = geoRes.status === "fulfilled" && geoRes.value.ok
@@ -449,6 +494,18 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       const insightsData = insightsRes.status === "fulfilled" && insightsRes.value.ok
         ? await insightsRes.value.json()
         : { insights: [] };
+
+      const blogAnalyticsData = blogAnalyticsRes.status === "fulfilled" && blogAnalyticsRes.value.ok
+        ? await blogAnalyticsRes.value.json()
+        : { articles: [], totalViews: 0, totalUniqueVisitors: 0 };
+
+      const blogCtaData = blogCtaRes.status === "fulfilled" && blogCtaRes.value.ok
+        ? await blogCtaRes.value.json()
+        : { summary: { appointment: 0, seminar: 0 } };
+
+      const blogFaqData = blogFaqRes.status === "fulfilled" && blogFaqRes.value.ok
+        ? await blogFaqRes.value.json()
+        : { summary: {}, clicks: [] };
 
       // Calculate derived values
       const healthScore = calculateHealthScore(dashboardData);
@@ -586,6 +643,55 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
         isRead: alert.isRead || false,
       }));
 
+      // Build blog panel data
+      const blogArticles: BlogArticleStats[] = (blogAnalyticsData.articles || []).map((article: any) => ({
+        slug: article.slug || "",
+        title: article.title,
+        views: article.views || 0,
+        uniqueVisitors: article.uniqueVisitors || 0,
+        avgTimeOnPage: article.engagement?.avgTimeOnPage ?? null,
+        avgScrollDepth: article.engagement?.avgScrollDepth ?? null,
+        score: article.score ?? 0,
+        lastViewed: article.lastViewed || null,
+      }));
+
+      // Sort articles by score descending
+      blogArticles.sort((a, b) => b.score - a.score);
+
+      // Build FAQ top questions
+      const faqSummary = blogFaqData.summary || {};
+      const faqClicks = blogFaqData.clicks || [];
+      const topQuestions: Array<{ question: string; articleSlug: string; opens: number }> = [];
+
+      Object.entries(faqSummary).forEach(([faqId, data]: [string, any]) => {
+        const faqClick = faqClicks.find((c: any) => c.faqId === faqId);
+        topQuestions.push({
+          question: faqClick?.question || "Question non disponible",
+          articleSlug: faqClick?.articleSlug || faqId.split("-").slice(0, -1).join("-"),
+          opens: data.opens || 0,
+        });
+      });
+      topQuestions.sort((a, b) => b.opens - a.opens);
+
+      const blogData: BlogPanelData = {
+        articles: blogArticles,
+        totalViews: blogAnalyticsData.totalViews || 0,
+        totalUniqueVisitors: blogAnalyticsData.totalUniqueVisitors || 0,
+        avgViewsPerVisitor: blogAnalyticsData.totalUniqueVisitors > 0
+          ? blogAnalyticsData.totalViews / blogAnalyticsData.totalUniqueVisitors
+          : 0,
+        ctaStats: {
+          appointment: blogCtaData.summary?.appointment || 0,
+          seminar: blogCtaData.summary?.seminar || 0,
+          total: (blogCtaData.summary?.appointment || 0) + (blogCtaData.summary?.seminar || 0),
+        },
+        faqStats: {
+          totalOpens: topQuestions.reduce((sum, q) => sum + q.opens, 0),
+          topQuestions: topQuestions.slice(0, 10),
+        },
+        topPerformingArticle: blogArticles.length > 0 ? blogArticles[0] ?? null : null,
+      };
+
       // Compose final data object
       const analyticsData: AnalyticsData = {
         healthScore,
@@ -633,6 +739,7 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
         topCrawledPages: crawledPages,
         insights,
         alerts,
+        blogData,
       };
 
       setData(analyticsData);
