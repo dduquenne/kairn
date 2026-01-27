@@ -1,7 +1,8 @@
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * PostgreSQL Cohort Analysis
+ *
+ * Performs cohort analysis by grouping users based on acquisition date,
+ * traffic source, referrer, or device type.
  */
 
 import {

@@ -1,48 +1,41 @@
-// @ts-nocheck
-// TODO: Migration - Prisma models may not be available in Kairn schema
 /**
  * PostgreSQL Store Utilities
  *
- * This module provides utility functions for converting Prisma types to application types.
- * Prisma uses `null` for absent optional values, while our application types use `undefined`.
- *
- * IMPORTANT: Prisma JSON Types Explained
- * =======================================
- * Prisma distinguishes between INPUT and OUTPUT JSON types:
- *
- * - InputJsonValue: For WRITING data to the database
- *   Does NOT accept `null` at the root level (use null for that)
- *   Accepts: string | number | boolean | InputJsonObject | InputJsonArray
- *
- * - JsonValue: For READING data from the database
- *   Can include `null` at any level
- *
- * This distinction is why we have separate types for input (writing) and output (reading).
+ * This module provides utility functions for the analytics store:
+ * - Type conversion between Prisma and application types
+ * - Event type mapping to/from AnalyticsEvent
+ * - JSON handling for Prisma
+ * - Common helper functions
  */
 
+import { EventType } from "@prisma/client";
+
+// =============================================================================
+// JSON TYPE HELPERS
+// =============================================================================
+
 /**
- * InputJsonValue - Type compatible avec Prisma pour l'ÉCRITURE de JSON.
- *
- * Ce type est identique à unknown et n'accepte PAS `null`
- * au niveau racine. C'est la différence clé avec JsonValue (lecture).
- *
- * Pour écrire explicitement `null` dans la DB, utilisez null.
+ * InputJsonValue - Type compatible with Prisma for WRITING JSON.
+ * Does NOT accept `null` at root level.
  */
 export type InputJsonObject = { readonly [Key in string]?: InputJsonValue | null };
 export type InputJsonArray = ReadonlyArray<InputJsonValue | null>;
 export type InputJsonValue = string | number | boolean | InputJsonObject | InputJsonArray;
 
 /**
+ * Converts a Record<string, unknown> to Prisma JSON INPUT compatible type.
+ */
+export function toPrismaJson(
+  metadata: Record<string, unknown> | undefined
+): InputJsonValue | undefined {
+  if (metadata === undefined) {
+    return undefined;
+  }
+  return JSON.parse(JSON.stringify(metadata)) as InputJsonValue;
+}
+
+/**
  * Converts null values to undefined in an object.
- * This is necessary because Prisma uses null for absent optional fields,
- * but our application types use undefined (optional properties).
- *
- * @example
- * // Prisma returns: { name: "test", description: null }
- * // After normalization: { name: "test", description: undefined }
- *
- * const prismaResult = await prisma.entity.findFirst();
- * return normalizeNulls(prismaResult);
  */
 export function normalizeNulls<T extends Record<string, unknown>>(
   obj: T
@@ -52,7 +45,6 @@ export function normalizeNulls<T extends Record<string, unknown>>(
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
       const value = obj[key];
-      // Convert null to undefined, keep other values as-is
       (result as Record<string, unknown>)[key] = value === null ? undefined : value;
     }
   }
@@ -60,68 +52,307 @@ export function normalizeNulls<T extends Record<string, unknown>>(
   return result;
 }
 
-/**
- * Type helper: converts null to undefined in a union type
- */
-export type NullToUndefined<T> = T extends null ? undefined : T;
+// =============================================================================
+// EVENT TYPE MAPPING
+// =============================================================================
 
 /**
- * Type helper: converts all null values in an object type to undefined
+ * Maps internal event type strings to Prisma EventType enum.
  */
-export type NormalizedRecord<T> = {
-  [K in keyof T]: NullToUndefined<T[K]>;
-};
+export function toEventType(type: string): EventType {
+  const mapping: Record<string, EventType> = {
+    page_view: EventType.PAGE_VIEW,
+    page_exit: EventType.PAGE_EXIT,
+    scroll_depth: EventType.SCROLL_DEPTH,
+    section_view: EventType.SECTION_VIEW,
+    section_time: EventType.SECTION_TIME,
+    conversion: EventType.CONVERSION,
+    funnel_step: EventType.FUNNEL_STEP,
+    click: EventType.CLICK,
+    form_submit: EventType.FORM_SUBMIT,
+    download: EventType.DOWNLOAD,
+    custom: EventType.CUSTOM,
+    custom_event: EventType.CUSTOM,
+  };
+
+  return mapping[type.toLowerCase()] || EventType.CUSTOM;
+}
 
 /**
- * Type compatible avec Prisma JSON pour la LECTURE (sortie de la DB).
- * Ce type peut contenir `null` à n'importe quel niveau car c'est ce que Prisma retourne.
- *
- * @deprecated Préférer utiliser unknown directement depuis @prisma/client
+ * Maps Prisma EventType enum to internal type string.
  */
-export type PrismaJsonValue =
-  | string
-  | number
-  | boolean
-  | null
-  | PrismaJsonValue[]
-  | { [key: string]: PrismaJsonValue };
+export function fromEventType(type: EventType): string {
+  const mapping: Record<EventType, string> = {
+    [EventType.PAGE_VIEW]: "page_view",
+    [EventType.PAGE_EXIT]: "page_exit",
+    [EventType.SCROLL_DEPTH]: "scroll_depth",
+    [EventType.SECTION_VIEW]: "section_view",
+    [EventType.SECTION_TIME]: "section_time",
+    [EventType.CONVERSION]: "conversion",
+    [EventType.FUNNEL_STEP]: "funnel_step",
+    [EventType.CLICK]: "click",
+    [EventType.FORM_SUBMIT]: "form_submit",
+    [EventType.DOWNLOAD]: "download",
+    [EventType.CUSTOM]: "custom",
+  };
+
+  return mapping[type] || "custom";
+}
+
+// =============================================================================
+// SITE ID HELPER
+// =============================================================================
 
 /**
- * Convertit un objet `Record<string, unknown>` en type compatible avec Prisma JSON INPUT.
- * Utilise JSON.parse(JSON.stringify()) pour garantir que seules les valeurs
- * sérialisables sont conservées et pour obtenir un type JSON valide.
- *
- * IMPORTANT: Cette fonction retourne `InputJsonValue | undefined` car c'est
- * le type exact attendu par Prisma pour les champs Json optionnels.
- * - undefined → le champ n'est pas défini (Prisma l'ignore)
- * - InputJsonValue → un objet JSON valide sera stocké
- *
- * POURQUOI CE TYPE EST DIFFÉRENT DE PrismaJsonValue:
- * - InputJsonValue n'accepte PAS `null` au niveau racine
- * - PrismaJsonValue (pour la lecture) accepte `null` partout
- * - C'est cette différence qui causait les erreurs de build récurrentes
- *
- * @param metadata - L'objet metadata à convertir
- * @returns L'objet converti compatible avec Prisma, ou undefined si metadata est undefined
- *
- * @example
- * // Usage dans une création Prisma
- * await prisma.conversionEvent.create({
- *   data: {
- *     ...otherFields,
- *     metadata: toPrismaJson(event.metadata),
- *   },
- * });
+ * Gets the current site ID from environment or returns default.
+ * In a multi-tenant setup, this would be resolved from the request context.
  */
-export function toPrismaJson(
-  metadata: Record<string, unknown> | undefined
-): InputJsonValue | undefined {
-  if (metadata === undefined) {
-    return undefined;
+export function getCurrentSiteId(): string {
+  // For now, use environment variable or default
+  // In production, this should come from request context/middleware
+  return process.env.SITE_ID || process.env.NEXT_PUBLIC_SITE_ID || "default";
+}
+
+// =============================================================================
+// DATE HELPERS
+// =============================================================================
+
+/**
+ * Builds a Prisma date filter for createdAt field.
+ */
+export function buildDateFilter(startDate?: string, endDate?: string): {
+  createdAt?: { gte?: Date; lte?: Date };
+} {
+  if (!startDate && !endDate) {
+    return {};
   }
-  // JSON.parse(JSON.stringify()) garantit que l'objet est sérialisable
-  // et retourne un type compatible avec Prisma InputJsonValue.
-  // Note: Les valeurs `null` dans l'objet sont préservées (valides en JSON),
-  // mais la fonction ne retourne jamais `null` au niveau racine.
-  return JSON.parse(JSON.stringify(metadata)) as InputJsonValue;
+
+  const filter: { createdAt: { gte?: Date; lte?: Date } } = { createdAt: {} };
+
+  if (startDate) {
+    filter.createdAt.gte = new Date(startDate);
+  }
+  if (endDate) {
+    filter.createdAt.lte = new Date(endDate);
+  }
+
+  return filter;
+}
+
+// =============================================================================
+// DATA EXTRACTION FROM JSON
+// =============================================================================
+
+/**
+ * Safely extracts a value from a JSON data object.
+ */
+export function extractFromData<T>(
+  data: unknown,
+  key: string,
+  defaultValue: T
+): T {
+  if (data && typeof data === "object" && key in data) {
+    return (data as Record<string, unknown>)[key] as T;
+  }
+  return defaultValue;
+}
+
+/**
+ * Extracts multiple values from a JSON data object.
+ */
+export function extractDataFields<T extends Record<string, unknown>>(
+  data: unknown,
+  keys: (keyof T)[]
+): Partial<T> {
+  const result: Partial<T> = {};
+
+  if (data && typeof data === "object") {
+    const dataObj = data as Record<string, unknown>;
+    for (const key of keys) {
+      if (key in dataObj) {
+        result[key] = dataObj[key as string] as T[keyof T];
+      }
+    }
+  }
+
+  return result;
+}
+
+// =============================================================================
+// ANALYTICS EVENT DATA BUILDERS
+// =============================================================================
+
+/**
+ * Builds page visit data object for storing in AnalyticsEvent.data
+ */
+export function buildPageVisitData(params: {
+  referrer?: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  utmTerm?: string;
+  utmContent?: string;
+  referrerDomain?: string;
+  deviceType?: string;
+  browser?: string;
+  os?: string;
+  isBot?: boolean;
+  isLandingPage?: boolean;
+  scrollDepthPercent?: number;
+  timeOnPage?: number;
+}): Record<string, unknown> {
+  // Only include non-undefined values
+  const data: Record<string, unknown> = {};
+
+  if (params.referrer !== undefined) data.referrer = params.referrer;
+  if (params.utmSource !== undefined) data.utmSource = params.utmSource;
+  if (params.utmMedium !== undefined) data.utmMedium = params.utmMedium;
+  if (params.utmCampaign !== undefined) data.utmCampaign = params.utmCampaign;
+  if (params.utmTerm !== undefined) data.utmTerm = params.utmTerm;
+  if (params.utmContent !== undefined) data.utmContent = params.utmContent;
+  if (params.referrerDomain !== undefined) data.referrerDomain = params.referrerDomain;
+  if (params.deviceType !== undefined) data.deviceType = params.deviceType;
+  if (params.browser !== undefined) data.browser = params.browser;
+  if (params.os !== undefined) data.os = params.os;
+  if (params.isBot !== undefined) data.isBot = params.isBot;
+  if (params.isLandingPage !== undefined) data.isLandingPage = params.isLandingPage;
+  if (params.scrollDepthPercent !== undefined) data.scrollDepthPercent = params.scrollDepthPercent;
+  if (params.timeOnPage !== undefined) data.timeOnPage = params.timeOnPage;
+
+  return data;
+}
+
+/**
+ * Builds page exit data object for storing in AnalyticsEvent.data
+ */
+export function buildPageExitData(params: {
+  timeOnPage: number;
+  scrollDepthPercent: number;
+  engagementScore?: number;
+}): Record<string, unknown> {
+  return {
+    timeOnPage: params.timeOnPage,
+    scrollDepthPercent: params.scrollDepthPercent,
+    ...(params.engagementScore !== undefined && { engagementScore: params.engagementScore }),
+  };
+}
+
+/**
+ * Builds section time data object for storing in AnalyticsEvent.data
+ */
+export function buildSectionTimeData(params: {
+  sectionId?: string;
+  sectionName: string;
+  timeSpent: number;
+}): Record<string, unknown> {
+  return {
+    sectionId: params.sectionId,
+    sectionName: params.sectionName,
+    timeSpent: params.timeSpent,
+  };
+}
+
+/**
+ * Builds conversion data object for storing in AnalyticsEvent.data
+ */
+export function buildConversionData(params: {
+  conversionType: string;
+  stepName: string;
+  completed: boolean;
+  value?: number;
+  metadata?: Record<string, unknown>;
+}): Record<string, unknown> {
+  return {
+    conversionType: params.conversionType,
+    stepName: params.stepName,
+    completed: params.completed,
+    ...(params.value !== undefined && { value: params.value }),
+    ...(params.metadata && { metadata: params.metadata }),
+  };
+}
+
+/**
+ * Builds funnel step data object for storing in AnalyticsEvent.data
+ */
+export function buildFunnelStepData(params: {
+  funnelName: string;
+  stepName: string;
+  stepOrder: number;
+  metadata?: Record<string, unknown>;
+}): Record<string, unknown> {
+  return {
+    funnelName: params.funnelName,
+    stepName: params.stepName,
+    stepOrder: params.stepOrder,
+    ...(params.metadata && { metadata: params.metadata }),
+  };
+}
+
+/**
+ * Builds custom event data object for storing in AnalyticsEvent.data
+ */
+export function buildCustomEventData(params: {
+  category: string;
+  action: string;
+  label?: string;
+  value?: number;
+  metadata?: Record<string, unknown>;
+}): Record<string, unknown> {
+  return {
+    category: params.category,
+    action: params.action,
+    ...(params.label !== undefined && { label: params.label }),
+    ...(params.value !== undefined && { value: params.value }),
+    ...(params.metadata && { metadata: params.metadata }),
+  };
+}
+
+// =============================================================================
+// TYPE DEFINITIONS FOR EXTRACTED DATA
+// =============================================================================
+
+export interface PageVisitDataExtracted {
+  referrer?: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  utmTerm?: string;
+  utmContent?: string;
+  referrerDomain?: string;
+  deviceType?: "mobile" | "tablet" | "desktop";
+  browser?: string;
+  os?: string;
+  isBot: boolean;
+  isLandingPage?: boolean;
+  scrollDepthPercent?: number;
+  timeOnPage?: number;
+}
+
+export interface SectionTimeDataExtracted {
+  sectionId?: string;
+  sectionName: string;
+  timeSpent: number;
+}
+
+export interface ConversionDataExtracted {
+  conversionType: "appointment_request" | "seminar_registration" | "contact_form";
+  stepName: string;
+  completed: boolean;
+  value?: number;
+  metadata?: Record<string, unknown>;
+}
+
+export interface FunnelStepDataExtracted {
+  funnelName: string;
+  stepName: string;
+  stepOrder: number;
+  metadata?: Record<string, unknown>;
+}
+
+export interface CustomEventDataExtracted {
+  category: string;
+  action: string;
+  label?: string;
+  value?: number;
+  metadata?: Record<string, unknown>;
 }

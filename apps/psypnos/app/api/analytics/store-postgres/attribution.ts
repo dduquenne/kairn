@@ -1,7 +1,8 @@
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * PostgreSQL Marketing Attribution
+ *
+ * Implements multiple attribution models for marketing conversion analysis:
+ * first-touch, last-touch, linear, time-decay, and U-shaped.
  */
 
 import {
@@ -90,7 +91,9 @@ export async function getMarketingAttribution(startDate?: string, endDate?: stri
         if (touchpoints.length === 0) return;
 
         const numTouchpoints = touchpoints.length;
-        const lastTimestamp = touchpoints[numTouchpoints - 1].timestamp;
+        const lastTouchpoint = touchpoints[numTouchpoints - 1];
+        if (!lastTouchpoint) return;
+        const lastTimestamp = lastTouchpoint.timestamp;
 
         touchpoints.forEach((tp, index) => {
           const key = `${tp.source}|${tp.medium}|${tp.campaign || ""}`;

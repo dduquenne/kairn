@@ -1,65 +1,81 @@
-// @ts-nocheck
-// TODO: Migration - Prisma models may not be available in Kairn schema
 /**
  * PostgreSQL Scheduled Reports Operations
+ *
+ * Uses the AnalyticsScheduledReport model for report configurations.
  */
 
 import { prisma } from "@/lib/db/prisma";
+import { ReportFrequency } from "@prisma/client";
 import type { ScheduledReport } from "../store/types";
-
-// Type aliases for where/update input (workaround for ungenerated Prisma client)
-type ScheduledReportWhereInput = {
-  enabled?: boolean;
-};
-
-type ScheduledReportUpdateInput = Record<string, unknown>;
+import { getCurrentSiteId, toPrismaJson } from "./utils";
 
 /**
- * Prisma ScheduledReport record type.
- * Prisma uses `null` for absent optional values, while our ScheduledReport type uses `undefined`.
+ * Maps internal frequency strings to Prisma ReportFrequency enum
  */
-interface ScheduledReportRecord {
-  id: string;
-  name: string;
-  description: string | null;
-  frequency: string;
-  dayOfWeek: number | null;
-  dayOfMonth: number | null;
-  timeOfDay: string;
-  recipients: string[];
-  format: string;
-  sections: unknown;
-  enabled: boolean;
-  lastSent: Date | null;
-  nextScheduled: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
+function toReportFrequency(frequency: string): ReportFrequency {
+  const mapping: Record<string, ReportFrequency> = {
+    daily: ReportFrequency.DAILY,
+    weekly: ReportFrequency.WEEKLY,
+    monthly: ReportFrequency.MONTHLY,
+  };
+  return mapping[frequency] || ReportFrequency.WEEKLY;
 }
 
 /**
- * Convert a Prisma ScheduledReportRecord to our application ScheduledReport type.
- * This handles the null → undefined conversion for optional fields.
+ * Maps Prisma ReportFrequency enum to internal frequency string
  */
-function toScheduledReport(record: ScheduledReportRecord): ScheduledReport {
+function fromReportFrequency(frequency: ReportFrequency): string {
+  const mapping: Record<ReportFrequency, string> = {
+    [ReportFrequency.DAILY]: "daily",
+    [ReportFrequency.WEEKLY]: "weekly",
+    [ReportFrequency.MONTHLY]: "monthly",
+  };
+  return mapping[frequency] || "weekly";
+}
+
+/**
+ * Converts a Prisma AnalyticsScheduledReport record to ScheduledReport type
+ */
+function toScheduledReport(record: {
+  id: string;
+  name: string;
+  frequency: ReportFrequency;
+  recipients: string[];
+  metrics: unknown;
+  format: string;
+  enabled: boolean;
+  lastSentAt: Date | null;
+  nextSendAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}): ScheduledReport {
+  // Extract sections from metrics JSON
+  const metrics = (record.metrics as Record<string, unknown>) || {};
+  const sections = (metrics.sections as string[]) || [];
+
   return {
     id: record.id,
     name: record.name,
-    description: record.description ?? undefined,
-    frequency: record.frequency as "daily" | "weekly" | "monthly",
-    dayOfWeek: record.dayOfWeek ?? undefined,
-    dayOfMonth: record.dayOfMonth ?? undefined,
-    timeOfDay: record.timeOfDay,
+    frequency: fromReportFrequency(record.frequency) as "daily" | "weekly" | "monthly",
+    dayOfWeek: (metrics.dayOfWeek as number) ?? undefined,
+    dayOfMonth: (metrics.dayOfMonth as number) ?? undefined,
+    timeOfDay: (metrics.timeOfDay as string) || "09:00",
     recipients: record.recipients,
     format: record.format as "email" | "pdf" | "both",
-    sections: record.sections as Array<"summary" | "traffic" | "conversions" | "sections" | "devices" | "cohorts" | "insights">,
+    sections: sections as Array<
+      "summary" | "traffic" | "conversions" | "sections" | "devices" | "cohorts" | "insights"
+    >,
     enabled: record.enabled,
-    lastSent: record.lastSent?.toISOString(),
-    nextScheduled: record.nextScheduled?.toISOString(),
+    lastSent: record.lastSentAt?.toISOString(),
+    nextScheduled: record.nextSendAt?.toISOString(),
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
   };
 }
 
+/**
+ * Create a scheduled report
+ */
 export async function createScheduledReport(report: {
   name: string;
   description?: string;
@@ -69,46 +85,72 @@ export async function createScheduledReport(report: {
   timeOfDay: string;
   recipients: string[];
   format: "email" | "pdf" | "both";
-  sections: Array<"summary" | "traffic" | "conversions" | "sections" | "devices" | "cohorts" | "insights">;
+  sections: Array<
+    "summary" | "traffic" | "conversions" | "sections" | "devices" | "cohorts" | "insights"
+  >;
   enabled: boolean;
 }): Promise<ScheduledReport> {
-  const result = await prisma.scheduledReport.create({
+  const siteId = getCurrentSiteId();
+
+  // Store extended data in the metrics JSON field
+  const metrics = {
+    sections: report.sections,
+    dayOfWeek: report.dayOfWeek,
+    dayOfMonth: report.dayOfMonth,
+    timeOfDay: report.timeOfDay,
+    description: report.description,
+  };
+
+  const result = await prisma.analyticsScheduledReport.create({
     data: {
       name: report.name,
-      description: report.description,
-      frequency: report.frequency,
-      dayOfWeek: report.dayOfWeek,
-      dayOfMonth: report.dayOfMonth,
-      timeOfDay: report.timeOfDay,
+      frequency: toReportFrequency(report.frequency),
       recipients: report.recipients,
+      metrics: toPrismaJson(metrics) || {},
       format: report.format,
-      sections: report.sections,
       enabled: report.enabled,
+      siteId,
     },
   });
 
-  return toScheduledReport(result as ScheduledReportRecord);
+  return toScheduledReport(result);
 }
 
-export async function getScheduledReports(enabledOnly: boolean = false): Promise<ScheduledReport[]> {
-  const where: ScheduledReportWhereInput = enabledOnly ? { enabled: true } : {};
+/**
+ * Get scheduled reports
+ */
+export async function getScheduledReports(
+  enabledOnly: boolean = false
+): Promise<ScheduledReport[]> {
+  const siteId = getCurrentSiteId();
 
-  const reports = await prisma.scheduledReport.findMany({
-    where,
+  const reports = await prisma.analyticsScheduledReport.findMany({
+    where: {
+      siteId,
+      ...(enabledOnly ? { enabled: true } : {}),
+    },
     orderBy: { createdAt: "desc" },
   });
 
-  return (reports as ScheduledReportRecord[]).map(toScheduledReport);
+  return reports.map(toScheduledReport);
 }
 
+/**
+ * Get a specific scheduled report
+ */
 export async function getScheduledReport(id: string): Promise<ScheduledReport | undefined> {
-  const report = await prisma.scheduledReport.findUnique({ where: { id } });
+  const report = await prisma.analyticsScheduledReport.findUnique({
+    where: { id },
+  });
 
   if (!report) return undefined;
 
-  return toScheduledReport(report as ScheduledReportRecord);
+  return toScheduledReport(report);
 }
 
+/**
+ * Update a scheduled report
+ */
 export async function updateScheduledReport(
   id: string,
   updates: Partial<{
@@ -120,31 +162,72 @@ export async function updateScheduledReport(
     timeOfDay: string;
     recipients: string[];
     format: "email" | "pdf" | "both";
-    sections: Array<"summary" | "traffic" | "conversions" | "sections" | "devices" | "cohorts" | "insights">;
+    sections: Array<
+      "summary" | "traffic" | "conversions" | "sections" | "devices" | "cohorts" | "insights"
+    >;
     enabled: boolean;
     lastSent?: string;
     nextScheduled?: string;
-  }>,
+  }>
 ): Promise<ScheduledReport | null> {
   try {
-    const data: ScheduledReportUpdateInput = { ...updates };
-    if (updates.lastSent) data.lastSent = new Date(updates.lastSent);
-    if (updates.nextScheduled) data.nextScheduled = new Date(updates.nextScheduled);
+    // Get existing report to merge metrics
+    const existing = await prisma.analyticsScheduledReport.findUnique({
+      where: { id },
+    });
 
-    const result = await prisma.scheduledReport.update({
+    if (!existing) return null;
+
+    const existingMetrics = (existing.metrics as Record<string, unknown>) || {};
+
+    // Build updated metrics
+    const metrics = {
+      ...existingMetrics,
+      ...(updates.sections !== undefined && { sections: updates.sections }),
+      ...(updates.dayOfWeek !== undefined && { dayOfWeek: updates.dayOfWeek }),
+      ...(updates.dayOfMonth !== undefined && { dayOfMonth: updates.dayOfMonth }),
+      ...(updates.timeOfDay !== undefined && { timeOfDay: updates.timeOfDay }),
+      ...(updates.description !== undefined && { description: updates.description }),
+    };
+
+    // Build update data
+    const data: Record<string, unknown> = {};
+    if (updates.name !== undefined) data.name = updates.name;
+    if (updates.frequency !== undefined) data.frequency = toReportFrequency(updates.frequency);
+    if (updates.recipients !== undefined) data.recipients = updates.recipients;
+    if (updates.format !== undefined) data.format = updates.format;
+    if (updates.enabled !== undefined) data.enabled = updates.enabled;
+    if (updates.lastSent !== undefined) data.lastSentAt = new Date(updates.lastSent);
+    if (updates.nextScheduled !== undefined) data.nextSendAt = new Date(updates.nextScheduled);
+
+    // Always update metrics if any related field changed
+    if (
+      updates.sections !== undefined ||
+      updates.dayOfWeek !== undefined ||
+      updates.dayOfMonth !== undefined ||
+      updates.timeOfDay !== undefined ||
+      updates.description !== undefined
+    ) {
+      data.metrics = toPrismaJson(metrics);
+    }
+
+    const result = await prisma.analyticsScheduledReport.update({
       where: { id },
       data,
     });
 
-    return toScheduledReport(result as ScheduledReportRecord);
+    return toScheduledReport(result);
   } catch {
     return null;
   }
 }
 
+/**
+ * Delete a scheduled report
+ */
 export async function deleteScheduledReport(id: string): Promise<boolean> {
   try {
-    await prisma.scheduledReport.delete({ where: { id } });
+    await prisma.analyticsScheduledReport.delete({ where: { id } });
     return true;
   } catch {
     return false;

@@ -34,13 +34,21 @@ model Site {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
+  // Relations - Core
   users        User[]
   blogPosts    BlogPost[]
   testimonials Testimonial[]
   contacts     Contact[]
-  analytics    AnalyticsEvent[]
   seminars     Seminar[]
+
+  // Relations - Analytics
+  analyticsEvents          AnalyticsEvent[]
+  visitorGeolocations      VisitorGeolocation[]
+  analyticsGoals           AnalyticsGoal[]
+  analyticsAlerts          AnalyticsAlert[]
+  analyticsAnomalies       AnalyticsAnomaly[]
+  analyticsDashboardConfigs AnalyticsDashboardConfig[]
+  analyticsScheduledReports AnalyticsScheduledReport[]
 
   @@index([slug])
   @@index([domain])
@@ -291,32 +299,47 @@ model Contact {
 // ANALYTICS
 // =============================================================================
 
-/// Analytics event types
+/// Analytics event types - Extended for comprehensive tracking
 enum EventType {
-  PAGE_VIEW
-  CLICK
-  FORM_SUBMIT
-  DOWNLOAD
-  CUSTOM
+  PAGE_VIEW        // Page visit
+  PAGE_EXIT        // Page leave with engagement data
+  SCROLL_DEPTH     // Scroll milestone reached
+  SECTION_VIEW     // Section became visible
+  SECTION_TIME     // Time spent on section
+  CONVERSION       // Conversion event (appointment, seminar, contact)
+  FUNNEL_STEP      // Funnel progression step
+  CLICK            // Generic click event
+  FORM_SUBMIT      // Form submission
+  DOWNLOAD         // File download
+  CUSTOM           // Custom event
 }
 
-/// Analytics event
+/// Analytics event - Unified event storage
+/// All analytics data is stored in this single table with type-specific data in JSON
 model AnalyticsEvent {
   id        String    @id @default(cuid())
   type      EventType
-  /// Page path
+  /// Page path where the event occurred
   path      String
-  /// Event name for custom events
+  /// Event name/subtype for categorization (e.g., "scroll_25", "appointment_request")
   name      String?
-  /// Additional event data
+  /// Type-specific event data as JSON
+  /// PAGE_VIEW: { referrer, utmSource, utmMedium, utmCampaign, deviceType, browser, os, isBot, isLandingPage }
+  /// PAGE_EXIT: { timeOnPage, scrollDepthPercent, engagementScore }
+  /// SCROLL_DEPTH: { depth }
+  /// SECTION_VIEW: { sectionId, sectionName }
+  /// SECTION_TIME: { sectionId, sectionName, timeSpent }
+  /// CONVERSION: { conversionType, stepName, completed, value, metadata }
+  /// FUNNEL_STEP: { funnelName, stepName, stepOrder, metadata }
+  /// CUSTOM: { category, action, label, value, metadata }
   data      Json?
   /// Session identifier (anonymized)
   sessionId String?
-  /// User agent
+  /// User agent string
   userAgent String?
-  /// Referrer
+  /// HTTP referrer
   referrer  String?
-  /// Country code
+  /// Country code (from geolocation)
   country   String?
   createdAt DateTime  @default(now())
 
@@ -324,9 +347,306 @@ model AnalyticsEvent {
   siteId String
   site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
+  // Indexes for common query patterns
   @@index([siteId, type, createdAt])
+  @@index([siteId, sessionId])
+  @@index([siteId, name, createdAt])
   @@index([path])
+  @@index([sessionId])
   @@index([createdAt])
+}
+
+// =============================================================================
+// ANALYTICS: VISITOR GEOLOCATION
+// =============================================================================
+
+/// Visitor geolocation data - One record per session
+model VisitorGeolocation {
+  id          String   @id @default(cuid())
+  /// Timestamp of first event in session
+  timestamp   DateTime @default(now())
+  /// Session identifier (unique per session)
+  sessionId   String   @unique
+  /// Country name
+  country     String
+  /// ISO country code
+  countryCode String
+  /// Region/state name
+  region      String?
+  /// Region/state code
+  regionCode  String?
+  /// City name
+  city        String?
+  /// Latitude coordinate
+  latitude    Float?
+  /// Longitude coordinate
+  longitude   Float?
+  /// Timezone identifier
+  timezone    String?
+  /// Hashed IP address for privacy
+  ipAddress   String?
+
+  // Multi-tenancy
+  siteId String?
+  site   Site?  @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([timestamp])
+  @@index([siteId, timestamp])
+  @@index([country])
+}
+
+// =============================================================================
+// ANALYTICS: GOALS & OBJECTIVES
+// =============================================================================
+
+/// Goal types for tracking
+enum GoalType {
+  DESTINATION       // User reaches a specific page
+  EVENT             // User triggers a specific event
+  DURATION          // Session duration threshold
+  PAGES_PER_SESSION // Pages viewed per session threshold
+}
+
+/// Analytics goal definition
+model AnalyticsGoal {
+  id              String    @id @default(cuid())
+  /// Goal name
+  name            String
+  /// Goal type
+  type            GoalType
+  /// Target URL for DESTINATION goals
+  destinationUrl  String?
+  /// Event category for EVENT goals
+  eventCategory   String?
+  /// Event action for EVENT goals
+  eventAction     String?
+  /// Event label for EVENT goals
+  eventLabel      String?
+  /// Duration threshold in seconds for DURATION goals
+  durationSeconds Int?
+  /// Comparison operator for numeric goals
+  comparison      String?   // "greater_than" | "less_than"
+  /// Page count for PAGES_PER_SESSION goals
+  pagesCount      Int?
+  /// Monetary value attributed to goal completion
+  value           Float?
+  /// Whether goal is active
+  enabled         Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+
+  // Multi-tenancy
+  siteId String?
+  site   Site?  @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  // Relations
+  completions AnalyticsGoalCompletion[]
+
+  @@index([siteId, enabled])
+}
+
+/// Goal completion record
+model AnalyticsGoalCompletion {
+  id        String   @id @default(cuid())
+  timestamp DateTime @default(now())
+  sessionId String
+  goalId    String
+  goal      AnalyticsGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  /// Value at completion (may differ from goal default)
+  value     Float?
+
+  @@index([timestamp])
+  @@index([goalId])
+  @@index([sessionId])
+}
+
+// =============================================================================
+// ANALYTICS: ALERTS & MONITORING
+// =============================================================================
+
+/// Alert types
+enum AlertType {
+  THRESHOLD  // Value crosses threshold
+  ANOMALY    // Statistical anomaly detected
+  TREND      // Trend change detected
+}
+
+/// Alert condition operators
+enum AlertCondition {
+  GREATER_THAN
+  LESS_THAN
+  EQUALS
+  CHANGE_PERCENT
+}
+
+/// Alert time windows
+enum AlertTimeWindow {
+  HOUR
+  DAY
+  WEEK
+  MONTH
+}
+
+/// Analytics alert configuration
+model AnalyticsAlert {
+  id              String           @id @default(cuid())
+  /// Alert name
+  name            String
+  /// Alert description
+  description     String?
+  /// Alert type
+  type            AlertType
+  /// Metric to monitor (visits, sessions, conversions, conversion_rate, avg_time, bounce_rate)
+  metric          String
+  /// Condition for triggering
+  condition       AlertCondition
+  /// Threshold value
+  threshold       Float
+  /// Time window for evaluation
+  timeWindow      AlertTimeWindow
+  /// Notification channels as JSON array ["email", "webhook"]
+  channels        Json
+  /// Email recipients
+  emailRecipients String[]
+  /// Webhook URL for notifications
+  webhookUrl      String?
+  /// Whether alert is active
+  enabled         Boolean          @default(true)
+  /// Last trigger timestamp
+  lastTriggered   DateTime?
+  /// Last recorded value
+  lastValue       Float?
+  /// Total trigger count
+  triggerCount    Int              @default(0)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // Multi-tenancy
+  siteId String?
+  site   Site?  @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  // Relations
+  history AnalyticsAlertHistory[]
+
+  @@index([siteId, enabled])
+}
+
+/// Alert trigger history
+model AnalyticsAlertHistory {
+  id                String   @id @default(cuid())
+  alertId           String
+  alert             AnalyticsAlert @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  /// Alert name at time of trigger
+  alertName         String
+  triggeredAt       DateTime @default(now())
+  /// Metric that triggered
+  metric            String
+  /// Condition that was met
+  condition         String
+  /// Threshold value
+  threshold         Float
+  /// Actual value that triggered
+  actualValue       Float
+  /// Human-readable message
+  message           String
+  /// Notification results as JSON
+  notificationsSent Json
+
+  @@index([alertId])
+  @@index([triggeredAt])
+}
+
+/// Detected anomalies
+model AnalyticsAnomaly {
+  id             String    @id @default(cuid())
+  detectedAt     DateTime  @default(now())
+  /// Metric with anomaly
+  metric         String
+  /// Expected value
+  expectedValue  Float
+  /// Actual value
+  actualValue    Float
+  /// Deviation from expected (in standard deviations)
+  deviation      Float
+  /// Severity level (low, medium, high)
+  severity       String
+  /// Whether anomaly has been acknowledged
+  acknowledged   Boolean   @default(false)
+  /// Who acknowledged it
+  acknowledgedBy String?
+  /// When it was acknowledged
+  acknowledgedAt DateTime?
+
+  // Multi-tenancy
+  siteId String?
+  site   Site?  @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, detectedAt])
+  @@index([acknowledged])
+}
+
+// =============================================================================
+// ANALYTICS: DASHBOARD & REPORTS
+// =============================================================================
+
+/// Dashboard configuration
+model AnalyticsDashboardConfig {
+  id        String   @id @default(cuid())
+  /// User who owns this config
+  userId    String
+  /// Dashboard name
+  name      String
+  /// Whether this is the default dashboard
+  isDefault Boolean  @default(false)
+  /// Widget layout as JSON
+  widgets   Json
+  /// Dashboard settings as JSON
+  settings  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Multi-tenancy
+  siteId String?
+  site   Site?  @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([siteId, userId])
+}
+
+/// Report frequency
+enum ReportFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+/// Scheduled report configuration
+model AnalyticsScheduledReport {
+  id         String          @id @default(cuid())
+  /// Report name
+  name       String
+  /// Report frequency
+  frequency  ReportFrequency
+  /// Email recipients
+  recipients String[]
+  /// Metrics to include as JSON array
+  metrics    Json
+  /// Report format (pdf, excel, csv)
+  format     String          @default("pdf")
+  /// Whether report is active
+  enabled    Boolean         @default(true)
+  /// Last sent timestamp
+  lastSentAt DateTime?
+  /// Next scheduled send
+  nextSendAt DateTime?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  // Multi-tenancy
+  siteId String?
+  site   Site?  @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, enabled])
+  @@index([nextSendAt])
 }
 
 // =============================================================================

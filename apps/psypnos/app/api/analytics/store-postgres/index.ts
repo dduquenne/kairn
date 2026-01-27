@@ -1,9 +1,8 @@
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * PostgreSQL Analytics Store - Main Entry Point
  *
  * This module provides PostgreSQL-backed analytics operations via Prisma.
+ * It uses the unified AnalyticsEvent model with type-specific data in JSON fields.
  * It's a drop-in replacement for the JSON-based store.
  */
 

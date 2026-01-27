@@ -39,6 +39,28 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const slug = searchParams.get('slug');
+    const startDateParam = searchParams.get('startDate');
+    const endDateParam = searchParams.get('endDate');
+
+    // Calculate date filters
+    const endDate = endDateParam ? new Date(endDateParam) : new Date();
+    let startDate = startDateParam ? new Date(startDateParam) : new Date();
+
+    if (!startDateParam) {
+      // Default: last 30 days
+      startDate.setDate(endDate.getDate() - 30);
+    }
+
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(23, 59, 59, 999);
+
+    // Build date filter for Prisma queries
+    const dateFilter = {
+      timestamp: {
+        gte: startDate,
+        lte: endDate,
+      },
+    };
 
     // Log le mode de données
     logDataMode();
@@ -64,7 +86,7 @@ export async function GET(request: NextRequest) {
     if (slug) {
       // Retourner les stats d'un article spécifique
       const stats = await prisma.blogAnalytics.findMany({
-        where: { articleSlug: slug },
+        where: { articleSlug: slug, ...dateFilter },
         orderBy: { timestamp: 'desc' },
       }) as BlogAnalyticsRecord[];
 
@@ -105,8 +127,9 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Retourner toutes les stats triées par nombre de vues
+    // Retourner toutes les stats triées par nombre de vues (filtrées par période)
     const allAnalytics = await prisma.blogAnalytics.findMany({
+      where: dateFilter,
       select: {
         articleSlug: true,
         sessionId: true,

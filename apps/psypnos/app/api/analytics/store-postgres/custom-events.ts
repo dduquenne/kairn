@@ -1,52 +1,48 @@
-// @ts-nocheck
-// TODO: Migration - Prisma models may not be available in Kairn schema
 /**
  * PostgreSQL Custom Event Operations
+ *
+ * Uses the unified AnalyticsEvent model with EventType.CUSTOM
+ * Custom event data is stored in the `data` JSON field.
  */
 
 import { prisma } from "@/lib/db/prisma";
+import { EventType } from "@prisma/client";
 import type { CustomEvent } from "../store/types";
-import { toPrismaJson } from "./utils";
-
-// Type alias for where input (workaround for ungenerated Prisma client)
-type CustomEventWhereInput = {
-  timestamp?: { gte?: Date; lte?: Date };
-  category?: string;
-  action?: string;
-};
+import {
+  toPrismaJson,
+  buildCustomEventData,
+  buildDateFilter,
+  extractFromData,
+  getCurrentSiteId,
+} from "./utils";
 
 /**
- * Prisma CustomEvent record type.
- * Prisma uses `null` for absent optional values, while our CustomEvent type uses `undefined`.
+ * Converts an AnalyticsEvent record to CustomEvent type
  */
-interface CustomEventRecord {
+function toCustomEvent(record: {
   id: string;
-  timestamp: Date;
-  sessionId: string;
-  category: string;
-  action: string;
-  label: string | null;
-  value: number | null;
-  metadata: unknown;
-}
+  createdAt: Date;
+  sessionId: string | null;
+  name: string | null;
+  data: unknown;
+}): CustomEvent {
+  const data = (record.data as Record<string, unknown>) || {};
 
-/**
- * Convert a Prisma CustomEventRecord to our application CustomEvent type.
- * This handles the null → undefined conversion for optional fields.
- */
-function toCustomEvent(record: CustomEventRecord): CustomEvent {
   return {
     id: record.id,
-    timestamp: record.timestamp.toISOString(),
-    sessionId: record.sessionId,
-    category: record.category,
-    action: record.action,
-    label: record.label ?? undefined,
-    value: record.value ?? undefined,
-    metadata: (record.metadata as Record<string, unknown>) ?? undefined,
+    timestamp: record.createdAt.toISOString(),
+    sessionId: record.sessionId || "",
+    category: extractFromData<string>(data, "category", "unknown"),
+    action: extractFromData<string>(data, "action", "unknown"),
+    label: extractFromData<string | undefined>(data, "label", undefined),
+    value: extractFromData<number | undefined>(data, "value", undefined),
+    metadata: extractFromData<Record<string, unknown> | undefined>(data, "metadata", undefined),
   };
 }
 
+/**
+ * Track a custom event
+ */
 export async function trackCustomEvent(event: {
   timestamp: string;
   sessionId: string;
@@ -56,47 +52,91 @@ export async function trackCustomEvent(event: {
   value?: number;
   metadata?: Record<string, unknown>;
 }): Promise<CustomEvent> {
-  const result = await prisma.customEvent.create({
+  const siteId = getCurrentSiteId();
+
+  // Build the data object for JSON storage
+  const eventData = buildCustomEventData({
+    category: event.category,
+    action: event.action,
+    label: event.label,
+    value: event.value,
+    metadata: event.metadata,
+  });
+
+  const result = await prisma.analyticsEvent.create({
     data: {
-      timestamp: new Date(event.timestamp),
+      type: EventType.CUSTOM,
+      path: "/",
+      name: `${event.category}:${event.action}`,
       sessionId: event.sessionId,
-      category: event.category,
-      action: event.action,
-      label: event.label,
-      value: event.value,
-      metadata: toPrismaJson(event.metadata),
+      data: toPrismaJson(eventData),
+      createdAt: new Date(event.timestamp),
+      siteId,
     },
   });
 
-  return toCustomEvent(result as CustomEventRecord);
+  return toCustomEvent(result);
 }
 
+/**
+ * Get custom events within a date range
+ */
 export async function getCustomEvents(
   startDate?: string,
   endDate?: string,
   category?: string,
-  action?: string,
+  action?: string
 ): Promise<CustomEvent[]> {
-  const where: CustomEventWhereInput = {};
+  const siteId = getCurrentSiteId();
+  const dateFilter = buildDateFilter(startDate, endDate);
 
-  if (startDate || endDate) {
-    where.timestamp = {};
-    if (startDate) where.timestamp.gte = new Date(startDate);
-    if (endDate) where.timestamp.lte = new Date(endDate);
-  }
-
-  if (category) where.category = category;
-  if (action) where.action = action;
-
-  const events = await prisma.customEvent.findMany({
-    where,
-    orderBy: { timestamp: "desc" },
+  // Build base query
+  const events = await prisma.analyticsEvent.findMany({
+    where: {
+      siteId,
+      type: EventType.CUSTOM,
+      ...dateFilter,
+    },
+    orderBy: { createdAt: "desc" },
   });
 
-  return (events as CustomEventRecord[]).map(toCustomEvent);
+  // Filter by category/action if specified (need to check data JSON)
+  let filteredEvents = events;
+
+  if (category || action) {
+    filteredEvents = events.filter((event) => {
+      const data = (event.data as Record<string, unknown>) || {};
+      const eventCategory = extractFromData<string>(data, "category", "");
+      const eventAction = extractFromData<string>(data, "action", "");
+
+      if (category && eventCategory !== category) return false;
+      if (action && eventAction !== action) return false;
+      return true;
+    });
+  }
+
+  return filteredEvents.map(toCustomEvent);
 }
 
-export async function getCustomEventsSummary(startDate?: string, endDate?: string) {
+/**
+ * Get custom events summary
+ */
+export async function getCustomEventsSummary(
+  startDate?: string,
+  endDate?: string
+): Promise<{
+  totalEvents: number;
+  uniqueSessions: number;
+  byCategory: Record<string, { count: number; value: number }>;
+  byAction: Record<string, { count: number; value: number }>;
+  topEvents: Array<{
+    category: string;
+    action: string;
+    label?: string;
+    count: number;
+    totalValue: number;
+  }>;
+}> {
   const events = await getCustomEvents(startDate, endDate);
 
   const uniqueSessions = new Set(events.map((e) => e.sessionId)).size;
@@ -108,19 +148,28 @@ export async function getCustomEventsSummary(startDate?: string, endDate?: strin
     { count: number; totalValue: number; category: string; action: string; label?: string }
   >();
 
-  events.forEach((event) => {
+  for (const event of events) {
+    // By category
     if (!byCategory[event.category]) {
       byCategory[event.category] = { count: 0, value: 0 };
     }
-    byCategory[event.category].count++;
-    byCategory[event.category].value += event.value || 0;
+    const catData = byCategory[event.category];
+    if (catData) {
+      catData.count++;
+      catData.value += event.value || 0;
+    }
 
+    // By action
     if (!byAction[event.action]) {
       byAction[event.action] = { count: 0, value: 0 };
     }
-    byAction[event.action].count++;
-    byAction[event.action].value += event.value || 0;
+    const actData = byAction[event.action];
+    if (actData) {
+      actData.count++;
+      actData.value += event.value || 0;
+    }
 
+    // Unique event combinations
     const key = `${event.category}|${event.action}|${event.label || ""}`;
     const current = eventCounts.get(key) || {
       count: 0,
@@ -132,7 +181,7 @@ export async function getCustomEventsSummary(startDate?: string, endDate?: strin
     current.count++;
     current.totalValue += event.value || 0;
     eventCounts.set(key, current);
-  });
+  }
 
   const topEvents = Array.from(eventCounts.values())
     .sort((a, b) => b.count - a.count)

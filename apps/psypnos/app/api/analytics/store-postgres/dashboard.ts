@@ -1,15 +1,26 @@
-// @ts-nocheck
-// TODO: Migration - Prisma models may not be available in Kairn schema
 /**
  * PostgreSQL Dashboard Config Operations
+ *
+ * Uses the AnalyticsDashboardConfig model for dashboard configurations.
  */
 
 import { prisma } from "@/lib/db/prisma";
-import type { JsonValue, InputJsonValue } from "@prisma/client/runtime/library";
 import type { DashboardConfig } from "../store/types";
+import { getCurrentSiteId, toPrismaJson, type InputJsonValue } from "./utils";
 
 /** Widget type definition - matches DashboardConfig.widgets from store/types.ts */
-type WidgetType = 'stat_card' | 'line_chart' | 'bar_chart' | 'funnel' | 'heatmap' | 'table' | 'cohort' | 'attribution' | 'ai_insights' | 'anomalies' | 'alerts';
+type WidgetType =
+  | "stat_card"
+  | "line_chart"
+  | "bar_chart"
+  | "funnel"
+  | "heatmap"
+  | "table"
+  | "cohort"
+  | "attribution"
+  | "ai_insights"
+  | "anomalies"
+  | "alerts";
 
 type Widget = {
   id: string;
@@ -20,14 +31,15 @@ type Widget = {
 };
 
 /**
- * Convert a Prisma DashboardConfig record to our application DashboardConfig type.
+ * Converts a Prisma AnalyticsDashboardConfig record to DashboardConfig type
  */
 function toDashboardConfig(record: {
   id: string;
   userId: string;
   name: string;
   isDefault: boolean;
-  widgets: JsonValue;
+  widgets: unknown;
+  settings: unknown;
   createdAt: Date;
   updatedAt: Date;
 }): DashboardConfig {
@@ -42,36 +54,48 @@ function toDashboardConfig(record: {
   };
 }
 
+/**
+ * Create a new dashboard configuration
+ */
 export async function createDashboardConfig(config: {
   userId: string;
   name: string;
   isDefault: boolean;
   widgets: Widget[];
 }): Promise<DashboardConfig> {
+  const siteId = getCurrentSiteId();
+
   // If setting as default, unset other defaults for this user
   if (config.isDefault) {
-    await prisma.dashboardConfig.updateMany({
-      where: { userId: config.userId, isDefault: true },
+    await prisma.analyticsDashboardConfig.updateMany({
+      where: { userId: config.userId, siteId, isDefault: true },
       data: { isDefault: false },
     });
   }
 
-  const result = await prisma.dashboardConfig.create({
+  const result = await prisma.analyticsDashboardConfig.create({
     data: {
       userId: config.userId,
       name: config.name,
       isDefault: config.isDefault,
-      widgets: config.widgets as InputJsonValue,
+      widgets: toPrismaJson(config.widgets as unknown as Record<string, unknown>) || [],
+      siteId,
     },
   });
 
   return toDashboardConfig(result);
 }
 
+/**
+ * Get dashboard configurations
+ */
 export async function getDashboardConfigs(userId?: string): Promise<DashboardConfig[]> {
-  const where = userId ? { userId } : {};
+  const siteId = getCurrentSiteId();
 
-  const configs = await prisma.dashboardConfig.findMany({
+  const where: { siteId: string; userId?: string } = { siteId };
+  if (userId) where.userId = userId;
+
+  const configs = await prisma.analyticsDashboardConfig.findMany({
     where,
     orderBy: { createdAt: "desc" },
   });
@@ -79,17 +103,12 @@ export async function getDashboardConfigs(userId?: string): Promise<DashboardCon
   return configs.map(toDashboardConfig);
 }
 
+/**
+ * Get a specific dashboard configuration
+ */
 export async function getDashboardConfig(id: string): Promise<DashboardConfig | undefined> {
-  const config = await prisma.dashboardConfig.findUnique({ where: { id } });
-
-  if (!config) return undefined;
-
-  return toDashboardConfig(config);
-}
-
-export async function getDefaultDashboardConfig(userId: string): Promise<DashboardConfig | undefined> {
-  const config = await prisma.dashboardConfig.findFirst({
-    where: { userId, isDefault: true },
+  const config = await prisma.analyticsDashboardConfig.findUnique({
+    where: { id },
   });
 
   if (!config) return undefined;
@@ -97,35 +116,61 @@ export async function getDefaultDashboardConfig(userId: string): Promise<Dashboa
   return toDashboardConfig(config);
 }
 
+/**
+ * Get the default dashboard configuration for a user
+ */
+export async function getDefaultDashboardConfig(
+  userId: string
+): Promise<DashboardConfig | undefined> {
+  const siteId = getCurrentSiteId();
+
+  const config = await prisma.analyticsDashboardConfig.findFirst({
+    where: { userId, siteId, isDefault: true },
+  });
+
+  if (!config) return undefined;
+
+  return toDashboardConfig(config);
+}
+
+/**
+ * Update a dashboard configuration
+ */
 export async function updateDashboardConfig(
   id: string,
   updates: Partial<{
     name: string;
     isDefault: boolean;
     widgets: Widget[];
-  }>,
+  }>
 ): Promise<DashboardConfig | null> {
   try {
+    const siteId = getCurrentSiteId();
+
     // If setting as default, unset other defaults for this user
     if (updates.isDefault) {
-      const config = await prisma.dashboardConfig.findUnique({ where: { id } });
+      const config = await prisma.analyticsDashboardConfig.findUnique({
+        where: { id },
+      });
       if (config) {
-        await prisma.dashboardConfig.updateMany({
-          where: { userId: config.userId, isDefault: true, id: { not: id } },
+        await prisma.analyticsDashboardConfig.updateMany({
+          where: { userId: config.userId, siteId, isDefault: true, id: { not: id } },
           data: { isDefault: false },
         });
       }
     }
 
-    // Build update data with proper typing
-    const updateData: { name?: string; isDefault?: boolean; widgets?: InputJsonValue } = {};
+    // Build update data
+    const updateData: Record<string, unknown> = {};
     if (updates.name !== undefined) updateData.name = updates.name;
     if (updates.isDefault !== undefined) updateData.isDefault = updates.isDefault;
-    if (updates.widgets !== undefined) updateData.widgets = updates.widgets as InputJsonValue;
+    if (updates.widgets !== undefined) {
+      updateData.widgets = toPrismaJson(updates.widgets as unknown as Record<string, unknown>);
+    }
 
-    const result = await prisma.dashboardConfig.update({
+    const result = await prisma.analyticsDashboardConfig.update({
       where: { id },
-      data: updateData,
+      data: updateData as { name?: string; isDefault?: boolean; widgets?: InputJsonValue },
     });
 
     return toDashboardConfig(result);
@@ -134,9 +179,12 @@ export async function updateDashboardConfig(
   }
 }
 
+/**
+ * Delete a dashboard configuration
+ */
 export async function deleteDashboardConfig(id: string): Promise<boolean> {
   try {
-    await prisma.dashboardConfig.delete({ where: { id } });
+    await prisma.analyticsDashboardConfig.delete({ where: { id } });
     return true;
   } catch {
     return false;

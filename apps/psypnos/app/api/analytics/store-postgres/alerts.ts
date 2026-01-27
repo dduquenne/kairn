@@ -1,22 +1,102 @@
-// @ts-nocheck
-// TODO: Migration - Prisma models may not be available in Kairn schema
 /**
  * PostgreSQL Alert Operations
+ *
+ * Uses the AnalyticsAlert and AnalyticsAlertHistory models.
  */
 
 import { prisma } from "@/lib/db/prisma";
+import { AlertType, AlertCondition, AlertTimeWindow } from "@prisma/client";
 import type { Alert, AlertHistory } from "../store/types";
+import { getCurrentSiteId } from "./utils";
 
-// Database record types (for when Prisma client isn't properly generated)
-interface AlertRecord {
+/**
+ * Maps internal alert type strings to Prisma AlertType enum
+ */
+function toAlertType(type: string): AlertType {
+  const mapping: Record<string, AlertType> = {
+    threshold: AlertType.THRESHOLD,
+    anomaly: AlertType.ANOMALY,
+    trend: AlertType.TREND,
+  };
+  return mapping[type] || AlertType.THRESHOLD;
+}
+
+/**
+ * Maps Prisma AlertType enum to internal type string
+ */
+function fromAlertType(type: AlertType): string {
+  const mapping: Record<AlertType, string> = {
+    [AlertType.THRESHOLD]: "threshold",
+    [AlertType.ANOMALY]: "anomaly",
+    [AlertType.TREND]: "trend",
+  };
+  return mapping[type] || "threshold";
+}
+
+/**
+ * Maps internal condition strings to Prisma AlertCondition enum
+ */
+function toAlertCondition(condition: string): AlertCondition {
+  const mapping: Record<string, AlertCondition> = {
+    greater_than: AlertCondition.GREATER_THAN,
+    less_than: AlertCondition.LESS_THAN,
+    equals: AlertCondition.EQUALS,
+    change_percent: AlertCondition.CHANGE_PERCENT,
+  };
+  return mapping[condition] || AlertCondition.GREATER_THAN;
+}
+
+/**
+ * Maps Prisma AlertCondition enum to internal condition string
+ */
+function fromAlertCondition(condition: AlertCondition): string {
+  const mapping: Record<AlertCondition, string> = {
+    [AlertCondition.GREATER_THAN]: "greater_than",
+    [AlertCondition.LESS_THAN]: "less_than",
+    [AlertCondition.EQUALS]: "equals",
+    [AlertCondition.CHANGE_PERCENT]: "change_percent",
+  };
+  return mapping[condition] || "greater_than";
+}
+
+/**
+ * Maps internal time window strings to Prisma AlertTimeWindow enum
+ */
+function toAlertTimeWindow(timeWindow: string): AlertTimeWindow {
+  const mapping: Record<string, AlertTimeWindow> = {
+    hour: AlertTimeWindow.HOUR,
+    day: AlertTimeWindow.DAY,
+    week: AlertTimeWindow.WEEK,
+    month: AlertTimeWindow.MONTH,
+  };
+  return mapping[timeWindow] || AlertTimeWindow.DAY;
+}
+
+/**
+ * Maps Prisma AlertTimeWindow enum to internal time window string
+ */
+function fromAlertTimeWindow(timeWindow: AlertTimeWindow): string {
+  const mapping: Record<AlertTimeWindow, string> = {
+    [AlertTimeWindow.HOUR]: "hour",
+    [AlertTimeWindow.DAY]: "day",
+    [AlertTimeWindow.WEEK]: "week",
+    [AlertTimeWindow.MONTH]: "month",
+  };
+  return mapping[timeWindow] || "day";
+}
+
+/**
+ * Converts a Prisma AnalyticsAlert record to Alert type
+ */
+function toAlert(record: {
   id: string;
   name: string;
   description: string | null;
-  type: string;
+  type: AlertType;
   metric: string;
-  condition: string;
+  condition: AlertCondition;
   threshold: number;
-  timeWindow: string;
+  timeWindow: AlertTimeWindow;
   channels: unknown;
   emailRecipients: string[];
   webhookUrl: string | null;
@@ -26,9 +106,32 @@ interface AlertRecord {
   triggerCount: number;
   createdAt: Date;
   updatedAt: Date;
+}): Alert {
+  return {
+    id: record.id,
+    name: record.name,
+    description: record.description ?? undefined,
+    type: fromAlertType(record.type) as "threshold" | "anomaly" | "trend",
+    metric: record.metric as "visits" | "sessions" | "conversions" | "conversion_rate" | "avg_time" | "bounce_rate",
+    condition: fromAlertCondition(record.condition) as "greater_than" | "less_than" | "equals" | "change_percent",
+    threshold: record.threshold,
+    timeWindow: fromAlertTimeWindow(record.timeWindow) as "hour" | "day" | "week" | "month",
+    channels: (record.channels as Array<"email" | "webhook">) || [],
+    emailRecipients: record.emailRecipients,
+    webhookUrl: record.webhookUrl ?? undefined,
+    enabled: record.enabled,
+    lastTriggered: record.lastTriggered?.toISOString(),
+    lastValue: record.lastValue ?? undefined,
+    triggerCount: record.triggerCount,
+    createdAt: record.createdAt.toISOString(),
+    updatedAt: record.updatedAt.toISOString(),
+  };
 }
 
-interface AlertHistoryRecord {
+/**
+ * Converts a Prisma AnalyticsAlertHistory record to AlertHistory type
+ */
+function toAlertHistory(record: {
   id: string;
   alertId: string;
   alertName: string;
@@ -39,49 +142,28 @@ interface AlertHistoryRecord {
   actualValue: number;
   message: string;
   notificationsSent: unknown;
-}
-
-function toAlert(a: AlertRecord): Alert {
+}): AlertHistory {
   return {
-    id: a.id,
-    name: a.name,
-    description: a.description ?? undefined,
-    type: a.type as "threshold" | "anomaly" | "trend",
-    metric: a.metric as "visits" | "sessions" | "conversions" | "conversion_rate" | "avg_time" | "bounce_rate",
-    condition: a.condition as "greater_than" | "less_than" | "equals" | "change_percent",
-    threshold: a.threshold,
-    timeWindow: a.timeWindow as "hour" | "day" | "week" | "month",
-    channels: a.channels as Array<"email" | "webhook">,
-    emailRecipients: a.emailRecipients,
-    webhookUrl: a.webhookUrl ?? undefined,
-    enabled: a.enabled,
-    lastTriggered: a.lastTriggered?.toISOString(),
-    lastValue: a.lastValue ?? undefined,
-    triggerCount: a.triggerCount,
-    createdAt: a.createdAt.toISOString(),
-    updatedAt: a.updatedAt.toISOString(),
-  };
-}
-
-function toAlertHistory(h: AlertHistoryRecord): AlertHistory {
-  return {
-    id: h.id,
-    alertId: h.alertId,
-    alertName: h.alertName,
-    triggeredAt: h.triggeredAt.toISOString(),
-    metric: h.metric,
-    condition: h.condition,
-    threshold: h.threshold,
-    actualValue: h.actualValue,
-    message: h.message,
-    notificationsSent: h.notificationsSent as Array<{
+    id: record.id,
+    alertId: record.alertId,
+    alertName: record.alertName,
+    triggeredAt: record.triggeredAt.toISOString(),
+    metric: record.metric,
+    condition: record.condition,
+    threshold: record.threshold,
+    actualValue: record.actualValue,
+    message: record.message,
+    notificationsSent: (record.notificationsSent as Array<{
       channel: string;
       success: boolean;
       error?: string;
-    }>,
+    }>) || [],
   };
 }
 
+/**
+ * Create a new alert
+ */
 export async function createAlert(alert: {
   name: string;
   description?: string;
@@ -95,41 +177,62 @@ export async function createAlert(alert: {
   webhookUrl?: string;
   enabled: boolean;
 }): Promise<Alert> {
-  const result = await prisma.alert.create({
+  const siteId = getCurrentSiteId();
+
+  const result = await prisma.analyticsAlert.create({
     data: {
       name: alert.name,
       description: alert.description,
-      type: alert.type,
+      type: toAlertType(alert.type),
       metric: alert.metric,
-      condition: alert.condition,
+      condition: toAlertCondition(alert.condition),
       threshold: alert.threshold,
-      timeWindow: alert.timeWindow,
+      timeWindow: toAlertTimeWindow(alert.timeWindow),
       channels: alert.channels,
-      emailRecipients: alert.emailRecipients ?? [],
+      emailRecipients: alert.emailRecipients || [],
       webhookUrl: alert.webhookUrl,
       enabled: alert.enabled,
       triggerCount: 0,
+      siteId,
     },
   });
 
-  return toAlert(result as AlertRecord);
+  return toAlert(result);
 }
 
+/**
+ * Get all alerts
+ */
 export async function getAlerts(enabledOnly: boolean = false): Promise<Alert[]> {
-  const alerts = await prisma.alert.findMany({
-    where: enabledOnly ? { enabled: true } : {},
+  const siteId = getCurrentSiteId();
+
+  const alerts = await prisma.analyticsAlert.findMany({
+    where: {
+      siteId,
+      ...(enabledOnly ? { enabled: true } : {}),
+    },
     orderBy: { createdAt: "desc" },
   });
 
-  return (alerts as AlertRecord[]).map(toAlert);
+  return alerts.map(toAlert);
 }
 
+/**
+ * Get a single alert by ID
+ */
 export async function getAlert(id: string): Promise<Alert | undefined> {
-  const alert = await prisma.alert.findUnique({ where: { id } });
+  const alert = await prisma.analyticsAlert.findUnique({
+    where: { id },
+  });
+
   if (!alert) return undefined;
-  return toAlert(alert as AlertRecord);
+
+  return toAlert(alert);
 }
 
+/**
+ * Update an alert
+ */
 export async function updateAlert(
   id: string,
   updates: Partial<{
@@ -147,35 +250,44 @@ export async function updateAlert(
     lastTriggered?: string;
     lastValue?: number;
     triggerCount?: number;
-  }>,
+  }>
 ): Promise<Alert | null> {
   try {
-    const { lastTriggered, ...rest } = updates;
-    const data = {
-      ...rest,
-      ...(lastTriggered && { lastTriggered: new Date(lastTriggered) }),
-    };
+    const { lastTriggered, type, condition, timeWindow, ...rest } = updates;
 
-    const result = await prisma.alert.update({
+    const data: Record<string, unknown> = { ...rest };
+
+    if (type) data.type = toAlertType(type);
+    if (condition) data.condition = toAlertCondition(condition);
+    if (timeWindow) data.timeWindow = toAlertTimeWindow(timeWindow);
+    if (lastTriggered) data.lastTriggered = new Date(lastTriggered);
+
+    const result = await prisma.analyticsAlert.update({
       where: { id },
       data,
     });
 
-    return toAlert(result as AlertRecord);
+    return toAlert(result);
   } catch {
     return null;
   }
 }
 
+/**
+ * Delete an alert
+ */
 export async function deleteAlert(id: string): Promise<boolean> {
   try {
-    await prisma.alert.delete({ where: { id } });
+    await prisma.analyticsAlert.delete({ where: { id } });
     return true;
   } catch {
     return false;
   }
 }
 
+/**
+ * Add alert history entry
+ */
 export async function addAlertHistory(history: {
   alertId: string;
   alertName: string;
@@ -187,7 +299,7 @@ export async function addAlertHistory(history: {
   message: string;
   notificationsSent: Array<{ channel: string; success: boolean; error?: string }>;
 }): Promise<AlertHistory> {
-  const result = await prisma.alertHistory.create({
+  const result = await prisma.analyticsAlertHistory.create({
     data: {
       alertId: history.alertId,
       alertName: history.alertName,
@@ -201,15 +313,21 @@ export async function addAlertHistory(history: {
     },
   });
 
-  return toAlertHistory(result as AlertHistoryRecord);
+  return toAlertHistory(result);
 }
 
-export async function getAlertHistory(alertId?: string, limit: number = 50): Promise<AlertHistory[]> {
-  const history = await prisma.alertHistory.findMany({
+/**
+ * Get alert history
+ */
+export async function getAlertHistory(
+  alertId?: string,
+  limit: number = 50
+): Promise<AlertHistory[]> {
+  const history = await prisma.analyticsAlertHistory.findMany({
     where: alertId ? { alertId } : {},
     orderBy: { triggeredAt: "desc" },
     take: limit,
   });
 
-  return (history as AlertHistoryRecord[]).map(toAlertHistory);
+  return history.map(toAlertHistory);
 }

@@ -1,49 +1,47 @@
-// @ts-nocheck
-// TODO: Migration - Prisma models may not be available in Kairn schema
 /**
  * PostgreSQL Funnel Operations
+ *
+ * Uses the unified AnalyticsEvent model with EventType.FUNNEL_STEP
+ * Funnel step data is stored in the `data` JSON field.
  */
 
 import { prisma } from "@/lib/db/prisma";
+import { EventType } from "@prisma/client";
 import type { FunnelStep } from "../store/types";
-import { toPrismaJson } from "./utils";
-
-// Type alias for where input (workaround for ungenerated Prisma client)
-type FunnelStepWhereInput = {
-  timestamp?: { gte?: Date; lte?: Date };
-  funnelName?: string;
-};
+import {
+  toPrismaJson,
+  buildFunnelStepData,
+  buildDateFilter,
+  extractFromData,
+  getCurrentSiteId,
+} from "./utils";
 
 /**
- * Prisma FunnelStep record type.
- * Prisma uses `null` for absent optional values, while our FunnelStep type uses `undefined`.
+ * Converts an AnalyticsEvent record to FunnelStep type
  */
-interface FunnelStepRecord {
+function toFunnelStep(record: {
   id: string;
-  timestamp: Date;
-  sessionId: string;
-  funnelName: string;
-  stepName: string;
-  stepOrder: number;
-  metadata: unknown;
-}
+  createdAt: Date;
+  sessionId: string | null;
+  name: string | null;
+  data: unknown;
+}): FunnelStep {
+  const data = (record.data as Record<string, unknown>) || {};
 
-/**
- * Convert a Prisma FunnelStepRecord to our application FunnelStep type.
- * This handles the null → undefined conversion for optional fields.
- */
-function toFunnelStep(record: FunnelStepRecord): FunnelStep {
   return {
     id: record.id,
-    timestamp: record.timestamp.toISOString(),
-    sessionId: record.sessionId,
-    funnelName: record.funnelName,
-    stepName: record.stepName,
-    stepOrder: record.stepOrder,
-    metadata: (record.metadata as Record<string, unknown>) ?? undefined,
+    timestamp: record.createdAt.toISOString(),
+    sessionId: record.sessionId || "",
+    funnelName: extractFromData<string>(data, "funnelName", "unknown"),
+    stepName: extractFromData<string>(data, "stepName", "unknown"),
+    stepOrder: extractFromData<number>(data, "stepOrder", 0),
+    metadata: extractFromData<Record<string, unknown> | undefined>(data, "metadata", undefined),
   };
 }
 
+/**
+ * Track a funnel step
+ */
 export async function trackFunnelStep(step: {
   timestamp: string;
   sessionId: string;
@@ -52,48 +50,83 @@ export async function trackFunnelStep(step: {
   stepOrder: number;
   metadata?: Record<string, unknown>;
 }): Promise<FunnelStep> {
-  const result = await prisma.funnelStep.create({
+  const siteId = getCurrentSiteId();
+
+  // Build the data object for JSON storage
+  const eventData = buildFunnelStepData({
+    funnelName: step.funnelName,
+    stepName: step.stepName,
+    stepOrder: step.stepOrder,
+    metadata: step.metadata,
+  });
+
+  const result = await prisma.analyticsEvent.create({
     data: {
-      timestamp: new Date(step.timestamp),
+      type: EventType.FUNNEL_STEP,
+      path: "/",
+      name: `${step.funnelName}:${step.stepName}`,
       sessionId: step.sessionId,
-      funnelName: step.funnelName,
-      stepName: step.stepName,
-      stepOrder: step.stepOrder,
-      metadata: toPrismaJson(step.metadata),
+      data: toPrismaJson(eventData),
+      createdAt: new Date(step.timestamp),
+      siteId,
     },
   });
 
-  return toFunnelStep(result as FunnelStepRecord);
+  return toFunnelStep(result);
 }
 
+/**
+ * Get funnel steps within a date range
+ */
 export async function getFunnelSteps(
   funnelName?: string,
   startDate?: string,
-  endDate?: string,
+  endDate?: string
 ): Promise<FunnelStep[]> {
-  const where: FunnelStepWhereInput = {};
+  const siteId = getCurrentSiteId();
+  const dateFilter = buildDateFilter(startDate, endDate);
 
-  if (funnelName) where.funnelName = funnelName;
-
-  if (startDate || endDate) {
-    where.timestamp = {};
-    if (startDate) where.timestamp.gte = new Date(startDate);
-    if (endDate) where.timestamp.lte = new Date(endDate);
-  }
-
-  const steps = await prisma.funnelStep.findMany({
-    where,
-    orderBy: { timestamp: "asc" },
+  const events = await prisma.analyticsEvent.findMany({
+    where: {
+      siteId,
+      type: EventType.FUNNEL_STEP,
+      ...dateFilter,
+    },
+    orderBy: { createdAt: "asc" },
   });
 
-  return (steps as FunnelStepRecord[]).map(toFunnelStep);
+  // Filter by funnel name if specified
+  let filteredEvents = events;
+  if (funnelName) {
+    filteredEvents = events.filter((event) => {
+      const data = (event.data as Record<string, unknown>) || {};
+      return extractFromData<string>(data, "funnelName", "") === funnelName;
+    });
+  }
+
+  return filteredEvents.map(toFunnelStep);
 }
 
+/**
+ * Get funnel analysis with conversion rates
+ */
 export async function getFunnelAnalysis(
   funnelName: string,
   startDate?: string,
-  endDate?: string,
-) {
+  endDate?: string
+): Promise<{
+  funnelName: string;
+  steps: Array<{
+    stepName: string;
+    stepOrder: number;
+    users: number;
+    conversionRate: number;
+    dropoffRate: number;
+    avgTimeToNext?: number;
+  }>;
+  overallConversion: number;
+  totalUsers: number;
+}> {
   const steps = await getFunnelSteps(funnelName, startDate, endDate);
 
   const sessionSteps = new Map<string, Set<number>>();
@@ -101,34 +134,41 @@ export async function getFunnelAnalysis(
   const stepNames = new Map<number, string>();
   const stepTimestamps = new Map<string, Map<number, number>>();
 
-  steps.forEach((step) => {
+  for (const step of steps) {
+    // Track which steps each session completed
     if (!sessionSteps.has(step.sessionId)) {
       sessionSteps.set(step.sessionId, new Set());
     }
     sessionSteps.get(step.sessionId)!.add(step.stepOrder);
 
+    // Track unique users at each step
     if (!stepUsers.has(step.stepOrder)) {
       stepUsers.set(step.stepOrder, new Set());
     }
     stepUsers.get(step.stepOrder)!.add(step.sessionId);
 
+    // Track step names
     stepNames.set(step.stepOrder, step.stepName);
 
+    // Track timestamps for time calculations
     if (!stepTimestamps.has(step.sessionId)) {
       stepTimestamps.set(step.sessionId, new Map());
     }
     stepTimestamps.get(step.sessionId)!.set(step.stepOrder, new Date(step.timestamp).getTime());
-  });
+  }
 
   const sortedStepOrders = Array.from(stepNames.keys()).sort((a, b) => a - b);
-  const firstStepUsers = stepUsers.get(sortedStepOrders[0])?.size || 0;
+  const firstStepOrder = sortedStepOrders[0];
+  const firstStepUsers = firstStepOrder !== undefined ? (stepUsers.get(firstStepOrder)?.size || 0) : 0;
 
   const analysisSteps = sortedStepOrders.map((stepOrder, index) => {
     const usersAtStep = stepUsers.get(stepOrder)?.size || 0;
+    const prevStepOrder = sortedStepOrders[index - 1];
     const prevStepUsers =
-      index > 0 ? stepUsers.get(sortedStepOrders[index - 1])?.size || 0 : usersAtStep;
+      index > 0 && prevStepOrder !== undefined ? (stepUsers.get(prevStepOrder)?.size || 0) : usersAtStep;
     const nextStepOrder = sortedStepOrders[index + 1];
 
+    // Calculate average time to next step
     let avgTimeToNext: number | undefined;
     if (nextStepOrder !== undefined) {
       const times: number[] = [];
@@ -154,8 +194,8 @@ export async function getFunnelAnalysis(
     };
   });
 
-  const lastStepUsers =
-    stepUsers.get(sortedStepOrders[sortedStepOrders.length - 1])?.size || 0;
+  const lastStepOrder = sortedStepOrders[sortedStepOrders.length - 1];
+  const lastStepUsers = lastStepOrder !== undefined ? (stepUsers.get(lastStepOrder)?.size || 0) : 0;
 
   return {
     funnelName,
@@ -165,7 +205,13 @@ export async function getFunnelAnalysis(
   };
 }
 
-export async function getAvailableFunnels(startDate?: string, endDate?: string): Promise<string[]> {
+/**
+ * Get list of available funnels
+ */
+export async function getAvailableFunnels(
+  startDate?: string,
+  endDate?: string
+): Promise<string[]> {
   const steps = await getFunnelSteps(undefined, startDate, endDate);
   return Array.from(new Set(steps.map((s) => s.funnelName)));
 }

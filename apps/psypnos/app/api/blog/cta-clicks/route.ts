@@ -20,6 +20,20 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const articleSlug = searchParams.get('articleSlug');
+    const startDateParam = searchParams.get('startDate');
+    const endDateParam = searchParams.get('endDate');
+
+    // Calculate date filters
+    const endDate = endDateParam ? new Date(endDateParam) : new Date();
+    let startDate = startDateParam ? new Date(startDateParam) : new Date();
+
+    if (!startDateParam) {
+      // Default: last 30 days
+      startDate.setDate(endDate.getDate() - 30);
+    }
+
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(23, 59, 59, 999);
 
     // Log le mode de données
     logDataMode();
@@ -34,9 +48,20 @@ export async function GET(request: NextRequest) {
     // Mode réel - récupérer les vraies données
     console.log('📊 [CTA Clicks] Using REAL data');
 
-    // Récupérer tous les clics CTA depuis PostgreSQL
+    // Build where clause with date filter
+    const whereClause: Record<string, unknown> = {
+      timestamp: {
+        gte: startDate,
+        lte: endDate,
+      },
+    };
+    if (articleSlug) {
+      whereClause.articleSlug = articleSlug;
+    }
+
+    // Récupérer tous les clics CTA depuis PostgreSQL (filtrés par période)
     const clicks = await prisma.blogCtaClick.findMany({
-      where: articleSlug ? { articleSlug } : undefined,
+      where: whereClause,
       orderBy: { timestamp: 'desc' },
     }) as BlogCtaClickRecord[];
 
