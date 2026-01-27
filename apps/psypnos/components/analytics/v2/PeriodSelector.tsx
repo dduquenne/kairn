@@ -217,7 +217,7 @@ export function PeriodSelector({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-gold/20 bg-night/95 backdrop-blur-xl shadow-2xl shadow-black/50 overflow-hidden z-[100]"
+            className="absolute top-full right-0 sm:left-0 sm:right-auto mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-gold/20 bg-night/95 backdrop-blur-xl shadow-2xl shadow-black/50 overflow-hidden z-[9999]"
           >
             {!showCustomPicker ? (
               <>

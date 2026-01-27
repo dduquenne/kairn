@@ -297,7 +297,7 @@ export function ConversionsPanel({
             <p className="text-sm text-ivory/50">Aucune donnée de tunnel</p>
           </div>
         ) : (
-          <div className="space-y-6 sm:space-y-4">
+          <div className="space-y-4 sm:space-y-3">
             {funnelSteps.map((step, index) => {
               const widthPercent = step.percentage;
               const isLast = index === funnelSteps.length - 1;
@@ -338,21 +338,15 @@ export function ConversionsPanel({
                         </div>
                       </div>
 
-                      {/* Progress bar */}
-                      <div className="h-6 sm:h-8 bg-night/40 rounded-lg overflow-hidden">
+                      {/* Progress bar - reduced height for better percentage readability */}
+                      <div className="h-3 sm:h-4 bg-night/40 rounded-md overflow-hidden">
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: `${widthPercent}%` }}
                           transition={{ duration: 0.6, delay: index * 0.15 }}
-                          className="h-full bg-gradient-to-r from-gold to-gold/60 rounded-lg flex items-center justify-end pr-2 sm:pr-3"
-                          style={{ minWidth: widthPercent > 0 ? '2rem' : '0' }}
-                        >
-                          {widthPercent > 25 && (
-                            <span className="text-[10px] sm:text-xs font-medium text-night">
-                              {step.visitors.toLocaleString("fr-FR")}
-                            </span>
-                          )}
-                        </motion.div>
+                          className="h-full bg-gradient-to-r from-gold to-gold/60 rounded-md"
+                          style={{ minWidth: widthPercent > 0 ? '0.5rem' : '0' }}
+                        />
                       </div>
 
                       {/* Dropoff indicator - inline on mobile */}
@@ -367,8 +361,8 @@ export function ConversionsPanel({
 
                   {/* Dropoff indicator - absolute on desktop */}
                   {!isLast && step.dropoff > 0 && (
-                    <div className="hidden sm:flex absolute left-3 -bottom-4 items-center text-xs text-red-400 bg-night/80 px-2 py-0.5 rounded">
-                      <ChevronDown size={14} />
+                    <div className="hidden sm:flex absolute left-3 -bottom-2 items-center text-[10px] text-red-400 bg-night/80 px-1.5 py-0.5 rounded">
+                      <ChevronDown size={12} />
                       <span>-{step.dropoff.toFixed(1)}%</span>
                     </div>
                   )}

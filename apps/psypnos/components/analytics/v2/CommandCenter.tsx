@@ -166,79 +166,96 @@ export function CommandCenter({
         {/* Divider */}
         <div className="hidden lg:block w-px h-12 bg-gold/20" />
 
-        {/* KPIs */}
-        <div className="flex flex-1 items-center gap-3 sm:gap-4 lg:gap-6 min-w-0">
+        {/* KPIs - Card-based design for better readability */}
+        <div className="flex flex-1 items-stretch gap-2 sm:gap-3 lg:gap-4 min-w-0">
           {/* Visitors KPI */}
           <motion.div
-            className="flex-1 min-w-0"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+            className="flex-1 min-w-0 p-2 sm:p-3 rounded-lg bg-gradient-to-br from-blue-500/10 to-blue-500/5 border border-blue-500/20"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.1 }}
           >
-            <p className="text-[10px] sm:text-xs text-ivory/50 uppercase tracking-wider truncate">
-              Visiteurs
-            </p>
-            <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
-              <span className="text-lg sm:text-2xl lg:text-3xl font-bold text-ivory whitespace-nowrap">
+            <div className="flex items-center gap-1.5 mb-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+              <p className="text-[9px] sm:text-[10px] text-blue-300/80 uppercase tracking-wider font-medium">
+                Visiteurs
+              </p>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-base sm:text-xl lg:text-2xl font-bold text-ivory leading-none">
                 {isLoading ? (
-                  <span className="inline-block w-12 sm:w-16 h-6 sm:h-8 bg-gold/20 animate-pulse rounded" />
+                  <span className="inline-block w-10 sm:w-14 h-5 sm:h-6 bg-blue-400/20 animate-pulse rounded" />
                 ) : (
                   kpis.visitors.toLocaleString("fr-FR")
                 )}
               </span>
-              {!isLoading && <span className="hidden sm:inline">{formatChange(kpis.visitorsChange)}</span>}
+              {!isLoading && (
+                <span className={`text-[10px] sm:text-xs font-medium mt-0.5 ${
+                  kpis.visitorsChange >= 0 ? "text-green-400" : "text-red-400"
+                }`}>
+                  {kpis.visitorsChange >= 0 ? "↑" : "↓"} {Math.abs(kpis.visitorsChange).toFixed(1)}%
+                </span>
+              )}
             </div>
           </motion.div>
 
           {/* Conversion Rate KPI */}
           <motion.div
-            className="flex-1 min-w-0"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+            className="flex-1 min-w-0 p-2 sm:p-3 rounded-lg bg-gradient-to-br from-gold/10 to-gold/5 border border-gold/20"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.2 }}
           >
-            <p className="text-[10px] sm:text-xs text-ivory/50 uppercase tracking-wider truncate">
-              Conversions
-            </p>
-            <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
-              <span className="text-lg sm:text-2xl lg:text-3xl font-bold text-ivory whitespace-nowrap">
+            <div className="flex items-center gap-1.5 mb-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-gold" />
+              <p className="text-[9px] sm:text-[10px] text-gold/80 uppercase tracking-wider font-medium">
+                Conv.
+              </p>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-base sm:text-xl lg:text-2xl font-bold text-ivory leading-none">
                 {isLoading ? (
-                  <span className="inline-block w-10 sm:w-12 h-6 sm:h-8 bg-gold/20 animate-pulse rounded" />
+                  <span className="inline-block w-8 sm:w-12 h-5 sm:h-6 bg-gold/20 animate-pulse rounded" />
                 ) : (
                   `${kpis.conversionRate.toFixed(1)}%`
                 )}
               </span>
-              {!isLoading && <span className="hidden sm:inline">{formatChange(kpis.conversionChange, " pts")}</span>}
+              {!isLoading && (
+                <span className={`text-[10px] sm:text-xs font-medium mt-0.5 ${
+                  kpis.conversionChange >= 0 ? "text-green-400" : "text-red-400"
+                }`}>
+                  {kpis.conversionChange >= 0 ? "↑" : "↓"} {Math.abs(kpis.conversionChange).toFixed(1)} pts
+                </span>
+              )}
             </div>
           </motion.div>
 
           {/* Duration KPI */}
           <motion.div
-            className="flex-1 min-w-0"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+            className="flex-1 min-w-0 p-2 sm:p-3 rounded-lg bg-gradient-to-br from-purple-500/10 to-purple-500/5 border border-purple-500/20"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3 }}
           >
-            <p className="text-[10px] sm:text-xs text-ivory/50 uppercase tracking-wider truncate">
-              Durée moy.
-            </p>
-            <div className="flex items-baseline gap-1 sm:gap-2 flex-wrap">
-              <span className="text-lg sm:text-2xl lg:text-3xl font-bold text-ivory whitespace-nowrap">
+            <div className="flex items-center gap-1.5 mb-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+              <p className="text-[9px] sm:text-[10px] text-purple-300/80 uppercase tracking-wider font-medium">
+                Durée
+              </p>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-base sm:text-xl lg:text-2xl font-bold text-ivory leading-none">
                 {isLoading ? (
-                  <span className="inline-block w-10 sm:w-14 h-6 sm:h-8 bg-gold/20 animate-pulse rounded" />
+                  <span className="inline-block w-8 sm:w-12 h-5 sm:h-6 bg-purple-400/20 animate-pulse rounded" />
                 ) : (
                   formatDuration(kpis.avgDuration)
                 )}
               </span>
               {!isLoading && (
-                <span
-                  className={`hidden sm:inline text-xs font-medium ${
-                    kpis.durationChange >= 0 ? "text-green-400" : "text-red-400"
-                  }`}
-                >
-                  {kpis.durationChange >= 0 ? "▲" : "▼"}{" "}
-                  {kpis.durationChange >= 0 ? "+" : ""}
-                  {kpis.durationChange}s
+                <span className={`text-[10px] sm:text-xs font-medium mt-0.5 ${
+                  kpis.durationChange >= 0 ? "text-green-400" : "text-red-400"
+                }`}>
+                  {kpis.durationChange >= 0 ? "↑" : "↓"} {Math.abs(kpis.durationChange)}s
                 </span>
               )}
             </div>
