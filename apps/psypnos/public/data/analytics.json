@@ -56,19 +56,51 @@
       "label": "/psychotherapie"
     },
     {
+      "id": "evt_1769073605992_s21lapx36",
       "timestamp": "2026-01-22T09:20:05.846Z",
       "sessionId": "ses_mkp8pwsh_wl3g7p82q_b273",
       "category": "Engagement",
       "action": "page_exit",
       "label": "/psychotherapie",
-      "metadata": {},
-      "id": "evt_1769073605992_s21lapx36"
+      "metadata": {}
     }
   ],
-  "goals": [],
+  "goals": [
+    {
+      "id": "goal_1769529587954_kir3iex83",
+      "name": "Visite",
+      "type": "pages_per_session",
+      "destinationUrl": "/",
+      "enabled": true,
+      "createdAt": "2026-01-27T15:59:47.954Z",
+      "comparison": "greater_than",
+      "pagesCount": 3
+    }
+  ],
   "goalCompletions": [],
   "funnelSteps": [],
-  "alerts": [],
+  "alerts": [
+    {
+      "id": "alert_1769529503402_du7pcx6f3",
+      "name": "Contact",
+      "description": "Une personne m'a envoyé une de mande de contact",
+      "type": "threshold",
+      "metric": "conversions",
+      "condition": "greater_than",
+      "threshold": 1,
+      "timeWindow": "day",
+      "channels": [
+        "email"
+      ],
+      "emailRecipients": [
+        "dduquenne@gmail.com"
+      ],
+      "enabled": true,
+      "triggerCount": 0,
+      "createdAt": "2026-01-27T15:58:23.402Z",
+      "updatedAt": "2026-01-27T15:58:23.402Z"
+    }
+  ],
   "alertHistory": [],
   "dashboardConfigs": [],
   "scheduledReports": [],

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
@@ -21,6 +20,7 @@ import {
   MailPlus,
   CalendarCheck,
 } from "lucide-react";
+import { useState, useCallback } from "react";
 
 import type {
   Goal,
@@ -32,8 +32,9 @@ import {
   GOAL_TYPE_DESCRIPTIONS,
   GOAL_TEMPLATES,
 } from "../types";
-import { GoalFormModal } from "./GoalFormModal";
+
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
+import { GoalFormModal } from "./GoalFormModal";
 
 interface GoalsConfigurationPanelProps {
   goals: Goal[];

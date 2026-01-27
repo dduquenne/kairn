@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
@@ -28,6 +27,7 @@ import {
   CalendarCheck,
   MailPlus,
 } from "lucide-react";
+import { useState, useCallback } from "react";
 
 import type {
   Alert,
@@ -46,6 +46,7 @@ import {
   ALERT_TYPE_LABELS,
   ALERT_TEMPLATES,
 } from "../types";
+
 import { AlertFormModal } from "./AlertFormModal";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 

@@ -1,11 +1,11 @@
-import Link from "next/link";
+import { LogoutButton } from "@kairn/admin";
+import { AdminSidebar, MobileNav, type NavigationItem } from "@kairn/ui";
+import type { Metadata } from "next";
 import { headers } from "next/headers";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
-import type { Metadata } from "next";
 
-import { AdminSidebar, MobileNav, type NavigationItem } from "@kairn/ui";
-import { LogoutButton } from "@kairn/admin";
 import { verifyAdminToken } from "../api/auth/middleware";
 
 // Navigation configuration for Psypnos admin

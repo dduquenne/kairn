@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   X,
@@ -15,6 +14,7 @@ import {
   Info,
   Sparkles,
 } from "lucide-react";
+import { useState, useEffect } from "react";
 
 import type {
   Alert,

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Bell,
@@ -12,6 +11,7 @@ import {
   TrendingUp,
   Activity,
 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
 
 import { AlertsConfigurationPanel } from "./components/AlertsConfigurationPanel";
 import { GoalsConfigurationPanel } from "./components/GoalsConfigurationPanel";

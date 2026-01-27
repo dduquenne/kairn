@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   X,
@@ -16,6 +15,7 @@ import {
   Sparkles,
   DollarSign,
 } from "lucide-react";
+import { useState, useEffect } from "react";
 
 import type {
   Goal,
