@@ -40,7 +40,8 @@ interface GeoLocation {
 
 interface SourcesPanelProps {
   sources: TrafficSource[];
-  geoData: GeoLocation[];
+  geoCountries: GeoLocation[];
+  geoCities: GeoLocation[];
   directTraffic: number;
   organicTraffic: number;
   referralTraffic: number;
@@ -67,7 +68,8 @@ const getMediumIcon = (medium: string) => {
 
 export function SourcesPanel({
   sources,
-  geoData,
+  geoCountries,
+  geoCities,
   directTraffic,
   organicTraffic,
   referralTraffic,
@@ -75,6 +77,9 @@ export function SourcesPanel({
   isLoading = false,
 }: SourcesPanelProps) {
   const [geoView, setGeoView] = useState<"countries" | "cities">("countries");
+
+  // Select the appropriate geo data based on the current view
+  const geoData = geoView === "cities" ? geoCities : geoCountries;
 
   // Prepare pie chart data
   const pieData = [

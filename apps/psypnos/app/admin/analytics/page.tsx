@@ -318,7 +318,8 @@ function AnalyticsPageContent() {
           <TabContent tabId="sources">
             <SourcesPanel
               sources={data?.trafficSources || []}
-              geoData={data?.geoData || []}
+              geoCountries={data?.geoCountries || []}
+              geoCities={data?.geoCities || []}
               directTraffic={data?.directTraffic || 0}
               organicTraffic={data?.organicTraffic || 0}
               referralTraffic={data?.referralTraffic || 0}

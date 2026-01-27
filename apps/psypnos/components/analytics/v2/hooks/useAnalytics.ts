@@ -194,7 +194,8 @@ interface AnalyticsData {
 
   // Sources Panel
   trafficSources: TrafficSource[];
-  geoData: GeoLocation[];
+  geoCountries: GeoLocation[];
+  geoCities: GeoLocation[];
   directTraffic: number;
   organicTraffic: number;
   referralTraffic: number;
@@ -617,9 +618,6 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
         percentage: totalGeoVisitors > 0 ? ((c.visitors || 0) / totalGeoVisitors) * 100 : 0,
       }));
 
-      // Combine both for geoData (cities first if available, then countries)
-      const geoLocations: GeoLocation[] = geoCities.length > 0 ? geoCities : geoCountries;
-
       // Build bot data
       const botTypes: BotType[] = (botsData.bots || []).map((bot: any) => ({
         name: bot.name || "Unknown",
@@ -741,7 +739,8 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
         funnelSteps,
         goals,
         trafficSources,
-        geoData: geoLocations,
+        geoCountries,
+        geoCities,
         directTraffic,
         organicTraffic,
         referralTraffic,

@@ -79,6 +79,7 @@ interface TrafficSource {
 
 interface GeoLocation {
   country: string;
+  countryCode?: string;
   region?: string;
   city?: string;
   visitors: number;
@@ -183,7 +184,8 @@ export interface SimulatedAnalyticsData {
   funnelSteps: FunnelStep[];
   goals: Goal[];
   trafficSources: TrafficSource[];
-  geoData: GeoLocation[];
+  geoCountries: GeoLocation[];
+  geoCities: GeoLocation[];
   directTraffic: number;
   organicTraffic: number;
   referralTraffic: number;
@@ -374,17 +376,31 @@ function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
     else if (source.medium === "social") socialTraffic += source.visits;
   });
 
-  // Geo data
-  const geoData: GeoLocation[] = [
-    { country: "France", visitors: randomInRange(600, 1000), percentage: 0 },
-    { country: "Belgique", visitors: randomInRange(50, 150), percentage: 0 },
-    { country: "Suisse", visitors: randomInRange(40, 120), percentage: 0 },
-    { country: "Canada", visitors: randomInRange(30, 100), percentage: 0 },
-    { country: "Luxembourg", visitors: randomInRange(10, 40), percentage: 0 },
+  // Geo data - Countries
+  const geoCountries: GeoLocation[] = [
+    { country: "France", countryCode: "FR", visitors: randomInRange(600, 1000), percentage: 0 },
+    { country: "Belgique", countryCode: "BE", visitors: randomInRange(50, 150), percentage: 0 },
+    { country: "Suisse", countryCode: "CH", visitors: randomInRange(40, 120), percentage: 0 },
+    { country: "Canada", countryCode: "CA", visitors: randomInRange(30, 100), percentage: 0 },
+    { country: "Luxembourg", countryCode: "LU", visitors: randomInRange(10, 40), percentage: 0 },
   ];
 
-  const totalGeoVisitors = geoData.reduce((sum, g) => sum + g.visitors, 0);
-  geoData.forEach(geo => {
+  const totalGeoVisitors = geoCountries.reduce((sum, g) => sum + g.visitors, 0);
+  geoCountries.forEach(geo => {
+    geo.percentage = (geo.visitors / totalGeoVisitors) * 100;
+  });
+
+  // Geo data - Cities
+  const geoCities: GeoLocation[] = [
+    { country: "France", countryCode: "FR", city: "Paris", visitors: randomInRange(200, 400), percentage: 0 },
+    { country: "France", countryCode: "FR", city: "Lyon", visitors: randomInRange(100, 200), percentage: 0 },
+    { country: "France", countryCode: "FR", city: "Marseille", visitors: randomInRange(80, 150), percentage: 0 },
+    { country: "Belgique", countryCode: "BE", city: "Bruxelles", visitors: randomInRange(30, 80), percentage: 0 },
+    { country: "Suisse", countryCode: "CH", city: "Genève", visitors: randomInRange(20, 60), percentage: 0 },
+    { country: "Canada", countryCode: "CA", city: "Montréal", visitors: randomInRange(15, 50), percentage: 0 },
+  ];
+
+  geoCities.forEach(geo => {
     geo.percentage = (geo.visitors / totalGeoVisitors) * 100;
   });
 
@@ -530,7 +546,8 @@ function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
     funnelSteps,
     goals,
     trafficSources,
-    geoData,
+    geoCountries,
+    geoCities,
     directTraffic,
     organicTraffic,
     referralTraffic,
