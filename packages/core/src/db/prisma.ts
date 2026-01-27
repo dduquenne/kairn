@@ -41,9 +41,7 @@ export function createPrismaClient<T extends new (opts: unknown) => PrismaClient
   config?: PrismaClientConfig
 ): InstanceType<T> {
   const isDev = process.env.NODE_ENV === "development";
-  const logConfig = config?.log ?? (isDev && config?.logQueries !== false
-    ? ["query", "error", "warn"]
-    : ["error"]);
+  const logConfig = config?.log ?? ["error"];
 
   const client = new PrismaClientClass({
     log: logConfig as Array<'query' | 'info' | 'warn' | 'error'>,
