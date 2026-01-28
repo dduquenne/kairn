@@ -1,3 +1,10 @@
 {
-  "extends": ["@kairn/eslint-config"]
+  "extends": ["@kairn/eslint-config"],
+  "settings": {
+    "import/resolver": {
+      "typescript": {
+        "project": "apps/psypnos/tsconfig.json"
+      }
+    }
+  }
 }
