@@ -1,8 +1,9 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { SectionTitle } from "../../../components/SectionTitle";
+import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+
+import { SectionTitle } from '../../../components/SectionTitle';
 
 interface Testimonial {
   id: string;
@@ -11,43 +12,129 @@ interface Testimonial {
   role?: string;
 }
 
-function TestimonialCard({ quote, author, role, index }: { quote: string; author: string; role?: string; index: number }) {
+/**
+ * Compact testimonial card for the marquee
+ * Features a subtle glass morphism effect and gold accent
+ */
+function TestimonialCard({ quote, author }: { quote: string; author: string }) {
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.3 }}
-      transition={{ duration: 0.6, ease: "easeOut", delay: index * 0.1 }}
-      className="flex h-full flex-col justify-between rounded-3xl border border-ivory/10 bg-night/40 p-8 shadow-xl shadow-night/40"
-    >
-      <div>
-        <svg className="h-8 w-8 text-gold/40 mb-4" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-        </svg>
-        <p className="text-ivory/80 leading-relaxed italic">{quote}</p>
+    <article className="border-ivory/[0.08] from-ivory/[0.04] hover:border-gold/20 hover:bg-ivory/[0.06] group relative flex w-[320px] shrink-0 flex-col gap-4 rounded-2xl border bg-gradient-to-br to-transparent p-6 backdrop-blur-sm transition-all duration-300 sm:w-[380px]">
+      {/* Subtle gold accent line */}
+      <div className="from-gold/60 absolute left-6 top-0 h-px w-12 bg-gradient-to-r to-transparent" />
+
+      {/* Quote */}
+      <p className="text-ivory/75 group-hover:text-ivory/90 text-[15px] leading-relaxed transition-colors duration-300">
+        "{quote}"
+      </p>
+
+      {/* Author with decorative dash */}
+      <div className="flex items-center gap-2">
+        <span className="bg-gold/40 h-px w-4" />
+        <span className="text-gold/80 text-sm font-medium">{author}</span>
       </div>
-      <div className="mt-6 border-t border-ivory/10 pt-4">
-        <p className="font-semibold text-gold">{author}</p>
-        {role && <p className="text-sm text-ivory/60">{role}</p>}
-      </div>
-    </motion.article>
+    </article>
   );
 }
 
+/**
+ * Infinite marquee component with pause on hover
+ * Uses CSS animations for truly seamless infinite scrolling
+ *
+ * Key insight: We animate a WRAPPER containing two copies of content.
+ * - The wrapper width = 2x content width (since it has 2 copies)
+ * - Animation moves wrapper by 50% of its width = 100% of one copy
+ * - When wrapper moves -50%, Copy2 is where Copy1 started -> seamless loop
+ *
+ * Direction LEFT:  wrapper moves from 0% to -50%
+ * Direction RIGHT: wrapper moves from -50% to 0%
+ */
+function Marquee({
+  children,
+  direction = 'left',
+  speed = 25,
+  pauseOnHover = true,
+}: {
+  children: React.ReactNode;
+  direction?: 'left' | 'right';
+  speed?: number;
+  pauseOnHover?: boolean;
+}) {
+  const [isPaused, setIsPaused] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(mediaQuery.matches);
+
+    const handleChange = (e: MediaQueryListEvent) => {
+      setPrefersReducedMotion(e.matches);
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  if (prefersReducedMotion) {
+    return <div className="flex gap-4 overflow-x-auto px-6 sm:gap-6">{children}</div>;
+  }
+
+  const isRight = direction === 'right';
+
+  return (
+    <div
+      className="group relative flex overflow-hidden"
+      onMouseEnter={() => pauseOnHover && setIsPaused(true)}
+      onMouseLeave={() => pauseOnHover && setIsPaused(false)}
+    >
+      {/* Gradient fade edges */}
+      <div className="from-night/80 pointer-events-none absolute left-0 top-0 z-10 h-full w-16 bg-gradient-to-r to-transparent sm:w-24" />
+      <div className="from-night/80 pointer-events-none absolute right-0 top-0 z-10 h-full w-16 bg-gradient-to-l to-transparent sm:w-24" />
+
+      {/* Animated wrapper containing two copies */}
+      <div
+        className={isRight ? 'animate-marquee-right' : 'animate-marquee-left'}
+        style={{
+          display: 'flex',
+          animationDuration: `${speed}s`,
+          animationPlayState: isPaused ? 'paused' : 'running',
+        }}
+      >
+        {/* First copy */}
+        <div className="flex shrink-0 gap-4 pr-4 sm:gap-6 sm:pr-6">{children}</div>
+        {/* Second copy for seamless loop */}
+        <div className="flex shrink-0 gap-4 pr-4 sm:gap-6 sm:pr-6" aria-hidden="true">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Testimonials section with dual-direction infinite marquee
+ * - Two rows scrolling in opposite directions create visual interest
+ * - Hover to pause allows reading individual testimonials
+ * - Reduced motion support for accessibility
+ */
 export function TestimonialsSection() {
+  const [hasMounted, setHasMounted] = useState(false);
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  useEffect(() => {
     async function fetchTestimonials() {
       try {
-        const response = await fetch("/api/testimonials?limit=6");
+        const response = await fetch('/api/testimonials?limit=10');
         if (response.ok) {
           const data = await response.json();
           setTestimonials(data);
         }
       } catch (error) {
-        console.error("Erreur lors du chargement des témoignages:", error);
+        console.error('Erreur lors du chargement des témoignages:', error);
       } finally {
         setLoading(false);
       }
@@ -55,35 +142,60 @@ export function TestimonialsSection() {
     fetchTestimonials();
   }, []);
 
-  // Show skeleton while loading
-  if (loading) {
-    // Skeleton pour éviter l'erreur d'hydratation
+  // Split testimonials into two rows for the dual marquee effect
+  const midpoint = Math.ceil(testimonials.length / 2);
+  const topRow = testimonials.slice(0, midpoint);
+  const bottomRow = testimonials.slice(midpoint);
+
+  // Show skeleton while loading or before mount
+  if (!hasMounted || loading) {
+    return (
+      <section className="bg-night/60 overflow-hidden py-20">
+        <div className="mx-auto max-w-6xl space-y-10 px-6 sm:px-10 lg:px-16">
+          <div className="space-y-4">
+            <div className="bg-ivory/10 h-4 w-24 animate-pulse rounded" />
+            <div className="bg-ivory/10 h-8 w-80 max-w-full animate-pulse rounded" />
+          </div>
+        </div>
+        <div className="mt-12 space-y-4">
+          {[1, 2].map(row => (
+            <div key={row} className="flex gap-4 overflow-hidden px-4 sm:gap-6">
+              {[1, 2, 3, 4].map(i => (
+                <div
+                  key={i}
+                  className="border-ivory/[0.08] bg-ivory/[0.02] w-[320px] shrink-0 rounded-2xl border p-6 sm:w-[380px]"
+                >
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="bg-ivory/10 h-4 w-full animate-pulse rounded" />
+                      <div className="bg-ivory/10 h-4 w-4/5 animate-pulse rounded" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="bg-ivory/10 h-px w-4" />
+                      <div className="bg-ivory/10 h-3 w-16 animate-pulse rounded" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+        <p className="text-ivory/40 mt-8 text-center text-xs">Survolez pour mettre en pause</p>
+      </section>
+    );
+  }
+
+  // Empty state
+  if (testimonials.length === 0) {
     return (
       <section className="bg-night/60 px-6 py-20 sm:px-10 lg:px-16">
         <div className="mx-auto max-w-6xl space-y-12">
-          <div className="space-y-4">
-            <div className="h-4 w-24 animate-pulse rounded bg-ivory/10" />
-            <div className="h-8 w-96 max-w-full animate-pulse rounded bg-ivory/10" />
-          </div>
-          <div className="grid gap-8 md:grid-cols-3">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="flex h-64 flex-col justify-between rounded-3xl border border-ivory/10 bg-night/40 p-8"
-              >
-                <div className="space-y-4">
-                  <div className="h-8 w-8 animate-pulse rounded bg-ivory/10" />
-                  <div className="space-y-2">
-                    <div className="h-4 w-full animate-pulse rounded bg-ivory/10" />
-                    <div className="h-4 w-3/4 animate-pulse rounded bg-ivory/10" />
-                    <div className="h-4 w-1/2 animate-pulse rounded bg-ivory/10" />
-                  </div>
-                </div>
-                <div className="border-t border-ivory/10 pt-4">
-                  <div className="h-4 w-24 animate-pulse rounded bg-ivory/10" />
-                </div>
-              </div>
-            ))}
+          <SectionTitle
+            eyebrow="Témoignages"
+            title="Ils et elles témoignent de leur métamorphose"
+          />
+          <div className="border-ivory/10 bg-ivory/[0.02] text-ivory/60 rounded-2xl border p-8 text-center text-sm">
+            Aucun témoignage pour le moment.
           </div>
         </div>
       </section>
@@ -91,30 +203,59 @@ export function TestimonialsSection() {
   }
 
   return (
-    <section className="bg-night/60 px-6 py-20 sm:px-10 lg:px-16">
-      <div className="mx-auto max-w-6xl space-y-12">
-        <SectionTitle
-          eyebrow="Témoignages"
-          title="Ils et elles témoignent de leur métamorphose"
-        />
-        {testimonials.length > 0 ? (
-          <div className="grid gap-8 md:grid-cols-3">
-            {testimonials.map((testimonial, index) => (
+    <section className="bg-night/60 overflow-hidden py-20">
+      {/* Title with constrained width */}
+      <div className="mx-auto max-w-6xl px-6 sm:px-10 lg:px-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+        >
+          <SectionTitle
+            eyebrow="Témoignages"
+            title="Ils et elles témoignent de leur métamorphose"
+          />
+        </motion.div>
+      </div>
+
+      {/* Full-width marquee container */}
+      <div className="mt-12 space-y-4 sm:space-y-6">
+        {/* Top row - scrolls left */}
+        <Marquee direction="left" speed={35}>
+          {topRow.map(testimonial => (
+            <TestimonialCard
+              key={testimonial.id}
+              quote={testimonial.quote}
+              author={testimonial.author}
+            />
+          ))}
+        </Marquee>
+
+        {/* Bottom row - scrolls right (only if enough testimonials) */}
+        {bottomRow.length > 0 && (
+          <Marquee direction="right" speed={30}>
+            {bottomRow.map(testimonial => (
               <TestimonialCard
                 key={testimonial.id}
                 quote={testimonial.quote}
                 author={testimonial.author}
-                role={testimonial.role}
-                index={index}
               />
             ))}
-          </div>
-        ) : (
-          <div className="rounded-3xl border border-ivory/10 bg-night/40 p-8 text-center text-sm text-ivory/60">
-            Aucun témoignage pour le moment.
-          </div>
+          </Marquee>
         )}
       </div>
+
+      {/* Hover hint */}
+      <motion.p
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        transition={{ delay: 0.5, duration: 0.5 }}
+        className="text-ivory/40 mt-8 text-center text-xs"
+      >
+        Survolez pour mettre en pause
+      </motion.p>
     </section>
   );
 }

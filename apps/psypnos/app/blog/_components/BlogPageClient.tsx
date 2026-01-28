@@ -1,18 +1,20 @@
-"use client";
+'use client';
 
-import { useState, useMemo, useRef, useEffect } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import { BookOpen, List } from "lucide-react";
-import Link from "next/link";
-import { BlogListItem } from "./BlogListItem";
-import { CategoryFilter } from "./CategoryFilter";
-import { BlogHeader } from "./BlogHeader";
-import { Breadcrumb } from "./Breadcrumb";
-import { SearchBar } from "./SearchBar";
-import { FeaturedCarousel } from "./FeaturedCarousel";
-import { Pagination } from "./Pagination";
-import { CurrentYear } from "@/components/CurrentYear";
-import type { BlogPostSummary } from "@/lib/blog";
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { BookOpen, List } from 'lucide-react';
+import { useState, useMemo, useRef, useEffect } from 'react';
+
+import { CurrentYear } from '../../../components/CurrentYear';
+import { NavigationMenu } from '../../../components/NavigationMenu';
+
+import { BlogListItem } from './BlogListItem';
+import { Breadcrumb } from './Breadcrumb';
+import { CategoryFilter } from './CategoryFilter';
+import { FeaturedCarousel } from './FeaturedCarousel';
+import { Pagination } from './Pagination';
+import { SearchBar } from './SearchBar';
+
+import type { BlogPostSummary } from '@/lib/blog';
 
 interface BlogPageClientProps {
   allPosts: BlogPostSummary[];
@@ -36,7 +38,7 @@ export function BlogPageClient({ allPosts, categories }: BlogPageClientProps) {
   // Effets parallaxes pour le hero
   const { scrollYProgress } = useScroll({
     target: heroRef,
-    offset: ["start start", "end start"]
+    offset: ['start start', 'end start'],
   });
   const heroParallax = useTransform(scrollYProgress, [0, 1], [0, -100]);
   const secondaryParallax = useTransform(scrollYProgress, [0, 1], [0, -60]);
@@ -47,7 +49,7 @@ export function BlogPageClient({ allPosts, categories }: BlogPageClientProps) {
   const getAnimationProps = (delay = 0) => ({
     initial: hasMounted ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 },
     animate: { opacity: 1, y: 0 },
-    transition: hasMounted ? { duration: 0.5, delay, ease: "easeOut" } : { duration: 0 },
+    transition: hasMounted ? { duration: 0.5, delay, ease: 'easeOut' } : { duration: 0 },
   });
 
   // Séparer les articles featured et tous les articles pour affichage
@@ -56,18 +58,20 @@ export function BlogPageClient({ allPosts, categories }: BlogPageClientProps) {
 
     // Appliquer le filtre de catégorie si sélectionné
     if (selectedCategory) {
-      posts = posts.filter((post) => post.category === selectedCategory);
+      posts = posts.filter(post => post.category === selectedCategory);
     }
 
     return {
-      featuredPosts: posts.filter((post) => post.featured === true),
+      featuredPosts: posts.filter(post => post.featured === true),
       allFilteredPosts: posts, // Tous les articles pour la pagination (featured + non-featured)
     };
   }, [searchFilteredPosts, selectedCategory]);
 
   // Pagination pour TOUS les articles (featured + non-featured), triés du plus récent au moins récent
   const allArticlesSorted = useMemo(() => {
-    return [...allFilteredPosts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return [...allFilteredPosts].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
   }, [allFilteredPosts]);
 
   const totalPages = Math.ceil(allArticlesSorted.length / POSTS_PER_PAGE);
@@ -88,12 +92,12 @@ export function BlogPageClient({ allPosts, categories }: BlogPageClientProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-night via-night/95 to-night text-ivory">
-      {/* Blog Header persistent */}
-      <BlogHeader showBackButton={false} currentPage="list" />
+    <div className="from-night via-night/95 to-night text-ivory min-h-screen bg-gradient-to-b">
+      {/* Navigation Menu */}
+      <NavigationMenu forceVisible />
 
       {/* Hero section amélioré avec parallaxes */}
-      <header ref={heroRef} className="relative border-b border-gold/10 overflow-hidden">
+      <header ref={heroRef} className="border-gold/10 relative overflow-hidden border-b pt-16">
         {/* Gradient glow effects avec parallaxe */}
         <motion.div
           aria-hidden
@@ -115,32 +119,31 @@ export function BlogPageClient({ allPosts, categories }: BlogPageClientProps) {
           className="absolute inset-0 bg-cover bg-center opacity-40"
           style={{
             backgroundImage: "url('/images/psychonaute.webp')",
-            backgroundPosition: "center right",
+            backgroundPosition: 'center right',
             y: imageParallax,
           }}
         />
 
         {/* Gradient de fond */}
-        <div className="absolute inset-0 bg-gradient-to-br from-gold/5 via-night/50 to-night"></div>
+        <div className="from-gold/5 via-night/50 to-night absolute inset-0 bg-gradient-to-br"></div>
 
-        <div className="relative mx-auto max-w-7xl px-6 py-16 sm:py-20 lg:py-24 sm:px-10 lg:px-16">
-          <motion.div
-            {...getAnimationProps(0)}
-            className="text-center"
-          >
-            <br/>
+        <div className="relative mx-auto max-w-7xl px-6 py-16 sm:px-10 sm:py-20 lg:px-16 lg:py-24">
+          <motion.div {...getAnimationProps(0)} className="text-center">
+            <br />
             <motion.h1
               {...getAnimationProps(0.2)}
-              className="text-4xl font-bold text-gold sm:text-5xl lg:text-6xl mb-4"
+              className="text-gold mb-4 text-4xl font-bold sm:text-5xl lg:text-6xl"
             >
               Voyages au Cœur de Soi
             </motion.h1>
 
             <motion.blockquote
               {...getAnimationProps(0.4)}
-              className="max-w-2xl mx-auto mb-6 text-lg text-gold/70 italic"
+              className="text-gold/70 mx-auto mb-6 max-w-2xl text-lg italic"
             >
-              <h2 className="text-2xl font-semibold">Carnets d'exploration à destination des psychonautes</h2>
+              <h2 className="text-2xl font-semibold">
+                Carnets d'exploration à destination des psychonautes
+              </h2>
             </motion.blockquote>
           </motion.div>
         </div>
@@ -153,10 +156,7 @@ export function BlogPageClient({ allPosts, categories }: BlogPageClientProps) {
 
         {/* Barre de recherche avancée */}
         <motion.div {...getAnimationProps(0.1)}>
-          <SearchBar
-            posts={allPosts}
-            onResultsChange={handleSearchChange}
-          />
+          <SearchBar posts={allPosts} onResultsChange={handleSearchChange} />
         </motion.div>
 
         {/* Filtres par catégorie */}
@@ -186,10 +186,10 @@ export function BlogPageClient({ allPosts, categories }: BlogPageClientProps) {
             className="mb-12 mt-8"
           >
             <div className="flex items-center gap-3">
-              <List className="h-5 w-5 text-ivory/50" />
-              <h2 className="text-2xl font-bold text-ivory">Tous les articles</h2>
+              <List className="text-ivory/50 h-5 w-5" />
+              <h2 className="text-ivory text-2xl font-bold">Tous les articles</h2>
             </div>
-            <div className="mt-4 h-px bg-gradient-to-r from-ivory/20 via-ivory/10 to-transparent" />
+            <div className="from-ivory/20 via-ivory/10 mt-4 h-px bg-gradient-to-r to-transparent" />
           </motion.div>
         )}
 
@@ -216,7 +216,7 @@ export function BlogPageClient({ allPosts, categories }: BlogPageClientProps) {
             transition={hasMounted ? { duration: 0.4 } : { duration: 0 }}
             className="py-20 text-center"
           >
-            <p className="text-lg text-ivory/50">
+            <p className="text-ivory/50 text-lg">
               Aucun article dans cette catégorie pour le moment.
             </p>
           </motion.div>
@@ -228,21 +228,17 @@ export function BlogPageClient({ allPosts, categories }: BlogPageClientProps) {
             initial={hasMounted ? { opacity: 0 } : { opacity: 1 }}
             animate={{ opacity: 1 }}
             transition={hasMounted ? { duration: 0.4 } : { duration: 0 }}
-            className="rounded-lg border border-ivory/10 bg-night/50 p-12 text-center backdrop-blur-sm"
+            className="border-ivory/10 bg-night/50 rounded-lg border p-12 text-center backdrop-blur-sm"
           >
-            <BookOpen className="mx-auto mb-4 h-12 w-12 text-ivory/30" />
-            <h2 className="mb-2 text-xl font-semibold text-ivory">
-              Aucun article disponible
-            </h2>
-            <p className="text-ivory/60">
-              Les premiers articles seront publiés prochainement.
-            </p>
+            <BookOpen className="text-ivory/30 mx-auto mb-4 h-12 w-12" />
+            <h2 className="text-ivory mb-2 text-xl font-semibold">Aucun article disponible</h2>
+            <p className="text-ivory/60">Les premiers articles seront publiés prochainement.</p>
           </motion.div>
         )}
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-ivory/10 bg-night/80 px-6 py-10 text-center text-xs text-ivory/50 sm:px-10 lg:px-16">
+      <footer className="border-ivory/10 bg-night/80 text-ivory/50 border-t px-6 py-10 text-center text-xs sm:px-10 lg:px-16">
         © <CurrentYear /> Psypnos. Tous droits réservés.
       </footer>
     </div>
