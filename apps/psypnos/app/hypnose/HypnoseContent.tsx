@@ -137,7 +137,7 @@ export function HypnoseContent({ posts }: HypnoseContentProps) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              Un voyage vers vos <span className="text-gold">ressources internes</span>
+              Hypnose thérapeutique à <span className="text-gold">Saint-Julien-du-Sault</span>
             </motion.h1>
             <motion.p
               className="text-ivory/80 mx-auto mb-8 max-w-3xl text-lg sm:text-xl"

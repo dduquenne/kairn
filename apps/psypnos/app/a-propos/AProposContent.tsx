@@ -73,7 +73,7 @@ export function AProposContent() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              Un chemin vers <span className="text-gold">l'essentiel</span>
+              David Duquenne - Psychothérapeute certifié dans <span className="text-gold">l'Yonne</span>
             </motion.h1>
             <motion.p
               className="text-ivory/80 mb-8 text-lg sm:text-xl"

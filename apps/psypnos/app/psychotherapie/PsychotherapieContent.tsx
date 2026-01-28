@@ -137,7 +137,7 @@ export function PsychotherapieContent({ posts }: PsychotherapieContentProps) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              Un espace pour <span className="text-gold">se retrouver</span>
+              Psychothérapie transpersonnelle dans <span className="text-gold">l'Yonne</span>
             </motion.h1>
             <motion.p
               className="text-ivory/80 mx-auto mb-8 max-w-3xl text-lg sm:text-xl"
