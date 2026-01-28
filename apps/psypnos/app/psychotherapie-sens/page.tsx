@@ -2,35 +2,34 @@ import type { Metadata } from 'next';
 import { GeoPage } from '@/components/GeoPage';
 
 export const metadata: Metadata = {
-  title: 'Psychothérapeute Sens | David Duquenne | Cabinet à 25 min',
+  title: 'Psychothérapie Sens | David Duquenne | Cabinet à 25 min',
   description:
-    'Psychothérapeute près de Sens (89). David Duquenne vous accueille à 25 min pour psychothérapie, anxiété, burn-out, deuil. Cabinet au Moulin d\'en Bas.',
+    'Psychothérapie près de Sens (89). David Duquenne, thérapeute certifié, vous accueille à 25 min pour anxiété, burn-out, deuil. Cabinet au Moulin d\'en Bas.',
   keywords: [
-    'psychothérapeute Sens',
-    'psy Sens',
-    'thérapeute Sens 89',
     'psychothérapie Sens',
+    'thérapeute Sens',
+    'thérapie Sens 89',
     'anxiété Sens',
     'burn-out Sens',
-    'psychologue Sens',
+    'hypnose ericksonienne Sens',
   ],
   openGraph: {
-    title: 'Psychothérapeute près de Sens - David Duquenne',
+    title: 'Psychothérapie près de Sens - David Duquenne',
     description: 'Cabinet de psychothérapie à 25 min de Sens. Accompagnement pour anxiété, burn-out, transitions de vie.',
-    url: 'https://psypnos.fr/psychotherapeute-sens',
+    url: 'https://psypnos.fr/psychotherapie-sens',
   },
   alternates: {
-    canonical: 'https://psypnos.fr/psychotherapeute-sens',
+    canonical: 'https://psypnos.fr/psychotherapie-sens',
   },
 };
 
 const schemaData = {
   '@context': 'https://schema.org',
   '@type': 'MedicalBusiness',
-  '@id': 'https://psypnos.fr/psychotherapeute-sens',
-  name: 'Psypnos - Psychothérapeute près de Sens',
+  '@id': 'https://psypnos.fr/psychotherapie-sens',
+  name: 'Psypnos - Psychothérapie près de Sens',
   description: 'Cabinet de psychothérapie accessible depuis Sens',
-  url: 'https://psypnos.fr/psychotherapeute-sens',
+  url: 'https://psypnos.fr/psychotherapie-sens',
   areaServed: {
     '@type': 'City',
     name: 'Sens',
@@ -39,7 +38,7 @@ const schemaData = {
   provider: {
     '@type': 'Person',
     name: 'David Duquenne',
-    jobTitle: 'Psychothérapeute',
+    jobTitle: 'Thérapeute',
   },
   address: {
     '@type': 'PostalAddress',
@@ -51,13 +50,13 @@ const schemaData = {
 };
 
 const mainContent = `
-<p>Vous cherchez un <strong>psychothérapeute près de Sens</strong> ? Le cabinet Psypnos vous accueille à Saint-Julien-du-Sault, à seulement <strong>25 minutes en voiture</strong> de Sens via la D606.</p>
+<p>Vous cherchez un accompagnement en <strong>psychothérapie près de Sens</strong> ? Le cabinet Psypnos vous accueille à Saint-Julien-du-Sault, à seulement <strong>25 minutes en voiture</strong> de Sens via la D606.</p>
 
 <p>Sens, ville historique aux portes de la Bourgogne, est la sous-préfecture la plus proche de Paris. Ses habitants vivent souvent au rythme effréné des allers-retours vers la capitale. Un accompagnement thérapeutique peut aider à retrouver l'équilibre.</p>
 
 <h3>Psychothérapie pour les Sénonais</h3>
 
-<p>En tant que psychothérapeute, j'accompagne de nombreux habitants de Sens et de son agglomération : Paron, Saint-Clément, Maillot, Gron, Villeneuve-sur-Yonne...</p>
+<p>En tant que thérapeute, j'accompagne de nombreux habitants de Sens et de son agglomération : Paron, Saint-Clément, Maillot, Gron, Villeneuve-sur-Yonne...</p>
 
 <p>Les Sénonais me consultent souvent pour :</p>
 <ul>
@@ -76,15 +75,13 @@ const mainContent = `
 
 <h3>Ma pratique thérapeutique</h3>
 
-<p>Je pratique la <strong>psychothérapie transpersonnelle</strong>, une approche qui intègre :</p>
+<p>Je pratique la <strong>psychothérapie</strong> en intégrant l'<strong>hypnose ericksonienne</strong>, une approche qui permet :</p>
 <ul>
   <li>L'écoute active et la parole</li>
   <li>Le travail sur les émotions et le corps</li>
-  <li>L'exploration de l'inconscient et des rêves</li>
-  <li>La dimension existentielle et spirituelle</li>
+  <li>L'accès aux ressources profondes</li>
+  <li>Le changement en profondeur</li>
 </ul>
-
-<p>Cette approche holistique permet d'aborder les difficultés sous différents angles et de trouver des solutions durables.</p>
 
 <h3>Flexibilité pour les Sénonais</h3>
 
@@ -92,6 +89,7 @@ const mainContent = `
 `;
 
 const benefits = [
+  'Thérapeute certifié',
   'À 25 min de Sens',
   'Horaires adaptés aux navetteurs',
   'Consultations en soirée',
@@ -122,17 +120,17 @@ const practicalInfo = {
 };
 
 const relatedLinks = [
-  { label: 'Psychothérapeute Yonne', href: '/psychotherapeute-yonne' },
-  { label: 'Psychothérapeute Joigny', href: '/psychotherapeute-joigny' },
+  { label: 'Psychothérapie Yonne', href: '/psychotherapie-yonne' },
+  { label: 'Psychothérapie Joigny', href: '/psychotherapie-joigny' },
   { label: 'Hypnose Sens', href: '/hypnose-sens' },
 ];
 
-export default function PsychotherapeuteSensPage() {
+export default function PsychotherapieSensPage() {
   return (
     <GeoPage
-      title="Psychothérapeute près de Sens"
+      title="Psychothérapie près de Sens"
       subtitle="Cabinet de psychothérapie à 25 minutes de Sens"
-      description="David Duquenne accompagne les Sénonais dans un cabinet accessible, avec des horaires adaptés aux contraintes de chacun."
+      description="David Duquenne, thérapeute certifié, accompagne les Sénonais dans un cabinet accessible, avec des horaires adaptés aux contraintes de chacun."
       service="psychotherapie"
       location={{
         city: 'Sens',
@@ -140,7 +138,7 @@ export default function PsychotherapeuteSensPage() {
       }}
       breadcrumbItems={[
         { name: 'Psychothérapie', href: '/psychotherapie' },
-        { name: 'Psychothérapeute Sens', href: '/psychotherapeute-sens' },
+        { name: 'Psychothérapie Sens', href: '/psychotherapie-sens' },
       ]}
       mainContent={mainContent}
       benefits={benefits}

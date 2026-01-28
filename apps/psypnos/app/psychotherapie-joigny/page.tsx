@@ -2,34 +2,34 @@ import type { Metadata } from 'next';
 import { GeoPage } from '@/components/GeoPage';
 
 export const metadata: Metadata = {
-  title: 'Psychothérapeute Joigny | Cabinet proche de chez vous | Psypnos',
+  title: 'Psychothérapie Joigny | Cabinet proche de chez vous | Psypnos',
   description:
-    'Psychothérapeute près de Joigny (89). David Duquenne vous accueille à 15 min en voiture pour l\'anxiété, burn-out, deuil. Cabinet à Saint-Julien-du-Sault.',
+    'Psychothérapie près de Joigny (89). David Duquenne, thérapeute certifié, vous accueille à 15 min en voiture pour anxiété, burn-out, deuil. Cabinet à Saint-Julien-du-Sault.',
   keywords: [
-    'psychothérapeute Joigny',
-    'psy Joigny',
-    'thérapeute Joigny 89',
-    'psychothérapie près de Joigny',
+    'psychothérapie Joigny',
+    'thérapeute Joigny',
+    'thérapie Joigny 89',
     'anxiété Joigny',
     'burn-out Joigny',
+    'hypnose ericksonienne Joigny',
   ],
   openGraph: {
-    title: 'Psychothérapeute près de Joigny - David Duquenne',
+    title: 'Psychothérapie près de Joigny - David Duquenne',
     description: 'Cabinet de psychothérapie à 15 min de Joigny. Accompagnement personnalisé par David Duquenne.',
-    url: 'https://psypnos.fr/psychotherapeute-joigny',
+    url: 'https://psypnos.fr/psychotherapie-joigny',
   },
   alternates: {
-    canonical: 'https://psypnos.fr/psychotherapeute-joigny',
+    canonical: 'https://psypnos.fr/psychotherapie-joigny',
   },
 };
 
 const schemaData = {
   '@context': 'https://schema.org',
   '@type': 'MedicalBusiness',
-  '@id': 'https://psypnos.fr/psychotherapeute-joigny',
-  name: 'Psypnos - Psychothérapeute près de Joigny',
+  '@id': 'https://psypnos.fr/psychotherapie-joigny',
+  name: 'Psypnos - Psychothérapie près de Joigny',
   description: 'Cabinet de psychothérapie accessible depuis Joigny',
-  url: 'https://psypnos.fr/psychotherapeute-joigny',
+  url: 'https://psypnos.fr/psychotherapie-joigny',
   areaServed: {
     '@type': 'City',
     name: 'Joigny',
@@ -38,7 +38,7 @@ const schemaData = {
   provider: {
     '@type': 'Person',
     name: 'David Duquenne',
-    jobTitle: 'Psychothérapeute',
+    jobTitle: 'Thérapeute',
   },
   address: {
     '@type': 'PostalAddress',
@@ -50,13 +50,13 @@ const schemaData = {
 };
 
 const mainContent = `
-<p>Vous habitez <strong>Joigny</strong> ou ses environs et recherchez un psychothérapeute ? Le cabinet Psypnos vous accueille à Saint-Julien-du-Sault, à seulement <strong>15 minutes en voiture</strong> de Joigny.</p>
+<p>Vous habitez <strong>Joigny</strong> ou ses environs et recherchez un accompagnement en psychothérapie ? Le cabinet Psypnos vous accueille à Saint-Julien-du-Sault, à seulement <strong>15 minutes en voiture</strong> de Joigny.</p>
 
 <p>Joigny, ville historique de l'Yonne, est connue pour ses maisons à pans de bois et son dynamisme. Ses habitants méritent un accompagnement thérapeutique de qualité, accessible et personnalisé.</p>
 
 <h3>Un accompagnement adapté aux Joviniennes et Joviniens</h3>
 
-<p>En tant que <strong>psychothérapeute</strong>, j'accompagne depuis de nombreuses années les habitants de Joigny et de ses communes voisines : Villecien, Chamvres, Migennes, Saint-Aubin-sur-Yonne, Looze...</p>
+<p>En tant que <strong>thérapeute certifié</strong>, j'accompagne depuis de nombreuses années les habitants de Joigny et de ses communes voisines : Villecien, Chamvres, Migennes, Saint-Aubin-sur-Yonne, Looze...</p>
 
 <p>Les motifs de consultation sont variés :</p>
 <ul>
@@ -78,10 +78,11 @@ const mainContent = `
 
 <p>La première rencontre est essentielle. Elle permet de faire connaissance, de clarifier votre demande et d'établir ensemble les bases de notre travail. C'est aussi l'occasion de voir si le courant passe et si ma manière de travailler vous convient.</p>
 
-<p>Je pratique la <strong>psychothérapie transpersonnelle</strong>, une approche intégrative qui prend en compte toutes les dimensions de l'être : corps, émotions, mental et spiritualité.</p>
+<p>Je pratique la <strong>psychothérapie</strong> en intégrant l'<strong>hypnose ericksonienne</strong>, une approche qui permet d'accéder aux ressources profondes et de favoriser le changement en douceur.</p>
 `;
 
 const benefits = [
+  'Thérapeute certifié en hypnose ericksonienne',
   'À seulement 15 min de Joigny',
   'Parking gratuit sur place',
   'Cadre apaisant au Moulin d\'en Bas',
@@ -89,7 +90,6 @@ const benefits = [
   'Tarif solidaire disponible',
   'Consultations visio possibles',
   'Première séance pour faire connaissance',
-  'Accompagnement personnalisé',
 ];
 
 const testimonials = [
@@ -112,17 +112,17 @@ const practicalInfo = {
 };
 
 const relatedLinks = [
-  { label: 'Psychothérapeute Yonne', href: '/psychotherapeute-yonne' },
-  { label: 'Psychothérapeute Migennes', href: '/psychotherapeute-migennes' },
+  { label: 'Psychothérapie Yonne', href: '/psychotherapie-yonne' },
+  { label: 'Psychothérapie Migennes', href: '/psychotherapie-migennes' },
   { label: 'Hypnose Joigny', href: '/hypnose-joigny' },
 ];
 
-export default function PsychotherapeuteJoignyPage() {
+export default function PsychotherapieJoignyPage() {
   return (
     <GeoPage
-      title="Psychothérapeute près de Joigny"
+      title="Psychothérapie près de Joigny"
       subtitle="Cabinet à 15 minutes de Joigny pour un accompagnement de proximité"
-      description="David Duquenne, psychothérapeute, accompagne les habitants de Joigny et environs dans un cadre apaisant à Saint-Julien-du-Sault."
+      description="David Duquenne, thérapeute certifié, accompagne les habitants de Joigny et environs dans un cadre apaisant à Saint-Julien-du-Sault."
       service="psychotherapie"
       location={{
         city: 'Joigny',
@@ -130,7 +130,7 @@ export default function PsychotherapeuteJoignyPage() {
       }}
       breadcrumbItems={[
         { name: 'Psychothérapie', href: '/psychotherapie' },
-        { name: 'Psychothérapeute Joigny', href: '/psychotherapeute-joigny' },
+        { name: 'Psychothérapie Joigny', href: '/psychotherapie-joigny' },
       ]}
       mainContent={mainContent}
       benefits={benefits}

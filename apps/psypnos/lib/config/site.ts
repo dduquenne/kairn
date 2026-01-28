@@ -38,7 +38,7 @@ export const SITE_CONFIG = {
   // Informations du propriétaire/créateur
   owner: {
     name: 'David Duquenne',
-    title: 'Psychothérapeute',
+    title: 'Thérapeute',
     email: 'contact@psypnos.fr',
     image: '/images/David_Duquenne.webp',
   },
@@ -46,7 +46,7 @@ export const SITE_CONFIG = {
   // Description du site
   description: {
     short:
-      'David Duquenne, psychothérapeute et praticien en hypnose ericksonienne. Accompagnement des crises de vie, anxiété, deuil, burn-out.',
+      'David Duquenne, thérapeute certifié en hypnose ericksonienne. Accompagnement des crises de vie, anxiété, deuil, burn-out.',
     full: 'Accompagnement thérapeutique avec David Duquenne : psychothérapie, hypnose et respiration holotropique dans l\'Yonne.',
     medical:
       'Cabinet de psychothérapie et hypnose ericksonienne',
@@ -57,7 +57,7 @@ export const SITE_CONFIG = {
     'psychothérapie',
     'hypnose ericksonienne',
     'respiration holotropique',
-    'psychothérapeute Yonne',
+    'psychothérapie Yonne',
     'hypnose Saint-Julien-du-Sault',
     'thérapie anxiété',
     'accompagnement burn-out',
@@ -175,7 +175,7 @@ export function getOpenGraphConfig() {
         url: SITE_CONFIG.images.default,
         width: SITE_CONFIG.images.dimensions.width,
         height: SITE_CONFIG.images.dimensions.height,
-        alt: `${SITE_CONFIG.owner.name} - Psychothérapeute et Praticien en Hypnose`,
+        alt: `${SITE_CONFIG.owner.name} - Thérapeute certifié en hypnose`,
       },
     ],
   };
@@ -235,7 +235,7 @@ export function getJSONLDSchema() {
       '@type': 'Person',
       name: SITE_CONFIG.owner.name,
       jobTitle: SITE_CONFIG.owner.title,
-      description: `Praticien certifié en psychothérapie transpersonnelle et hypnose ericksonienne`,
+      description: `Thérapeute certifié en hypnose ericksonienne et facilitateur de respiration holotropique`,
       image: `${SITE_CONFIG.siteUrl}${SITE_CONFIG.owner.image}`,
     },
 

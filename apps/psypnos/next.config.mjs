@@ -262,7 +262,32 @@ const nextConfig = {
   // Redirections
   async redirects() {
     return [
-      // Ajouter les redirections spécifiques ici
+      // Redirections 301 : anciennes pages psychotherapeute vers psychotherapie
+      {
+        source: '/psychotherapeute-yonne',
+        destination: '/psychotherapie-yonne',
+        permanent: true,
+      },
+      {
+        source: '/psychotherapeute-auxerre',
+        destination: '/psychotherapie-auxerre',
+        permanent: true,
+      },
+      {
+        source: '/psychotherapeute-sens',
+        destination: '/psychotherapie-sens',
+        permanent: true,
+      },
+      {
+        source: '/psychotherapeute-joigny',
+        destination: '/psychotherapie-joigny',
+        permanent: true,
+      },
+      {
+        source: '/psychotherapeute-migennes',
+        destination: '/psychotherapie-migennes',
+        permanent: true,
+      },
     ];
   },
 };

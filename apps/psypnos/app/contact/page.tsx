@@ -476,22 +476,22 @@ export default function ContactPage() {
 
               <div className="flex flex-wrap justify-center gap-3">
                 <Link
-                  href="/psychotherapeute-yonne"
+                  href="/psychotherapie-yonne"
                   className="bg-ivory/5 hover:bg-ivory/10 rounded-full px-4 py-2 text-sm transition-colors"
                 >
-                  Psychothérapeute Yonne
+                  Psychothérapie Yonne
                 </Link>
                 <Link
-                  href="/psychotherapeute-auxerre"
+                  href="/psychotherapie-auxerre"
                   className="bg-ivory/5 hover:bg-ivory/10 rounded-full px-4 py-2 text-sm transition-colors"
                 >
-                  Psychothérapeute Auxerre
+                  Psychothérapie Auxerre
                 </Link>
                 <Link
-                  href="/psychotherapeute-sens"
+                  href="/psychotherapie-sens"
                   className="bg-ivory/5 hover:bg-ivory/10 rounded-full px-4 py-2 text-sm transition-colors"
                 >
-                  Psychothérapeute Sens
+                  Psychothérapie Sens
                 </Link>
                 <Link
                   href="/hypnose-yonne"

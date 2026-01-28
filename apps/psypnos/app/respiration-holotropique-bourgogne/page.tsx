@@ -142,7 +142,7 @@ const practicalInfo = {
 const relatedLinks = [
   { label: 'Respiration holotropique Yonne', href: '/respiration-holotropique-yonne' },
   { label: 'En savoir plus sur la respiration', href: '/respiration-holotropique' },
-  { label: 'Psychothérapie Bourgogne', href: '/psychotherapeute-yonne' },
+  { label: 'Psychothérapie Yonne', href: '/psychotherapie-yonne' },
 ];
 
 export default function RespirationHolotropiqueBourgognePage() {
