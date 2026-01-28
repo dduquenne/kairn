@@ -133,5 +133,8 @@ export {
   type ServiceConfig,
 } from './components/seo';
 
+// Typography Components
+export { PageTitle, type PageTitleProps } from './components/page-title';
+
 // Utils
 export { cn } from './utils/cn';
