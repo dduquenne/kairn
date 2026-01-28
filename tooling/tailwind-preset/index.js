@@ -72,14 +72,14 @@ const preset = {
 
       // Espacements cohérents
       spacing: {
-        '18': '4.5rem',
-        '112': '28rem',
-        '128': '32rem',
+        18: '4.5rem',
+        112: '28rem',
+        128: '32rem',
       },
 
       // Border radius
       borderRadius: {
-        'xl': '1rem',
+        xl: '1rem',
         '2xl': '1.5rem',
         '3xl': '2rem',
       },
@@ -91,6 +91,15 @@ const preset = {
         'slide-in-left': 'slideInLeft 0.3s ease-out',
         'slide-in-right': 'slideInRight 0.3s ease-out',
         'pulse-soft': 'pulseSoft 2s ease-in-out infinite',
+        // Marquee animations for testimonials and carousels
+        'marquee-left': 'marqueeLeft 30s linear infinite',
+        'marquee-right': 'marqueeRight 30s linear infinite',
+        'marquee-left-slow': 'marqueeLeft 45s linear infinite',
+        'marquee-right-slow': 'marqueeRight 45s linear infinite',
+        'marquee-left-fast': 'marqueeLeft 20s linear infinite',
+        'marquee-right-fast': 'marqueeRight 20s linear infinite',
+        // Shimmer effect for skeletons
+        shimmer: 'shimmer 2s infinite',
       },
 
       keyframes: {
@@ -114,6 +123,20 @@ const preset = {
           '0%, 100%': { opacity: '1' },
           '50%': { opacity: '0.7' },
         },
+        // Marquee animations - scroll content horizontally
+        marqueeLeft: {
+          '0%': { transform: 'translateX(0%)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
+        marqueeRight: {
+          '0%': { transform: 'translateX(-50%)' },
+          '100%': { transform: 'translateX(0%)' },
+        },
+        // Shimmer effect for loading states
+        shimmer: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(200%)' },
+        },
       },
 
       // Typographie responsive
@@ -125,7 +148,7 @@ const preset = {
 
       // Ombres
       boxShadow: {
-        'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
+        soft: '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
         'soft-lg': '0 10px 40px -15px rgba(0, 0, 0, 0.1)',
         'inner-soft': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.05)',
       },
@@ -137,9 +160,9 @@ const preset = {
 
       // Aspect ratios
       aspectRatio: {
-        'portrait': '3 / 4',
-        'landscape': '4 / 3',
-        'ultrawide': '21 / 9',
+        portrait: '3 / 4',
+        landscape: '4 / 3',
+        ultrawide: '21 / 9',
       },
     },
   },
@@ -147,4 +170,5 @@ const preset = {
   plugins: [],
 };
 
+// eslint-disable-next-line no-undef
 module.exports = preset;
