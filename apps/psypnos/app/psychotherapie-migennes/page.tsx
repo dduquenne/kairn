@@ -89,16 +89,24 @@ const benefits = [
   'Confidentialité assurée',
 ];
 
-const testimonials = [
+const researchStats = [
   {
-    content: 'Après la fermeture de mon entreprise, j\'avais besoin de me reconstruire. David m\'a accompagné avec patience et bienveillance.',
-    author: 'Rémi P.',
-    location: 'Migennes',
+    stat: '75% d\'amélioration',
+    description: 'des patients montrent une amélioration significative après une psychothérapie, selon les méta-analyses de référence.',
+    source: 'Lambert & Ogles - Handbook of Psychotherapy',
+    sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/15796678/',
   },
   {
-    content: 'Le cadre du cabinet est vraiment apaisant. Ça change de Migennes et ça fait du bien.',
-    author: 'Isabelle C.',
-    location: 'Laroche-Saint-Cydroine',
+    stat: 'Efficacité prouvée',
+    description: 'La psychothérapie est reconnue par l\'INSERM comme efficace pour la dépression, les troubles anxieux et le stress post-traumatique.',
+    source: 'INSERM - Expertise collective Psychothérapie',
+    sourceUrl: 'https://www.inserm.fr/expertise-collective/psychotherapie-trois-approches-evaluees/',
+  },
+  {
+    stat: 'Effets durables',
+    description: 'Les bénéfices de la psychothérapie se maintiennent dans le temps, avec moins de rechutes qu\'avec les traitements médicamenteux seuls.',
+    source: 'Hollon et al. - Archives of General Psychiatry',
+    sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/16061768/',
   },
 ];
 
@@ -131,7 +139,7 @@ export default function PsychotherapieMigennesPage() {
       ]}
       mainContent={mainContent}
       benefits={benefits}
-      testimonials={testimonials}
+      researchStats={researchStats}
       practicalInfo={practicalInfo}
       relatedLinks={relatedLinks}
       schemaData={schemaData}

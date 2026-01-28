@@ -23,11 +23,12 @@ export interface GeoPageProps {
   // Contenu principal
   mainContent: string;
   benefits: string[];
-  // Témoignages
-  testimonials: Array<{
-    content: string;
-    author: string;
-    location: string;
+  // Statistiques et études
+  researchStats: Array<{
+    stat: string;
+    description: string;
+    source: string;
+    sourceUrl?: string;
   }>;
   // Informations pratiques
   practicalInfo: {
@@ -69,9 +70,17 @@ const CheckIcon = () => (
   </svg>
 );
 
-const QuoteIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-8 w-8 opacity-30">
-    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
+const ChartIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
+    <path fillRule="evenodd" d="M2.25 13.5a8.25 8.25 0 018.25-8.25.75.75 0 01.75.75v6.75H18a.75.75 0 01.75.75 8.25 8.25 0 01-16.5 0z" clipRule="evenodd" />
+    <path fillRule="evenodd" d="M12.75 3a.75.75 0 01.75-.75 8.25 8.25 0 018.25 8.25.75.75 0 01-.75.75h-7.5a.75.75 0 01-.75-.75V3z" clipRule="evenodd" />
+  </svg>
+);
+
+const ExternalLinkIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5">
+    <path fillRule="evenodd" d="M4.25 5.5a.75.75 0 00-.75.75v8.5c0 .414.336.75.75.75h8.5a.75.75 0 00.75-.75v-4a.75.75 0 011.5 0v4A2.25 2.25 0 0112.75 17h-8.5A2.25 2.25 0 012 14.75v-8.5A2.25 2.25 0 014.25 4h5a.75.75 0 010 1.5h-5z" clipRule="evenodd" />
+    <path fillRule="evenodd" d="M6.194 12.753a.75.75 0 001.06.053L16.5 4.44v2.81a.75.75 0 001.5 0v-4.5a.75.75 0 00-.75-.75h-4.5a.75.75 0 000 1.5h2.553l-9.056 8.194a.75.75 0 00-.053 1.06z" clipRule="evenodd" />
   </svg>
 );
 
@@ -96,7 +105,7 @@ export function GeoPage({
   breadcrumbItems,
   mainContent,
   benefits,
-  testimonials,
+  researchStats,
   practicalInfo,
   relatedLinks,
   schemaData,
@@ -172,30 +181,41 @@ export function GeoPage({
                 </ul>
               </section>
 
-              {/* Témoignages */}
-              {testimonials.length > 0 && (
-                <section>
+              {/* Études et statistiques */}
+              {researchStats.length > 0 && (
+                <section className="border-ivory/10 bg-night/30 rounded-2xl border p-6">
                   <h3 className="font-display text-gold mb-6 text-xl font-semibold">
-                    Témoignages de patients de {location.city}
+                    Ce que dit la recherche
                   </h3>
 
-                  <div className="grid gap-6 md:grid-cols-2">
-                    {testimonials.map((testimonial, index) => (
+                  <div className="space-y-6">
+                    {researchStats.map((research, index) => (
                       <div
                         key={index}
-                        className="border-ivory/10 bg-night/30 relative rounded-xl border p-6"
+                        className="border-ivory/10 border-b pb-6 last:border-b-0 last:pb-0"
                       >
-                        <div className="text-gold absolute -top-3 left-4">
-                          <QuoteIcon />
+                        <div className="mb-2 flex items-start gap-3">
+                          <span className="text-gold mt-0.5 flex-shrink-0">
+                            <ChartIcon />
+                          </span>
+                          <p className="text-gold text-2xl font-bold">{research.stat}</p>
                         </div>
-                        <blockquote className="text-ivory/80 mb-4 italic">
-                          &ldquo;{testimonial.content}&rdquo;
-                        </blockquote>
-                        <footer className="text-ivory/50 text-sm">
-                          <strong className="text-ivory/70">{testimonial.author}</strong>
-                          <span className="mx-2">•</span>
-                          <span>{testimonial.location}</span>
-                        </footer>
+                        <p className="text-ivory/80 mb-2 ml-9">{research.description}</p>
+                        {research.sourceUrl ? (
+                          <a
+                            href={research.sourceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-ivory/50 hover:text-gold ml-9 inline-flex items-center gap-1.5 text-xs transition-colors"
+                          >
+                            Source : {research.source}
+                            <ExternalLinkIcon />
+                          </a>
+                        ) : (
+                          <p className="text-ivory/50 ml-9 text-xs">
+                            Source : {research.source}
+                          </p>
+                        )}
                       </div>
                     ))}
                   </div>

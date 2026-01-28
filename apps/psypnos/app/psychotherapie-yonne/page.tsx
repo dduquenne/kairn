@@ -99,16 +99,24 @@ const benefits = [
   'Confidentialité et bienveillance',
 ];
 
-const testimonials = [
+const researchStats = [
   {
-    content: 'Après des mois de burn-out, j\'ai trouvé chez David Duquenne une écoute et un accompagnement qui m\'ont permis de me reconstruire. Le trajet depuis Auxerre en vaut vraiment la peine.',
-    author: 'Marie L.',
-    location: 'Auxerre',
+    stat: '75% d\'amélioration',
+    description: 'des patients montrent une amélioration significative après une psychothérapie, selon les méta-analyses de référence.',
+    source: 'Lambert & Ogles - Handbook of Psychotherapy',
+    sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/15796678/',
   },
   {
-    content: 'Un thérapeute à l\'écoute qui prend le temps de comprendre. Le cadre du Moulin d\'en Bas est apaisant et aide vraiment à se poser.',
-    author: 'Thomas R.',
-    location: 'Sens',
+    stat: 'Efficacité prouvée',
+    description: 'La psychothérapie est reconnue par l\'INSERM comme efficace pour la dépression, les troubles anxieux et le stress post-traumatique.',
+    source: 'INSERM - Expertise collective Psychothérapie',
+    sourceUrl: 'https://www.inserm.fr/expertise-collective/psychotherapie-trois-approches-evaluees/',
+  },
+  {
+    stat: 'Effets durables',
+    description: 'Les bénéfices de la psychothérapie se maintiennent dans le temps, avec moins de rechutes qu\'avec les traitements médicamenteux seuls.',
+    source: 'Hollon et al. - Archives of General Psychiatry',
+    sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/16061768/',
   },
 ];
 
@@ -143,7 +151,7 @@ export default function PsychotherapieYonnePage() {
       ]}
       mainContent={mainContent}
       benefits={benefits}
-      testimonials={testimonials}
+      researchStats={researchStats}
       practicalInfo={practicalInfo}
       relatedLinks={relatedLinks}
       schemaData={schemaData}

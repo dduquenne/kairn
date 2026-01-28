@@ -99,16 +99,24 @@ const benefits = [
   'Tarif solidaire possible',
 ];
 
-const testimonials = [
+const researchStats = [
   {
-    content: 'Le trajet depuis Auxerre est devenu mon rituel. Ce temps de route me permet de me préparer à la séance et de digérer ensuite. Le cadre du cabinet est vraiment ressourçant.',
-    author: 'Nathalie B.',
-    location: 'Auxerre',
+    stat: '75% d\'amélioration',
+    description: 'des patients montrent une amélioration significative après une psychothérapie, selon les méta-analyses de référence.',
+    source: 'Lambert & Ogles - Handbook of Psychotherapy',
+    sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/15796678/',
   },
   {
-    content: 'J\'ai choisi de consulter en dehors d\'Auxerre pour avoir un espace vraiment à moi, loin de mon quotidien. David m\'accompagne avec justesse depuis plus d\'un an.',
-    author: 'Marc S.',
-    location: 'Auxerre',
+    stat: 'Efficacité prouvée',
+    description: 'La psychothérapie est reconnue par l\'INSERM comme efficace pour la dépression, les troubles anxieux et le stress post-traumatique.',
+    source: 'INSERM - Expertise collective Psychothérapie',
+    sourceUrl: 'https://www.inserm.fr/expertise-collective/psychotherapie-trois-approches-evaluees/',
+  },
+  {
+    stat: 'Effets durables',
+    description: 'Les bénéfices de la psychothérapie se maintiennent dans le temps, avec moins de rechutes qu\'avec les traitements médicamenteux seuls.',
+    source: 'Hollon et al. - Archives of General Psychiatry',
+    sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/16061768/',
   },
 ];
 
@@ -141,7 +149,7 @@ export default function PsychotherapieAuxerrePage() {
       ]}
       mainContent={mainContent}
       benefits={benefits}
-      testimonials={testimonials}
+      researchStats={researchStats}
       practicalInfo={practicalInfo}
       relatedLinks={relatedLinks}
       schemaData={schemaData}

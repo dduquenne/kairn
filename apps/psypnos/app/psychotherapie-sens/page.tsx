@@ -100,16 +100,24 @@ const benefits = [
   'Tarif solidaire disponible',
 ];
 
-const testimonials = [
+const researchStats = [
   {
-    content: 'Entre Paris et Sens, j\'avais l\'impression de courir sans cesse. Les séances avec David m\'ont aidée à retrouver un équilibre et à prendre soin de moi.',
-    author: 'Sophie T.',
-    location: 'Sens',
+    stat: '75% d\'amélioration',
+    description: 'des patients montrent une amélioration significative après une psychothérapie, selon les méta-analyses de référence.',
+    source: 'Lambert & Ogles - Handbook of Psychotherapy',
+    sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/15796678/',
   },
   {
-    content: 'Le cadre du cabinet change de tout ce que je connais. C\'est un vrai moment de pause dans ma semaine. Je repars toujours plus serein.',
-    author: 'Antoine L.',
-    location: 'Paron',
+    stat: 'Efficacité prouvée',
+    description: 'La psychothérapie est reconnue par l\'INSERM comme efficace pour la dépression, les troubles anxieux et le stress post-traumatique.',
+    source: 'INSERM - Expertise collective Psychothérapie',
+    sourceUrl: 'https://www.inserm.fr/expertise-collective/psychotherapie-trois-approches-evaluees/',
+  },
+  {
+    stat: 'Effets durables',
+    description: 'Les bénéfices de la psychothérapie se maintiennent dans le temps, avec moins de rechutes qu\'avec les traitements médicamenteux seuls.',
+    source: 'Hollon et al. - Archives of General Psychiatry',
+    sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/16061768/',
   },
 ];
 
@@ -142,7 +150,7 @@ export default function PsychotherapieSensPage() {
       ]}
       mainContent={mainContent}
       benefits={benefits}
-      testimonials={testimonials}
+      researchStats={researchStats}
       practicalInfo={practicalInfo}
       relatedLinks={relatedLinks}
       schemaData={schemaData}

@@ -113,16 +113,24 @@ const benefits = [
   'Confidentialité totale',
 ];
 
-const testimonials = [
+const researchStats = [
   {
-    content: 'J\'ai arrêté de fumer après 3 séances d\'hypnose. Ça fait maintenant 8 mois et je n\'ai pas repris. Une vraie libération !',
-    author: 'Jean-Pierre M.',
-    location: 'Joigny',
+    stat: '93% de réussite',
+    description: 'pour l\'arrêt du tabac avec l\'hypnose, selon une étude comparant plusieurs méthodes de sevrage.',
+    source: 'Université de l\'Iowa - Journal of Applied Psychology',
+    sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/1398736/',
   },
   {
-    content: 'Mes crises d\'angoisse ont quasiment disparu. L\'hypnose m\'a permis de comprendre et de dépasser mes peurs.',
-    author: 'Émilie R.',
-    location: 'Sens',
+    stat: '+70% d\'efficacité',
+    description: 'lorsque l\'hypnose est combinée à d\'autres approches thérapeutiques par rapport aux thérapies seules.',
+    source: 'Kirsch et al. - Journal of Consulting and Clinical Psychology',
+    sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/7622856/',
+  },
+  {
+    stat: '75% des patients',
+    description: 'ressentent un soulagement significatif de la douleur grâce à l\'hypnose selon une méta-analyse.',
+    source: 'Montgomery et al. - International Journal of Clinical and Experimental Hypnosis',
+    sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/10769050/',
   },
 ];
 
@@ -157,7 +165,7 @@ export default function HypnoseYonnePage() {
       ]}
       mainContent={mainContent}
       benefits={benefits}
-      testimonials={testimonials}
+      researchStats={researchStats}
       practicalInfo={practicalInfo}
       relatedLinks={relatedLinks}
       schemaData={schemaData}

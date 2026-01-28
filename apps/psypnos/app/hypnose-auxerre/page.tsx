@@ -88,16 +88,24 @@ const benefits = [
   'Résultats souvent rapides',
 ];
 
-const testimonials = [
+const researchStats = [
   {
-    content: 'J\'ai arrêté de fumer après 2 séances d\'hypnose. Le trajet depuis Auxerre est devenu mon rituel de transition vers le changement.',
-    author: 'Patrick L.',
-    location: 'Auxerre',
+    stat: '93% de réussite',
+    description: 'pour l\'arrêt du tabac avec l\'hypnose, selon une étude comparant plusieurs méthodes de sevrage.',
+    source: 'Université de l\'Iowa - Journal of Applied Psychology',
+    sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/1398736/',
   },
   {
-    content: 'L\'hypnose m\'a aidée à gérer mon stress au travail. Le cadre du cabinet est vraiment apaisant, idéal pour se poser.',
-    author: 'Marine D.',
-    location: 'Auxerre',
+    stat: '+70% d\'efficacité',
+    description: 'lorsque l\'hypnose est combinée à d\'autres approches thérapeutiques par rapport aux thérapies seules.',
+    source: 'Kirsch et al. - Journal of Consulting and Clinical Psychology',
+    sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/7622856/',
+  },
+  {
+    stat: '75% des patients',
+    description: 'ressentent un soulagement significatif de la douleur grâce à l\'hypnose selon une méta-analyse.',
+    source: 'Montgomery et al. - International Journal of Clinical and Experimental Hypnosis',
+    sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/10769050/',
   },
 ];
 
@@ -127,7 +135,7 @@ export default function HypnoseAuxerrePage() {
       ]}
       mainContent={mainContent}
       benefits={benefits}
-      testimonials={testimonials}
+      researchStats={researchStats}
       practicalInfo={practicalInfo}
       relatedLinks={relatedLinks}
       schemaData={schemaData}

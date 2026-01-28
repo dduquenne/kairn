@@ -87,16 +87,24 @@ const benefits = [
   'Première séance découverte',
 ];
 
-const testimonials = [
+const researchStats = [
   {
-    content: 'J\'ai consulté pour mes insomnies. Après quelques séances, je dors enfin normalement. Le cadre du cabinet est vraiment propice à la détente.',
-    author: 'François G.',
-    location: 'Joigny',
+    stat: '93% de réussite',
+    description: 'pour l\'arrêt du tabac avec l\'hypnose, selon une étude comparant plusieurs méthodes de sevrage.',
+    source: 'Université de l\'Iowa - Journal of Applied Psychology',
+    sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/1398736/',
   },
   {
-    content: 'Ma phobie de conduire me gâchait la vie. L\'hypnose m\'a permis de reprendre le volant sereinement.',
-    author: 'Valérie B.',
-    location: 'Villecien',
+    stat: '+70% d\'efficacité',
+    description: 'lorsque l\'hypnose est combinée à d\'autres approches thérapeutiques par rapport aux thérapies seules.',
+    source: 'Kirsch et al. - Journal of Consulting and Clinical Psychology',
+    sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/7622856/',
+  },
+  {
+    stat: '75% des patients',
+    description: 'ressentent un soulagement significatif de la douleur grâce à l\'hypnose selon une méta-analyse.',
+    source: 'Montgomery et al. - International Journal of Clinical and Experimental Hypnosis',
+    sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/10769050/',
   },
 ];
 
@@ -126,7 +134,7 @@ export default function HypnoseJoignyPage() {
       ]}
       mainContent={mainContent}
       benefits={benefits}
-      testimonials={testimonials}
+      researchStats={researchStats}
       practicalInfo={practicalInfo}
       relatedLinks={relatedLinks}
       schemaData={schemaData}

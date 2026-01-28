@@ -93,16 +93,24 @@ const benefits = [
   'Résultats souvent rapides',
 ];
 
-const testimonials = [
+const researchStats = [
   {
-    content: 'Navetteur Sens-Paris, j\'étais au bord du burn-out. L\'hypnose m\'a aidé à retrouver un équilibre et à mieux gérer le stress.',
-    author: 'David M.',
-    location: 'Sens',
+    stat: '93% de réussite',
+    description: 'pour l\'arrêt du tabac avec l\'hypnose, selon une étude comparant plusieurs méthodes de sevrage.',
+    source: 'Université de l\'Iowa - Journal of Applied Psychology',
+    sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/1398736/',
   },
   {
-    content: 'Ma phobie de l\'avion m\'empêchait de voyager. Après quelques séances d\'hypnose, j\'ai pu partir en vacances sereinement.',
-    author: 'Céline T.',
-    location: 'Paron',
+    stat: '+70% d\'efficacité',
+    description: 'lorsque l\'hypnose est combinée à d\'autres approches thérapeutiques par rapport aux thérapies seules.',
+    source: 'Kirsch et al. - Journal of Consulting and Clinical Psychology',
+    sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/7622856/',
+  },
+  {
+    stat: '75% des patients',
+    description: 'ressentent un soulagement significatif de la douleur grâce à l\'hypnose selon une méta-analyse.',
+    source: 'Montgomery et al. - International Journal of Clinical and Experimental Hypnosis',
+    sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/10769050/',
   },
 ];
 
@@ -132,7 +140,7 @@ export default function HypnoseSensPage() {
       ]}
       mainContent={mainContent}
       benefits={benefits}
-      testimonials={testimonials}
+      researchStats={researchStats}
       practicalInfo={practicalInfo}
       relatedLinks={relatedLinks}
       schemaData={schemaData}
