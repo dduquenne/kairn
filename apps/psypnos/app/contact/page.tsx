@@ -6,9 +6,9 @@ import { Footer } from '@/components/Footer';
 import { NavigationMenu } from '@/components/NavigationMenu';
 
 export const metadata: Metadata = {
-  title: 'Contact & Accès | Psychothérapeute Saint-Julien-du-Sault',
+  title: 'Contact & Accès | Cabinet de psychothérapie à Saint-Julien-du-Sault',
   description:
-    "Contactez David Duquenne, psychothérapeute à Saint-Julien-du-Sault (89). Cabinet Le Moulin d'en Bas. Accès depuis Sens, Auxerre, Joigny, Paris. Formulaire de contact et itinéraires.",
+    "Contactez David Duquenne, cabient de psychothérapie à Saint-Julien-du-Sault (89). Le Moulin d'en Bas. Accès depuis Sens, Auxerre, Joigny, Paris. Formulaire de contact et itinéraires.",
   keywords: [
     'contact psychothérapeute Yonne',
     'cabinet psychothérapie Saint-Julien-du-Sault',
@@ -525,12 +525,12 @@ export default function ContactPage() {
           <section className="mt-16">
             <div className="border-ivory/10 bg-night/30 rounded-2xl border p-8">
               <h2 className="font-display text-gold-accessible mb-4 text-center text-2xl font-bold">
-                Psychothérapeute dans l&apos;Yonne
+                Cabinet de psychothérapie dans l&apos;Yonne
               </h2>
               <p className="text-ivory/70 mx-auto mb-8 max-w-3xl text-center">
-                Le cabinet Psypnos accueille des patients de toute l&apos;Yonne et des départements
-                limitrophes. Que vous habitiez à Auxerre, Sens, Joigny, Migennes ou ailleurs en
-                Bourgogne, je suis à votre écoute pour vous accompagner.
+                J'accueille des patients de toute l&apos;Yonne et des départements limitrophes. Que
+                vous habitiez à Auxerre, Sens, Joigny, Migennes ou ailleurs en Bourgogne, je suis à
+                votre écoute pour vous accompagner.
               </p>
 
               <div className="flex flex-wrap justify-center gap-3">

@@ -1,31 +1,40 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { motion } from 'framer-motion';
+import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 
 interface BlogHeaderProps {
   showBackButton?: boolean;
-  currentPage?: "list" | "article";
+  currentPage?: 'list' | 'article';
   showBorder?: boolean;
 }
 
-export function BlogHeader({ showBackButton = false, currentPage = "list", showBorder = false }: BlogHeaderProps) {
+export function BlogHeader({
+  showBackButton = false,
+  currentPage = 'list',
+  showBorder = false,
+}: BlogHeaderProps) {
   return (
     <motion.header
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className={`sticky top-0 z-40 bg-gradient-to-r from-night via-night to-night/95 backdrop-blur-md shadow-lg shadow-night/50 ${
-        showBorder ? "border-b border-gold/20" : ""
+      transition={{ duration: 0.5, ease: 'easeOut' }}
+      className={`from-night via-night to-night/95 shadow-night/50 sticky top-0 z-40 bg-gradient-to-r shadow-lg backdrop-blur-md ${
+        showBorder ? 'border-gold/20 border-b' : ''
       }`}
     >
       <div className="mx-auto max-w-7xl px-6 py-2 sm:px-10 lg:px-16">
         <div className="flex items-center justify-between gap-8">
           {/* Gauche: Logo + Texte */}
-          <Link href="/" className={`flex items-center gap-4 min-w-0 group rounded-lg ${
-            showBorder ? "focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-night" : ""
-          }`}>
+          <Link
+            href="/"
+            className={`group flex min-w-0 items-center gap-4 rounded-lg ${
+              showBorder
+                ? 'focus:ring-gold focus:ring-offset-night focus:outline-none focus:ring-2 focus:ring-offset-2'
+                : ''
+            }`}
+          >
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -33,10 +42,12 @@ export function BlogHeader({ showBackButton = false, currentPage = "list", showB
             >
               <img
                 src="/images/David_Duquenne.webp"
-                alt="David Duquenne - Psychothérapeute"
-                className="h-24 w-24 fade-mask transition-transform duration-300 group-hover:scale-105"
+                alt="David Duquenne - Psychopatricien"
+                className="fade-mask h-24 w-24 transition-transform duration-300 group-hover:scale-105"
               />
-              <h2 className="text-sm text-gold font-medium transition-colors group-hover:text-gold/80">David Duquenne</h2>
+              <h2 className="text-gold group-hover:text-gold/80 text-sm font-medium transition-colors">
+                David Duquenne
+              </h2>
             </motion.div>
             <motion.div
               initial={{ opacity: 0, x: -10 }}
@@ -44,11 +55,12 @@ export function BlogHeader({ showBackButton = false, currentPage = "list", showB
               transition={{ duration: 0.5, delay: 0.2 }}
               className="hidden sm:block"
             >
-              <h1 className="text-4xl sm:text-4xl lg:text-2xl text-lg font-semibold text-ivory leading-tight transition-colors group-hover:text-gold">
+              <h1 className="text-ivory group-hover:text-gold text-4xl text-lg font-semibold leading-tight transition-colors sm:text-4xl lg:text-2xl">
                 Accueillir ce qui est. Explorer ce qui vient.
               </h1>
-              <p className="text-xs text-ivory/70 mt-1">
-                Traversez les crises, réveillez votre sagesse intérieure et redonnez du sens à votre vie.
+              <p className="text-ivory/70 mt-1 text-xs">
+                Traversez les crises, réveillez votre sagesse intérieure et redonnez du sens à votre
+                vie.
               </p>
             </motion.div>
           </Link>
@@ -58,8 +70,10 @@ export function BlogHeader({ showBackButton = false, currentPage = "list", showB
             {showBackButton ? (
               <Link
                 href="/blog"
-                className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-ivory/70 transition hover:bg-gold/10 hover:text-gold ${
-                  showBorder ? "focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-night" : ""
+                className={`text-ivory/70 hover:bg-gold/10 hover:text-gold inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
+                  showBorder
+                    ? 'focus:ring-gold focus:ring-offset-night focus:outline-none focus:ring-2 focus:ring-offset-2'
+                    : ''
                 }`}
                 title="Retour aux articles"
               >
@@ -68,8 +82,10 @@ export function BlogHeader({ showBackButton = false, currentPage = "list", showB
             ) : (
               <Link
                 href="/"
-                className={`text-lg font-semibold text-gold transition hover:text-gold/80 rounded ${
-                  showBorder ? "focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-night" : ""
+                className={`text-gold hover:text-gold/80 rounded text-lg font-semibold transition ${
+                  showBorder
+                    ? 'focus:ring-gold focus:ring-offset-night focus:outline-none focus:ring-2 focus:ring-offset-2'
+                    : ''
                 }`}
                 title="Retour à l'accueil"
               >
@@ -83,14 +99,16 @@ export function BlogHeader({ showBackButton = false, currentPage = "list", showB
             initial={{ opacity: 0, x: 10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="hidden sm:flex items-center gap-4 flex-shrink-0"
+            className="hidden flex-shrink-0 items-center gap-4 sm:flex"
           >
             {/* Navigation */}
-            {showBackButton && currentPage === "article" && (
+            {showBackButton && currentPage === 'article' && (
               <Link
                 href="/blog"
-                className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-ivory/70 transition hover:bg-gold/10 hover:text-gold ${
-                  showBorder ? "focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-night" : ""
+                className={`text-ivory/70 hover:bg-gold/10 hover:text-gold inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition ${
+                  showBorder
+                    ? 'focus:ring-gold focus:ring-offset-night focus:outline-none focus:ring-2 focus:ring-offset-2'
+                    : ''
                 }`}
                 title="Retour aux articles"
               >
@@ -101,8 +119,10 @@ export function BlogHeader({ showBackButton = false, currentPage = "list", showB
             {!showBackButton && (
               <Link
                 href="/"
-                className={`text-sm font-semibold text-ivory/70 transition hover:text-gold rounded ${
-                  showBorder ? "focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-night" : ""
+                className={`text-ivory/70 hover:text-gold rounded text-sm font-semibold transition ${
+                  showBorder
+                    ? 'focus:ring-gold focus:ring-offset-night focus:outline-none focus:ring-2 focus:ring-offset-2'
+                    : ''
                 }`}
                 title="Retour à l'accueil"
               >
@@ -111,16 +131,18 @@ export function BlogHeader({ showBackButton = false, currentPage = "list", showB
             )}
 
             {/* CTA Buttons */}
-            <div className={`flex items-center gap-2 pl-4 ${showBorder ? "border-l border-gold/20" : ""}`}>
+            <div
+              className={`flex items-center gap-2 pl-4 ${showBorder ? 'border-gold/20 border-l' : ''}`}
+            >
               <Link
                 href="/demande-rendez-vous"
-                className="rounded-lg bg-gold/20 px-4 py-2 text-sm font-medium text-gold transition hover:bg-gold/30 focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-night"
+                className="bg-gold/20 text-gold hover:bg-gold/30 focus:ring-gold focus:ring-offset-night rounded-lg px-4 py-2 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2"
               >
                 Rendez-vous
               </Link>
               <Link
                 href="/inscription-seminaire"
-                className="rounded-lg bg-gold/10 px-4 py-2 text-sm font-medium text-gold transition hover:bg-gold/20 focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-night"
+                className="bg-gold/10 text-gold hover:bg-gold/20 focus:ring-gold focus:ring-offset-night rounded-lg px-4 py-2 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2"
               >
                 Séminaire
               </Link>
@@ -129,16 +151,16 @@ export function BlogHeader({ showBackButton = false, currentPage = "list", showB
         </div>
 
         {/* Mobile CTA Buttons */}
-        <div className="sm:hidden flex gap-2 mt-2">
+        <div className="mt-2 flex gap-2 sm:hidden">
           <Link
             href="/demande-rendez-vous"
-            className="flex-1 rounded-lg bg-gold/20 px-3 py-2 text-xs font-medium text-gold text-center transition hover:bg-gold/30 focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-night"
+            className="bg-gold/20 text-gold hover:bg-gold/30 focus:ring-gold focus:ring-offset-night flex-1 rounded-lg px-3 py-2 text-center text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2"
           >
             RDV
           </Link>
           <Link
             href="/inscription-seminaire"
-            className="flex-1 rounded-lg bg-gold/10 px-3 py-2 text-xs font-medium text-gold text-center transition hover:bg-gold/20 focus:outline-none focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:ring-offset-night"
+            className="bg-gold/10 text-gold hover:bg-gold/20 focus:ring-gold focus:ring-offset-night flex-1 rounded-lg px-3 py-2 text-center text-xs font-medium transition focus:outline-none focus:ring-2 focus:ring-offset-2"
           >
             Séminaire
           </Link>

@@ -73,8 +73,7 @@ export function AProposContent() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              David Duquenne - Psychothérapeute certifié dans{' '}
-              <span className="text-gold">l'Yonne</span>
+              David Duquenne - <span className="text-gold">Psychothérapie & Hypnose</span>
             </motion.h1>
             <motion.p
               className="text-ivory/80 mb-8 text-lg sm:text-xl"

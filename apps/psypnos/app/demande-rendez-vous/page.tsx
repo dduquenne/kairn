@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic';
 export const metadata: Metadata = {
   title: 'Demande de Rendez-vous',
   description:
-    'Prenez rendez-vous avec David Duquenne, psychothérapeute. Séances en cabinet (Yonne 89) ou visio.',
+    'Prenez rendez-vous avec David Duquenne, thérapeute. Séances en cabinet (Yonne 89) ou visio.',
   openGraph: {
     title: 'Prendre Rendez-vous | Psypnos',
     description: 'Réservez votre séance de psychothérapie ou hypnose avec David Duquenne.',

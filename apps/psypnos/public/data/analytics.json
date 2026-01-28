@@ -26,7 +26,24 @@
     }
   ],
   "sectionTimes": [],
-  "conversionEvents": [],
+  "conversionEvents": [
+    {
+      "timestamp": "2026-01-28T16:56:51.878Z",
+      "sessionId": "session_1765187717275_wlghq1oly",
+      "eventType": "fab_click",
+      "stepName": "contact_modal_opened",
+      "completed": false,
+      "id": "ce_1769619411935_jknkt5hf2"
+    },
+    {
+      "timestamp": "2026-01-28T16:56:57.071Z",
+      "sessionId": "session_1765187717275_wlghq1oly",
+      "eventType": "fab_click",
+      "stepName": "contact_modal_opened",
+      "completed": false,
+      "id": "ce_1769619417099_cuny9105r"
+    }
+  ],
   "customEvents": [
     {
       "id": "evt_1769608782858_h5rvnylfv",
@@ -118,13 +135,13 @@
       "label": "/psychotherapie"
     },
     {
+      "id": "evt_1769614667244_x77qflo1v",
       "timestamp": "2026-01-28T15:37:25.124Z",
       "sessionId": "ses_mky6fe7c_mbw7wan9c_bd3m",
       "category": "Engagement",
       "action": "page_exit",
       "label": "/psychotherapie",
-      "metadata": {},
-      "id": "evt_1769614667244_x77qflo1v"
+      "metadata": {}
     }
   ],
   "goals": [],

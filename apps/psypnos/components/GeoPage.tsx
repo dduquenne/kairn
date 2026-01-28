@@ -1,6 +1,6 @@
 /**
  * Composant template pour les pages géolocalisées SEO
- * Utilisé pour les pages psychothérapeute-[ville], hypnose-[ville], etc.
+ * Utilisé pour les pages psychothérapie-[ville], hypnose-[ville], etc.
  */
 import Link from 'next/link';
 

@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
-import { AProposContent } from "./AProposContent";
+import type { Metadata } from 'next';
+
+import { AProposContent } from './AProposContent';
 
 // SEO : ISR avec revalidation toutes les 24h pour un meilleur référencement
 export const revalidate = 86400;
@@ -8,45 +9,48 @@ export const revalidate = 86400;
  * Métadonnées SEO optimisées pour la page biographique
  */
 export const metadata: Metadata = {
-  title: "À propos - David Duquenne, Psychothérapeute & Hypnothérapeute",
-  description: "Découvrez le parcours de David Duquenne : de l'angoisse existentielle au burn-out jusqu'à l'accompagnement thérapeutique. Une histoire de transformation profonde au service de ceux qui traversent des crises de vie et recherchent du sens.",
+  title: 'À propos - David Duquenne, Psychothérapie & Hypnose',
+  description:
+    "Découvrez le parcours de David Duquenne : de l'angoisse existentielle au burn-out jusqu'à l'accompagnement thérapeutique. Une histoire de transformation profonde au service de ceux qui traversent des crises de vie et recherchent du sens.",
   keywords: [
-    "David Duquenne",
-    "biographie psychothérapeute",
-    "parcours hypnothérapeute",
-    "burn-out transformation",
-    "psychothérapie transpersonnelle",
-    "respiration holotropique",
-    "accompagnement fin de vie",
-    "JALMAV",
-    "crise existentielle",
-    "quête de sens",
-    "hypnose ericksonienne formation",
-    "Psypnos histoire",
-    "Saint-Julien-du-Sault psychothérapeute"
+    'David Duquenne',
+    'biographie psychothérapeute',
+    'parcours hypnothérapeute',
+    'burn-out transformation',
+    'psychothérapie transpersonnelle',
+    'respiration holotropique',
+    'accompagnement fin de vie',
+    'JALMAV',
+    'crise existentielle',
+    'quête de sens',
+    'hypnose ericksonienne formation',
+    'Psypnos histoire',
+    'Saint-Julien-du-Sault psychothérapeute',
   ],
   openGraph: {
     title: "Un chemin vers l'essentiel - L'histoire de David Duquenne",
-    description: "De l'effondrement à la renaissance : le parcours inspirant d'un psychothérapeute qui a transformé ses blessures en outils d'accompagnement. Découvrez une histoire humaine au service du sens.",
-    type: "profile",
-    url: "https://psypnos.fr/a-propos",
+    description:
+      "De l'effondrement à la renaissance : le parcours inspirant d'un thérapeute qui a transformé ses blessures en outils d'accompagnement. Découvrez une histoire humaine au service du sens.",
+    type: 'profile',
+    url: 'https://psypnos.fr/a-propos',
     images: [
       {
-        url: "https://psypnos.fr/images/David_Duquenne.webp",
+        url: 'https://psypnos.fr/images/David_Duquenne.webp',
         width: 1029,
         height: 973,
-        alt: "David Duquenne - Psychothérapeute et Hypnothérapeute",
+        alt: 'David Duquenne - Psychothérapie et Hypnose',
       },
     ],
   },
   twitter: {
-    card: "summary_large_image",
+    card: 'summary_large_image',
     title: "Un chemin vers l'essentiel - David Duquenne",
-    description: "Découvrez le parcours inspirant d'un psychothérapeute qui a transformé ses épreuves en accompagnement thérapeutique au service du sens.",
-    images: ["https://psypnos.fr/images/David_Duquenne.webp"],
+    description:
+      "Découvrez le parcours inspirant d'un thérapeute qui a transformé ses épreuves en accompagnement thérapeutique au service du sens.",
+    images: ['https://psypnos.fr/images/David_Duquenne.webp'],
   },
   alternates: {
-    canonical: "https://psypnos.fr/a-propos",
+    canonical: 'https://psypnos.fr/a-propos',
   },
   robots: {
     index: true,
@@ -73,8 +77,9 @@ function getJsonLd() {
         '@type': 'ProfilePage',
         '@id': 'https://psypnos.fr/a-propos#webpage',
         url: 'https://psypnos.fr/a-propos',
-        name: 'À propos - David Duquenne, Psychothérapeute & Hypnothérapeute',
-        description: 'Découvrez le parcours de David Duquenne : de l\'angoisse existentielle au burn-out jusqu\'à l\'accompagnement thérapeutique.',
+        name: 'À propos - David Duquenne, Psychothérapie & Hypnose',
+        description:
+          "Découvrez le parcours de David Duquenne : de l'angoisse existentielle au burn-out jusqu'à l'accompagnement thérapeutique.",
         isPartOf: {
           '@id': 'https://psypnos.fr/#website',
         },
@@ -108,19 +113,18 @@ function getJsonLd() {
         name: 'David Duquenne',
         givenName: 'David',
         familyName: 'Duquenne',
-        jobTitle: 'Psychothérapeute et Hypnothérapeute',
-        description: 'Thérapeute spécialisé en psychothérapie transpersonnelle et hypnose ericksonienne. Accompagnement des crises de vie, burn-out, deuil et quête de sens.',
+        jobTitle: 'Psychothérapie et Hypnose',
+        description:
+          'Thérapeute spécialisé en psychothérapie transpersonnelle et hypnose ericksonienne. Accompagnement des crises de vie, burn-out, deuil et quête de sens.',
         url: 'https://psypnos.fr/a-propos',
         image: {
           '@type': 'ImageObject',
           url: 'https://psypnos.fr/images/David_Duquenne.webp',
           width: 1029,
           height: 973,
-          caption: 'David Duquenne - Psychothérapeute et Hypnothérapeute',
+          caption: 'David Duquenne - Psychothérapie et Hypnose',
         },
-        sameAs: [
-          'https://psypnos.fr',
-        ],
+        sameAs: ['https://psypnos.fr'],
         worksFor: {
           '@type': 'MedicalBusiness',
           '@id': 'https://psypnos.fr/#organization',
@@ -147,7 +151,7 @@ function getJsonLd() {
           {
             '@type': 'Organization',
             name: 'JALMAV',
-            description: 'Association d\'accompagnement en soins palliatifs',
+            description: "Association d'accompagnement en soins palliatifs",
           },
         ],
       },

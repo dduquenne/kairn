@@ -17,8 +17,8 @@ export const siteConfig = defineSiteConfig({
   // Praticien
   practitioner: {
     name: 'David Duquenne',
-    title: 'Psychothérapeute',
-    bio: `David Duquenne est psychothérapeute et praticien en hypnose ericksonienne,
+    title: 'Psychopraticien',
+    bio: `David Duquenne est thérapeute et praticien en psychothérapie transpersonnelle et en hypnose ericksonienne,
 spécialisé dans l'accompagnement des crises de vie, de l'anxiété, du deuil et du burn-out.
 Installé à Saint-Julien-du-Sault dans l'Yonne, il propose également des séminaires
 de respiration holotropique pour une approche thérapeutique globale et profonde.
@@ -51,7 +51,7 @@ ses patients avec bienveillance et professionnalisme dans leur cheminement perso
   contact: {
     email: 'contact@psypnos.fr',
     address: {
-      street: 'Le Moulin d\'en Bas',
+      street: "Le Moulin d'en Bas",
       city: 'Saint-Julien-du-Sault',
       postalCode: '89330',
       country: 'France',
@@ -76,7 +76,8 @@ ses patients avec bienveillance et professionnalisme dans leur cheminement perso
       id: 'psychotherapie',
       name: 'Psychothérapie',
       slug: 'psychotherapie',
-      shortDescription: 'Accompagnement thérapeutique pour traverser les crises de vie, l\'anxiété, le deuil et le burn-out.',
+      shortDescription:
+        "Accompagnement thérapeutique pour traverser les crises de vie, l'anxiété, le deuil et le burn-out.",
       icon: 'Brain',
       enabled: true,
       order: 1,
@@ -85,7 +86,8 @@ ses patients avec bienveillance et professionnalisme dans leur cheminement perso
       id: 'hypnose',
       name: 'Hypnose Ericksonienne',
       slug: 'hypnose',
-      shortDescription: 'Technique thérapeutique douce pour accéder aux ressources de l\'inconscient.',
+      shortDescription:
+        "Technique thérapeutique douce pour accéder aux ressources de l'inconscient.",
       icon: 'Sparkles',
       enabled: true,
       order: 2,
@@ -94,7 +96,8 @@ ses patients avec bienveillance et professionnalisme dans leur cheminement perso
       id: 'respiration-holotropique',
       name: 'Respiration Holotropique',
       slug: 'respiration-holotropique',
-      shortDescription: 'Séminaires de respiration pour un travail thérapeutique profond en groupe.',
+      shortDescription:
+        'Séminaires de respiration pour un travail thérapeutique profond en groupe.',
       icon: 'Wind',
       enabled: true,
       order: 3,
@@ -115,9 +118,11 @@ ses patients avec bienveillance et professionnalisme dans leur cheminement perso
 
   // SEO
   seo: {
-    defaultTitle: 'Psypnos - Psychothérapie, Hypnose & Respiration Holotropique | Saint-Julien-du-Sault, Yonne',
+    defaultTitle:
+      'Psypnos - Psychothérapie, Hypnose & Respiration Holotropique | Saint-Julien-du-Sault, Yonne',
     titleTemplate: '%s | Psypnos',
-    description: 'David Duquenne, psychothérapeute et praticien en hypnose ericksonienne. Accompagnement des crises de vie, anxiété, deuil, burn-out à Saint-Julien-du-Sault (89).',
+    description:
+      'David Duquenne, thérapeute et praticien en psychothérapie transpersonnelle et en hypnose ericksonienne. Accompagnement des crises de vie, anxiété, deuil, burn-out à Saint-Julien-du-Sault (89).',
     keywords: [
       'psychothérapie',
       'hypnose ericksonienne',
@@ -171,11 +176,11 @@ ses patients avec bienveillance et professionnalisme dans leur cheminement perso
   // Thème visuel (référence theme.config.ts pour les détails)
   theme: {
     colors: {
-      primary: '#c7a962',      // Gold
-      secondary: '#0e1f2f',    // Night
-      accent: '#f0d9a3',       // Gold light
-      background: '#0e1f2f',   // Night
-      foreground: '#f5f1e6',   // Ivory
+      primary: '#c7a962', // Gold
+      secondary: '#0e1f2f', // Night
+      accent: '#f0d9a3', // Gold light
+      background: '#0e1f2f', // Night
+      foreground: '#f5f1e6', // Ivory
       muted: '#b0b0b0',
       success: '#10b981',
       warning: '#f97316',

@@ -3,6 +3,7 @@
  * Contient les informations de localisation, horaires et zone desservie
  */
 import Link from 'next/link';
+
 import { CurrentYear } from './CurrentYear';
 import { SocialLinks } from './SocialLinks';
 
@@ -32,21 +33,6 @@ const ClockIcon = () => (
     <path
       fillRule="evenodd"
       d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 000-1.5h-3.75V6z"
-      clipRule="evenodd"
-    />
-  </svg>
-);
-
-const PhoneIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    className="h-5 w-5"
-  >
-    <path
-      fillRule="evenodd"
-      d="M1.5 4.5a3 3 0 013-3h1.372c.86 0 1.61.586 1.819 1.42l1.105 4.423a1.875 1.875 0 01-.694 1.955l-1.293.97c-.135.101-.164.249-.126.352a11.285 11.285 0 006.697 6.697c.103.038.25.009.352-.126l.97-1.293a1.875 1.875 0 011.955-.694l4.423 1.105c.834.209 1.42.959 1.42 1.82V19.5a3 3 0 01-3 3h-2.25C8.552 22.5 1.5 15.448 1.5 6.75V4.5z"
       clipRule="evenodd"
     />
   </svg>
@@ -84,14 +70,6 @@ const ExternalLinkIcon = () => (
   </svg>
 );
 
-// Villes desservies pour le SEO local
-const CITIES_SERVED = [
-  { name: 'Auxerre', href: '/psychotherapie-auxerre' },
-  { name: 'Sens', href: '/psychotherapie-sens' },
-  { name: 'Joigny', href: '/psychotherapie-joigny' },
-  { name: 'Migennes', href: '/psychotherapie-migennes' },
-];
-
 // Liens rapides vers les services
 const SERVICE_LINKS = [
   { name: 'Psychothérapie', href: '/psychotherapie' },
@@ -102,7 +80,7 @@ const SERVICE_LINKS = [
 
 // Liens légaux
 const LEGAL_LINKS = [
-  { name: 'Conditions d\'utilisation', href: '/conditions-utilisation' },
+  { name: "Conditions d'utilisation", href: '/conditions-utilisation' },
   { name: 'Politique de confidentialité', href: '/politique-de-confidentialite' },
 ];
 
@@ -170,11 +148,9 @@ export function Footer() {
                   <span className="text-ivory">Lundi - Vendredi :</span> 9h - 19h
                 </p>
                 <p>
-                  <span className="text-ivory">Samedi :</span> 9h - 17h
+                  <span className="text-ivory">Samedi :</span> 9h - 12h
                 </p>
-                <p className="text-ivory-muted mt-2 text-xs">
-                  Sur rendez-vous uniquement
-                </p>
+                <p className="text-ivory-muted mt-2 text-xs">Sur rendez-vous uniquement</p>
               </div>
             </div>
 
@@ -192,31 +168,48 @@ export function Footer() {
             <h3 className="font-display text-gold-accessible text-lg font-semibold">
               Zone desservie
             </h3>
-            <p className="text-ivory-muted text-sm">
-              Au service de l&apos;Yonne : Auxerre, Sens, Joigny, Migennes
-            </p>
-            <ul className="space-y-2">
-              {CITIES_SERVED.map(city => (
-                <li key={city.href}>
-                  <Link
-                    href={city.href}
-                    className="text-ivory hover:text-gold-accessible flex items-center gap-2 text-sm transition-colors"
-                  >
-                    <span className="bg-gold/20 h-1.5 w-1.5 rounded-full" />
-                    Psychothérapie {city.name}
-                  </Link>
-                </li>
-              ))}
-              <li>
+            <p className="text-ivory-muted text-sm">Au service de l&apos;Yonne :</p>
+
+            {/* Services psychothérapie */}
+            <div className="border-ivory/10 mt-4 border-t pt-4">
+              <p className="text-ivory-muted mb-2 text-xs">Psychothérapie</p>
+              <div className="flex flex-wrap gap-2">
                 <Link
                   href="/psychotherapie-yonne"
-                  className="text-ivory hover:text-gold-accessible flex items-center gap-2 text-sm transition-colors"
+                  className="bg-ivory/5 text-ivory-muted hover:text-gold-accessible rounded px-2 py-1 text-xs transition-colors"
                 >
-                  <span className="bg-gold/20 h-1.5 w-1.5 rounded-full" />
-                  Toute l&apos;Yonne (89)
+                  Yonne
                 </Link>
-              </li>
-            </ul>
+
+                <Link
+                  href="/psychotherapie-joigny"
+                  className="bg-ivory/5 text-ivory-muted hover:text-gold-accessible rounded px-2 py-1 text-xs transition-colors"
+                >
+                  Joigny
+                </Link>
+
+                <Link
+                  href="/psychotherapie-migennes"
+                  className="bg-ivory/5 text-ivory-muted hover:text-gold-accessible rounded px-2 py-1 text-xs transition-colors"
+                >
+                  Migennes
+                </Link>
+
+                <Link
+                  href="/psychotherapie-sens"
+                  className="bg-ivory/5 text-ivory-muted hover:text-gold-accessible rounded px-2 py-1 text-xs transition-colors"
+                >
+                  Sens
+                </Link>
+
+                <Link
+                  href="/psychotherapie-auxerre"
+                  className="bg-ivory/5 text-ivory-muted hover:text-gold-accessible rounded px-2 py-1 text-xs transition-colors"
+                >
+                  Auxerre
+                </Link>
+              </div>
+            </div>
 
             {/* Services hypnose */}
             <div className="border-ivory/10 mt-4 border-t pt-4">
@@ -229,10 +222,16 @@ export function Footer() {
                   Yonne
                 </Link>
                 <Link
-                  href="/hypnose-auxerre"
+                  href="/hypnose-joigny"
                   className="bg-ivory/5 text-ivory-muted hover:text-gold-accessible rounded px-2 py-1 text-xs transition-colors"
                 >
-                  Auxerre
+                  Joigny
+                </Link>
+                <Link
+                  href="/hypnose-migennes"
+                  className="bg-ivory/5 text-ivory-muted hover:text-gold-accessible rounded px-2 py-1 text-xs transition-colors"
+                >
+                  Migennes
                 </Link>
                 <Link
                   href="/hypnose-sens"
@@ -240,15 +239,19 @@ export function Footer() {
                 >
                   Sens
                 </Link>
+                <Link
+                  href="/hypnose-auxerre"
+                  className="bg-ivory/5 text-ivory-muted hover:text-gold-accessible rounded px-2 py-1 text-xs transition-colors"
+                >
+                  Auxerre
+                </Link>
               </div>
             </div>
           </div>
 
           {/* Colonne 4 : Navigation et social */}
           <div className="space-y-4">
-            <h3 className="font-display text-gold-accessible text-lg font-semibold">
-              Navigation
-            </h3>
+            <h3 className="font-display text-gold-accessible text-lg font-semibold">Navigation</h3>
             <ul className="space-y-2">
               {SERVICE_LINKS.map(link => (
                 <li key={link.href}>
@@ -288,9 +291,7 @@ export function Footer() {
               <p>
                 © <CurrentYear /> Psypnos - David Duquenne. Tous droits réservés.
               </p>
-              <p className="mt-1">
-                Thérapeute à Saint-Julien-du-Sault • Yonne (89) • Bourgogne
-              </p>
+              <p className="mt-1">Thérapeute à Saint-Julien-du-Sault • Yonne (89) • Bourgogne</p>
             </div>
 
             {/* Liens légaux */}
@@ -303,9 +304,7 @@ export function Footer() {
                   >
                     {link.name}
                   </Link>
-                  {index < LEGAL_LINKS.length - 1 && (
-                    <span className="text-ivory/20">|</span>
-                  )}
+                  {index < LEGAL_LINKS.length - 1 && <span className="text-ivory/20">|</span>}
                 </span>
               ))}
               <span className="text-ivory/20 hidden md:inline">|</span>
