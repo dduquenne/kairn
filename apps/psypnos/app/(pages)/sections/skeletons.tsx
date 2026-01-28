@@ -1,4 +1,4 @@
-import { Skeleton } from "../../../components/ui/skeleton";
+import { Skeleton } from '../../../components/ui/skeleton';
 
 export function SectionSkeleton() {
   return (
@@ -6,19 +6,19 @@ export function SectionSkeleton() {
       <div className="mx-auto max-w-6xl space-y-12">
         {/* Title skeleton */}
         <div className="space-y-4 text-center">
-          <Skeleton className="mx-auto h-4 w-32 bg-night/40" />
-          <Skeleton className="mx-auto h-10 w-96 bg-night/40" />
-          <Skeleton className="mx-auto h-20 w-full max-w-3xl bg-night/40" />
+          <Skeleton className="bg-night/40 mx-auto h-4 w-32" />
+          <Skeleton className="bg-night/40 mx-auto h-10 w-96" />
+          <Skeleton className="bg-night/40 mx-auto h-20 w-full max-w-3xl" />
         </div>
 
         {/* Content skeleton */}
         <div className="grid gap-8 md:grid-cols-3">
           {Array.from({ length: 3 }).map((_, index) => (
-            <div key={index} className="rounded-3xl border border-ivory/10 bg-night/40 p-8">
-              <Skeleton className="h-48 w-full bg-night/60" />
+            <div key={index} className="border-ivory/10 bg-night/40 rounded-3xl border p-8">
+              <Skeleton className="bg-night/60 h-48 w-full" />
               <div className="mt-6 space-y-3">
-                <Skeleton className="h-6 w-full bg-night/60" />
-                <Skeleton className="h-4 w-3/4 bg-night/60" />
+                <Skeleton className="bg-night/60 h-6 w-full" />
+                <Skeleton className="bg-night/60 h-4 w-3/4" />
               </div>
             </div>
           ))}
@@ -33,16 +33,16 @@ export function ApproachSectionSkeleton() {
     <section className="px-6 py-20 sm:px-10 lg:px-16">
       <div className="mx-auto max-w-6xl space-y-12">
         <div className="space-y-4 text-center">
-          <Skeleton className="mx-auto h-4 w-32 bg-night/40" />
-          <Skeleton className="mx-auto h-10 w-96 bg-night/40" />
-          <Skeleton className="mx-auto h-20 w-full max-w-3xl bg-night/40" />
+          <Skeleton className="bg-night/40 mx-auto h-4 w-32" />
+          <Skeleton className="bg-night/40 mx-auto h-10 w-96" />
+          <Skeleton className="bg-night/40 mx-auto h-20 w-full max-w-3xl" />
         </div>
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, index) => (
-            <div key={index} className="rounded-3xl border border-ivory/10 bg-night/40 p-6">
-              <Skeleton className="mx-auto h-16 w-16 rounded-full bg-night/60" />
-              <Skeleton className="mx-auto mt-4 h-6 w-32 bg-night/60" />
-              <Skeleton className="mt-4 h-24 w-full bg-night/60" />
+            <div key={index} className="border-ivory/10 bg-night/40 rounded-3xl border p-6">
+              <Skeleton className="bg-night/60 mx-auto h-16 w-16 rounded-full" />
+              <Skeleton className="bg-night/60 mx-auto mt-4 h-6 w-32" />
+              <Skeleton className="bg-night/60 mt-4 h-24 w-full" />
             </div>
           ))}
         </div>
@@ -56,15 +56,15 @@ export function JourneySectionSkeleton() {
     <section className="px-6 py-20 sm:px-10 lg:px-16">
       <div className="mx-auto max-w-6xl space-y-12">
         <div className="space-y-4 text-center">
-          <Skeleton className="mx-auto h-4 w-32 bg-night/40" />
-          <Skeleton className="mx-auto h-10 w-96 bg-night/40" />
+          <Skeleton className="bg-night/40 mx-auto h-4 w-32" />
+          <Skeleton className="bg-night/40 mx-auto h-10 w-96" />
         </div>
         <div className="grid gap-8 md:grid-cols-3">
           {Array.from({ length: 3 }).map((_, index) => (
             <div key={index} className="text-center">
-              <Skeleton className="mx-auto h-20 w-20 rounded-full bg-night/60" />
-              <Skeleton className="mx-auto mt-4 h-6 w-48 bg-night/60" />
-              <Skeleton className="mx-auto mt-2 h-16 w-full bg-night/60" />
+              <Skeleton className="bg-night/60 mx-auto h-20 w-20 rounded-full" />
+              <Skeleton className="bg-night/60 mx-auto mt-4 h-6 w-48" />
+              <Skeleton className="bg-night/60 mx-auto mt-2 h-16 w-full" />
             </div>
           ))}
         </div>
@@ -79,20 +79,20 @@ export function PricingSectionSkeleton() {
       <div className="mx-auto max-w-6xl space-y-10 lg:grid lg:grid-cols-2 lg:items-start lg:gap-10">
         <div className="space-y-6">
           <div className="space-y-4">
-            <Skeleton className="h-4 w-28 bg-night/40" />
-            <Skeleton className="h-10 w-72 bg-night/40" />
-            <Skeleton className="h-16 w-full bg-night/40" />
+            <Skeleton className="bg-night/40 h-4 w-28" />
+            <Skeleton className="bg-night/40 h-10 w-72" />
+            <Skeleton className="bg-night/40 h-16 w-full" />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Skeleton className="h-32 w-full rounded-3xl bg-night/50" />
-            <Skeleton className="h-32 w-full rounded-3xl bg-night/50" />
+            <Skeleton className="bg-night/50 h-32 w-full rounded-3xl" />
+            <Skeleton className="bg-night/50 h-32 w-full rounded-3xl" />
           </div>
-          <Skeleton className="h-24 w-full rounded-3xl bg-night/50" />
-          <Skeleton className="h-12 w-48 rounded-full bg-night/40" />
+          <Skeleton className="bg-night/50 h-24 w-full rounded-3xl" />
+          <Skeleton className="bg-night/40 h-12 w-48 rounded-full" />
         </div>
         <div className="space-y-4">
           {Array.from({ length: 3 }).map((_, index) => (
-            <Skeleton key={index} className="h-28 w-full rounded-3xl bg-night/50" />
+            <Skeleton key={index} className="bg-night/50 h-28 w-full rounded-3xl" />
           ))}
         </div>
       </div>
@@ -105,16 +105,19 @@ export function FormatsSectionSkeleton() {
     <section className="px-6 py-20 sm:px-10 lg:px-16">
       <div className="mx-auto max-w-6xl space-y-12">
         <div className="space-y-4 text-center">
-          <Skeleton className="mx-auto h-4 w-32 bg-night/40" />
-          <Skeleton className="mx-auto h-10 w-96 bg-night/40" />
-          <Skeleton className="mx-auto h-20 w-full max-w-3xl bg-night/40" />
+          <Skeleton className="bg-night/40 mx-auto h-4 w-32" />
+          <Skeleton className="bg-night/40 mx-auto h-10 w-96" />
+          <Skeleton className="bg-night/40 mx-auto h-20 w-full max-w-3xl" />
         </div>
         <div className="grid gap-8 md:grid-cols-3">
           {Array.from({ length: 3 }).map((_, index) => (
-            <div key={index} className="rounded-3xl border border-ivory/10 bg-night/40 p-6 text-center">
-              <Skeleton className="mx-auto h-16 w-16 rounded-full bg-night/60" />
-              <Skeleton className="mx-auto mt-4 h-6 w-32 bg-night/60" />
-              <Skeleton className="mt-4 h-16 w-full bg-night/60" />
+            <div
+              key={index}
+              className="border-ivory/10 bg-night/40 rounded-3xl border p-6 text-center"
+            >
+              <Skeleton className="bg-night/60 mx-auto h-16 w-16 rounded-full" />
+              <Skeleton className="bg-night/60 mx-auto mt-4 h-6 w-32" />
+              <Skeleton className="bg-night/60 mt-4 h-16 w-full" />
             </div>
           ))}
         </div>
@@ -129,18 +132,18 @@ export function TherapySectionsSkeleton() {
       <section className="px-6 py-20 sm:px-10 lg:px-16">
         <div className="mx-auto max-w-6xl space-y-12 text-center">
           <div className="space-y-4">
-            <Skeleton className="mx-auto h-4 w-32 bg-night/40" />
-            <Skeleton className="mx-auto h-10 w-96 bg-night/40" />
-            <Skeleton className="mx-auto h-32 w-full max-w-3xl bg-night/40" />
+            <Skeleton className="bg-night/40 mx-auto h-4 w-32" />
+            <Skeleton className="bg-night/40 mx-auto h-10 w-96" />
+            <Skeleton className="bg-night/40 mx-auto h-32 w-full max-w-3xl" />
           </div>
         </div>
       </section>
       <section className="px-6 py-20 sm:px-10 lg:px-16">
         <div className="mx-auto max-w-6xl space-y-12 text-center">
           <div className="space-y-4">
-            <Skeleton className="mx-auto h-4 w-32 bg-night/40" />
-            <Skeleton className="mx-auto h-10 w-96 bg-night/40" />
-            <Skeleton className="mx-auto h-32 w-full max-w-3xl bg-night/40" />
+            <Skeleton className="bg-night/40 mx-auto h-4 w-32" />
+            <Skeleton className="bg-night/40 mx-auto h-10 w-96" />
+            <Skeleton className="bg-night/40 mx-auto h-32 w-full max-w-3xl" />
           </div>
         </div>
       </section>
@@ -150,20 +153,20 @@ export function TherapySectionsSkeleton() {
 
 export function RespirationSectionSkeleton() {
   return (
-    <section className="bg-gradient-to-br from-night via-night/95 to-night px-6 py-20 sm:px-10 lg:px-16">
+    <section className="from-night via-night/95 to-night bg-gradient-to-br px-6 py-20 sm:px-10 lg:px-16">
       <div className="mx-auto max-w-5xl space-y-12">
         <div className="space-y-4 text-center">
-          <Skeleton className="mx-auto h-4 w-32 bg-night/40" />
-          <Skeleton className="mx-auto h-10 w-96 bg-night/40" />
-          <Skeleton className="mx-auto h-20 w-full max-w-3xl bg-night/40" />
+          <Skeleton className="bg-night/40 mx-auto h-4 w-32" />
+          <Skeleton className="bg-night/40 mx-auto h-10 w-96" />
+          <Skeleton className="bg-night/40 mx-auto h-20 w-full max-w-3xl" />
         </div>
         <div className="grid gap-8 sm:grid-cols-2">
           <div className="space-y-4">
             {Array.from({ length: 7 }).map((_, index) => (
-              <Skeleton key={index} className="h-6 w-full bg-night/60" />
+              <Skeleton key={index} className="bg-night/60 h-6 w-full" />
             ))}
           </div>
-          <Skeleton className="h-96 w-full rounded-full bg-night/60" />
+          <Skeleton className="bg-night/60 h-96 w-full rounded-full" />
         </div>
       </div>
     </section>
@@ -175,20 +178,20 @@ export function SeminarsSectionSkeleton() {
     <section className="bg-night/60 px-6 py-20 sm:px-10 lg:px-16">
       <div className="mx-auto max-w-6xl space-y-12">
         <div className="space-y-4 text-center">
-          <Skeleton className="mx-auto h-4 w-32 bg-night/40" />
-          <Skeleton className="mx-auto h-10 w-96 bg-night/40" />
-          <Skeleton className="mx-auto h-16 w-full max-w-3xl bg-night/40" />
+          <Skeleton className="bg-night/40 mx-auto h-4 w-32" />
+          <Skeleton className="bg-night/40 mx-auto h-10 w-96" />
+          <Skeleton className="bg-night/40 mx-auto h-16 w-full max-w-3xl" />
         </div>
         <div className="grid gap-10 md:grid-cols-3">
           {Array.from({ length: 3 }).map((_, index) => (
-            <div key={index} className="rounded-3xl border border-ivory/10 bg-night/50 p-8">
-              <Skeleton className="h-8 w-full bg-night/60" />
-              <Skeleton className="mt-4 h-20 w-full bg-night/60" />
+            <div key={index} className="border-ivory/10 bg-night/50 rounded-3xl border p-8">
+              <Skeleton className="bg-night/60 h-8 w-full" />
+              <Skeleton className="bg-night/60 mt-4 h-20 w-full" />
               <div className="mt-6 space-y-2">
-                <Skeleton className="h-4 w-full bg-night/60" />
-                <Skeleton className="h-4 w-full bg-night/60" />
+                <Skeleton className="bg-night/60 h-4 w-full" />
+                <Skeleton className="bg-night/60 h-4 w-full" />
               </div>
-              <Skeleton className="mx-auto mt-8 h-12 w-40 rounded-lg bg-night/60" />
+              <Skeleton className="bg-night/60 mx-auto mt-8 h-12 w-40 rounded-lg" />
             </div>
           ))}
         </div>
@@ -199,24 +202,37 @@ export function SeminarsSectionSkeleton() {
 
 export function TestimonialsSectionSkeleton() {
   return (
-    <section className="bg-night/60 px-6 py-20 sm:px-10 lg:px-16">
-      <div className="mx-auto max-w-6xl space-y-12">
-        <div className="space-y-4 text-center">
-          <Skeleton className="mx-auto h-4 w-32 bg-night/40" />
-          <Skeleton className="mx-auto h-10 w-96 bg-night/40" />
-        </div>
-        <div className="grid gap-8 md:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <div key={index} className="rounded-3xl border border-ivory/10 bg-night/40 p-8">
-              <Skeleton className="h-24 w-full bg-night/60" />
-              <div className="mt-6 space-y-3">
-                <Skeleton className="h-5 w-32 bg-night/60" />
-                <Skeleton className="h-4 w-24 bg-night/60" />
-              </div>
-            </div>
-          ))}
+    <section className="bg-night/60 overflow-hidden py-20">
+      <div className="mx-auto max-w-6xl space-y-10 px-6 sm:px-10 lg:px-16">
+        <div className="space-y-4">
+          <Skeleton className="bg-night/40 h-4 w-24" />
+          <Skeleton className="bg-night/40 h-8 w-80 max-w-full" />
         </div>
       </div>
+      <div className="mt-12 space-y-4">
+        {[1, 2].map(row => (
+          <div key={row} className="flex gap-4 overflow-hidden px-4 sm:gap-6">
+            {[1, 2, 3, 4].map(i => (
+              <div
+                key={i}
+                className="border-ivory/[0.08] bg-ivory/[0.02] w-[320px] shrink-0 rounded-2xl border p-6 sm:w-[380px]"
+              >
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Skeleton className="bg-night/40 h-4 w-full" />
+                    <Skeleton className="bg-night/40 h-4 w-4/5" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="bg-ivory/10 h-px w-4" />
+                    <Skeleton className="bg-night/40 h-3 w-16" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+      <p className="text-ivory/40 mt-8 text-center text-xs">Survolez pour mettre en pause</p>
     </section>
   );
 }
@@ -226,28 +242,28 @@ export function BlogSectionSkeleton() {
     <section className="bg-night/60 px-6 py-20 sm:px-10 lg:px-16">
       <div className="mx-auto max-w-6xl space-y-12">
         <div className="space-y-4 text-center">
-          <Skeleton className="mx-auto h-4 w-48 bg-night/40" />
-          <Skeleton className="mx-auto h-10 w-96 bg-night/40" />
-          <Skeleton className="mx-auto h-16 w-full max-w-3xl bg-night/40" />
+          <Skeleton className="bg-night/40 mx-auto h-4 w-48" />
+          <Skeleton className="bg-night/40 mx-auto h-10 w-96" />
+          <Skeleton className="bg-night/40 mx-auto h-16 w-full max-w-3xl" />
         </div>
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 3 }).map((_, index) => (
-            <div key={index} className="rounded-2xl border border-ivory/10 bg-night/50 p-6">
-              <Skeleton className="h-48 w-full rounded-lg bg-night/60" />
+            <div key={index} className="border-ivory/10 bg-night/50 rounded-2xl border p-6">
+              <Skeleton className="bg-night/60 h-48 w-full rounded-lg" />
               <div className="mt-6 space-y-3">
-                <Skeleton className="h-4 w-24 rounded-full bg-night/60" />
-                <Skeleton className="h-6 w-full bg-night/60" />
-                <Skeleton className="h-16 w-full bg-night/60" />
+                <Skeleton className="bg-night/60 h-4 w-24 rounded-full" />
+                <Skeleton className="bg-night/60 h-6 w-full" />
+                <Skeleton className="bg-night/60 h-16 w-full" />
                 <div className="flex gap-3">
-                  <Skeleton className="h-3 w-24 bg-night/60" />
-                  <Skeleton className="h-3 w-20 bg-night/60" />
+                  <Skeleton className="bg-night/60 h-3 w-24" />
+                  <Skeleton className="bg-night/60 h-3 w-20" />
                 </div>
               </div>
             </div>
           ))}
         </div>
         <div className="flex justify-center">
-          <Skeleton className="h-12 w-64 rounded-full bg-night/40" />
+          <Skeleton className="bg-night/40 h-12 w-64 rounded-full" />
         </div>
       </div>
     </section>
@@ -259,12 +275,12 @@ export function ContactSectionSkeleton() {
     <section className="px-6 py-20 sm:px-10 lg:px-16">
       <div className="mx-auto max-w-4xl space-y-12">
         <div className="space-y-4 text-center">
-          <Skeleton className="mx-auto h-4 w-32 bg-night/40" />
-          <Skeleton className="mx-auto h-10 w-96 bg-night/40" />
-          <Skeleton className="mx-auto h-16 w-full max-w-3xl bg-night/40" />
+          <Skeleton className="bg-night/40 mx-auto h-4 w-32" />
+          <Skeleton className="bg-night/40 mx-auto h-10 w-96" />
+          <Skeleton className="bg-night/40 mx-auto h-16 w-full max-w-3xl" />
         </div>
-        <div className="rounded-3xl border border-ivory/10 bg-night/40 p-10">
-          <Skeleton className="h-96 w-full bg-night/60" />
+        <div className="border-ivory/10 bg-night/40 rounded-3xl border p-10">
+          <Skeleton className="bg-night/60 h-96 w-full" />
         </div>
       </div>
     </section>

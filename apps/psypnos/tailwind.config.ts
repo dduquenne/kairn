@@ -1,5 +1,5 @@
-import type { Config } from 'tailwindcss';
 import kairnPreset from '@kairn/tailwind-preset';
+import type { Config } from 'tailwindcss';
 
 const config: Config = {
   presets: [kairnPreset],
@@ -49,9 +49,19 @@ const config: Config = {
           '0%': { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(200%)' },
         },
+        'marquee-left': {
+          '0%': { transform: 'translateX(0%)' },
+          '100%': { transform: 'translateX(-50%)' },
+        },
+        'marquee-right': {
+          '0%': { transform: 'translateX(-50%)' },
+          '100%': { transform: 'translateX(0%)' },
+        },
       },
       animation: {
         shimmer: 'shimmer 2s infinite',
+        'marquee-left': 'marquee-left 30s linear infinite',
+        'marquee-right': 'marquee-right 30s linear infinite',
       },
     },
   },
