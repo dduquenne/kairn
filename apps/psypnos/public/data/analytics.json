@@ -1,11 +1,24 @@
 {
   "pageVisits": [
     {
-      "id": "pv_1769073566313_ieu6sn696",
-      "timestamp": "2026-01-22T09:19:17.059Z",
-      "sessionId": "ses_mkp8pwsh_wl3g7p82q_b273",
+      "id": "pv_1769608782855_bmn1cfmtg",
+      "timestamp": "2026-01-28T13:59:34.141Z",
+      "sessionId": "ses_mky3dgxg_938t6dk7h_6xqp",
       "page": "/psychotherapie",
-      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "referrerDomain": "localhost",
+      "deviceType": "desktop",
+      "browser": "Chrome",
+      "os": "Mac OS",
+      "isBot": false
+    },
+    {
+      "id": "pv_1769613909285_yn3234nx0",
+      "timestamp": "2026-01-28T15:25:02.763Z",
+      "sessionId": "ses_mky6fe7c_mbw7wan9c_bd3m",
+      "page": "/psychotherapie",
+      "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
+      "referrerDomain": "localhost",
       "deviceType": "desktop",
       "browser": "Chrome",
       "os": "Mac OS",
@@ -16,91 +29,108 @@
   "conversionEvents": [],
   "customEvents": [
     {
-      "id": "evt_1769073567241_i5rojukx4",
-      "timestamp": "2026-01-22T09:19:25.410Z",
-      "sessionId": "ses_mkp8pwsh_wl3g7p82q_b273",
+      "id": "evt_1769608782858_h5rvnylfv",
+      "timestamp": "2026-01-28T13:59:36.471Z",
+      "sessionId": "ses_mky3dgxg_938t6dk7h_6xqp",
       "category": "Engagement",
       "action": "scroll_depth",
       "label": "/psychotherapie"
     },
     {
-      "id": "evt_1769073567246_emwzw5kma",
-      "timestamp": "2026-01-22T09:19:25.411Z",
-      "sessionId": "ses_mkp8pwsh_wl3g7p82q_b273",
+      "id": "evt_1769608782921_qbi2i7j20",
+      "timestamp": "2026-01-28T13:59:36.472Z",
+      "sessionId": "ses_mky3dgxg_938t6dk7h_6xqp",
       "category": "Engagement",
       "action": "scroll_depth",
       "label": "/psychotherapie"
     },
     {
-      "id": "evt_1769073572157_kk1e8cglv",
-      "timestamp": "2026-01-22T09:19:29.510Z",
-      "sessionId": "ses_mkp8pwsh_wl3g7p82q_b273",
+      "id": "evt_1769608782922_yd7dp6cdk",
+      "timestamp": "2026-01-28T13:59:36.472Z",
+      "sessionId": "ses_mky3dgxg_938t6dk7h_6xqp",
       "category": "Engagement",
       "action": "scroll_depth",
       "label": "/psychotherapie"
     },
     {
-      "id": "evt_1769073577157_i4a7dsp5n",
-      "timestamp": "2026-01-22T09:19:36.360Z",
-      "sessionId": "ses_mkp8pwsh_wl3g7p82q_b273",
+      "id": "evt_1769608782946_1kei3kgk3",
+      "timestamp": "2026-01-28T13:59:36.472Z",
+      "sessionId": "ses_mky3dgxg_938t6dk7h_6xqp",
       "category": "Engagement",
       "action": "scroll_depth",
       "label": "/psychotherapie"
     },
     {
-      "id": "evt_1769073577158_5pwjrq04w",
-      "timestamp": "2026-01-22T09:19:36.360Z",
-      "sessionId": "ses_mkp8pwsh_wl3g7p82q_b273",
+      "id": "evt_1769608782954_12i3h3g8r",
+      "timestamp": "2026-01-28T13:59:36.473Z",
+      "sessionId": "ses_mky3dgxg_938t6dk7h_6xqp",
       "category": "Engagement",
       "action": "scroll_depth",
       "label": "/psychotherapie"
     },
     {
-      "id": "evt_1769073605992_s21lapx36",
-      "timestamp": "2026-01-22T09:20:05.846Z",
-      "sessionId": "ses_mkp8pwsh_wl3g7p82q_b273",
+      "id": "evt_1769611527731_zpplqx4ou",
+      "timestamp": "2026-01-28T14:44:33.939Z",
+      "sessionId": "ses_mky3dgxg_938t6dk7h_6xqp",
       "category": "Engagement",
       "action": "page_exit",
       "label": "/psychotherapie",
       "metadata": {}
-    }
-  ],
-  "goals": [
+    },
     {
-      "id": "goal_1769529587954_kir3iex83",
-      "name": "Visite",
-      "type": "pages_per_session",
-      "destinationUrl": "/",
-      "enabled": true,
-      "createdAt": "2026-01-27T15:59:47.954Z",
-      "comparison": "greater_than",
-      "pagesCount": 3
+      "id": "evt_1769613909288_s541ilshk",
+      "timestamp": "2026-01-28T15:25:05.835Z",
+      "sessionId": "ses_mky6fe7c_mbw7wan9c_bd3m",
+      "category": "Engagement",
+      "action": "scroll_depth",
+      "label": "/psychotherapie"
+    },
+    {
+      "id": "evt_1769613909290_vrnr3eqn6",
+      "timestamp": "2026-01-28T15:25:05.835Z",
+      "sessionId": "ses_mky6fe7c_mbw7wan9c_bd3m",
+      "category": "Engagement",
+      "action": "scroll_depth",
+      "label": "/psychotherapie"
+    },
+    {
+      "id": "evt_1769613909291_y3g5rnud1",
+      "timestamp": "2026-01-28T15:25:05.835Z",
+      "sessionId": "ses_mky6fe7c_mbw7wan9c_bd3m",
+      "category": "Engagement",
+      "action": "scroll_depth",
+      "label": "/psychotherapie"
+    },
+    {
+      "id": "evt_1769613909291_b5susp5vo",
+      "timestamp": "2026-01-28T15:25:05.835Z",
+      "sessionId": "ses_mky6fe7c_mbw7wan9c_bd3m",
+      "category": "Engagement",
+      "action": "scroll_depth",
+      "label": "/psychotherapie"
+    },
+    {
+      "id": "evt_1769613909292_m9nnfkg6h",
+      "timestamp": "2026-01-28T15:25:05.835Z",
+      "sessionId": "ses_mky6fe7c_mbw7wan9c_bd3m",
+      "category": "Engagement",
+      "action": "scroll_depth",
+      "label": "/psychotherapie"
+    },
+    {
+      "timestamp": "2026-01-28T15:37:25.124Z",
+      "sessionId": "ses_mky6fe7c_mbw7wan9c_bd3m",
+      "category": "Engagement",
+      "action": "page_exit",
+      "label": "/psychotherapie",
+      "metadata": {},
+      "id": "evt_1769614667244_x77qflo1v"
     }
   ],
+  "goals": [],
   "goalCompletions": [],
   "funnelSteps": [],
-  "alerts": [
-    {
-      "id": "alert_1769529503402_du7pcx6f3",
-      "name": "Contact",
-      "description": "Une personne m'a envoyé une de mande de contact",
-      "type": "threshold",
-      "metric": "conversions",
-      "condition": "greater_than",
-      "threshold": 1,
-      "timeWindow": "day",
-      "channels": [
-        "email"
-      ],
-      "emailRecipients": [
-        "dduquenne@gmail.com"
-      ],
-      "enabled": true,
-      "triggerCount": 0,
-      "createdAt": "2026-01-27T15:58:23.402Z",
-      "updatedAt": "2026-01-27T15:58:23.402Z"
-    }
-  ],
+  "alerts": [],
   "alertHistory": [],
   "dashboardConfigs": [],
   "scheduledReports": [],
