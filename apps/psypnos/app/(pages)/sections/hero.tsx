@@ -140,10 +140,10 @@ export function HeroSection() {
           transition={hasMounted ? { duration: 0.8, delay: 3.3, ease: "easeOut" } : { duration: 0 }}
           className="max-w-3xl"
         >
-          <h1 className="text-2xl font-semibold text-ivory sm:text-3xl lg:text-4xl">
+          <h1 className="font-display text-3xl font-bold text-gold sm:text-4xl lg:text-5xl">
             {heroContent.h1}
           </h1>
-          <h2 className="mt-4 text-3xl font-semibold text-gold sm:text-4xl lg:text-5xl">
+          <h2 className="mt-4 text-2xl font-semibold text-ivory sm:text-3xl lg:text-4xl">
             <span className="block">{heroContent.slogan1}</span>
             <span className="block">{heroContent.slogan2}</span>
           </h2>
