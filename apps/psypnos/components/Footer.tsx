@@ -86,10 +86,10 @@ const ExternalLinkIcon = () => (
 
 // Villes desservies pour le SEO local
 const CITIES_SERVED = [
-  { name: 'Auxerre', href: '/psychotherapeute-auxerre' },
-  { name: 'Sens', href: '/psychotherapeute-sens' },
-  { name: 'Joigny', href: '/psychotherapeute-joigny' },
-  { name: 'Migennes', href: '/psychotherapeute-migennes' },
+  { name: 'Auxerre', href: '/hypnotherapeute-auxerre' },
+  { name: 'Sens', href: '/hypnotherapeute-sens' },
+  { name: 'Joigny', href: '/hypnotherapeute-joigny' },
+  { name: 'Migennes', href: '/hypnotherapeute-migennes' },
 ];
 
 // Liens rapides vers les services
@@ -150,7 +150,7 @@ export function Footer() {
             {/* Badge localisation */}
             <div className="bg-night/50 border-gold/20 mt-4 rounded-lg border p-3">
               <p className="text-gold-accessible text-xs font-medium">
-                Psychothérapeute à Saint-Julien-du-Sault (89)
+                Hypnothérapeute à Saint-Julien-du-Sault (89)
               </p>
               <p className="text-ivory-muted mt-1 text-xs">
                 Au service de l&apos;Yonne depuis 2015
@@ -203,13 +203,13 @@ export function Footer() {
                     className="text-ivory hover:text-gold-accessible flex items-center gap-2 text-sm transition-colors"
                   >
                     <span className="bg-gold/20 h-1.5 w-1.5 rounded-full" />
-                    Psychothérapeute {city.name}
+                    Hypnothérapeute {city.name}
                   </Link>
                 </li>
               ))}
               <li>
                 <Link
-                  href="/psychotherapeute-yonne"
+                  href="/hypnotherapeute-yonne"
                   className="text-ivory hover:text-gold-accessible flex items-center gap-2 text-sm transition-colors"
                 >
                   <span className="bg-gold/20 h-1.5 w-1.5 rounded-full" />
@@ -289,7 +289,7 @@ export function Footer() {
                 © <CurrentYear /> Psypnos - David Duquenne. Tous droits réservés.
               </p>
               <p className="mt-1">
-                Psychothérapeute à Saint-Julien-du-Sault • Yonne (89) • Bourgogne
+                Hypnothérapeute à Saint-Julien-du-Sault • Yonne (89) • Bourgogne
               </p>
             </div>
 

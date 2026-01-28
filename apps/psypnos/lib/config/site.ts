@@ -38,7 +38,7 @@ export const SITE_CONFIG = {
   // Informations du propriétaire/créateur
   owner: {
     name: 'David Duquenne',
-    title: 'Psychothérapeute',
+    title: 'Hypnothérapeute',
     email: 'contact@psypnos.fr',
     image: '/images/David_Duquenne.webp',
   },
@@ -46,18 +46,18 @@ export const SITE_CONFIG = {
   // Description du site
   description: {
     short:
-      'David Duquenne, psychothérapeute et praticien en hypnose ericksonienne. Accompagnement des crises de vie, anxiété, deuil, burn-out.',
-    full: 'Accompagnement thérapeutique avec David Duquenne : psychothérapie, hypnose et respiration holotropique dans l\'Yonne.',
+      'David Duquenne, hypnothérapeute certifié en hypnose ericksonienne. Accompagnement des crises de vie, anxiété, deuil, burn-out.',
+    full: 'Accompagnement thérapeutique avec David Duquenne : hypnose ericksonienne et respiration holotropique dans l\'Yonne.',
     medical:
-      'Cabinet de psychothérapie et hypnose ericksonienne',
+      'Cabinet d\'hypnothérapie et hypnose ericksonienne',
   },
 
   // Mots-clés
   keywords: [
-    'psychothérapie',
+    'hypnothérapeute Yonne',
     'hypnose ericksonienne',
     'respiration holotropique',
-    'psychothérapeute Yonne',
+    'hypnothérapeute 89',
     'hypnose Saint-Julien-du-Sault',
     'thérapie anxiété',
     'accompagnement burn-out',
@@ -153,7 +153,7 @@ export interface MetadataTitle {
  */
 export function getMetadataTitle(): MetadataTitle {
   return {
-    default: `${SITE_CONFIG.siteName} - Psychothérapie, Hypnose & Respiration Holotropique | ${SITE_CONFIG.location.city}, ${SITE_CONFIG.location.region}`,
+    default: `${SITE_CONFIG.siteName} - Hypnose Ericksonienne & Respiration Holotropique | ${SITE_CONFIG.location.city}, ${SITE_CONFIG.location.region}`,
     template: `%s | ${SITE_CONFIG.siteName}`,
   };
 }
@@ -167,7 +167,7 @@ export function getOpenGraphConfig() {
     type: 'website',
     locale: 'fr_FR',
     url: SITE_CONFIG.siteUrl,
-    title: `${SITE_CONFIG.siteName} - Psychothérapie & Hypnose avec ${SITE_CONFIG.owner.name}`,
+    title: `${SITE_CONFIG.siteName} - Hypnose Ericksonienne avec ${SITE_CONFIG.owner.name}`,
     description: SITE_CONFIG.description.full,
     siteName: SITE_CONFIG.siteName,
     images: [
@@ -175,7 +175,7 @@ export function getOpenGraphConfig() {
         url: SITE_CONFIG.images.default,
         width: SITE_CONFIG.images.dimensions.width,
         height: SITE_CONFIG.images.dimensions.height,
-        alt: `${SITE_CONFIG.owner.name} - Psychothérapeute et Praticien en Hypnose`,
+        alt: `${SITE_CONFIG.owner.name} - Hypnothérapeute certifié`,
       },
     ],
   };
@@ -188,7 +188,7 @@ export function getOpenGraphConfig() {
 export function getTwitterConfig() {
   return {
     card: 'summary_large_image',
-    title: `${SITE_CONFIG.siteName} - Psychothérapie & Hypnose`,
+    title: `${SITE_CONFIG.siteName} - Hypnose Ericksonienne`,
     description: SITE_CONFIG.description.full,
     images: [SITE_CONFIG.images.default],
   };
@@ -235,7 +235,7 @@ export function getJSONLDSchema() {
       '@type': 'Person',
       name: SITE_CONFIG.owner.name,
       jobTitle: SITE_CONFIG.owner.title,
-      description: `Praticien certifié en psychothérapie transpersonnelle et hypnose ericksonienne`,
+      description: `Hypnothérapeute certifié en hypnose ericksonienne et facilitateur en respiration holotropique`,
       image: `${SITE_CONFIG.siteUrl}${SITE_CONFIG.owner.image}`,
     },
 

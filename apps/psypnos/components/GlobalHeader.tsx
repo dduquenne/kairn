@@ -59,7 +59,7 @@ export function GlobalHeader({ context = "home", showBackButton = false }: Globa
             <div>
               <img
                 src="/images/David_Duquenne.webp"
-                alt="David Duquenne - Psychothérapeute"
+                alt="David Duquenne - Hypnothérapeute"
                 className="h-24 w-24 fade-mask"
               />
               <h2 className="text-sm text-gold font-medium">David Duquenne</h2>

@@ -17,8 +17,8 @@ export const siteConfig = defineSiteConfig({
   // Praticien
   practitioner: {
     name: 'David Duquenne',
-    title: 'Psychothérapeute',
-    bio: `David Duquenne est psychothérapeute et praticien en hypnose ericksonienne,
+    title: 'Hypnothérapeute',
+    bio: `David Duquenne est hypnothérapeute et praticien certifié en hypnose ericksonienne,
 spécialisé dans l'accompagnement des crises de vie, de l'anxiété, du deuil et du burn-out.
 Installé à Saint-Julien-du-Sault dans l'Yonne, il propose également des séminaires
 de respiration holotropique pour une approche thérapeutique globale et profonde.
@@ -28,12 +28,12 @@ ses patients avec bienveillance et professionnalisme dans leur cheminement perso
     image: '/images/David_Duquenne.webp',
     credentials: [
       {
-        title: 'Psychothérapeute certifié',
-        institution: 'Institut de Formation en Psychothérapie Transpersonnelle',
+        title: 'Praticien certifié en Hypnose Ericksonienne',
+        institution: 'IFHE',
       },
       {
-        title: 'Praticien en Hypnose Ericksonienne',
-        institution: 'IFHE',
+        title: 'Formé aux approches transpersonnelles',
+        institution: 'Institut de Formation en Psychothérapie Transpersonnelle',
       },
       {
         title: 'Facilitateur en Respiration Holotropique',
@@ -115,14 +115,14 @@ ses patients avec bienveillance et professionnalisme dans leur cheminement perso
 
   // SEO
   seo: {
-    defaultTitle: 'Psypnos - Psychothérapie, Hypnose & Respiration Holotropique | Saint-Julien-du-Sault, Yonne',
+    defaultTitle: 'Psypnos - Hypnose Ericksonienne & Respiration Holotropique | Saint-Julien-du-Sault, Yonne',
     titleTemplate: '%s | Psypnos',
-    description: 'David Duquenne, psychothérapeute et praticien en hypnose ericksonienne. Accompagnement des crises de vie, anxiété, deuil, burn-out à Saint-Julien-du-Sault (89).',
+    description: 'David Duquenne, hypnothérapeute certifié en hypnose ericksonienne. Accompagnement des crises de vie, anxiété, deuil, burn-out à Saint-Julien-du-Sault (89).',
     keywords: [
-      'psychothérapie',
+      'hypnothérapeute Yonne',
       'hypnose ericksonienne',
       'respiration holotropique',
-      'psychothérapeute Yonne',
+      'hypnothérapeute 89',
       'hypnose Saint-Julien-du-Sault',
       'thérapie anxiété',
       'accompagnement burn-out',

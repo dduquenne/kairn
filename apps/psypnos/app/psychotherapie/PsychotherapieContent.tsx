@@ -63,9 +63,9 @@ export function PsychotherapieContent({ posts }: PsychotherapieContentProps) {
         "La durée d'une thérapie varie selon chaque personne et ce qu'elle traverse. Certaines problématiques peuvent s'apaiser en quelques séances, d'autres nécessitent un travail plus long. Nous évaluons ensemble, au fil du temps, l'évolution de votre cheminement. Vous restez toujours libre de mettre fin à l'accompagnement quand vous le souhaitez.",
     },
     {
-      question: 'La psychothérapie est-elle remboursée ?',
+      question: 'Les séances sont-elles remboursées ?',
       answer:
-        "La psychothérapie n'est généralement pas remboursée par la Sécurité sociale. Cependant, de nombreuses mutuelles proposent un forfait annuel pour les consultations chez un psychothérapeute ou psychologue. Je vous invite à vérifier auprès de votre mutuelle les conditions de remboursement.",
+        "Les séances d'hypnose et d'accompagnement thérapeutique ne sont généralement pas remboursées par la Sécurité sociale. Cependant, de nombreuses mutuelles proposent un forfait annuel pour les consultations en thérapie. Je vous invite à vérifier auprès de votre mutuelle les conditions de remboursement.",
     },
     {
       question: 'Les séances peuvent-elles se faire en visioconférence ?',

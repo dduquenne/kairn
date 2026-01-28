@@ -110,7 +110,7 @@ const practicalInfo = {
 const relatedLinks = [
   { label: 'Hypnose Yonne', href: '/hypnose-yonne' },
   { label: 'Hypnose Joigny', href: '/hypnose-joigny' },
-  { label: 'Psychothérapeute Auxerre', href: '/psychotherapeute-auxerre' },
+  { label: 'Hypnothérapeute Auxerre', href: '/hypnotherapeute-auxerre' },
 ];
 
 export default function HypnoseAuxerrePage() {

@@ -73,7 +73,7 @@ export function AProposContent() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              David Duquenne - Psychothérapeute certifié dans <span className="text-gold">l'Yonne</span>
+              David Duquenne - Hypnothérapeute certifié dans <span className="text-gold">l'Yonne</span>
             </motion.h1>
             <motion.p
               className="text-ivory/80 mb-8 text-lg sm:text-xl"
@@ -120,15 +120,14 @@ export function AProposContent() {
               Je m'appelle <strong>David Duquenne</strong>.
             </p>
             <p className="text-ivory/90 mb-6 text-lg leading-relaxed">
-              Je suis thérapeute spécialisé en psychothérapie et en hypnose ericksonienne.
+              Je suis hypnothérapeute certifié, spécialisé en hypnose ericksonienne.
               J'accompagne des personnes traversant une souffrance psychologique, une crise
               existentielle, une perte de sens, un burn-out ou une période de profonde remise en
               question.
             </p>
             <p className="text-ivory/90 text-lg leading-relaxed">
-              Mon approche s'inscrit dans une psychothérapie transpersonnelle, intégrative et
-              incarnée, qui prend en compte l'ensemble de l'expérience humaine : psychique,
-              émotionnelle, corporelle et existentielle.
+              Mon approche s'inscrit dans une démarche intégrative et incarnée, qui prend en compte
+              l'ensemble de l'expérience humaine : psychique, émotionnelle, corporelle et existentielle.
             </p>
           </motion.section>
 

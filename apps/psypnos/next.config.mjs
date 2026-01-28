@@ -262,7 +262,32 @@ const nextConfig = {
   // Redirections
   async redirects() {
     return [
-      // Ajouter les redirections spécifiques ici
+      // Redirections 301 : anciennes pages psychotherapeute vers hypnotherapeute
+      {
+        source: '/psychotherapeute-yonne',
+        destination: '/hypnotherapeute-yonne',
+        permanent: true,
+      },
+      {
+        source: '/psychotherapeute-auxerre',
+        destination: '/hypnotherapeute-auxerre',
+        permanent: true,
+      },
+      {
+        source: '/psychotherapeute-sens',
+        destination: '/hypnotherapeute-sens',
+        permanent: true,
+      },
+      {
+        source: '/psychotherapeute-joigny',
+        destination: '/hypnotherapeute-joigny',
+        permanent: true,
+      },
+      {
+        source: '/psychotherapeute-migennes',
+        destination: '/hypnotherapeute-migennes',
+        permanent: true,
+      },
     ];
   },
 };

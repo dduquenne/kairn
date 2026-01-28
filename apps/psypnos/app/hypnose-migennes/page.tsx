@@ -107,7 +107,7 @@ const practicalInfo = {
 const relatedLinks = [
   { label: 'Hypnose Yonne', href: '/hypnose-yonne' },
   { label: 'Hypnose Joigny', href: '/hypnose-joigny' },
-  { label: 'Psychothérapeute Migennes', href: '/psychotherapeute-migennes' },
+  { label: 'Hypnothérapeute Migennes', href: '/hypnotherapeute-migennes' },
 ];
 
 export default function HypnoseMigennesPage() {

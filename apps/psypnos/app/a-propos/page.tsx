@@ -8,14 +8,14 @@ export const revalidate = 86400;
  * Métadonnées SEO optimisées pour la page biographique
  */
 export const metadata: Metadata = {
-  title: "À propos - David Duquenne, Psychothérapeute & Hypnothérapeute",
+  title: "À propos - David Duquenne, Hypnothérapeute certifié",
   description: "Découvrez le parcours de David Duquenne : de l'angoisse existentielle au burn-out jusqu'à l'accompagnement thérapeutique. Une histoire de transformation profonde au service de ceux qui traversent des crises de vie et recherchent du sens.",
   keywords: [
     "David Duquenne",
-    "biographie psychothérapeute",
     "parcours hypnothérapeute",
+    "hypnothérapeute certifié",
     "burn-out transformation",
-    "psychothérapie transpersonnelle",
+    "hypnose ericksonienne",
     "respiration holotropique",
     "accompagnement fin de vie",
     "JALMAV",
@@ -23,11 +23,11 @@ export const metadata: Metadata = {
     "quête de sens",
     "hypnose ericksonienne formation",
     "Psypnos histoire",
-    "Saint-Julien-du-Sault psychothérapeute"
+    "Saint-Julien-du-Sault hypnothérapeute"
   ],
   openGraph: {
     title: "Un chemin vers l'essentiel - L'histoire de David Duquenne",
-    description: "De l'effondrement à la renaissance : le parcours inspirant d'un psychothérapeute qui a transformé ses blessures en outils d'accompagnement. Découvrez une histoire humaine au service du sens.",
+    description: "De l'effondrement à la renaissance : le parcours inspirant d'un hypnothérapeute qui a transformé ses blessures en outils d'accompagnement. Découvrez une histoire humaine au service du sens.",
     type: "profile",
     url: "https://psypnos.fr/a-propos",
     images: [
@@ -35,14 +35,14 @@ export const metadata: Metadata = {
         url: "https://psypnos.fr/images/David_Duquenne.webp",
         width: 1029,
         height: 973,
-        alt: "David Duquenne - Psychothérapeute et Hypnothérapeute",
+        alt: "David Duquenne - Hypnothérapeute certifié",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Un chemin vers l'essentiel - David Duquenne",
-    description: "Découvrez le parcours inspirant d'un psychothérapeute qui a transformé ses épreuves en accompagnement thérapeutique au service du sens.",
+    description: "Découvrez le parcours inspirant d'un hypnothérapeute qui a transformé ses épreuves en accompagnement thérapeutique au service du sens.",
     images: ["https://psypnos.fr/images/David_Duquenne.webp"],
   },
   alternates: {
@@ -73,7 +73,7 @@ function getJsonLd() {
         '@type': 'ProfilePage',
         '@id': 'https://psypnos.fr/a-propos#webpage',
         url: 'https://psypnos.fr/a-propos',
-        name: 'À propos - David Duquenne, Psychothérapeute & Hypnothérapeute',
+        name: 'À propos - David Duquenne, Hypnothérapeute certifié',
         description: 'Découvrez le parcours de David Duquenne : de l\'angoisse existentielle au burn-out jusqu\'à l\'accompagnement thérapeutique.',
         isPartOf: {
           '@id': 'https://psypnos.fr/#website',
@@ -108,15 +108,15 @@ function getJsonLd() {
         name: 'David Duquenne',
         givenName: 'David',
         familyName: 'Duquenne',
-        jobTitle: 'Psychothérapeute et Hypnothérapeute',
-        description: 'Thérapeute spécialisé en psychothérapie transpersonnelle et hypnose ericksonienne. Accompagnement des crises de vie, burn-out, deuil et quête de sens.',
+        jobTitle: 'Hypnothérapeute certifié',
+        description: 'Hypnothérapeute certifié en hypnose ericksonienne et facilitateur en respiration holotropique. Accompagnement des crises de vie, burn-out, deuil et quête de sens.',
         url: 'https://psypnos.fr/a-propos',
         image: {
           '@type': 'ImageObject',
           url: 'https://psypnos.fr/images/David_Duquenne.webp',
           width: 1029,
           height: 973,
-          caption: 'David Duquenne - Psychothérapeute et Hypnothérapeute',
+          caption: 'David Duquenne - Hypnothérapeute certifié',
         },
         sameAs: [
           'https://psypnos.fr',
@@ -128,8 +128,8 @@ function getJsonLd() {
           url: 'https://psypnos.fr',
         },
         knowsAbout: [
-          'Psychothérapie transpersonnelle',
           'Hypnose ericksonienne',
+          'Accompagnement thérapeutique',
           'Respiration holotropique',
           'Accompagnement fin de vie',
           'Gestion du burn-out',

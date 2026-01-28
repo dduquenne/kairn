@@ -62,13 +62,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ]
 
-  // Pages géolocalisées - Psychothérapie
-  const psychotherapieGeoPages: MetadataRoute.Sitemap = [
-    'psychotherapeute-yonne',
-    'psychotherapeute-auxerre',
-    'psychotherapeute-sens',
-    'psychotherapeute-joigny',
-    'psychotherapeute-migennes',
+  // Pages géolocalisées - Hypnothérapie
+  const hypnotherapieGeoPages: MetadataRoute.Sitemap = [
+    'hypnotherapeute-yonne',
+    'hypnotherapeute-auxerre',
+    'hypnotherapeute-sens',
+    'hypnotherapeute-joigny',
+    'hypnotherapeute-migennes',
   ].map((slug) => ({
     url: `${baseUrl}/${slug}`,
     lastModified: new Date(),
@@ -128,7 +128,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return [
     ...routes,
-    ...psychotherapieGeoPages,
+    ...hypnotherapieGeoPages,
     ...hypnoseGeoPages,
     ...respirationGeoPages,
     ...legalPages,

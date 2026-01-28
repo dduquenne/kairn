@@ -7,7 +7,7 @@ import Link from "next/link";
 import { CTAButton } from "../../../components/CTAButton";
 
 const heroContent = {
-  h1: "Psychothérapeute et Hypnothérapeute à Saint-Julien-du-Sault (Yonne)",
+  h1: "Hypnothérapeute certifié à Saint-Julien-du-Sault (Yonne)",
   slogan1: "Accueillir ce qui est.",
   slogan2: "Explorer ce qui vient.",
   subtitle:
@@ -21,10 +21,10 @@ const heroContent = {
 
 const heroPractitioner = {
   name: "David Duquenne",
-  headline: "Psychothérapie & Hypnose",
+  headline: "Hypnose Ericksonienne & Accompagnement",
   address: "Le Moulin d'en Bas – 89330 Saint-Julien du Sault",
   description:
-    "Praticien certifié en psychothérapie et en hypnose, je suis spécialisé dans l'accompagnement des personnes traversant des périodes de transition émotionnelle ou psychologique. Qu'il s'agisse de gérer le stress, de surmonter des blocages ou de vivre un deuil, mon approche allie écoute bienveillante et techniques thérapeutiques adaptées à chaque besoin spécifique. Je suis convaincu que chaque individu possède en lui les ressources nécessaires pour évoluer vers un mieux-être, et mon rôle est de vous aider à les découvrir.",
+    "Hypnothérapeute certifié en hypnose ericksonienne, je suis spécialisé dans l'accompagnement des personnes traversant des périodes de transition émotionnelle ou psychologique. Qu'il s'agisse de gérer le stress, de surmonter des blocages ou de vivre un deuil, mon approche allie écoute bienveillante et techniques thérapeutiques adaptées à chaque besoin spécifique. Je suis convaincu que chaque individu possède en lui les ressources nécessaires pour évoluer vers un mieux-être, et mon rôle est de vous aider à les découvrir.",
 };
 
 export function HeroSection() {

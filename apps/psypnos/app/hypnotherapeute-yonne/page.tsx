@@ -2,37 +2,36 @@ import type { Metadata } from 'next';
 import { GeoPage } from '@/components/GeoPage';
 
 export const metadata: Metadata = {
-  title: 'Psychothérapeute dans l\'Yonne (89) | David Duquenne - Psypnos',
+  title: 'Hypnothérapeute dans l\'Yonne (89) | David Duquenne - Psypnos',
   description:
-    'Psychothérapeute dans l\'Yonne. David Duquenne vous accompagne à Saint-Julien-du-Sault pour l\'anxiété, le burn-out, le deuil et les crises de vie. Consultations sur RDV.',
+    'Hypnothérapeute certifié dans l\'Yonne. David Duquenne vous accompagne à Saint-Julien-du-Sault pour l\'anxiété, le burn-out, le deuil et les crises de vie. Consultations sur RDV.',
   keywords: [
-    'psychothérapeute Yonne',
-    'psychothérapie 89',
-    'thérapeute Yonne',
-    'psy Bourgogne',
-    'psychothérapeute Saint-Julien-du-Sault',
+    'hypnothérapeute Yonne',
+    'hypnose ericksonienne 89',
+    'hypnothérapeute Bourgogne',
+    'hypnose Saint-Julien-du-Sault',
     'thérapie anxiété Yonne',
     'burn-out Yonne',
     'deuil Yonne',
   ],
   openGraph: {
-    title: 'Psychothérapeute dans l\'Yonne - David Duquenne',
-    description: 'Cabinet de psychothérapie à Saint-Julien-du-Sault. Accompagnement personnalisé pour les habitants de l\'Yonne.',
-    url: 'https://psypnos.fr/psychotherapeute-yonne',
+    title: 'Hypnothérapeute dans l\'Yonne - David Duquenne',
+    description: 'Cabinet d\'hypnothérapie à Saint-Julien-du-Sault. Accompagnement personnalisé pour les habitants de l\'Yonne.',
+    url: 'https://psypnos.fr/hypnotherapeute-yonne',
     type: 'website',
   },
   alternates: {
-    canonical: 'https://psypnos.fr/psychotherapeute-yonne',
+    canonical: 'https://psypnos.fr/hypnotherapeute-yonne',
   },
 };
 
 const schemaData = {
   '@context': 'https://schema.org',
   '@type': 'MedicalBusiness',
-  '@id': 'https://psypnos.fr/psychotherapeute-yonne',
-  name: 'Psypnos - Psychothérapeute Yonne',
-  description: 'Cabinet de psychothérapie au service de l\'Yonne',
-  url: 'https://psypnos.fr/psychotherapeute-yonne',
+  '@id': 'https://psypnos.fr/hypnotherapeute-yonne',
+  name: 'Psypnos - Hypnothérapeute Yonne',
+  description: 'Cabinet d\'hypnothérapie au service de l\'Yonne',
+  url: 'https://psypnos.fr/hypnotherapeute-yonne',
   areaServed: {
     '@type': 'AdministrativeArea',
     name: 'Yonne',
@@ -41,7 +40,7 @@ const schemaData = {
   provider: {
     '@type': 'Person',
     name: 'David Duquenne',
-    jobTitle: 'Psychothérapeute',
+    jobTitle: 'Hypnothérapeute',
   },
   address: {
     '@type': 'PostalAddress',
@@ -59,15 +58,15 @@ const schemaData = {
 };
 
 const mainContent = `
-<p>Vous recherchez un <strong>psychothérapeute dans l'Yonne</strong> ? David Duquenne vous accueille dans son cabinet de Saint-Julien-du-Sault, au cœur du département de l'Yonne (89), pour un accompagnement thérapeutique personnalisé.</p>
+<p>Vous recherchez un <strong>hypnothérapeute dans l'Yonne</strong> ? David Duquenne vous accueille dans son cabinet de Saint-Julien-du-Sault, au cœur du département de l'Yonne (89), pour un accompagnement thérapeutique personnalisé par l'hypnose ericksonienne.</p>
 
 <p>Situé dans un cadre paisible et ressourçant au Moulin d'en Bas, le cabinet est facilement accessible depuis toutes les villes de l'Yonne : Auxerre, Sens, Joigny, Migennes, Villeneuve-sur-Yonne, Tonnerre, Avallon...</p>
 
-<h3>Une approche thérapeutique globale</h3>
+<h3>L'hypnose ericksonienne : une approche douce et efficace</h3>
 
-<p>La <strong>psychothérapie transpersonnelle</strong> que je pratique intègre plusieurs dimensions de l'être humain : psychologique, émotionnelle, corporelle et spirituelle. Cette approche holistique permet d'explorer les racines profondes des difficultés et d'accompagner une transformation durable.</p>
+<p>L'<strong>hypnose ericksonienne</strong> que je pratique est une forme d'hypnose thérapeutique douce et respectueuse. Elle permet d'accéder aux ressources de l'inconscient pour favoriser le changement et accompagner une transformation durable.</p>
 
-<p>Chaque parcours est unique. Que vous traversiez une période difficile, que vous cherchiez à mieux vous comprendre ou que vous souhaitiez évoluer dans votre vie, je vous propose un espace d'écoute et d'accompagnement adapté à vos besoins.</p>
+<p>Chaque parcours est unique. Que vous traversiez une période difficile, que vous cherchiez à dépasser des blocages ou que vous souhaitiez évoluer dans votre vie, je vous propose un espace d'écoute et d'accompagnement adapté à vos besoins.</p>
 
 <h3>Les motifs de consultation les plus fréquents</h3>
 
@@ -77,8 +76,8 @@ const mainContent = `
   <li><strong>Dépression et burn-out</strong> : épuisement, perte de sens, difficultés à se relever</li>
   <li><strong>Deuil et séparation</strong> : accompagnement dans les moments de perte</li>
   <li><strong>Crises de vie</strong> : transitions difficiles, questionnements existentiels</li>
-  <li><strong>Traumatismes</strong> : événements traumatiques, blessures du passé</li>
-  <li><strong>Développement personnel</strong> : connaissance de soi, évolution personnelle</li>
+  <li><strong>Phobies et blocages</strong> : peurs irrationnelles, comportements limitants</li>
+  <li><strong>Développement personnel</strong> : confiance en soi, évolution personnelle</li>
 </ul>
 
 <h3>Un cadre adapté aux habitants de l'Yonne</h3>
@@ -89,8 +88,8 @@ const mainContent = `
 `;
 
 const benefits = [
+  'Hypnothérapeute certifié en hypnose ericksonienne',
   'Accompagnement personnalisé et adapté à votre situation',
-  'Approche intégrative et holistique',
   'Cabinet accessible depuis tout le département',
   'Parking gratuit et cadre paisible',
   'Consultations en présentiel ou visioconférence',
@@ -101,12 +100,12 @@ const benefits = [
 
 const testimonials = [
   {
-    content: 'Après des mois de burn-out, j\'ai trouvé chez David Duquenne une écoute et un accompagnement qui m\'ont permis de me reconstruire. Le trajet depuis Auxerre en vaut vraiment la peine.',
+    content: 'Après des mois de burn-out, j\'ai trouvé chez David Duquenne une écoute et un accompagnement par l\'hypnose qui m\'ont permis de me reconstruire. Le trajet depuis Auxerre en vaut vraiment la peine.',
     author: 'Marie L.',
     location: 'Auxerre',
   },
   {
-    content: 'Un thérapeute à l\'écoute qui prend le temps de comprendre. Le cadre du Moulin d\'en Bas est apaisant et aide vraiment à se poser.',
+    content: 'Un thérapeute à l\'écoute qui prend le temps de comprendre. L\'hypnose m\'a beaucoup aidée. Le cadre du Moulin d\'en Bas est apaisant et aide vraiment à se poser.',
     author: 'Thomas R.',
     location: 'Sens',
   },
@@ -119,27 +118,27 @@ const practicalInfo = {
 };
 
 const relatedLinks = [
-  { label: 'Psychothérapeute Auxerre', href: '/psychotherapeute-auxerre' },
-  { label: 'Psychothérapeute Sens', href: '/psychotherapeute-sens' },
-  { label: 'Psychothérapeute Joigny', href: '/psychotherapeute-joigny' },
+  { label: 'Hypnothérapeute Auxerre', href: '/hypnotherapeute-auxerre' },
+  { label: 'Hypnothérapeute Sens', href: '/hypnotherapeute-sens' },
+  { label: 'Hypnothérapeute Joigny', href: '/hypnotherapeute-joigny' },
   { label: 'Hypnose Yonne', href: '/hypnose-yonne' },
 ];
 
-export default function PsychotherapeuteYonnePage() {
+export default function HypnotherapeuteYonnePage() {
   return (
     <GeoPage
-      title="Psychothérapeute dans l'Yonne"
-      subtitle="Accompagnement thérapeutique pour les habitants du département 89"
-      description="David Duquenne, psychothérapeute à Saint-Julien-du-Sault, accompagne les habitants de l'Yonne dans leur parcours de guérison et d'évolution personnelle."
-      service="psychotherapie"
+      title="Hypnothérapeute dans l'Yonne"
+      subtitle="Accompagnement par l'hypnose ericksonienne pour les habitants du département 89"
+      description="David Duquenne, hypnothérapeute certifié à Saint-Julien-du-Sault, accompagne les habitants de l'Yonne dans leur parcours de guérison et d'évolution personnelle."
+      service="hypnose"
       location={{
         city: "l'Yonne",
         department: '89',
         region: 'Bourgogne-Franche-Comté',
       }}
       breadcrumbItems={[
-        { name: 'Psychothérapie', href: '/psychotherapie' },
-        { name: 'Psychothérapeute Yonne', href: '/psychotherapeute-yonne' },
+        { name: 'Hypnose', href: '/hypnose' },
+        { name: 'Hypnothérapeute Yonne', href: '/hypnotherapeute-yonne' },
       ]}
       mainContent={mainContent}
       benefits={benefits}
