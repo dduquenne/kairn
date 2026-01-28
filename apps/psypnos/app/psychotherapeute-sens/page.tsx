@@ -102,16 +102,18 @@ const benefits = [
   'Tarif solidaire disponible',
 ];
 
-const testimonials = [
+const researchStats = [
   {
-    content: 'Entre Paris et Sens, j\'avais l\'impression de courir sans cesse. Les séances avec David m\'ont aidée à retrouver un équilibre et à prendre soin de moi.',
-    author: 'Sophie T.',
-    location: 'Sens',
+    stat: 'g = 0.96',
+    description: "Effet large de la psychothérapie sur la dépression selon une méta-analyse de 252 études cliniques.",
+    source: 'Administration and Policy in Mental Health, 2022',
+    sourceUrl: 'https://link.springer.com/article/10.1007/s10488-022-01225-y',
   },
   {
-    content: 'Le cadre du cabinet change de tout ce que je connais. C\'est un vrai moment de pause dans ma semaine. Je repars toujours plus serein.',
-    author: 'Antoine L.',
-    location: 'Paron',
+    stat: 'g = 0.80',
+    description: "Effet large de la psychothérapie sur les troubles anxieux, confirmé par plusieurs méta-analyses.",
+    source: 'World Psychiatry, 2024',
+    sourceUrl: 'https://onlinelibrary.wiley.com/doi/full/10.1002/wps.21203',
   },
 ];
 
@@ -144,7 +146,7 @@ export default function PsychotherapeuteSensPage() {
       ]}
       mainContent={mainContent}
       benefits={benefits}
-      testimonials={testimonials}
+      researchStats={researchStats}
       practicalInfo={practicalInfo}
       relatedLinks={relatedLinks}
       schemaData={schemaData}

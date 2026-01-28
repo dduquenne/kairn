@@ -87,16 +87,18 @@ const benefits = [
   'Première séance découverte',
 ];
 
-const testimonials = [
+const researchStats = [
   {
-    content: 'J\'ai consulté pour mes insomnies. Après quelques séances, je dors enfin normalement. Le cadre du cabinet est vraiment propice à la détente.',
-    author: 'François G.',
-    location: 'Joigny',
+    stat: '67%',
+    description: "des études scientifiques rapportent un impact positif de l'hypnose sur l'arrêt du tabac.",
+    source: 'Frontiers in Psychology, 2024',
+    sourceUrl: 'https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2023.1330238/full',
   },
   {
-    content: 'Ma phobie de conduire me gâchait la vie. L\'hypnose m\'a permis de reprendre le volant sereinement.',
-    author: 'Valérie B.',
-    location: 'Villecien',
+    stat: 'Effet large',
+    description: "L'hypnose montre des effets moyens à larges dans la réduction de l'anxiété selon les méta-analyses.",
+    source: 'PMC/NCBI, 2024',
+    sourceUrl: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10807512/',
   },
 ];
 
@@ -126,7 +128,7 @@ export default function HypnoseJoignyPage() {
       ]}
       mainContent={mainContent}
       benefits={benefits}
-      testimonials={testimonials}
+      researchStats={researchStats}
       practicalInfo={practicalInfo}
       relatedLinks={relatedLinks}
       schemaData={schemaData}

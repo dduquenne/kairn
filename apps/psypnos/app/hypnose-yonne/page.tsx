@@ -113,16 +113,18 @@ const benefits = [
   'Confidentialité totale',
 ];
 
-const testimonials = [
+const researchStats = [
   {
-    content: 'J\'ai arrêté de fumer après 3 séances d\'hypnose. Ça fait maintenant 8 mois et je n\'ai pas repris. Une vraie libération !',
-    author: 'Jean-Pierre M.',
-    location: 'Joigny',
+    stat: '67%',
+    description: "des études scientifiques rapportent un impact positif de l'hypnose sur l'arrêt du tabac.",
+    source: 'Frontiers in Psychology, 2024',
+    sourceUrl: 'https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2023.1330238/full',
   },
   {
-    content: 'Mes crises d\'angoisse ont quasiment disparu. L\'hypnose m\'a permis de comprendre et de dépasser mes peurs.',
-    author: 'Émilie R.',
-    location: 'Sens',
+    stat: 'Effet large',
+    description: "L'hypnose montre des effets moyens à larges dans la réduction de l'anxiété selon les méta-analyses.",
+    source: 'PMC/NCBI, 2024',
+    sourceUrl: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10807512/',
   },
 ];
 
@@ -157,7 +159,7 @@ export default function HypnoseYonnePage() {
       ]}
       mainContent={mainContent}
       benefits={benefits}
-      testimonials={testimonials}
+      researchStats={researchStats}
       practicalInfo={practicalInfo}
       relatedLinks={relatedLinks}
       schemaData={schemaData}

@@ -23,11 +23,12 @@ export interface GeoPageProps {
   // Contenu principal
   mainContent: string;
   benefits: string[];
-  // Témoignages
-  testimonials: Array<{
-    content: string;
-    author: string;
-    location: string;
+  // Études et statistiques
+  researchStats: Array<{
+    stat: string;
+    description: string;
+    source: string;
+    sourceUrl: string;
   }>;
   // Informations pratiques
   practicalInfo: {
@@ -69,12 +70,6 @@ const CheckIcon = () => (
   </svg>
 );
 
-const QuoteIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-8 w-8 opacity-30">
-    <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-  </svg>
-);
-
 const serviceLabels = {
   psychotherapie: 'Psychothérapie',
   hypnose: 'Hypnose ericksonienne',
@@ -96,7 +91,7 @@ export function GeoPage({
   breadcrumbItems,
   mainContent,
   benefits,
-  testimonials,
+  researchStats,
   practicalInfo,
   relatedLinks,
   schemaData,
@@ -172,29 +167,35 @@ export function GeoPage({
                 </ul>
               </section>
 
-              {/* Témoignages */}
-              {testimonials.length > 0 && (
+              {/* Études et statistiques */}
+              {researchStats.length > 0 && (
                 <section>
                   <h3 className="font-display text-gold mb-6 text-xl font-semibold">
-                    Témoignages de patients de {location.city}
+                    Ce que dit la recherche scientifique
                   </h3>
 
                   <div className="grid gap-6 md:grid-cols-2">
-                    {testimonials.map((testimonial, index) => (
+                    {researchStats.map((research, index) => (
                       <div
                         key={index}
                         className="border-ivory/10 bg-night/30 relative rounded-xl border p-6"
                       >
-                        <div className="text-gold absolute -top-3 left-4">
-                          <QuoteIcon />
+                        <div className="text-gold mb-3 text-3xl font-bold">
+                          {research.stat}
                         </div>
-                        <blockquote className="text-ivory/80 mb-4 italic">
-                          &ldquo;{testimonial.content}&rdquo;
-                        </blockquote>
-                        <footer className="text-ivory/50 text-sm">
-                          <strong className="text-ivory/70">{testimonial.author}</strong>
-                          <span className="mx-2">•</span>
-                          <span>{testimonial.location}</span>
+                        <p className="text-ivory/80 mb-4">
+                          {research.description}
+                        </p>
+                        <footer className="text-ivory/50 text-xs">
+                          Source :{' '}
+                          <a
+                            href={research.sourceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-gold/70 hover:text-gold underline transition-colors"
+                          >
+                            {research.source}
+                          </a>
                         </footer>
                       </div>
                     ))}

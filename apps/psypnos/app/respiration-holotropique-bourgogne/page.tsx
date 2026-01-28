@@ -120,16 +120,18 @@ const benefits = [
   'Suivi post-séminaire',
 ];
 
-const testimonials = [
+const researchStats = [
   {
-    content: 'Une expérience profondément transformatrice. Le cadre du Moulin d\'en Bas et l\'accompagnement de David créent un espace de confiance unique. Je reviens pour chaque séminaire.',
-    author: 'Laurent K.',
-    location: 'Dijon',
+    stat: '11 200',
+    description: "patients psychiatriques ont participé à des séances de respiration holotropique sur 12 ans sans effet indésirable signalé.",
+    source: 'MAPS Bulletin, Clinical Report',
+    sourceUrl: 'https://maps.org/news-letters/v23n1/v23n1_24-27.pdf',
   },
   {
-    content: 'J\'ai découvert la respiration holotropique lors d\'un séminaire ici. Cette pratique a changé ma façon de voir la vie et de me comprendre.',
-    author: 'Anne-Marie P.',
-    location: 'Auxerre',
+    stat: 'Conscience de soi',
+    description: "Une étude montre des changements positifs de tempérament et une augmentation de la conscience de soi après 4 sessions.",
+    source: 'PMC/NCBI, 2015',
+    sourceUrl: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC4677109/',
   },
 ];
 
@@ -162,7 +164,7 @@ export default function RespirationHolotropiqueBourgognePage() {
       ]}
       mainContent={mainContent}
       benefits={benefits}
-      testimonials={testimonials}
+      researchStats={researchStats}
       practicalInfo={practicalInfo}
       relatedLinks={relatedLinks}
       schemaData={schemaData}

@@ -85,16 +85,18 @@ const benefits = [
   'Résultats souvent rapides',
 ];
 
-const testimonials = [
+const researchStats = [
   {
-    content: 'J\'ai consulté pour arrêter de fumer. Après 2 séances, j\'ai définitivement arrêté. Ça fait maintenant un an !',
-    author: 'Christophe R.',
-    location: 'Migennes',
+    stat: '67%',
+    description: "des études scientifiques rapportent un impact positif de l'hypnose sur l'arrêt du tabac.",
+    source: 'Frontiers in Psychology, 2024',
+    sourceUrl: 'https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2023.1330238/full',
   },
   {
-    content: 'L\'hypnose m\'a aidée à surmonter ma peur de parler en public. Je peux maintenant faire des présentations au travail sereinement.',
-    author: 'Sandrine V.',
-    location: 'Cheny',
+    stat: 'Effet large',
+    description: "L'hypnose montre des effets moyens à larges dans la réduction de l'anxiété selon les méta-analyses.",
+    source: 'PMC/NCBI, 2024',
+    sourceUrl: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10807512/',
   },
 ];
 
@@ -124,7 +126,7 @@ export default function HypnoseMigennesPage() {
       ]}
       mainContent={mainContent}
       benefits={benefits}
-      testimonials={testimonials}
+      researchStats={researchStats}
       practicalInfo={practicalInfo}
       relatedLinks={relatedLinks}
       schemaData={schemaData}

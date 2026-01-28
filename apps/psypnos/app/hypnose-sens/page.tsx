@@ -93,16 +93,18 @@ const benefits = [
   'Résultats souvent rapides',
 ];
 
-const testimonials = [
+const researchStats = [
   {
-    content: 'Navetteur Sens-Paris, j\'étais au bord du burn-out. L\'hypnose m\'a aidé à retrouver un équilibre et à mieux gérer le stress.',
-    author: 'David M.',
-    location: 'Sens',
+    stat: '67%',
+    description: "des études scientifiques rapportent un impact positif de l'hypnose sur l'arrêt du tabac.",
+    source: 'Frontiers in Psychology, 2024',
+    sourceUrl: 'https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2023.1330238/full',
   },
   {
-    content: 'Ma phobie de l\'avion m\'empêchait de voyager. Après quelques séances d\'hypnose, j\'ai pu partir en vacances sereinement.',
-    author: 'Céline T.',
-    location: 'Paron',
+    stat: 'Effet large',
+    description: "L'hypnose montre des effets moyens à larges dans la réduction de l'anxiété selon les méta-analyses.",
+    source: 'PMC/NCBI, 2024',
+    sourceUrl: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10807512/',
   },
 ];
 
@@ -132,7 +134,7 @@ export default function HypnoseSensPage() {
       ]}
       mainContent={mainContent}
       benefits={benefits}
-      testimonials={testimonials}
+      researchStats={researchStats}
       practicalInfo={practicalInfo}
       relatedLinks={relatedLinks}
       schemaData={schemaData}

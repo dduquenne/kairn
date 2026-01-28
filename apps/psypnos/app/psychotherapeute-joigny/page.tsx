@@ -92,16 +92,18 @@ const benefits = [
   'Accompagnement personnalisé',
 ];
 
-const testimonials = [
+const researchStats = [
   {
-    content: 'Habitant Joigny, j\'hésitais à faire le déplacement. Mais le cadre et l\'écoute de David Duquenne valent largement le court trajet. Un vrai cocon pour se poser.',
-    author: 'Claire M.',
-    location: 'Joigny',
+    stat: 'g = 0.96',
+    description: "Effet large de la psychothérapie sur la dépression selon une méta-analyse de 252 études cliniques.",
+    source: 'Administration and Policy in Mental Health, 2022',
+    sourceUrl: 'https://link.springer.com/article/10.1007/s10488-022-01225-y',
   },
   {
-    content: 'Après mon burn-out, j\'avais besoin d\'un espace hors de la ville pour me reconstruire. Le Moulin d\'en Bas est parfait pour ça.',
-    author: 'Philippe D.',
-    location: 'Joigny',
+    stat: 'g = 0.80',
+    description: "Effet large de la psychothérapie sur les troubles anxieux, confirmé par plusieurs méta-analyses.",
+    source: 'World Psychiatry, 2024',
+    sourceUrl: 'https://onlinelibrary.wiley.com/doi/full/10.1002/wps.21203',
   },
 ];
 
@@ -134,7 +136,7 @@ export default function PsychotherapeuteJoignyPage() {
       ]}
       mainContent={mainContent}
       benefits={benefits}
-      testimonials={testimonials}
+      researchStats={researchStats}
       practicalInfo={practicalInfo}
       relatedLinks={relatedLinks}
       schemaData={schemaData}

@@ -99,16 +99,18 @@ const benefits = [
   'Approche intégrative',
 ];
 
-const testimonials = [
+const researchStats = [
   {
-    content: 'Le trajet depuis Auxerre est devenu mon rituel. Ce temps de route me permet de me préparer à la séance et de digérer ensuite. Le cadre du cabinet est vraiment ressourçant.',
-    author: 'Nathalie B.',
-    location: 'Auxerre',
+    stat: 'g = 0.96',
+    description: "Effet large de la psychothérapie sur la dépression selon une méta-analyse de 252 études cliniques.",
+    source: 'Administration and Policy in Mental Health, 2022',
+    sourceUrl: 'https://link.springer.com/article/10.1007/s10488-022-01225-y',
   },
   {
-    content: 'J\'ai choisi de consulter en dehors d\'Auxerre pour avoir un espace vraiment à moi, loin de mon quotidien. David m\'accompagne avec justesse depuis plus d\'un an.',
-    author: 'Marc S.',
-    location: 'Auxerre',
+    stat: 'g = 0.80',
+    description: "Effet large de la psychothérapie sur les troubles anxieux, confirmé par plusieurs méta-analyses.",
+    source: 'World Psychiatry, 2024',
+    sourceUrl: 'https://onlinelibrary.wiley.com/doi/full/10.1002/wps.21203',
   },
 ];
 
@@ -141,7 +143,7 @@ export default function PsychotherapeuteAuxerrePage() {
       ]}
       mainContent={mainContent}
       benefits={benefits}
-      testimonials={testimonials}
+      researchStats={researchStats}
       practicalInfo={practicalInfo}
       relatedLinks={relatedLinks}
       schemaData={schemaData}

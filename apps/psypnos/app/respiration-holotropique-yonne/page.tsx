@@ -126,16 +126,18 @@ const benefits = [
   'Suivi post-séminaire',
 ];
 
-const testimonials = [
+const researchStats = [
   {
-    content: 'Habitant l\'Yonne, j\'étais ravi de trouver un séminaire de respiration holotropique près de chez moi. L\'expérience a dépassé toutes mes attentes.',
-    author: 'Stéphane M.',
-    location: 'Auxerre',
+    stat: '11 200',
+    description: "patients psychiatriques ont participé à des séances de respiration holotropique sur 12 ans sans effet indésirable signalé.",
+    source: 'MAPS Bulletin, Clinical Report',
+    sourceUrl: 'https://maps.org/news-letters/v23n1/v23n1_24-27.pdf',
   },
   {
-    content: 'Le cadre du Moulin d\'en Bas est parfait pour cette pratique. On est vraiment coupé du monde, dans un cocon propice à l\'exploration intérieure.',
-    author: 'Karine D.',
-    location: 'Sens',
+    stat: 'Conscience de soi',
+    description: "Une étude montre des changements positifs de tempérament et une augmentation de la conscience de soi après 4 sessions.",
+    source: 'PMC/NCBI, 2015',
+    sourceUrl: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC4677109/',
   },
 ];
 
@@ -169,7 +171,7 @@ export default function RespirationHolotropiqueYonnePage() {
       ]}
       mainContent={mainContent}
       benefits={benefits}
-      testimonials={testimonials}
+      researchStats={researchStats}
       practicalInfo={practicalInfo}
       relatedLinks={relatedLinks}
       schemaData={schemaData}

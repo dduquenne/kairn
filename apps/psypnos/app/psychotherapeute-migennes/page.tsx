@@ -89,16 +89,18 @@ const benefits = [
   'Confidentialité assurée',
 ];
 
-const testimonials = [
+const researchStats = [
   {
-    content: 'Après la fermeture de mon entreprise, j\'avais besoin de me reconstruire. David m\'a accompagné avec patience et bienveillance.',
-    author: 'Rémi P.',
-    location: 'Migennes',
+    stat: 'g = 0.96',
+    description: "Effet large de la psychothérapie sur la dépression selon une méta-analyse de 252 études cliniques.",
+    source: 'Administration and Policy in Mental Health, 2022',
+    sourceUrl: 'https://link.springer.com/article/10.1007/s10488-022-01225-y',
   },
   {
-    content: 'Le cadre du cabinet est vraiment apaisant. Ça change de Migennes et ça fait du bien.',
-    author: 'Isabelle C.',
-    location: 'Laroche-Saint-Cydroine',
+    stat: 'g = 0.80',
+    description: "Effet large de la psychothérapie sur les troubles anxieux, confirmé par plusieurs méta-analyses.",
+    source: 'World Psychiatry, 2024',
+    sourceUrl: 'https://onlinelibrary.wiley.com/doi/full/10.1002/wps.21203',
   },
 ];
 
@@ -131,7 +133,7 @@ export default function PsychotherapeuteMigennesPage() {
       ]}
       mainContent={mainContent}
       benefits={benefits}
-      testimonials={testimonials}
+      researchStats={researchStats}
       practicalInfo={practicalInfo}
       relatedLinks={relatedLinks}
       schemaData={schemaData}
