@@ -6,11 +6,9 @@
  * contrairement à React.lazy() qui ne fonctionne pas bien avec SSR.
  */
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
 
-import { CurrentYear } from '../components/CurrentYear';
+import { Footer } from '../components/Footer';
 import { NavigationMenu } from '../components/NavigationMenu';
-import { SocialLinks } from '../components/SocialLinks';
 
 import { HeroSection } from './(pages)/sections/hero';
 import {
@@ -102,39 +100,7 @@ export default function HomePage() {
         <ContactSection />
       </main>
 
-      <footer className="border-ivory/10 bg-night/80 border-t px-6 py-10 sm:px-10 lg:px-16">
-        <div className="mx-auto max-w-4xl space-y-6">
-          {/* Liens réseaux sociaux */}
-          <div className="flex flex-col items-center gap-3">
-            <p className="text-ivory/50 text-xs">Retrouvez-moi sur les réseaux</p>
-            <SocialLinks variant="inline" />
-          </div>
-
-          {/* Séparateur */}
-          <div className="border-ivory/10 border-t" />
-
-          {/* Copyright et liens */}
-          <div className="text-ivory/50 flex flex-col items-center gap-2 text-center text-xs sm:flex-row sm:justify-center sm:gap-4">
-            <span>
-              <CurrentYear /> Psypnos. Tous droits réservés.
-            </span>
-            <span className="text-ivory/30 hidden sm:inline">|</span>
-            <Link
-              href="/blog"
-              className="text-ivory/70 hover:text-gold focus-visible:outline-gold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-            >
-              Blog
-            </Link>
-            <span className="text-ivory/30 hidden sm:inline">|</span>
-            <Link
-              href="/admin"
-              className="text-ivory/70 hover:text-gold focus-visible:outline-gold transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
-            >
-              Accès privé
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

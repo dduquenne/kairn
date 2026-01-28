@@ -4,7 +4,7 @@ import { getAllPosts } from '@/lib/blog'
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = 'https://psypnos.fr'
 
-  // Pages statiques
+  // Pages statiques principales
   const routes: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
@@ -13,7 +13,31 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1.0,
     },
     {
+      url: `${baseUrl}/psychotherapie`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/hypnose`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/respiration-holotropique`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.9,
+    },
+    {
       url: `${baseUrl}/a-propos`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/contact`,
       lastModified: new Date(),
       changeFrequency: 'monthly' as const,
       priority: 0.9,
@@ -31,22 +55,65 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.8,
     },
     {
+      url: `${baseUrl}/blog`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.9,
+    },
+  ]
+
+  // Pages géolocalisées - Psychothérapie
+  const psychotherapieGeoPages: MetadataRoute.Sitemap = [
+    'psychotherapeute-yonne',
+    'psychotherapeute-auxerre',
+    'psychotherapeute-sens',
+    'psychotherapeute-joigny',
+    'psychotherapeute-migennes',
+  ].map((slug) => ({
+    url: `${baseUrl}/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.8,
+  }))
+
+  // Pages géolocalisées - Hypnose
+  const hypnoseGeoPages: MetadataRoute.Sitemap = [
+    'hypnose-yonne',
+    'hypnose-auxerre',
+    'hypnose-sens',
+    'hypnose-joigny',
+    'hypnose-migennes',
+  ].map((slug) => ({
+    url: `${baseUrl}/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.8,
+  }))
+
+  // Pages géolocalisées - Respiration holotropique
+  const respirationGeoPages: MetadataRoute.Sitemap = [
+    'respiration-holotropique-bourgogne',
+    'respiration-holotropique-yonne',
+  ].map((slug) => ({
+    url: `${baseUrl}/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly' as const,
+    priority: 0.8,
+  }))
+
+  // Pages légales
+  const legalPages: MetadataRoute.Sitemap = [
+    {
       url: `${baseUrl}/politique-de-confidentialite`,
       lastModified: new Date(),
       changeFrequency: 'yearly' as const,
-      priority: 0.5,
+      priority: 0.3,
     },
     {
       url: `${baseUrl}/conditions-utilisation`,
       lastModified: new Date(),
       changeFrequency: 'yearly' as const,
-      priority: 0.5,
-    },
-    {
-      url: `${baseUrl}/blog`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.9,
+      priority: 0.3,
     },
   ]
 
@@ -59,5 +126,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }))
 
-  return [...routes, ...blogPosts]
+  return [
+    ...routes,
+    ...psychotherapieGeoPages,
+    ...hypnoseGeoPages,
+    ...respirationGeoPages,
+    ...legalPages,
+    ...blogPosts,
+  ]
 }
