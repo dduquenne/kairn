@@ -8,7 +8,7 @@ import { useRef, useEffect, useState } from 'react';
 import { CTAButton } from '../../../components/CTAButton';
 
 const heroContent = {
-  h1: 'Psychothérapeute et Hypnothérapeute à Saint-Julien-du-Sault (Yonne)',
+  h1: 'Psychothérapie et Hypnose à Saint-Julien-du-Sault (Yonne)',
   slogan1: 'Accueillir ce qui est.',
   slogan2: 'Explorer ce qui vient.',
   subtitle:
@@ -134,7 +134,7 @@ export function HeroSection() {
           transition={hasMounted ? { duration: 0.8, delay: 3.3, ease: 'easeOut' } : { duration: 0 }}
           className="max-w-3xl"
         >
-          <h1 className="font-display text-gold-accessible text-3xl font-bold sm:text-4xl lg:text-5xl">
+          <h1 className="text-gold-accessible mb-2 text-sm uppercase tracking-[0.3em]">
             {heroContent.h1}
           </h1>
           <h2 className="font-display text-ivory mt-4 text-2xl font-semibold sm:text-3xl lg:text-4xl">
