@@ -68,12 +68,13 @@ export function AProposContent() {
           >
             {/* Title */}
             <motion.h1
-              className="text-ivory mb-6 text-4xl font-semibold sm:text-5xl lg:text-6xl"
+              className="font-display text-ivory mb-6 text-4xl font-semibold sm:text-5xl lg:text-6xl"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              David Duquenne - Psychothérapeute certifié dans <span className="text-gold">l'Yonne</span>
+              David Duquenne - Psychothérapeute certifié dans{' '}
+              <span className="text-gold">l'Yonne</span>
             </motion.h1>
             <motion.p
               className="text-ivory/80 mb-8 text-lg sm:text-xl"
@@ -140,7 +141,7 @@ export function AProposContent() {
             transition={{ duration: 0.8 }}
             className="mb-20"
           >
-            <h2 className="text-gold mb-8 text-3xl font-semibold sm:text-4xl">
+            <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
               L'empreinte des premiers pas
             </h2>
 
@@ -190,7 +191,7 @@ export function AProposContent() {
             transition={{ duration: 0.8 }}
             className="mb-20"
           >
-            <h2 className="text-gold mb-8 text-3xl font-semibold sm:text-4xl">
+            <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
               L'effondrement comme révélation
             </h2>
 
@@ -229,7 +230,7 @@ export function AProposContent() {
             transition={{ duration: 0.8 }}
             className="mb-20"
           >
-            <h2 className="text-gold mb-8 text-3xl font-semibold sm:text-4xl">
+            <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
               Ouvertures et nuit noire
             </h2>
 
@@ -273,7 +274,7 @@ export function AProposContent() {
             transition={{ duration: 0.8 }}
             className="mb-20"
           >
-            <h2 className="text-gold mb-8 text-3xl font-semibold sm:text-4xl">
+            <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
               La présence auprès de la finitude
             </h2>
 
@@ -306,7 +307,7 @@ export function AProposContent() {
             transition={{ duration: 0.8 }}
             className="mb-20"
           >
-            <h2 className="text-gold mb-8 text-3xl font-semibold sm:text-4xl">
+            <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
               Une approche existentielle et incarnée
             </h2>
 
@@ -345,7 +346,7 @@ export function AProposContent() {
             transition={{ duration: 0.8 }}
             className="mb-20"
           >
-            <h2 className="text-gold mb-8 text-3xl font-semibold sm:text-4xl">
+            <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
               Psypnos : un lieu, un passage
             </h2>
 

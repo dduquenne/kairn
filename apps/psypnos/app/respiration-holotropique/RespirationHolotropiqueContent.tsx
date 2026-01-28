@@ -197,7 +197,7 @@ export function RespirationHolotropiqueContent({
             transition={{ duration: 0.8 }}
             className="mb-20 scroll-mt-24"
           >
-            <h2 className="font-display text-gold mb-8 text-3xl font-semibold sm:text-4xl">
+            <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
               Qu'est-ce que la respiration holotropique ?
             </h2>
 
@@ -238,7 +238,7 @@ export function RespirationHolotropiqueContent({
             transition={{ duration: 0.8 }}
             className="mb-20"
           >
-            <h2 className="font-display text-gold mb-8 text-3xl font-semibold sm:text-4xl">
+            <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
               Pourquoi vivre cette expérience ?
             </h2>
 
@@ -288,7 +288,7 @@ export function RespirationHolotropiqueContent({
             transition={{ duration: 0.8 }}
             className="mb-20"
           >
-            <h2 className="font-display text-gold mb-8 text-3xl font-semibold sm:text-4xl">
+            <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
               Les trois piliers de l'expérience
             </h2>
 
@@ -346,7 +346,7 @@ export function RespirationHolotropiqueContent({
             transition={{ duration: 0.8 }}
             className="mb-20"
           >
-            <h2 className="font-display text-gold mb-8 text-3xl font-semibold sm:text-4xl">
+            <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
               Comment se déroule un séminaire ?
             </h2>
 
@@ -424,7 +424,7 @@ export function RespirationHolotropiqueContent({
             transition={{ duration: 0.8 }}
             className="mb-20"
           >
-            <h2 className="font-display text-gold mb-8 text-3xl font-semibold sm:text-4xl">
+            <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
               Un lieu magique pour votre voyage
             </h2>
 
@@ -468,7 +468,7 @@ export function RespirationHolotropiqueContent({
             transition={{ duration: 0.8 }}
             className="mb-20"
           >
-            <h2 className="font-display text-gold mb-8 text-3xl font-semibold sm:text-4xl">
+            <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
               Vos questions, mes réponses
             </h2>
 
@@ -565,7 +565,7 @@ export function RespirationHolotropiqueContent({
             transition={{ duration: 0.8 }}
             className="mb-20"
           >
-            <h2 className="font-display text-gold mb-4 text-3xl font-semibold sm:text-4xl">
+            <h2 className="font-display text-gold-accessible mb-4 text-3xl font-semibold sm:text-4xl">
               Prochains séminaires
             </h2>
             <p className="text-ivory/70 mb-8 text-lg">
@@ -601,7 +601,7 @@ export function RespirationHolotropiqueContent({
             transition={{ duration: 0.8 }}
             className="mb-20"
           >
-            <h2 className="font-display text-gold mb-4 text-3xl font-semibold sm:text-4xl">
+            <h2 className="font-display text-gold-accessible mb-4 text-3xl font-semibold sm:text-4xl">
               Pour aller plus loin
             </h2>
             <p className="text-ivory/70 mb-8 text-lg">

@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  type ReactNode,
-} from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 
 /**
  * Theme modes disponibles
@@ -117,31 +110,28 @@ export function ThemeProvider({
     }
   }, [resolvedTheme, mounted]);
 
-  const setTheme = useCallback((newTheme: ThemeMode) => {
-    setThemeState(newTheme);
-    setResolvedTheme(getResolvedTheme(newTheme));
-    localStorage.setItem(STORAGE_KEY, newTheme);
-  }, [getResolvedTheme]);
+  const setTheme = useCallback(
+    (newTheme: ThemeMode) => {
+      setThemeState(newTheme);
+      setResolvedTheme(getResolvedTheme(newTheme));
+      localStorage.setItem(STORAGE_KEY, newTheme);
+    },
+    [getResolvedTheme]
+  );
 
   const toggleTheme = useCallback(() => {
     const newTheme = resolvedTheme === 'dark' ? 'light' : 'dark';
     setTheme(newTheme);
   }, [resolvedTheme, setTheme]);
 
-  // Évite le flash de contenu mal thémé
-  if (!mounted) {
-    return (
-      <div className="bg-night text-ivory" suppressHydrationWarning>
-        {children}
-      </div>
-    );
-  }
+  const contextValue: ThemeContextValue = {
+    theme,
+    resolvedTheme,
+    setTheme,
+    toggleTheme,
+  };
 
-  return (
-    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
-  );
+  return <ThemeContext.Provider value={contextValue}>{children}</ThemeContext.Provider>;
 }
 
 /**

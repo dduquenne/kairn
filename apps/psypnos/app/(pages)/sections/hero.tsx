@@ -1,27 +1,28 @@
-"use client";
+'use client';
 
-import { useRef, useEffect, useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import Image from "next/image";
-import Link from "next/link";
-import { CTAButton } from "../../../components/CTAButton";
+import { motion, useScroll, useTransform } from 'framer-motion';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useRef, useEffect, useState } from 'react';
+
+import { CTAButton } from '../../../components/CTAButton';
 
 const heroContent = {
-  h1: "Psychothérapeute et Hypnothérapeute à Saint-Julien-du-Sault (Yonne)",
-  slogan1: "Accueillir ce qui est.",
-  slogan2: "Explorer ce qui vient.",
+  h1: 'Psychothérapeute et Hypnothérapeute à Saint-Julien-du-Sault (Yonne)',
+  slogan1: 'Accueillir ce qui est.',
+  slogan2: 'Explorer ce qui vient.',
   subtitle:
-    "Traversez les crises, réveillez votre sagesse intérieure et redonnez du sens à votre vie.",
+    'Traversez les crises, réveillez votre sagesse intérieure et redonnez du sens à votre vie.',
   ctas: {
-    primary: "Prendre un rendez-vous",
+    primary: 'Prendre un rendez-vous',
     secondary: "S'inscrire à un séminaire",
-    tertiary: "Découvrir mon approche",
+    tertiary: 'Découvrir mon approche',
   },
 };
 
 const heroPractitioner = {
-  name: "David Duquenne",
-  headline: "Psychothérapie & Hypnose",
+  name: 'David Duquenne',
+  headline: 'Psychothérapie & Hypnose',
   address: "Le Moulin d'en Bas – 89330 Saint-Julien du Sault",
   description:
     "Praticien certifié en psychothérapie et en hypnose, je suis spécialisé dans l'accompagnement des personnes traversant des périodes de transition émotionnelle ou psychologique. Qu'il s'agisse de gérer le stress, de surmonter des blocages ou de vivre un deuil, mon approche allie écoute bienveillante et techniques thérapeutiques adaptées à chaque besoin spécifique. Je suis convaincu que chaque individu possède en lui les ressources nécessaires pour évoluer vers un mieux-être, et mon rôle est de vous aider à les découvrir.",
@@ -38,7 +39,7 @@ export function HeroSection() {
 
   const { scrollYProgress } = useScroll({
     target: heroRef,
-    offset: ["start start", "end start"],
+    offset: ['start start', 'end start'],
   });
   const heroParallax = useTransform(scrollYProgress, [0, 1], [0, -140]);
   const secondaryParallax = useTransform(scrollYProgress, [0, 1], [0, -70]);
@@ -53,7 +54,7 @@ export function HeroSection() {
   return (
     <header
       ref={heroRef}
-      className="relative overflow-hidden bg-night px-6 pb-24 pt-24 sm:px-8 lg:px-16"
+      className="bg-night relative overflow-hidden px-6 pb-24 pt-24 sm:px-8 lg:px-16"
       aria-label="Introduction"
     >
       {/* Gradient glow effects */}
@@ -76,26 +77,19 @@ export function HeroSection() {
         <motion.div
           initial={fadeInInitial}
           animate={fadeIn}
-          transition={hasMounted ? { duration: 2, ease: "easeOut" } : { duration: 0 }}
-          className="flex h-24 w-24 flex-col items-center justify-center bg-night/40 "
+          transition={hasMounted ? { duration: 2, ease: 'easeOut' } : { duration: 0 }}
+          className="bg-night/40 flex h-24 w-24 flex-col items-center justify-center "
         >
           <motion.svg
             initial={hasMounted ? { scale: 0.5, rotate: -360 } : { scale: 1, rotate: 0 }}
             animate={{ scale: 1, rotate: 0 }}
-            transition={hasMounted ? { duration: 2.2, ease: "easeOut" } : { duration: 0 }}
+            transition={hasMounted ? { duration: 2.2, ease: 'easeOut' } : { duration: 0 }}
             width="100"
             height="100"
             viewBox="0 0 600 600"
             aria-label="Logo spiralé"
           >
-            <circle
-              cx="300"
-              cy="300"
-              r="250"
-              fill="none"
-              stroke="#E5C78E"
-              strokeWidth="25"
-            />
+            <circle cx="300" cy="300" r="250" fill="none" stroke="#E5C78E" strokeWidth="25" />
             <path
               d="
                 M 300 550
@@ -113,12 +107,12 @@ export function HeroSection() {
           <motion.svg
             initial={fadeInInitial}
             animate={fadeIn}
-            transition={hasMounted ? { duration: 2, delay: 1, ease: "easeOut" } : { duration: 0 }}
+            transition={hasMounted ? { duration: 2, delay: 1, ease: 'easeOut' } : { duration: 0 }}
             width="100"
             height="50"
             viewBox="0 0 1000 500"
             aria-label="Psypnos"
-            className="flex h-24 w-24 items-center justify-center bg-night/40 "
+            className="bg-night/40 flex h-24 w-24 items-center justify-center "
           >
             <text
               x="50%"
@@ -137,24 +131,22 @@ export function HeroSection() {
         <motion.div
           initial={slideUpInitial}
           animate={slideUp}
-          transition={hasMounted ? { duration: 0.8, delay: 3.3, ease: "easeOut" } : { duration: 0 }}
+          transition={hasMounted ? { duration: 0.8, delay: 3.3, ease: 'easeOut' } : { duration: 0 }}
           className="max-w-3xl"
         >
-          <h1 className="font-display text-3xl font-bold text-gold-accessible sm:text-4xl lg:text-5xl">
+          <h1 className="font-display text-gold-accessible text-3xl font-bold sm:text-4xl lg:text-5xl">
             {heroContent.h1}
           </h1>
-          <h2 className="mt-4 text-2xl font-semibold text-ivory sm:text-3xl lg:text-4xl">
+          <h2 className="font-display text-ivory mt-4 text-2xl font-semibold sm:text-3xl lg:text-4xl">
             <span className="block">{heroContent.slogan1}</span>
             <span className="block">{heroContent.slogan2}</span>
           </h2>
-          <p className="mt-6 text-base text-ivory sm:text-lg">
-            {heroContent.subtitle}
-          </p>
+          <p className="text-ivory mt-6 text-base sm:text-lg">{heroContent.subtitle}</p>
         </motion.div>
         <motion.div
           initial={slideUpInitial}
           animate={slideUp}
-          transition={hasMounted ? { duration: 0.8, delay: 3.5, ease: "easeOut" } : { duration: 0 }}
+          transition={hasMounted ? { duration: 0.8, delay: 3.5, ease: 'easeOut' } : { duration: 0 }}
           className="flex flex-col items-center gap-6"
         >
           {/* Boutons principaux */}
@@ -196,7 +188,7 @@ export function HeroSection() {
           {/* Lien tertiaire */}
           <Link
             href="#approche"
-            className="group inline-flex items-center gap-2 text-sm text-ivory transition-colors duration-300 hover:text-gold-accessible"
+            className="text-ivory hover:text-gold-accessible group inline-flex items-center gap-2 text-sm transition-colors duration-300"
           >
             <span>{heroContent.ctas.tertiary}</span>
             <svg
@@ -206,18 +198,14 @@ export function HeroSection() {
               stroke="currentColor"
               strokeWidth={2}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M19 9l-7 7-7-7"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
           </Link>
         </motion.div>
         <motion.div
           initial={hasMounted ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={hasMounted ? { duration: 2, delay: 3.6, ease: "easeOut" } : { duration: 0 }}
+          transition={hasMounted ? { duration: 2, delay: 3.6, ease: 'easeOut' } : { duration: 0 }}
           className="relative flex w-full flex-col items-center justify-center gap-8 overflow-hidden lg:flex-row lg:items-start lg:justify-center"
         >
           <Image
@@ -231,25 +219,23 @@ export function HeroSection() {
             <br />
             <br />
             <br />
-            <p className="mb-2 text-sm uppercase tracking-[0.3em] text-gold-accessible">
+            <p className="text-gold-accessible mb-2 text-sm uppercase tracking-[0.3em]">
               {heroPractitioner.headline}
             </p>
-            <h2 className="text-3xl font-semibold text-ivory sm:text-4xl">
+            <h2 className="text-ivory text-3xl font-semibold sm:text-4xl">
               {heroPractitioner.name}
             </h2>
-            <p className="mt-6 text-base text-gold-accessible sm:text-lg">
+            <p className="text-gold-accessible mt-6 text-base sm:text-lg">
               {heroPractitioner.address}
             </p>
-            <p className="mt-4 text-base text-ivory sm:text-lg">
-              {heroPractitioner.description}
-            </p>
+            <p className="text-ivory mt-4 text-base sm:text-lg">{heroPractitioner.description}</p>
             {/* Liens vers les pratiques */}
             <div className="mt-10 flex flex-wrap justify-center gap-x-8 gap-y-4 lg:justify-start">
               <Link
                 href="/a-propos"
-                className="group inline-flex items-center gap-2 text-sm text-ivory-muted transition-all duration-300 hover:text-gold-accessible"
+                className="text-ivory-muted hover:text-gold-accessible group inline-flex items-center gap-2 text-sm transition-all duration-300"
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-ivory/20 bg-ivory/5 transition-all duration-300 group-hover:border-gold/50 group-hover:bg-gold/10">
+                <span className="border-ivory/20 bg-ivory/5 group-hover:border-gold/50 group-hover:bg-gold/10 flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-300">
                   <svg
                     className="h-4 w-4"
                     fill="none"
@@ -268,9 +254,9 @@ export function HeroSection() {
               </Link>
               <Link
                 href="#psychotherapie"
-                className="group inline-flex items-center gap-2 text-sm text-ivory-muted transition-all duration-300 hover:text-gold-accessible"
+                className="text-ivory-muted hover:text-gold-accessible group inline-flex items-center gap-2 text-sm transition-all duration-300"
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-ivory/20 bg-ivory/5 transition-all duration-300 group-hover:border-gold/50 group-hover:bg-gold/10">
+                <span className="border-ivory/20 bg-ivory/5 group-hover:border-gold/50 group-hover:bg-gold/10 flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-300">
                   <svg
                     className="h-4 w-4"
                     fill="none"
@@ -289,9 +275,9 @@ export function HeroSection() {
               </Link>
               <Link
                 href="#hypnose"
-                className="group inline-flex items-center gap-2 text-sm text-ivory-muted transition-all duration-300 hover:text-gold-accessible"
+                className="text-ivory-muted hover:text-gold-accessible group inline-flex items-center gap-2 text-sm transition-all duration-300"
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-ivory/20 bg-ivory/5 transition-all duration-300 group-hover:border-gold/50 group-hover:bg-gold/10">
+                <span className="border-ivory/20 bg-ivory/5 group-hover:border-gold/50 group-hover:bg-gold/10 flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-300">
                   <svg
                     className="h-4 w-4"
                     fill="none"
@@ -310,9 +296,9 @@ export function HeroSection() {
               </Link>
               <Link
                 href="#respiration-holotropique"
-                className="group inline-flex items-center gap-2 text-sm text-ivory-muted transition-all duration-300 hover:text-gold-accessible"
+                className="text-ivory-muted hover:text-gold-accessible group inline-flex items-center gap-2 text-sm transition-all duration-300"
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-full border border-ivory/20 bg-ivory/5 transition-all duration-300 group-hover:border-gold/50 group-hover:bg-gold/10">
+                <span className="border-ivory/20 bg-ivory/5 group-hover:border-gold/50 group-hover:bg-gold/10 flex h-8 w-8 items-center justify-center rounded-full border transition-all duration-300">
                   <svg
                     className="h-4 w-4"
                     fill="none"

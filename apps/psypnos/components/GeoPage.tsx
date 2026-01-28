@@ -3,9 +3,10 @@
  * Utilisé pour les pages psychothérapeute-[ville], hypnose-[ville], etc.
  */
 import Link from 'next/link';
+
 import { Breadcrumb, BreadcrumbItem } from './Breadcrumb';
-import { NavigationMenu } from './NavigationMenu';
 import { Footer } from './Footer';
+import { NavigationMenu } from './NavigationMenu';
 
 export interface GeoPageProps {
   // SEO et contenu
@@ -47,40 +48,98 @@ export interface GeoPageProps {
 
 // Icônes
 const MapPinIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
-    <path fillRule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className="h-5 w-5"
+  >
+    <path
+      fillRule="evenodd"
+      d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z"
+      clipRule="evenodd"
+    />
   </svg>
 );
 
 const ClockIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
-    <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 000-1.5h-3.75V6z" clipRule="evenodd" />
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className="h-5 w-5"
+  >
+    <path
+      fillRule="evenodd"
+      d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zM12.75 6a.75.75 0 00-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 000-1.5h-3.75V6z"
+      clipRule="evenodd"
+    />
   </svg>
 );
 
 const CarIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className="h-5 w-5"
+  >
     <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z" />
   </svg>
 );
 
 const CheckIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
-    <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className="h-5 w-5"
+  >
+    <path
+      fillRule="evenodd"
+      d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z"
+      clipRule="evenodd"
+    />
   </svg>
 );
 
 const ChartIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6">
-    <path fillRule="evenodd" d="M2.25 13.5a8.25 8.25 0 018.25-8.25.75.75 0 01.75.75v6.75H18a.75.75 0 01.75.75 8.25 8.25 0 01-16.5 0z" clipRule="evenodd" />
-    <path fillRule="evenodd" d="M12.75 3a.75.75 0 01.75-.75 8.25 8.25 0 018.25 8.25.75.75 0 01-.75.75h-7.5a.75.75 0 01-.75-.75V3z" clipRule="evenodd" />
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className="h-6 w-6"
+  >
+    <path
+      fillRule="evenodd"
+      d="M2.25 13.5a8.25 8.25 0 018.25-8.25.75.75 0 01.75.75v6.75H18a.75.75 0 01.75.75 8.25 8.25 0 01-16.5 0z"
+      clipRule="evenodd"
+    />
+    <path
+      fillRule="evenodd"
+      d="M12.75 3a.75.75 0 01.75-.75 8.25 8.25 0 018.25 8.25.75.75 0 01-.75.75h-7.5a.75.75 0 01-.75-.75V3z"
+      clipRule="evenodd"
+    />
   </svg>
 );
 
 const ExternalLinkIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5">
-    <path fillRule="evenodd" d="M4.25 5.5a.75.75 0 00-.75.75v8.5c0 .414.336.75.75.75h8.5a.75.75 0 00.75-.75v-4a.75.75 0 011.5 0v4A2.25 2.25 0 0112.75 17h-8.5A2.25 2.25 0 012 14.75v-8.5A2.25 2.25 0 014.25 4h5a.75.75 0 010 1.5h-5z" clipRule="evenodd" />
-    <path fillRule="evenodd" d="M6.194 12.753a.75.75 0 001.06.053L16.5 4.44v2.81a.75.75 0 001.5 0v-4.5a.75.75 0 00-.75-.75h-4.5a.75.75 0 000 1.5h2.553l-9.056 8.194a.75.75 0 00-.053 1.06z" clipRule="evenodd" />
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 20 20"
+    fill="currentColor"
+    className="h-3.5 w-3.5"
+  >
+    <path
+      fillRule="evenodd"
+      d="M4.25 5.5a.75.75 0 00-.75.75v8.5c0 .414.336.75.75.75h8.5a.75.75 0 00.75-.75v-4a.75.75 0 011.5 0v4A2.25 2.25 0 0112.75 17h-8.5A2.25 2.25 0 012 14.75v-8.5A2.25 2.25 0 014.25 4h5a.75.75 0 010 1.5h-5z"
+      clipRule="evenodd"
+    />
+    <path
+      fillRule="evenodd"
+      d="M6.194 12.753a.75.75 0 001.06.053L16.5 4.44v2.81a.75.75 0 001.5 0v-4.5a.75.75 0 00-.75-.75h-4.5a.75.75 0 000 1.5h2.553l-9.056 8.194a.75.75 0 00-.053 1.06z"
+      clipRule="evenodd"
+    />
   </svg>
 );
 
@@ -120,7 +179,7 @@ export function GeoPage({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaData) }}
       />
 
-      <main className="pt-24 pb-16">
+      <main className="pb-16 pt-24">
         <div className="mx-auto max-w-7xl px-6 sm:px-10 lg:px-16">
           {/* Breadcrumb */}
           <Breadcrumb items={breadcrumbItems} className="mb-8" />
@@ -129,22 +188,19 @@ export function GeoPage({
           <header className="mb-12">
             <div className="border-gold/30 bg-gold/5 mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-1.5">
               <MapPinIcon />
-              <span className="text-gold text-sm font-medium">
-                {location.city}{location.department ? ` (${location.department})` : ''}
+              <span className="text-gold-accessible text-sm font-medium">
+                {location.city}
+                {location.department ? ` (${location.department})` : ''}
               </span>
             </div>
 
-            <h1 className="font-display text-gold mb-4 text-4xl font-bold leading-tight md:text-5xl">
+            <h1 className="font-display text-gold-accessible mb-4 text-4xl font-bold leading-tight md:text-5xl">
               {title}
             </h1>
 
-            <p className="text-ivory/80 mb-6 text-xl">
-              {subtitle}
-            </p>
+            <p className="text-ivory/80 mb-6 text-xl">{subtitle}</p>
 
-            <p className="text-ivory/60 max-w-3xl text-lg leading-relaxed">
-              {description}
-            </p>
+            <p className="text-ivory/60 max-w-3xl text-lg leading-relaxed">{description}</p>
           </header>
 
           <div className="grid gap-12 lg:grid-cols-3">
@@ -152,7 +208,7 @@ export function GeoPage({
             <div className="space-y-10 lg:col-span-2">
               {/* Section principale */}
               <section>
-                <h2 className="font-display text-gold mb-6 text-2xl font-bold">
+                <h2 className="font-display text-gold-accessible mb-6 text-2xl font-bold">
                   {serviceLabels[service]} à {location.city}
                 </h2>
 
@@ -166,9 +222,7 @@ export function GeoPage({
 
               {/* Bénéfices */}
               <section className="border-ivory/10 bg-night/30 rounded-2xl border p-6">
-                <h3 className="font-display mb-4 text-xl font-semibold">
-                  Pourquoi consulter ?
-                </h3>
+                <h3 className="font-display mb-4 text-xl font-semibold">Pourquoi consulter ?</h3>
                 <ul className="grid gap-3 sm:grid-cols-2">
                   {benefits.map((benefit, index) => (
                     <li key={index} className="flex items-start gap-3">
@@ -184,7 +238,7 @@ export function GeoPage({
               {/* Études et statistiques */}
               {researchStats.length > 0 && (
                 <section className="border-ivory/10 bg-night/30 rounded-2xl border p-6">
-                  <h3 className="font-display text-gold mb-6 text-xl font-semibold">
+                  <h3 className="font-display text-gold-accessible mb-6 text-xl font-semibold">
                     Ce que dit la recherche
                   </h3>
 
@@ -212,9 +266,7 @@ export function GeoPage({
                             <ExternalLinkIcon />
                           </a>
                         ) : (
-                          <p className="text-ivory/50 ml-9 text-xs">
-                            Source : {research.source}
-                          </p>
+                          <p className="text-ivory/50 ml-9 text-xs">Source : {research.source}</p>
                         )}
                       </div>
                     ))}
@@ -224,9 +276,7 @@ export function GeoPage({
 
               {/* Carte Google Maps */}
               <section>
-                <h3 className="font-display mb-4 text-xl font-semibold">
-                  Localisation du cabinet
-                </h3>
+                <h3 className="font-display mb-4 text-xl font-semibold">Localisation du cabinet</h3>
                 <div className="overflow-hidden rounded-xl">
                   <div className="bg-night/50 aspect-video w-full">
                     <iframe
@@ -249,7 +299,7 @@ export function GeoPage({
             <div className="space-y-6 lg:sticky lg:top-24 lg:self-start">
               {/* CTA principal */}
               <div className="border-gold/30 bg-gold/5 rounded-2xl border p-6 text-center">
-                <h3 className="font-display text-gold mb-2 text-lg font-semibold">
+                <h3 className="font-display text-gold-accessible mb-2 text-lg font-semibold">
                   Prendre rendez-vous
                 </h3>
                 <p className="text-ivory/60 mb-4 text-sm">
@@ -262,16 +312,12 @@ export function GeoPage({
                 >
                   Demander un RDV
                 </Link>
-                <p className="text-ivory/40 mt-3 text-xs">
-                  Réponse sous 24-48h
-                </p>
+                <p className="text-ivory/40 mt-3 text-xs">Réponse sous 24-48h</p>
               </div>
 
               {/* Informations pratiques */}
               <div className="border-ivory/10 bg-night/30 rounded-2xl border p-6">
-                <h3 className="font-display mb-4 text-lg font-semibold">
-                  Informations pratiques
-                </h3>
+                <h3 className="font-display mb-4 text-lg font-semibold">Informations pratiques</h3>
 
                 <div className="space-y-4">
                   {/* Distance depuis la ville */}
@@ -319,18 +365,14 @@ export function GeoPage({
 
                   {/* Itinéraire */}
                   <div className="border-ivory/10 mt-4 border-t pt-4">
-                    <p className="text-ivory/50 text-xs">
-                      {practicalInfo.directions}
-                    </p>
+                    <p className="text-ivory/50 text-xs">{practicalInfo.directions}</p>
                   </div>
                 </div>
               </div>
 
               {/* Tarifs */}
               <div className="border-ivory/10 bg-night/30 rounded-2xl border p-6">
-                <h3 className="font-display mb-4 text-lg font-semibold">
-                  Tarifs
-                </h3>
+                <h3 className="font-display mb-4 text-lg font-semibold">Tarifs</h3>
                 <div className="space-y-3">
                   <div className="flex items-baseline justify-between">
                     <span className="text-ivory/70">Séance standard</span>
@@ -348,9 +390,7 @@ export function GeoPage({
 
               {/* Liens connexes */}
               <div className="border-ivory/10 bg-night/30 rounded-2xl border p-6">
-                <h3 className="font-display mb-4 text-lg font-semibold">
-                  Voir aussi
-                </h3>
+                <h3 className="font-display mb-4 text-lg font-semibold">Voir aussi</h3>
                 <ul className="space-y-2">
                   <li>
                     <Link
