@@ -114,7 +114,7 @@ export function Footer() {
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
           {/* Colonne 1 : Informations de contact */}
           <div className="space-y-4">
-            <h3 className="font-display text-gold text-lg font-semibold">
+            <h3 className="font-display text-gold-accessible text-lg font-semibold">
               Cabinet Psypnos
             </h3>
             <div className="space-y-3">
@@ -123,7 +123,7 @@ export function Footer() {
                 href="https://maps.google.com/?q=Le+Moulin+d'en+Bas,+89330+Saint-Julien-du-Sault"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-ivory/70 hover:text-gold group flex items-start gap-3 transition-colors"
+                className="text-ivory hover:text-gold-accessible group flex items-start gap-3 transition-colors"
               >
                 <MapPinIcon />
                 <span className="text-sm leading-relaxed">
@@ -131,7 +131,7 @@ export function Footer() {
                   <br />
                   89330 Saint-Julien-du-Sault
                   <br />
-                  <span className="text-gold/70 group-hover:text-gold inline-flex items-center gap-1 text-xs">
+                  <span className="text-gold-accessible group-hover:text-gold-hover inline-flex items-center gap-1 text-xs">
                     Voir sur Google Maps <ExternalLinkIcon />
                   </span>
                 </span>
@@ -140,7 +140,7 @@ export function Footer() {
               {/* Email */}
               <a
                 href="mailto:contact@psypnos.fr"
-                className="text-ivory/70 hover:text-gold flex items-center gap-3 transition-colors"
+                className="text-ivory hover:text-gold-accessible flex items-center gap-3 transition-colors"
               >
                 <MailIcon />
                 <span className="text-sm">contact@psypnos.fr</span>
@@ -149,10 +149,10 @@ export function Footer() {
 
             {/* Badge localisation */}
             <div className="bg-night/50 border-gold/20 mt-4 rounded-lg border p-3">
-              <p className="text-gold text-xs font-medium">
+              <p className="text-gold-accessible text-xs font-medium">
                 Psychothérapeute à Saint-Julien-du-Sault (89)
               </p>
-              <p className="text-ivory/50 mt-1 text-xs">
+              <p className="text-ivory-muted mt-1 text-xs">
                 Au service de l&apos;Yonne depuis 2015
               </p>
             </div>
@@ -160,19 +160,19 @@ export function Footer() {
 
           {/* Colonne 2 : Horaires */}
           <div className="space-y-4">
-            <h3 className="font-display text-gold text-lg font-semibold">
+            <h3 className="font-display text-gold-accessible text-lg font-semibold">
               Horaires de consultation
             </h3>
             <div className="flex items-start gap-3">
               <ClockIcon />
-              <div className="text-ivory/70 space-y-1 text-sm">
+              <div className="text-ivory space-y-1 text-sm">
                 <p>
-                  <span className="text-ivory/90">Lundi - Vendredi :</span> 9h - 19h
+                  <span className="text-ivory">Lundi - Vendredi :</span> 9h - 19h
                 </p>
                 <p>
-                  <span className="text-ivory/90">Samedi :</span> 9h - 17h
+                  <span className="text-ivory">Samedi :</span> 9h - 17h
                 </p>
-                <p className="text-ivory/50 mt-2 text-xs">
+                <p className="text-ivory-muted mt-2 text-xs">
                   Sur rendez-vous uniquement
                 </p>
               </div>
@@ -181,7 +181,7 @@ export function Footer() {
             {/* CTA Prendre RDV */}
             <Link
               href="/demande-rendez-vous"
-              className="bg-gold hover:bg-gold/90 text-night mt-4 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+              className="bg-gold-accessible hover:bg-gold-hover text-night mt-4 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
             >
               Prendre rendez-vous
             </Link>
@@ -189,10 +189,10 @@ export function Footer() {
 
           {/* Colonne 3 : Zone desservie */}
           <div className="space-y-4">
-            <h3 className="font-display text-gold text-lg font-semibold">
+            <h3 className="font-display text-gold-accessible text-lg font-semibold">
               Zone desservie
             </h3>
-            <p className="text-ivory/50 text-sm">
+            <p className="text-ivory-muted text-sm">
               Au service de l&apos;Yonne : Auxerre, Sens, Joigny, Migennes
             </p>
             <ul className="space-y-2">
@@ -200,7 +200,7 @@ export function Footer() {
                 <li key={city.href}>
                   <Link
                     href={city.href}
-                    className="text-ivory/70 hover:text-gold flex items-center gap-2 text-sm transition-colors"
+                    className="text-ivory hover:text-gold-accessible flex items-center gap-2 text-sm transition-colors"
                   >
                     <span className="bg-gold/20 h-1.5 w-1.5 rounded-full" />
                     Psychothérapeute {city.name}
@@ -210,7 +210,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/psychotherapeute-yonne"
-                  className="text-ivory/70 hover:text-gold flex items-center gap-2 text-sm transition-colors"
+                  className="text-ivory hover:text-gold-accessible flex items-center gap-2 text-sm transition-colors"
                 >
                   <span className="bg-gold/20 h-1.5 w-1.5 rounded-full" />
                   Toute l&apos;Yonne (89)
@@ -220,23 +220,23 @@ export function Footer() {
 
             {/* Services hypnose */}
             <div className="border-ivory/10 mt-4 border-t pt-4">
-              <p className="text-ivory/50 mb-2 text-xs">Hypnose ericksonienne</p>
+              <p className="text-ivory-muted mb-2 text-xs">Hypnose ericksonienne</p>
               <div className="flex flex-wrap gap-2">
                 <Link
                   href="/hypnose-yonne"
-                  className="bg-ivory/5 text-ivory/60 hover:text-gold rounded px-2 py-1 text-xs transition-colors"
+                  className="bg-ivory/5 text-ivory-muted hover:text-gold-accessible rounded px-2 py-1 text-xs transition-colors"
                 >
                   Yonne
                 </Link>
                 <Link
                   href="/hypnose-auxerre"
-                  className="bg-ivory/5 text-ivory/60 hover:text-gold rounded px-2 py-1 text-xs transition-colors"
+                  className="bg-ivory/5 text-ivory-muted hover:text-gold-accessible rounded px-2 py-1 text-xs transition-colors"
                 >
                   Auxerre
                 </Link>
                 <Link
                   href="/hypnose-sens"
-                  className="bg-ivory/5 text-ivory/60 hover:text-gold rounded px-2 py-1 text-xs transition-colors"
+                  className="bg-ivory/5 text-ivory-muted hover:text-gold-accessible rounded px-2 py-1 text-xs transition-colors"
                 >
                   Sens
                 </Link>
@@ -246,7 +246,7 @@ export function Footer() {
 
           {/* Colonne 4 : Navigation et social */}
           <div className="space-y-4">
-            <h3 className="font-display text-gold text-lg font-semibold">
+            <h3 className="font-display text-gold-accessible text-lg font-semibold">
               Navigation
             </h3>
             <ul className="space-y-2">
@@ -254,7 +254,7 @@ export function Footer() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-ivory/70 hover:text-gold text-sm transition-colors"
+                    className="text-ivory hover:text-gold-accessible text-sm transition-colors"
                   >
                     {link.name}
                   </Link>
@@ -263,7 +263,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/contact"
-                  className="text-ivory/70 hover:text-gold text-sm transition-colors"
+                  className="text-ivory hover:text-gold-accessible text-sm transition-colors"
                 >
                   Contact & Accès
                 </Link>
@@ -272,7 +272,7 @@ export function Footer() {
 
             {/* Réseaux sociaux */}
             <div className="border-ivory/10 mt-6 border-t pt-4">
-              <p className="text-ivory/50 mb-3 text-xs">Retrouvez-moi sur les réseaux</p>
+              <p className="text-ivory-muted mb-3 text-xs">Retrouvez-moi sur les réseaux</p>
               <SocialLinks variant="inline" />
             </div>
           </div>
@@ -284,7 +284,7 @@ export function Footer() {
         <div className="mx-auto max-w-7xl px-6 py-6 sm:px-10 lg:px-16">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             {/* Copyright */}
-            <div className="text-ivory/50 text-center text-xs md:text-left">
+            <div className="text-ivory-muted text-center text-xs md:text-left">
               <p>
                 © <CurrentYear /> Psypnos - David Duquenne. Tous droits réservés.
               </p>
@@ -299,7 +299,7 @@ export function Footer() {
                 <span key={link.href} className="flex items-center gap-4">
                   <Link
                     href={link.href}
-                    className="text-ivory/50 hover:text-gold text-xs transition-colors"
+                    className="text-ivory-muted hover:text-gold-accessible text-xs transition-colors"
                   >
                     {link.name}
                   </Link>
@@ -311,7 +311,7 @@ export function Footer() {
               <span className="text-ivory/20 hidden md:inline">|</span>
               <Link
                 href="/admin"
-                className="text-ivory/30 hover:text-ivory/50 text-xs transition-colors"
+                className="text-ivory/40 hover:text-ivory-muted text-xs transition-colors"
               >
                 Accès privé
               </Link>
