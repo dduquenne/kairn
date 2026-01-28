@@ -85,16 +85,24 @@ const benefits = [
   'Résultats souvent rapides',
 ];
 
-const testimonials = [
+const researchStats = [
   {
-    content: 'J\'ai consulté pour arrêter de fumer. Après 2 séances, j\'ai définitivement arrêté. Ça fait maintenant un an !',
-    author: 'Christophe R.',
-    location: 'Migennes',
+    stat: '93% de réussite',
+    description: 'pour l\'arrêt du tabac avec l\'hypnose, selon une étude comparant plusieurs méthodes de sevrage.',
+    source: 'Université de l\'Iowa - Journal of Applied Psychology',
+    sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/1398736/',
   },
   {
-    content: 'L\'hypnose m\'a aidée à surmonter ma peur de parler en public. Je peux maintenant faire des présentations au travail sereinement.',
-    author: 'Sandrine V.',
-    location: 'Cheny',
+    stat: '+70% d\'efficacité',
+    description: 'lorsque l\'hypnose est combinée à d\'autres approches thérapeutiques par rapport aux thérapies seules.',
+    source: 'Kirsch et al. - Journal of Consulting and Clinical Psychology',
+    sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/7622856/',
+  },
+  {
+    stat: '75% des patients',
+    description: 'ressentent un soulagement significatif de la douleur grâce à l\'hypnose selon une méta-analyse.',
+    source: 'Montgomery et al. - International Journal of Clinical and Experimental Hypnosis',
+    sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/10769050/',
   },
 ];
 
@@ -124,7 +132,7 @@ export default function HypnoseMigennesPage() {
       ]}
       mainContent={mainContent}
       benefits={benefits}
-      testimonials={testimonials}
+      researchStats={researchStats}
       practicalInfo={practicalInfo}
       relatedLinks={relatedLinks}
       schemaData={schemaData}

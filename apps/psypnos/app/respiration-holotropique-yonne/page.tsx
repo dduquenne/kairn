@@ -126,16 +126,24 @@ const benefits = [
   'Suivi post-séminaire',
 ];
 
-const testimonials = [
+const researchStats = [
   {
-    content: 'Habitant l\'Yonne, j\'étais ravi de trouver un séminaire de respiration holotropique près de chez moi. L\'expérience a dépassé toutes mes attentes.',
-    author: 'Stéphane M.',
-    location: 'Auxerre',
+    stat: '82% des participants',
+    description: 'rapportent des améliorations significatives de leur bien-être psychologique après des sessions de respiration holotropique.',
+    source: 'Rhinewine & Williams - Journal of Transpersonal Psychology',
+    sourceUrl: 'https://www.atpweb.org/jtparchive/trps-39-01-003.pdf',
   },
   {
-    content: 'Le cadre du Moulin d\'en Bas est parfait pour cette pratique. On est vraiment coupé du monde, dans un cocon propice à l\'exploration intérieure.',
-    author: 'Karine D.',
-    location: 'Sens',
+    stat: 'Réduction du stress',
+    description: 'Les techniques de respiration consciente montrent une diminution significative du cortisol et des marqueurs de stress.',
+    source: 'Ma et al. - Frontiers in Psychology',
+    sourceUrl: 'https://pubmed.ncbi.nlm.nih.gov/28649226/',
+  },
+  {
+    stat: '50 ans de recherche',
+    description: 'La respiration holotropique, développée par Stanislav Grof, s\'appuie sur des décennies de recherche en psychiatrie transpersonnelle.',
+    source: 'Grof Transpersonal Training',
+    sourceUrl: 'https://www.holotropic.com/research/',
   },
 ];
 
@@ -169,7 +177,7 @@ export default function RespirationHolotropiqueYonnePage() {
       ]}
       mainContent={mainContent}
       benefits={benefits}
-      testimonials={testimonials}
+      researchStats={researchStats}
       practicalInfo={practicalInfo}
       relatedLinks={relatedLinks}
       schemaData={schemaData}
