@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { GeoPage } from '@/components/GeoPage';
 
 export const metadata: Metadata = {
-  title: 'Hypnose Auxerre | Hypnothérapeute | Psypnos',
+  title: 'Hypnose Auxerre | Thérapeute | Psypnos',
   description:
     'Hypnose ericksonienne pour les Auxerrois. David Duquenne, hypnothérapeute à 40 min d\'Auxerre. Séances pour arrêt tabac, anxiété, phobies, sommeil.',
   keywords: [
@@ -80,7 +80,7 @@ const mainContent = `
 const benefits = [
   'Accessible depuis Auxerre (40 min)',
   'Cadre naturel propice à l\'hypnose',
-  'Hypnothérapeute certifié',
+  'Thérapeute certifié',
   'Visioconférence possible',
   'Parking gratuit',
   'Horaires flexibles',
@@ -110,7 +110,7 @@ const practicalInfo = {
 const relatedLinks = [
   { label: 'Hypnose Yonne', href: '/hypnose-yonne' },
   { label: 'Hypnose Joigny', href: '/hypnose-joigny' },
-  { label: 'Hypnothérapeute Auxerre', href: '/hypnotherapeute-auxerre' },
+  { label: 'Psychothérapie Auxerre', href: '/psychotherapie-auxerre' },
 ];
 
 export default function HypnoseAuxerrePage() {

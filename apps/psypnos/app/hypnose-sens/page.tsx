@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { GeoPage } from '@/components/GeoPage';
 
 export const metadata: Metadata = {
-  title: 'Hypnose Sens | Hypnothérapeute à 25 min | Psypnos',
+  title: 'Hypnose Sens | Thérapeute à 25 min | Psypnos',
   description:
     'Hypnose ericksonienne près de Sens. David Duquenne, hypnothérapeute à 25 min. Séances pour arrêt tabac, anxiété, phobies, confiance en soi.',
   keywords: [
@@ -115,7 +115,7 @@ const practicalInfo = {
 const relatedLinks = [
   { label: 'Hypnose Yonne', href: '/hypnose-yonne' },
   { label: 'Hypnose Joigny', href: '/hypnose-joigny' },
-  { label: 'Hypnothérapeute Sens', href: '/hypnotherapeute-sens' },
+  { label: 'Psychothérapie Sens', href: '/psychotherapie-sens' },
 ];
 
 export default function HypnoseSensPage() {

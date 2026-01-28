@@ -26,18 +26,19 @@ export const metadata: Metadata = {
 
   title: {
     default:
-      "Psypnos - Hypnose Ericksonienne & Respiration Holotropique | Saint-Julien-du-Sault, Yonne",
+      "Psypnos - Psychothérapie, Hypnose & Respiration Holotropique | Saint-Julien-du-Sault, Yonne",
     template: "%s | Psypnos",
   },
 
   description:
-    "David Duquenne, hypnothérapeute certifié en hypnose ericksonienne. Accompagnement des crises de vie, anxiété, deuil, burn-out. Séminaires de respiration holotropique dans l'Yonne (89).",
+    "David Duquenne, thérapeute certifié en hypnose ericksonienne. Accompagnement des crises de vie, anxiété, deuil, burn-out. Séminaires de respiration holotropique dans l'Yonne (89).",
 
   keywords: [
-    "hypnothérapeute Yonne",
+    "psychothérapie Yonne",
+    "thérapeute Yonne",
     "hypnose ericksonienne",
     "respiration holotropique",
-    "hypnothérapeute 89",
+    "thérapie 89",
     "hypnose Saint-Julien-du-Sault",
     "thérapie anxiété",
     "accompagnement burn-out",
@@ -54,25 +55,25 @@ export const metadata: Metadata = {
     type: "website",
     locale: "fr_FR",
     url: "https://psypnos.fr",
-    title: "Psypnos - Hypnose Ericksonienne avec David Duquenne",
+    title: "Psypnos - Psychothérapie & Hypnose avec David Duquenne",
     description:
-      "Accompagnement thérapeutique personnalisé : hypnose ericksonienne et respiration holotropique. Consultations à Saint-Julien-du-Sault et en visio.",
+      "Accompagnement thérapeutique personnalisé : psychothérapie, hypnose ericksonienne et respiration holotropique. Consultations à Saint-Julien-du-Sault et en visio.",
     siteName: "Psypnos",
     images: [
       {
         url: "/images/David_Duquenne.webp",
         width: 1029,
         height: 973,
-        alt: "David Duquenne - Hypnothérapeute certifié",
+        alt: "David Duquenne - Thérapeute certifié",
       },
     ],
   },
 
   twitter: {
     card: "summary_large_image",
-    title: "Psypnos - Hypnose Ericksonienne",
+    title: "Psypnos - Psychothérapie & Hypnose",
     description:
-      "Accompagnement thérapeutique avec David Duquenne : hypnose ericksonienne et respiration holotropique dans l'Yonne.",
+      "Accompagnement thérapeutique avec David Duquenne : psychothérapie, hypnose ericksonienne et respiration holotropique dans l'Yonne.",
     images: ["/images/David_Duquenne.webp"],
   },
 
@@ -144,11 +145,11 @@ function generateStructuredData() {
     alternateName: [
       "Psypnos",
       "Cabinet David Duquenne",
-      "Hypnothérapeute Yonne",
-      "Hypnothérapeute Saint-Julien-du-Sault",
+      "Psychothérapie Yonne",
+      "Thérapeute Saint-Julien-du-Sault",
     ],
     description:
-      "Cabinet d'hypnothérapie et hypnose ericksonienne à Saint-Julien-du-Sault dans l'Yonne (89). Accompagnement personnalisé pour anxiété, burn-out, deuil et crises de vie. Consultations sur rendez-vous du lundi au samedi.",
+      "Cabinet de psychothérapie et hypnose ericksonienne à Saint-Julien-du-Sault dans l'Yonne (89). Accompagnement personnalisé pour anxiété, burn-out, deuil et crises de vie. Consultations sur rendez-vous du lundi au samedi.",
     url: "https://psypnos.fr",
     telephone: "+33 6 XX XX XX XX",
     email: "contact@psypnos.fr",
@@ -164,12 +165,12 @@ function generateStructuredData() {
         url: "https://psypnos.fr/images/David_Duquenne.webp",
         width: 1029,
         height: 973,
-        caption: "David Duquenne - Hypnothérapeute certifié",
+        caption: "David Duquenne - Thérapeute certifié",
       },
       {
         "@type": "ImageObject",
         url: "https://psypnos.fr/images/cabinet-moulin.webp",
-        caption: "Le Moulin d'en Bas - Cabinet d'hypnothérapie",
+        caption: "Le Moulin d'en Bas - Cabinet de psychothérapie",
       },
     ],
     address: {
@@ -206,9 +207,9 @@ function generateStructuredData() {
       "@type": "Person",
       "@id": "https://psypnos.fr/#david-duquenne",
       name: "David Duquenne",
-      jobTitle: "Hypnothérapeute",
+      jobTitle: "Thérapeute",
       description:
-        "Hypnothérapeute certifié en hypnose ericksonienne et facilitateur de respiration holotropique",
+        "Thérapeute certifié en hypnose ericksonienne et facilitateur de respiration holotropique",
       image: "https://psypnos.fr/images/David_Duquenne.webp",
       sameAs: [
         "https://www.linkedin.com/in/david-duquenne",
@@ -415,12 +416,12 @@ function generateStructuredData() {
     ],
     // Mots-clés
     keywords: [
-      "hypnothérapeute Yonne",
-      "hypnose ericksonienne Sens",
-      "hypnothérapeute Auxerre",
+      "psychothérapie Yonne",
+      "thérapeute Sens",
+      "psychothérapie Auxerre",
       "respiration holotropique Bourgogne",
       "thérapie anxiété Joigny",
-      "hypnothérapeute Migennes",
+      "thérapeute Migennes",
       "burn-out Saint-Julien-du-Sault",
     ],
   };
@@ -432,7 +433,7 @@ function generateStructuredData() {
     url: "https://psypnos.fr",
     name: "Psypnos",
     description:
-      "Site officiel de Psypnos - Hypnose Ericksonienne et Respiration Holotropique dans l'Yonne",
+      "Site officiel de Psypnos - Psychothérapie, Hypnose et Respiration Holotropique dans l'Yonne",
     publisher: {
       "@id": "https://psypnos.fr/#organization",
     },

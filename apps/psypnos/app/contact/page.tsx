@@ -5,15 +5,15 @@ import { NavigationMenu } from '@/components/NavigationMenu';
 import { Footer } from '@/components/Footer';
 
 export const metadata: Metadata = {
-  title: 'Contact & Accès | Hypnothérapeute Saint-Julien-du-Sault',
+  title: 'Contact & Accès | Thérapeute Saint-Julien-du-Sault',
   description:
-    'Contactez David Duquenne, hypnothérapeute à Saint-Julien-du-Sault (89). Cabinet Le Moulin d\'en Bas. Accès depuis Sens, Auxerre, Joigny, Paris. Formulaire de contact et itinéraires.',
+    'Contactez David Duquenne, thérapeute à Saint-Julien-du-Sault (89). Cabinet Le Moulin d\'en Bas. Accès depuis Sens, Auxerre, Joigny, Paris. Formulaire de contact et itinéraires.',
   keywords: [
-    'contact hypnothérapeute Yonne',
+    'contact thérapeute Yonne',
     'cabinet hypnose Saint-Julien-du-Sault',
     'rdv hypnose Sens',
     'accès cabinet Auxerre',
-    'hypnothérapeute Joigny contact',
+    'thérapeute Joigny contact',
   ],
   openGraph: {
     title: 'Contact & Accès - Cabinet Psypnos',
@@ -466,7 +466,7 @@ export default function ContactPage() {
           <section className="mt-16">
             <div className="border-ivory/10 bg-night/30 rounded-2xl border p-8">
               <h2 className="font-display text-gold mb-4 text-center text-2xl font-bold">
-                Hypnothérapeute dans l&apos;Yonne
+                Psychothérapie dans l&apos;Yonne
               </h2>
               <p className="text-ivory/70 mx-auto mb-8 max-w-3xl text-center">
                 Le cabinet Psypnos accueille des patients de toute l&apos;Yonne et des départements
@@ -476,22 +476,22 @@ export default function ContactPage() {
 
               <div className="flex flex-wrap justify-center gap-3">
                 <Link
-                  href="/hypnotherapeute-yonne"
+                  href="/psychotherapie-yonne"
                   className="bg-ivory/5 hover:bg-ivory/10 rounded-full px-4 py-2 text-sm transition-colors"
                 >
-                  Hypnothérapeute Yonne
+                  Psychothérapie Yonne
                 </Link>
                 <Link
-                  href="/hypnotherapeute-auxerre"
+                  href="/psychotherapie-auxerre"
                   className="bg-ivory/5 hover:bg-ivory/10 rounded-full px-4 py-2 text-sm transition-colors"
                 >
-                  Hypnothérapeute Auxerre
+                  Psychothérapie Auxerre
                 </Link>
                 <Link
-                  href="/hypnotherapeute-sens"
+                  href="/psychotherapie-sens"
                   className="bg-ivory/5 hover:bg-ivory/10 rounded-full px-4 py-2 text-sm transition-colors"
                 >
-                  Hypnothérapeute Sens
+                  Psychothérapie Sens
                 </Link>
                 <Link
                   href="/hypnose-yonne"

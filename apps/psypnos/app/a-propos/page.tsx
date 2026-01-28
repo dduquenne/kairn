@@ -8,12 +8,12 @@ export const revalidate = 86400;
  * Métadonnées SEO optimisées pour la page biographique
  */
 export const metadata: Metadata = {
-  title: "À propos - David Duquenne, Hypnothérapeute certifié",
+  title: "À propos - David Duquenne, Thérapeute certifié",
   description: "Découvrez le parcours de David Duquenne : de l'angoisse existentielle au burn-out jusqu'à l'accompagnement thérapeutique. Une histoire de transformation profonde au service de ceux qui traversent des crises de vie et recherchent du sens.",
   keywords: [
     "David Duquenne",
-    "parcours hypnothérapeute",
-    "hypnothérapeute certifié",
+    "parcours thérapeute",
+    "thérapeute certifié",
     "burn-out transformation",
     "hypnose ericksonienne",
     "respiration holotropique",
@@ -23,11 +23,11 @@ export const metadata: Metadata = {
     "quête de sens",
     "hypnose ericksonienne formation",
     "Psypnos histoire",
-    "Saint-Julien-du-Sault hypnothérapeute"
+    "Saint-Julien-du-Sault thérapeute"
   ],
   openGraph: {
     title: "Un chemin vers l'essentiel - L'histoire de David Duquenne",
-    description: "De l'effondrement à la renaissance : le parcours inspirant d'un hypnothérapeute qui a transformé ses blessures en outils d'accompagnement. Découvrez une histoire humaine au service du sens.",
+    description: "De l'effondrement à la renaissance : le parcours inspirant d'un thérapeute qui a transformé ses blessures en outils d'accompagnement. Découvrez une histoire humaine au service du sens.",
     type: "profile",
     url: "https://psypnos.fr/a-propos",
     images: [
@@ -35,14 +35,14 @@ export const metadata: Metadata = {
         url: "https://psypnos.fr/images/David_Duquenne.webp",
         width: 1029,
         height: 973,
-        alt: "David Duquenne - Hypnothérapeute certifié",
+        alt: "David Duquenne - Thérapeute certifié",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Un chemin vers l'essentiel - David Duquenne",
-    description: "Découvrez le parcours inspirant d'un hypnothérapeute qui a transformé ses épreuves en accompagnement thérapeutique au service du sens.",
+    description: "Découvrez le parcours inspirant d'un thérapeute qui a transformé ses épreuves en accompagnement thérapeutique au service du sens.",
     images: ["https://psypnos.fr/images/David_Duquenne.webp"],
   },
   alternates: {
@@ -73,7 +73,7 @@ function getJsonLd() {
         '@type': 'ProfilePage',
         '@id': 'https://psypnos.fr/a-propos#webpage',
         url: 'https://psypnos.fr/a-propos',
-        name: 'À propos - David Duquenne, Hypnothérapeute certifié',
+        name: 'À propos - David Duquenne, Thérapeute certifié',
         description: 'Découvrez le parcours de David Duquenne : de l\'angoisse existentielle au burn-out jusqu\'à l\'accompagnement thérapeutique.',
         isPartOf: {
           '@id': 'https://psypnos.fr/#website',
@@ -108,15 +108,15 @@ function getJsonLd() {
         name: 'David Duquenne',
         givenName: 'David',
         familyName: 'Duquenne',
-        jobTitle: 'Hypnothérapeute certifié',
-        description: 'Hypnothérapeute certifié en hypnose ericksonienne et facilitateur en respiration holotropique. Accompagnement des crises de vie, burn-out, deuil et quête de sens.',
+        jobTitle: 'Thérapeute certifié',
+        description: 'Thérapeute certifié en hypnose ericksonienne et facilitateur en respiration holotropique. Accompagnement des crises de vie, burn-out, deuil et quête de sens.',
         url: 'https://psypnos.fr/a-propos',
         image: {
           '@type': 'ImageObject',
           url: 'https://psypnos.fr/images/David_Duquenne.webp',
           width: 1029,
           height: 973,
-          caption: 'David Duquenne - Hypnothérapeute certifié',
+          caption: 'David Duquenne - Thérapeute certifié',
         },
         sameAs: [
           'https://psypnos.fr',

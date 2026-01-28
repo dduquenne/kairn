@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { GeoPage } from '@/components/GeoPage';
 
 export const metadata: Metadata = {
-  title: 'Hypnose Joigny | Hypnothérapeute à 15 min | Psypnos',
+  title: 'Hypnose Joigny | Thérapeute à 15 min | Psypnos',
   description:
     'Hypnose ericksonienne près de Joigny. David Duquenne, hypnothérapeute à 15 min. Séances pour anxiété, arrêt tabac, phobies, confiance en soi.',
   keywords: [
@@ -109,7 +109,7 @@ const practicalInfo = {
 const relatedLinks = [
   { label: 'Hypnose Yonne', href: '/hypnose-yonne' },
   { label: 'Hypnose Migennes', href: '/hypnose-migennes' },
-  { label: 'Hypnothérapeute Joigny', href: '/hypnotherapeute-joigny' },
+  { label: 'Psychothérapie Joigny', href: '/psychotherapie-joigny' },
 ];
 
 export default function HypnoseJoignyPage() {

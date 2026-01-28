@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { GeoPage } from '@/components/GeoPage';
 
 export const metadata: Metadata = {
-  title: 'Hypnose Yonne | Hypnothérapeute dans le 89 | Psypnos',
+  title: 'Hypnose Yonne | Thérapeute dans le 89 | Psypnos',
   description:
     'Hypnose ericksonienne dans l\'Yonne (89). David Duquenne, hypnothérapeute à Saint-Julien-du-Sault. Séances pour anxiété, phobies, arrêt tabac, confiance en soi.',
   keywords: [
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     'hypnothérapie Bourgogne',
   ],
   openGraph: {
-    title: 'Hypnose Yonne - Hypnothérapeute David Duquenne',
+    title: 'Hypnose Yonne - Thérapeute David Duquenne',
     description: 'Séances d\'hypnose ericksonienne dans l\'Yonne. Accompagnement pour anxiété, phobies, addictions.',
     url: 'https://psypnos.fr/hypnose-yonne',
   },
@@ -39,7 +39,7 @@ const schemaData = {
   provider: {
     '@type': 'Person',
     name: 'David Duquenne',
-    jobTitle: 'Hypnothérapeute',
+    jobTitle: 'Thérapeute',
   },
   address: {
     '@type': 'PostalAddress',
@@ -136,14 +136,14 @@ const relatedLinks = [
   { label: 'Hypnose Auxerre', href: '/hypnose-auxerre' },
   { label: 'Hypnose Sens', href: '/hypnose-sens' },
   { label: 'Hypnose Joigny', href: '/hypnose-joigny' },
-  { label: 'Hypnothérapeute Yonne', href: '/hypnotherapeute-yonne' },
+  { label: 'Psychothérapie Yonne', href: '/psychotherapie-yonne' },
 ];
 
 export default function HypnoseYonnePage() {
   return (
     <GeoPage
       title="Hypnose dans l'Yonne"
-      subtitle="Hypnothérapeute certifié au service du département 89"
+      subtitle="Thérapeute certifié au service du département 89"
       description="David Duquenne pratique l'hypnose ericksonienne à Saint-Julien-du-Sault, accessible depuis toute l'Yonne."
       service="hypnose"
       location={{

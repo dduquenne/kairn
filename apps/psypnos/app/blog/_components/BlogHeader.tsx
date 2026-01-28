@@ -33,7 +33,7 @@ export function BlogHeader({ showBackButton = false, currentPage = "list", showB
             >
               <img
                 src="/images/David_Duquenne.webp"
-                alt="David Duquenne - Hypnothérapeute"
+                alt="David Duquenne - Thérapeute"
                 className="h-24 w-24 fade-mask transition-transform duration-300 group-hover:scale-105"
               />
               <h2 className="text-sm text-gold font-medium transition-colors group-hover:text-gold/80">David Duquenne</h2>

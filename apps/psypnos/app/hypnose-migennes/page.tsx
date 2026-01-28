@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { GeoPage } from '@/components/GeoPage';
 
 export const metadata: Metadata = {
-  title: 'Hypnose Migennes | Hypnothérapeute proche | Psypnos',
+  title: 'Hypnose Migennes | Thérapeute proche | Psypnos',
   description:
     'Hypnose ericksonienne près de Migennes. David Duquenne, hypnothérapeute à 25 min. Séances pour arrêt tabac, anxiété, phobies, sommeil.',
   keywords: [
@@ -107,7 +107,7 @@ const practicalInfo = {
 const relatedLinks = [
   { label: 'Hypnose Yonne', href: '/hypnose-yonne' },
   { label: 'Hypnose Joigny', href: '/hypnose-joigny' },
-  { label: 'Hypnothérapeute Migennes', href: '/hypnotherapeute-migennes' },
+  { label: 'Psychothérapie Migennes', href: '/psychotherapie-migennes' },
 ];
 
 export default function HypnoseMigennesPage() {

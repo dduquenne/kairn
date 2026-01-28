@@ -262,30 +262,56 @@ const nextConfig = {
   // Redirections
   async redirects() {
     return [
-      // Redirections 301 : anciennes pages psychotherapeute vers hypnotherapeute
+      // Redirections 301 : anciennes pages psychotherapeute vers psychotherapie
       {
         source: '/psychotherapeute-yonne',
-        destination: '/hypnotherapeute-yonne',
+        destination: '/psychotherapie-yonne',
         permanent: true,
       },
       {
         source: '/psychotherapeute-auxerre',
-        destination: '/hypnotherapeute-auxerre',
+        destination: '/psychotherapie-auxerre',
         permanent: true,
       },
       {
         source: '/psychotherapeute-sens',
-        destination: '/hypnotherapeute-sens',
+        destination: '/psychotherapie-sens',
         permanent: true,
       },
       {
         source: '/psychotherapeute-joigny',
-        destination: '/hypnotherapeute-joigny',
+        destination: '/psychotherapie-joigny',
         permanent: true,
       },
       {
         source: '/psychotherapeute-migennes',
-        destination: '/hypnotherapeute-migennes',
+        destination: '/psychotherapie-migennes',
+        permanent: true,
+      },
+      // Redirections 301 : anciennes pages hypnotherapeute vers psychotherapie
+      {
+        source: '/hypnotherapeute-yonne',
+        destination: '/psychotherapie-yonne',
+        permanent: true,
+      },
+      {
+        source: '/hypnotherapeute-auxerre',
+        destination: '/psychotherapie-auxerre',
+        permanent: true,
+      },
+      {
+        source: '/hypnotherapeute-sens',
+        destination: '/psychotherapie-sens',
+        permanent: true,
+      },
+      {
+        source: '/hypnotherapeute-joigny',
+        destination: '/psychotherapie-joigny',
+        permanent: true,
+      },
+      {
+        source: '/hypnotherapeute-migennes',
+        destination: '/psychotherapie-migennes',
         permanent: true,
       },
     ];
