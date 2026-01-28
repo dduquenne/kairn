@@ -2,35 +2,35 @@ import type { Metadata } from 'next';
 import { GeoPage } from '@/components/GeoPage';
 
 export const metadata: Metadata = {
-  title: 'Psychothérapeute Auxerre | David Duquenne | Cabinet Yonne',
+  title: 'Psychothérapie Auxerre | David Duquenne | Cabinet Yonne',
   description:
-    'Psychothérapeute accessible depuis Auxerre. David Duquenne vous accueille à 40 min pour psychothérapie, anxiété, burn-out, deuil. Cabinet à Saint-Julien-du-Sault.',
+    'Psychothérapie accessible depuis Auxerre. David Duquenne, thérapeute certifié, vous accueille à 40 min pour anxiété, burn-out, deuil. Cabinet à Saint-Julien-du-Sault.',
   keywords: [
-    'psychothérapeute Auxerre',
-    'psy Auxerre',
-    'thérapeute Auxerre 89',
     'psychothérapie Auxerre',
+    'thérapeute Auxerre',
+    'thérapie Auxerre 89',
     'anxiété Auxerre',
     'burn-out Auxerre',
     'dépression Auxerre',
+    'hypnose ericksonienne Auxerre',
   ],
   openGraph: {
-    title: 'Psychothérapeute accessible depuis Auxerre - David Duquenne',
+    title: 'Psychothérapie accessible depuis Auxerre - David Duquenne',
     description: 'Cabinet de psychothérapie pour les Auxerrois. Accompagnement personnalisé pour anxiété, burn-out, deuil.',
-    url: 'https://psypnos.fr/psychotherapeute-auxerre',
+    url: 'https://psypnos.fr/psychotherapie-auxerre',
   },
   alternates: {
-    canonical: 'https://psypnos.fr/psychotherapeute-auxerre',
+    canonical: 'https://psypnos.fr/psychotherapie-auxerre',
   },
 };
 
 const schemaData = {
   '@context': 'https://schema.org',
   '@type': 'MedicalBusiness',
-  '@id': 'https://psypnos.fr/psychotherapeute-auxerre',
-  name: 'Psypnos - Psychothérapeute pour Auxerre',
+  '@id': 'https://psypnos.fr/psychotherapie-auxerre',
+  name: 'Psypnos - Psychothérapie pour Auxerre',
   description: 'Cabinet de psychothérapie accessible depuis Auxerre',
-  url: 'https://psypnos.fr/psychotherapeute-auxerre',
+  url: 'https://psypnos.fr/psychotherapie-auxerre',
   areaServed: {
     '@type': 'City',
     name: 'Auxerre',
@@ -39,7 +39,7 @@ const schemaData = {
   provider: {
     '@type': 'Person',
     name: 'David Duquenne',
-    jobTitle: 'Psychothérapeute',
+    jobTitle: 'Thérapeute',
   },
   address: {
     '@type': 'PostalAddress',
@@ -51,13 +51,13 @@ const schemaData = {
 };
 
 const mainContent = `
-<p>Vous recherchez un <strong>psychothérapeute depuis Auxerre</strong> ? David Duquenne vous accueille dans son cabinet de Saint-Julien-du-Sault, à environ <strong>40 minutes en voiture</strong> de la préfecture de l'Yonne.</p>
+<p>Vous recherchez un accompagnement en <strong>psychothérapie depuis Auxerre</strong> ? David Duquenne vous accueille dans son cabinet de Saint-Julien-du-Sault, à environ <strong>40 minutes en voiture</strong> de la préfecture de l'Yonne.</p>
 
 <p>Auxerre, capitale de l'Yonne, est une ville dynamique où le rythme de vie peut parfois être source de stress et de questionnements. Le cabinet Psypnos offre un espace de respiration, un lieu préservé pour prendre soin de soi.</p>
 
 <h3>Un espace de thérapie hors de la ville</h3>
 
-<p>Pour les Auxerrois, consulter un psychothérapeute en dehors de leur ville présente des avantages :</p>
+<p>Pour les Auxerrois, consulter un thérapeute en dehors de leur ville présente des avantages :</p>
 <ul>
   <li><strong>Anonymat</strong> : moins de risque de croiser des connaissances</li>
   <li><strong>Coupure</strong> : le trajet permet une transition entre le quotidien et l'espace thérapeutique</li>
@@ -77,11 +77,11 @@ const mainContent = `
   <li><strong>Traumatismes</strong> : événements difficiles du passé</li>
 </ul>
 
-<h3>La psychothérapie transpersonnelle</h3>
+<h3>Une approche intégrative</h3>
 
-<p>Ma pratique s'inscrit dans le courant de la <strong>psychothérapie transpersonnelle</strong>. Cette approche intégrative considère l'être humain dans sa globalité : corps, psyché, émotions et dimension spirituelle.</p>
+<p>Ma pratique de la <strong>psychothérapie</strong> intègre l'<strong>hypnose ericksonienne</strong>, dans laquelle je suis certifié. Cette approche permet d'accéder aux ressources profondes et de favoriser le changement de manière douce et respectueuse.</p>
 
-<p>Elle s'appuie sur différents outils selon les besoins : écoute active, travail sur les émotions, techniques corporelles, exploration des rêves, travail sur l'histoire familiale...</p>
+<p>Elle s'appuie sur différents outils selon les besoins : écoute active, travail sur les émotions, techniques hypnotiques, exploration des ressources intérieures...</p>
 
 <h3>Consultations en visioconférence</h3>
 
@@ -89,6 +89,7 @@ const mainContent = `
 `;
 
 const benefits = [
+  'Thérapeute certifié en hypnose ericksonienne',
   'Cadre naturel hors de la ville',
   'Discrétion et anonymat',
   'Parking gratuit sur place',
@@ -96,7 +97,6 @@ const benefits = [
   'Consultations visio disponibles',
   'Horaires flexibles',
   'Tarif solidaire possible',
-  'Approche intégrative',
 ];
 
 const testimonials = [
@@ -119,17 +119,17 @@ const practicalInfo = {
 };
 
 const relatedLinks = [
-  { label: 'Psychothérapeute Yonne', href: '/psychotherapeute-yonne' },
-  { label: 'Psychothérapeute Joigny', href: '/psychotherapeute-joigny' },
+  { label: 'Psychothérapie Yonne', href: '/psychotherapie-yonne' },
+  { label: 'Psychothérapie Joigny', href: '/psychotherapie-joigny' },
   { label: 'Hypnose Auxerre', href: '/hypnose-auxerre' },
 ];
 
-export default function PsychotherapeuteAuxerrePage() {
+export default function PsychotherapieAuxerrePage() {
   return (
     <GeoPage
-      title="Psychothérapeute pour Auxerre"
+      title="Psychothérapie pour Auxerre"
       subtitle="Un espace de thérapie ressourçant pour les Auxerrois"
-      description="David Duquenne accompagne les habitants d'Auxerre dans un cabinet situé à 40 min, dans un cadre naturel propice au travail thérapeutique."
+      description="David Duquenne, thérapeute certifié, accompagne les habitants d'Auxerre dans un cabinet situé à 40 min, dans un cadre naturel propice au travail thérapeutique."
       service="psychotherapie"
       location={{
         city: 'Auxerre',
@@ -137,7 +137,7 @@ export default function PsychotherapeuteAuxerrePage() {
       }}
       breadcrumbItems={[
         { name: 'Psychothérapie', href: '/psychotherapie' },
-        { name: 'Psychothérapeute Auxerre', href: '/psychotherapeute-auxerre' },
+        { name: 'Psychothérapie Auxerre', href: '/psychotherapie-auxerre' },
       ]}
       mainContent={mainContent}
       benefits={benefits}

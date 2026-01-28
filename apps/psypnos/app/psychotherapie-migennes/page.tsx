@@ -2,33 +2,33 @@ import type { Metadata } from 'next';
 import { GeoPage } from '@/components/GeoPage';
 
 export const metadata: Metadata = {
-  title: 'Psychothérapeute Migennes | Cabinet proche | Psypnos',
+  title: 'Psychothérapie Migennes | Cabinet proche | Psypnos',
   description:
-    'Psychothérapeute près de Migennes (89). David Duquenne vous accueille à 25 min pour psychothérapie, anxiété, burn-out. Cabinet à Saint-Julien-du-Sault.',
+    'Psychothérapie près de Migennes (89). David Duquenne, thérapeute certifié, vous accueille à 25 min pour anxiété, burn-out. Cabinet à Saint-Julien-du-Sault.',
   keywords: [
-    'psychothérapeute Migennes',
-    'psy Migennes',
-    'thérapeute Migennes 89',
     'psychothérapie Migennes',
+    'thérapeute Migennes',
+    'thérapie Migennes 89',
     'anxiété Migennes',
+    'hypnose ericksonienne Migennes',
   ],
   openGraph: {
-    title: 'Psychothérapeute près de Migennes - David Duquenne',
+    title: 'Psychothérapie près de Migennes - David Duquenne',
     description: 'Cabinet de psychothérapie accessible depuis Migennes. Accompagnement personnalisé.',
-    url: 'https://psypnos.fr/psychotherapeute-migennes',
+    url: 'https://psypnos.fr/psychotherapie-migennes',
   },
   alternates: {
-    canonical: 'https://psypnos.fr/psychotherapeute-migennes',
+    canonical: 'https://psypnos.fr/psychotherapie-migennes',
   },
 };
 
 const schemaData = {
   '@context': 'https://schema.org',
   '@type': 'MedicalBusiness',
-  '@id': 'https://psypnos.fr/psychotherapeute-migennes',
-  name: 'Psypnos - Psychothérapeute près de Migennes',
+  '@id': 'https://psypnos.fr/psychotherapie-migennes',
+  name: 'Psypnos - Psychothérapie près de Migennes',
   description: 'Cabinet de psychothérapie accessible depuis Migennes',
-  url: 'https://psypnos.fr/psychotherapeute-migennes',
+  url: 'https://psypnos.fr/psychotherapie-migennes',
   areaServed: {
     '@type': 'City',
     name: 'Migennes',
@@ -37,18 +37,18 @@ const schemaData = {
   provider: {
     '@type': 'Person',
     name: 'David Duquenne',
-    jobTitle: 'Psychothérapeute',
+    jobTitle: 'Thérapeute',
   },
 };
 
 const mainContent = `
-<p>Vous habitez <strong>Migennes</strong> et cherchez un psychothérapeute ? Le cabinet Psypnos est situé à Saint-Julien-du-Sault, à seulement <strong>25 minutes en voiture</strong> de Migennes.</p>
+<p>Vous habitez <strong>Migennes</strong> et cherchez un accompagnement en psychothérapie ? Le cabinet Psypnos est situé à Saint-Julien-du-Sault, à seulement <strong>25 minutes en voiture</strong> de Migennes.</p>
 
 <p>Migennes, carrefour ferroviaire de l'Yonne, est une ville en pleine transformation. Ses habitants, entre tradition cheminote et nouvelles dynamiques, peuvent avoir besoin d'un espace pour se poser et faire le point.</p>
 
 <h3>Un accompagnement pour les Migennois</h3>
 
-<p>En tant que psychothérapeute, j'accueille régulièrement des habitants de Migennes et des communes voisines : Cheny, Laroche-Saint-Cydroine, Bassou, Bonnard...</p>
+<p>En tant que thérapeute certifié, j'accueille régulièrement des habitants de Migennes et des communes voisines : Cheny, Laroche-Saint-Cydroine, Bassou, Bonnard...</p>
 
 <p>Les motifs de consultation sont variés :</p>
 <ul>
@@ -67,25 +67,25 @@ const mainContent = `
 
 <h3>Ma démarche thérapeutique</h3>
 
-<p>Je pratique la <strong>psychothérapie transpersonnelle</strong>, une approche qui considère l'être humain dans sa globalité. Elle intègre différentes dimensions :</p>
+<p>Je pratique la <strong>psychothérapie</strong> en intégrant l'<strong>hypnose ericksonienne</strong>, une approche qui considère l'être humain dans sa globalité. Elle permet :</p>
 <ul>
-  <li>La dimension psychologique : comprendre ses schémas, ses blocages</li>
-  <li>La dimension émotionnelle : accueillir et transformer les émotions</li>
-  <li>La dimension corporelle : le corps comme support du travail</li>
-  <li>La dimension existentielle : donner du sens à son parcours</li>
+  <li>Comprendre ses schémas et ses blocages</li>
+  <li>Accueillir et transformer les émotions</li>
+  <li>Accéder à ses ressources profondes</li>
+  <li>Favoriser le changement en douceur</li>
 </ul>
 
 <p>Cette approche intégrative s'adapte aux besoins de chacun et permet un travail en profondeur.</p>
 `;
 
 const benefits = [
+  'Thérapeute certifié en hypnose ericksonienne',
   'À 25 min de Migennes',
   'Cadre calme et naturel',
   'Parking gratuit',
   'Horaires flexibles',
   'Tarif solidaire disponible',
   'Visioconférence possible',
-  'Approche personnalisée',
   'Confidentialité assurée',
 ];
 
@@ -109,17 +109,17 @@ const practicalInfo = {
 };
 
 const relatedLinks = [
-  { label: 'Psychothérapeute Yonne', href: '/psychotherapeute-yonne' },
-  { label: 'Psychothérapeute Joigny', href: '/psychotherapeute-joigny' },
+  { label: 'Psychothérapie Yonne', href: '/psychotherapie-yonne' },
+  { label: 'Psychothérapie Joigny', href: '/psychotherapie-joigny' },
   { label: 'Hypnose Migennes', href: '/hypnose-migennes' },
 ];
 
-export default function PsychotherapeuteMigennesPage() {
+export default function PsychotherapieMigennesPage() {
   return (
     <GeoPage
-      title="Psychothérapeute près de Migennes"
+      title="Psychothérapie près de Migennes"
       subtitle="Cabinet de psychothérapie accessible depuis Migennes"
-      description="David Duquenne accompagne les habitants de Migennes dans un cadre apaisant, à 25 minutes de la ville."
+      description="David Duquenne, thérapeute certifié, accompagne les habitants de Migennes dans un cadre apaisant, à 25 minutes de la ville."
       service="psychotherapie"
       location={{
         city: 'Migennes',
@@ -127,7 +127,7 @@ export default function PsychotherapeuteMigennesPage() {
       }}
       breadcrumbItems={[
         { name: 'Psychothérapie', href: '/psychotherapie' },
-        { name: 'Psychothérapeute Migennes', href: '/psychotherapeute-migennes' },
+        { name: 'Psychothérapie Migennes', href: '/psychotherapie-migennes' },
       ]}
       mainContent={mainContent}
       benefits={benefits}

@@ -64,11 +64,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   // Pages géolocalisées - Psychothérapie
   const psychotherapieGeoPages: MetadataRoute.Sitemap = [
-    'psychotherapeute-yonne',
-    'psychotherapeute-auxerre',
-    'psychotherapeute-sens',
-    'psychotherapeute-joigny',
-    'psychotherapeute-migennes',
+    'psychotherapie-yonne',
+    'psychotherapie-auxerre',
+    'psychotherapie-sens',
+    'psychotherapie-joigny',
+    'psychotherapie-migennes',
   ].map((slug) => ({
     url: `${baseUrl}/${slug}`,
     lastModified: new Date(),

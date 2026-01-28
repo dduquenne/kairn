@@ -2,37 +2,37 @@ import type { Metadata } from 'next';
 import { GeoPage } from '@/components/GeoPage';
 
 export const metadata: Metadata = {
-  title: 'Psychothérapeute dans l\'Yonne (89) | David Duquenne - Psypnos',
+  title: 'Psychothérapie dans l\'Yonne (89) | David Duquenne - Psypnos',
   description:
-    'Psychothérapeute dans l\'Yonne. David Duquenne vous accompagne à Saint-Julien-du-Sault pour l\'anxiété, le burn-out, le deuil et les crises de vie. Consultations sur RDV.',
+    'Psychothérapie dans l\'Yonne. David Duquenne, thérapeute certifié, vous accompagne à Saint-Julien-du-Sault pour l\'anxiété, le burn-out, le deuil et les crises de vie. Consultations sur RDV.',
   keywords: [
-    'psychothérapeute Yonne',
-    'psychothérapie 89',
+    'psychothérapie Yonne',
     'thérapeute Yonne',
-    'psy Bourgogne',
-    'psychothérapeute Saint-Julien-du-Sault',
-    'thérapie anxiété Yonne',
+    'psychothérapie 89',
+    'thérapie Saint-Julien-du-Sault',
+    'anxiété Yonne',
     'burn-out Yonne',
     'deuil Yonne',
+    'hypnose ericksonienne Yonne',
   ],
   openGraph: {
-    title: 'Psychothérapeute dans l\'Yonne - David Duquenne',
+    title: 'Psychothérapie dans l\'Yonne - David Duquenne',
     description: 'Cabinet de psychothérapie à Saint-Julien-du-Sault. Accompagnement personnalisé pour les habitants de l\'Yonne.',
-    url: 'https://psypnos.fr/psychotherapeute-yonne',
+    url: 'https://psypnos.fr/psychotherapie-yonne',
     type: 'website',
   },
   alternates: {
-    canonical: 'https://psypnos.fr/psychotherapeute-yonne',
+    canonical: 'https://psypnos.fr/psychotherapie-yonne',
   },
 };
 
 const schemaData = {
   '@context': 'https://schema.org',
   '@type': 'MedicalBusiness',
-  '@id': 'https://psypnos.fr/psychotherapeute-yonne',
-  name: 'Psypnos - Psychothérapeute Yonne',
+  '@id': 'https://psypnos.fr/psychotherapie-yonne',
+  name: 'Psypnos - Psychothérapie Yonne',
   description: 'Cabinet de psychothérapie au service de l\'Yonne',
-  url: 'https://psypnos.fr/psychotherapeute-yonne',
+  url: 'https://psypnos.fr/psychotherapie-yonne',
   areaServed: {
     '@type': 'AdministrativeArea',
     name: 'Yonne',
@@ -41,7 +41,7 @@ const schemaData = {
   provider: {
     '@type': 'Person',
     name: 'David Duquenne',
-    jobTitle: 'Psychothérapeute',
+    jobTitle: 'Thérapeute',
   },
   address: {
     '@type': 'PostalAddress',
@@ -59,13 +59,13 @@ const schemaData = {
 };
 
 const mainContent = `
-<p>Vous recherchez un <strong>psychothérapeute dans l'Yonne</strong> ? David Duquenne vous accueille dans son cabinet de Saint-Julien-du-Sault, au cœur du département de l'Yonne (89), pour un accompagnement thérapeutique personnalisé.</p>
+<p>Vous recherchez un accompagnement en <strong>psychothérapie dans l'Yonne</strong> ? David Duquenne vous accueille dans son cabinet de Saint-Julien-du-Sault, au cœur du département de l'Yonne (89), pour un accompagnement thérapeutique personnalisé.</p>
 
 <p>Situé dans un cadre paisible et ressourçant au Moulin d'en Bas, le cabinet est facilement accessible depuis toutes les villes de l'Yonne : Auxerre, Sens, Joigny, Migennes, Villeneuve-sur-Yonne, Tonnerre, Avallon...</p>
 
-<h3>Une approche thérapeutique globale</h3>
+<h3>Une approche thérapeutique intégrative</h3>
 
-<p>La <strong>psychothérapie transpersonnelle</strong> que je pratique intègre plusieurs dimensions de l'être humain : psychologique, émotionnelle, corporelle et spirituelle. Cette approche holistique permet d'explorer les racines profondes des difficultés et d'accompagner une transformation durable.</p>
+<p>Ma pratique de la <strong>psychothérapie</strong> s'appuie sur plusieurs approches complémentaires, notamment l'<strong>hypnose ericksonienne</strong> dans laquelle je suis certifié. Cette approche douce et respectueuse permet d'accéder aux ressources profondes pour favoriser le changement.</p>
 
 <p>Chaque parcours est unique. Que vous traversiez une période difficile, que vous cherchiez à mieux vous comprendre ou que vous souhaitiez évoluer dans votre vie, je vous propose un espace d'écoute et d'accompagnement adapté à vos besoins.</p>
 
@@ -89,8 +89,8 @@ const mainContent = `
 `;
 
 const benefits = [
-  'Accompagnement personnalisé et adapté à votre situation',
-  'Approche intégrative et holistique',
+  'Thérapeute certifié en hypnose ericksonienne',
+  'Accompagnement personnalisé et adapté',
   'Cabinet accessible depuis tout le département',
   'Parking gratuit et cadre paisible',
   'Consultations en présentiel ou visioconférence',
@@ -119,18 +119,18 @@ const practicalInfo = {
 };
 
 const relatedLinks = [
-  { label: 'Psychothérapeute Auxerre', href: '/psychotherapeute-auxerre' },
-  { label: 'Psychothérapeute Sens', href: '/psychotherapeute-sens' },
-  { label: 'Psychothérapeute Joigny', href: '/psychotherapeute-joigny' },
+  { label: 'Psychothérapie Auxerre', href: '/psychotherapie-auxerre' },
+  { label: 'Psychothérapie Sens', href: '/psychotherapie-sens' },
+  { label: 'Psychothérapie Joigny', href: '/psychotherapie-joigny' },
   { label: 'Hypnose Yonne', href: '/hypnose-yonne' },
 ];
 
-export default function PsychotherapeuteYonnePage() {
+export default function PsychotherapieYonnePage() {
   return (
     <GeoPage
-      title="Psychothérapeute dans l'Yonne"
-      subtitle="Accompagnement thérapeutique pour les habitants du département 89"
-      description="David Duquenne, psychothérapeute à Saint-Julien-du-Sault, accompagne les habitants de l'Yonne dans leur parcours de guérison et d'évolution personnelle."
+      title="Psychothérapie dans l'Yonne"
+      subtitle="Accompagnement thérapeutique personnalisé pour les habitants du département 89"
+      description="David Duquenne, thérapeute certifié à Saint-Julien-du-Sault, accompagne les habitants de l'Yonne dans leur parcours de guérison et d'évolution personnelle."
       service="psychotherapie"
       location={{
         city: "l'Yonne",
@@ -139,7 +139,7 @@ export default function PsychotherapeuteYonnePage() {
       }}
       breadcrumbItems={[
         { name: 'Psychothérapie', href: '/psychotherapie' },
-        { name: 'Psychothérapeute Yonne', href: '/psychotherapeute-yonne' },
+        { name: 'Psychothérapie Yonne', href: '/psychotherapie-yonne' },
       ]}
       mainContent={mainContent}
       benefits={benefits}
