@@ -1,5 +1,11 @@
 // Components
-export { ToastProvider, useToast, type Toast, type ToastVariant, type ToastProviderProps } from './components/toast';
+export {
+  ToastProvider,
+  useToast,
+  type Toast,
+  type ToastVariant,
+  type ToastProviderProps,
+} from './components/toast';
 export { Skeleton, type SkeletonProps } from './components/skeleton';
 export { Tabs, type TabItem, type TabsProps } from './components/tabs';
 export { Accordion, type AccordionItem, type AccordionProps } from './components/accordion';
@@ -7,11 +13,21 @@ export { Accordion, type AccordionItem, type AccordionProps } from './components
 // Layout Components
 export { Header, type HeaderProps, type HeaderContext } from './components/header';
 export { Footer, type FooterProps, type FooterLink } from './components/footer';
-export { SocialLinks, type SocialLinksProps, type SocialLink, type SocialPlatform } from './components/social-links';
+export {
+  SocialLinks,
+  type SocialLinksProps,
+  type SocialLink,
+  type SocialPlatform,
+} from './components/social-links';
 export { CTAButton, type CTAButtonProps, type CTAButtonVariant } from './components/cta-button';
 
 // Admin Components
-export { AdminSidebar, type AdminSidebarProps, type NavigationItem, defaultAdminNavigation } from './components/admin-sidebar';
+export {
+  AdminSidebar,
+  type AdminSidebarProps,
+  type NavigationItem,
+  defaultAdminNavigation,
+} from './components/admin-sidebar';
 export { MobileNav, type MobileNavProps } from './components/mobile-nav';
 
 // Form Components
@@ -77,8 +93,10 @@ export {
   TestimonialCard,
   TestimonialCardFromData,
   TestimonialsCarousel,
+  TestimonialsMarquee,
   type TestimonialCardProps,
   type TestimonialsCarouselProps,
+  type TestimonialsMarqueeProps,
   type Testimonial,
 } from './components/testimonials';
 
@@ -87,12 +105,33 @@ export {
   Breadcrumb,
   BreadcrumbStructuredData,
   BackButton,
+  StickyNavigation,
   type BreadcrumbProps,
   type BreadcrumbStructuredDataProps,
   type BackButtonProps,
   type BreadcrumbItem,
   type SchemaOrgBreadcrumbItem,
+  type StickyNavigationProps,
+  type NavLink,
+  type StickyNavSocialLink,
+  type CTAConfig,
 } from './components/navigation';
+
+// SEO Components
+export {
+  GeoPage,
+  type GeoPageProps,
+  type GeoPageComponentProps,
+  type GeoServiceType,
+  type GeoLocation,
+  type PracticalInfo,
+  type GeoTestimonial,
+  type RelatedLink,
+  type PricingTier,
+  type ContactInfo,
+  type GeoBreadcrumbItem,
+  type ServiceConfig,
+} from './components/seo';
 
 // Utils
 export { cn } from './utils/cn';
