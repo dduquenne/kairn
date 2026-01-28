@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import { ToastProvider } from "@/lib/toast-context";
+import { ThemeProvider } from "@/lib/theme-context";
 import "./globals.css";
 
 // PERFORMANCE : ISR avec revalidation toutes les 24h
@@ -493,8 +494,10 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="bg-night text-ivory antialiased">
-        <ToastProvider position="top-right">{children}</ToastProvider>
+      <body className="bg-night text-ivory antialiased" suppressHydrationWarning>
+        <ThemeProvider defaultTheme="dark">
+          <ToastProvider position="top-right">{children}</ToastProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

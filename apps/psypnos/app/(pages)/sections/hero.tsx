@@ -93,7 +93,7 @@ export function HeroSection() {
               cy="300"
               r="250"
               fill="none"
-              stroke="#c7a962"
+              stroke="#E5C78E"
               strokeWidth="25"
             />
             <path
@@ -105,7 +105,7 @@ export function HeroSection() {
                 a 100.8,100.8 0 0 0 100.8,100.8
                 a 60.48,60.48 0 0 0 60.48,-60.48"
               fill="none"
-              stroke="#c7a962"
+              stroke="#E5C78E"
               strokeWidth="25"
               strokeLinecap="round"
             />
@@ -123,7 +123,7 @@ export function HeroSection() {
             <text
               x="50%"
               y="50%"
-              fill="#c7a962"
+              fill="#E5C78E"
               textAnchor="middle"
               fontFamily="Georgia,Times,serif"
               fontSize="180"
@@ -140,14 +140,14 @@ export function HeroSection() {
           transition={hasMounted ? { duration: 0.8, delay: 3.3, ease: "easeOut" } : { duration: 0 }}
           className="max-w-3xl"
         >
-          <h1 className="font-display text-3xl font-bold text-gold sm:text-4xl lg:text-5xl">
+          <h1 className="font-display text-3xl font-bold text-gold-accessible sm:text-4xl lg:text-5xl">
             {heroContent.h1}
           </h1>
           <h2 className="mt-4 text-2xl font-semibold text-ivory sm:text-3xl lg:text-4xl">
             <span className="block">{heroContent.slogan1}</span>
             <span className="block">{heroContent.slogan2}</span>
           </h2>
-          <p className="mt-6 text-base text-ivory/80 sm:text-lg">
+          <p className="mt-6 text-base text-ivory sm:text-lg">
             {heroContent.subtitle}
           </p>
         </motion.div>
@@ -196,7 +196,7 @@ export function HeroSection() {
           {/* Lien tertiaire */}
           <Link
             href="#approche"
-            className="group inline-flex items-center gap-2 text-sm text-ivory/70 transition-colors duration-300 hover:text-gold"
+            className="group inline-flex items-center gap-2 text-sm text-ivory transition-colors duration-300 hover:text-gold-accessible"
           >
             <span>{heroContent.ctas.tertiary}</span>
             <svg
@@ -231,23 +231,23 @@ export function HeroSection() {
             <br />
             <br />
             <br />
-            <p className="mb-2 text-sm uppercase tracking-[0.3em] text-gold/80">
+            <p className="mb-2 text-sm uppercase tracking-[0.3em] text-gold-accessible">
               {heroPractitioner.headline}
             </p>
             <h2 className="text-3xl font-semibold text-ivory sm:text-4xl">
               {heroPractitioner.name}
             </h2>
-            <p className="mt-6 text-base text-gold sm:text-lg">
+            <p className="mt-6 text-base text-gold-accessible sm:text-lg">
               {heroPractitioner.address}
             </p>
-            <p className="mt-4 text-base text-ivory/80 sm:text-lg">
+            <p className="mt-4 text-base text-ivory sm:text-lg">
               {heroPractitioner.description}
             </p>
             {/* Liens vers les pratiques */}
             <div className="mt-10 flex flex-wrap justify-center gap-x-8 gap-y-4 lg:justify-start">
               <Link
                 href="/a-propos"
-                className="group inline-flex items-center gap-2 text-sm text-ivory/60 transition-all duration-300 hover:text-gold"
+                className="group inline-flex items-center gap-2 text-sm text-ivory-muted transition-all duration-300 hover:text-gold-accessible"
               >
                 <span className="flex h-8 w-8 items-center justify-center rounded-full border border-ivory/20 bg-ivory/5 transition-all duration-300 group-hover:border-gold/50 group-hover:bg-gold/10">
                   <svg
@@ -268,7 +268,7 @@ export function HeroSection() {
               </Link>
               <Link
                 href="#psychotherapie"
-                className="group inline-flex items-center gap-2 text-sm text-ivory/60 transition-all duration-300 hover:text-gold"
+                className="group inline-flex items-center gap-2 text-sm text-ivory-muted transition-all duration-300 hover:text-gold-accessible"
               >
                 <span className="flex h-8 w-8 items-center justify-center rounded-full border border-ivory/20 bg-ivory/5 transition-all duration-300 group-hover:border-gold/50 group-hover:bg-gold/10">
                   <svg
@@ -289,7 +289,7 @@ export function HeroSection() {
               </Link>
               <Link
                 href="#hypnose"
-                className="group inline-flex items-center gap-2 text-sm text-ivory/60 transition-all duration-300 hover:text-gold"
+                className="group inline-flex items-center gap-2 text-sm text-ivory-muted transition-all duration-300 hover:text-gold-accessible"
               >
                 <span className="flex h-8 w-8 items-center justify-center rounded-full border border-ivory/20 bg-ivory/5 transition-all duration-300 group-hover:border-gold/50 group-hover:bg-gold/10">
                   <svg
@@ -310,7 +310,7 @@ export function HeroSection() {
               </Link>
               <Link
                 href="#respiration-holotropique"
-                className="group inline-flex items-center gap-2 text-sm text-ivory/60 transition-all duration-300 hover:text-gold"
+                className="group inline-flex items-center gap-2 text-sm text-ivory-muted transition-all duration-300 hover:text-gold-accessible"
               >
                 <span className="flex h-8 w-8 items-center justify-center rounded-full border border-ivory/20 bg-ivory/5 transition-all duration-300 group-hover:border-gold/50 group-hover:bg-gold/10">
                   <svg

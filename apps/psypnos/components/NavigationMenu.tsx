@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { ThemeToggle } from './ThemeToggle';
 
 const navLinks = [
   { href: '/', label: 'Accueil' },
@@ -202,7 +203,7 @@ export function NavigationMenu({ forceVisible = false }: NavigationMenuProps) {
               <div className="relative transition-transform duration-300 group-hover:scale-110">
                 <PsypnosLogo size={36} />
               </div>
-              <span className="text-gold hidden text-xl font-semibold sm:block">Psypnos</span>
+              <span className="text-gold-accessible hidden text-xl font-semibold sm:block">Psypnos</span>
             </Link>
 
             {/* Liens de navigation au centre - Desktop */}
@@ -211,7 +212,7 @@ export function NavigationMenu({ forceVisible = false }: NavigationMenuProps) {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="text-ivory/80 hover:bg-gold/10 hover:text-gold rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200"
+                  className="text-ivory hover:bg-gold/10 hover:text-gold-accessible rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200"
                 >
                   {link.label}
                 </Link>
@@ -220,15 +221,17 @@ export function NavigationMenu({ forceVisible = false }: NavigationMenuProps) {
 
             {/* Boutons CTA à droite - Desktop */}
             <div className="hidden items-center gap-3 md:flex">
+              {/* Toggle thème */}
+              <ThemeToggle size="sm" />
               <Link
                 href="/inscription-seminaire"
-                className="border-gold/40 text-gold hover:border-gold hover:bg-gold/10 rounded-lg border px-4 py-2 text-sm font-semibold transition-all duration-200"
+                className="border-gold-accessible/40 text-gold-accessible hover:border-gold-accessible hover:bg-gold/10 rounded-lg border px-4 py-2 text-sm font-semibold transition-all duration-200"
               >
                 Séminaire
               </Link>
               <Link
                 href="/demande-rendez-vous"
-                className="text-night hover:shadow-gold/25 focus:ring-gold focus:ring-offset-night inline-flex items-center gap-2 rounded-lg bg-[#C9A86A] px-5 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-105 hover:bg-[#d4b77a] hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2"
+                className="text-night hover:shadow-gold/25 focus:ring-gold focus:ring-offset-night inline-flex items-center gap-2 rounded-lg bg-gold-accessible px-5 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-105 hover:bg-gold-hover hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2"
               >
                 <svg
                   className="h-4 w-4"
@@ -251,7 +254,7 @@ export function NavigationMenu({ forceVisible = false }: NavigationMenuProps) {
             <button
               ref={hamburgerButtonRef}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-ivory/80 hover:bg-gold/10 hover:text-gold focus:ring-gold focus:ring-offset-night relative z-50 rounded-lg p-2 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 md:hidden"
+              className="text-ivory hover:bg-gold/10 hover:text-gold-accessible focus:ring-gold focus:ring-offset-night relative z-50 rounded-lg p-2 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 md:hidden"
               aria-label="Menu de navigation"
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-menu"
@@ -278,14 +281,14 @@ export function NavigationMenu({ forceVisible = false }: NavigationMenuProps) {
         role="dialog"
         aria-modal="true"
         aria-label="Menu de navigation"
-        className={`fixed bottom-0 right-0 top-0 z-40 flex w-80 max-w-[85vw] flex-col bg-[#1A2332] shadow-2xl transition-transform duration-300 ease-out md:hidden ${
+        className={`fixed bottom-0 right-0 top-0 z-40 flex w-80 max-w-[85vw] flex-col bg-night-light shadow-2xl transition-transform duration-300 ease-out md:hidden ${
           isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* En-tête du menu avec logo */}
         <div className="border-gold/20 flex items-center gap-3 border-b px-6 py-5">
           <PsypnosLogo size={40} />
-          <span className="font-display text-gold text-xl font-semibold">Psypnos</span>
+          <span className="font-display text-gold-accessible text-xl font-semibold">Psypnos</span>
         </div>
 
         {/* Liens de navigation */}
@@ -297,7 +300,7 @@ export function NavigationMenu({ forceVisible = false }: NavigationMenuProps) {
                   ref={index === 0 ? firstFocusableRef : undefined}
                   href={link.href}
                   onClick={closeMenu}
-                  className="text-ivory/90 hover:bg-gold/10 hover:text-gold focus:bg-gold/10 focus:text-gold block rounded-lg px-4 py-3 text-base font-medium transition-colors duration-200 focus:outline-none"
+                  className="text-ivory hover:bg-gold/10 hover:text-gold-accessible focus:bg-gold/10 focus:text-gold-accessible block rounded-lg px-4 py-3 text-base font-medium transition-colors duration-200 focus:outline-none"
                 >
                   {link.label}
                 </Link>
@@ -311,7 +314,7 @@ export function NavigationMenu({ forceVisible = false }: NavigationMenuProps) {
           <Link
             href="/demande-rendez-vous"
             onClick={closeMenu}
-            className="text-night focus:ring-gold flex items-center justify-center gap-2 rounded-lg bg-[#C9A86A] px-5 py-3.5 text-base font-semibold transition-all duration-200 hover:bg-[#d4b77a] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#1A2332]"
+            className="text-night focus:ring-gold flex items-center justify-center gap-2 rounded-lg bg-gold-accessible px-5 py-3.5 text-base font-semibold transition-all duration-200 hover:bg-gold-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-night-light"
           >
             <svg
               className="h-5 w-5"
@@ -331,7 +334,7 @@ export function NavigationMenu({ forceVisible = false }: NavigationMenuProps) {
           <Link
             href="/inscription-seminaire"
             onClick={closeMenu}
-            className="border-gold text-gold hover:bg-gold/10 focus:ring-gold flex items-center justify-center gap-2 rounded-lg border-2 bg-transparent px-5 py-3 text-base font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#1A2332]"
+            className="border-gold-accessible text-gold-accessible hover:bg-gold/10 focus:ring-gold flex items-center justify-center gap-2 rounded-lg border-2 bg-transparent px-5 py-3 text-base font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-night-light"
           >
             <svg
               className="h-5 w-5"
@@ -352,7 +355,7 @@ export function NavigationMenu({ forceVisible = false }: NavigationMenuProps) {
 
         {/* Réseaux sociaux */}
         <div className="border-gold/20 border-t px-6 py-5">
-          <p className="text-ivory/50 mb-3 text-center text-sm">Suivez-nous</p>
+          <p className="text-ivory-muted mb-3 text-center text-sm">Suivez-nous</p>
           <div className="flex items-center justify-center gap-4">
             {socialLinks.map(link => (
               <a
@@ -361,7 +364,7 @@ export function NavigationMenu({ forceVisible = false }: NavigationMenuProps) {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={link.label}
-                className="text-ivory/60 hover:bg-gold/10 hover:text-gold focus:ring-gold rounded-lg p-2 transition-all duration-200 focus:outline-none focus:ring-2"
+                className="text-ivory-muted hover:bg-gold/10 hover:text-gold-accessible focus:ring-gold rounded-lg p-2 transition-all duration-200 focus:outline-none focus:ring-2"
               >
                 <SocialIcon platform={link.platform} className="h-5 w-5" />
               </a>

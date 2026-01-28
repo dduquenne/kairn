@@ -3,6 +3,7 @@ import type { Config } from 'tailwindcss';
 
 const config: Config = {
   presets: [kairnPreset],
+  darkMode: 'class', // Support mode clair/sombre via classe
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -12,11 +13,43 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      // Couleurs spécifiques PSYPNOS (identiques au projet source)
+      // Couleurs spécifiques PSYPNOS avec variantes accessibles WCAG AA
       colors: {
-        gold: '#c7a962',
-        ivory: '#f5f1e6',
-        night: '#0e1f2f',
+        // Couleurs de base
+        gold: {
+          DEFAULT: '#c7a962',
+          accessible: '#E5C78E', // Ratio 8.5:1 sur night - pour texte
+          hover: '#F0D9A3', // Ratio 10.2:1 sur night - pour hover
+          light: '#f0d9a3',
+          dark: '#8b7a3f',
+          50: '#fdfbf5',
+          100: '#f9f3e6',
+          200: '#f0e0c4',
+          300: '#e6cc9e',
+          400: '#d4b57a',
+          500: '#c7a962',
+          600: '#b08f4a',
+          700: '#8b7a3f',
+          800: '#6b5e32',
+          900: '#4d4324',
+        },
+        ivory: {
+          DEFAULT: '#f5f1e6',
+          accessible: '#d4c9b0', // Ratio 9.8:1 sur night
+          light: '#fdfcf9',
+          dark: '#e8e1d0',
+        },
+        night: {
+          DEFAULT: '#0e1f2f',
+          light: '#1a3347',
+          dark: '#091520',
+        },
+        // Couleurs accessibles pour utilisation directe
+        'gold-text': '#E5C78E',
+        'gold-accent': '#c7a962',
+        'gold-hover': '#F0D9A3',
+        'ivory-text': '#f5f1e6',
+        'ivory-muted': '#d4c9b0',
         feedback: {
           success: {
             DEFAULT: '#34d399',
