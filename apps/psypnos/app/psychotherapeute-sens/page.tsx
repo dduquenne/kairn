@@ -1,0 +1,153 @@
+import type { Metadata } from 'next';
+import { GeoPage } from '@/components/GeoPage';
+
+export const metadata: Metadata = {
+  title: 'Psychothérapeute Sens | David Duquenne | Cabinet à 25 min',
+  description:
+    'Psychothérapeute près de Sens (89). David Duquenne vous accueille à 25 min pour psychothérapie, anxiété, burn-out, deuil. Cabinet au Moulin d\'en Bas.',
+  keywords: [
+    'psychothérapeute Sens',
+    'psy Sens',
+    'thérapeute Sens 89',
+    'psychothérapie Sens',
+    'anxiété Sens',
+    'burn-out Sens',
+    'psychologue Sens',
+  ],
+  openGraph: {
+    title: 'Psychothérapeute près de Sens - David Duquenne',
+    description: 'Cabinet de psychothérapie à 25 min de Sens. Accompagnement pour anxiété, burn-out, transitions de vie.',
+    url: 'https://psypnos.fr/psychotherapeute-sens',
+  },
+  alternates: {
+    canonical: 'https://psypnos.fr/psychotherapeute-sens',
+  },
+};
+
+const schemaData = {
+  '@context': 'https://schema.org',
+  '@type': 'MedicalBusiness',
+  '@id': 'https://psypnos.fr/psychotherapeute-sens',
+  name: 'Psypnos - Psychothérapeute près de Sens',
+  description: 'Cabinet de psychothérapie accessible depuis Sens',
+  url: 'https://psypnos.fr/psychotherapeute-sens',
+  areaServed: {
+    '@type': 'City',
+    name: 'Sens',
+    sameAs: 'https://fr.wikipedia.org/wiki/Sens_(Yonne)',
+  },
+  provider: {
+    '@type': 'Person',
+    name: 'David Duquenne',
+    jobTitle: 'Psychothérapeute',
+  },
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: "Le Moulin d'en Bas",
+    addressLocality: 'Saint-Julien-du-Sault',
+    postalCode: '89330',
+    addressCountry: 'FR',
+  },
+};
+
+const mainContent = `
+<p>Vous cherchez un <strong>psychothérapeute près de Sens</strong> ? Le cabinet Psypnos vous accueille à Saint-Julien-du-Sault, à seulement <strong>25 minutes en voiture</strong> de Sens via la D606.</p>
+
+<p>Sens, ville historique aux portes de la Bourgogne, est la sous-préfecture la plus proche de Paris. Ses habitants vivent souvent au rythme effréné des allers-retours vers la capitale. Un accompagnement thérapeutique peut aider à retrouver l'équilibre.</p>
+
+<h3>Psychothérapie pour les Sénonais</h3>
+
+<p>En tant que psychothérapeute, j'accompagne de nombreux habitants de Sens et de son agglomération : Paron, Saint-Clément, Maillot, Gron, Villeneuve-sur-Yonne...</p>
+
+<p>Les Sénonais me consultent souvent pour :</p>
+<ul>
+  <li><strong>L'épuisement lié aux trajets</strong> : les navettes quotidiennes vers Paris génèrent stress et fatigue</li>
+  <li><strong>Les transitions professionnelles</strong> : reconversion, perte d'emploi, retraite</li>
+  <li><strong>Les difficultés relationnelles</strong> : couple, famille, travail</li>
+  <li><strong>L'anxiété et le stress</strong> : crises d'angoisse, ruminations</li>
+  <li><strong>Le deuil et la séparation</strong> : accompagnement dans les moments difficiles</li>
+</ul>
+
+<h3>Un cadre propice au travail sur soi</h3>
+
+<p>Le cabinet de Saint-Julien-du-Sault offre un cadre très différent de l'environnement urbain de Sens. Situé dans un ancien moulin rénové, au bord de l'eau, il invite au calme et à l'introspection.</p>
+
+<p>Ce changement de décor, même pour un court trajet, peut faciliter la transition vers un espace mental différent, propice au travail thérapeutique.</p>
+
+<h3>Ma pratique thérapeutique</h3>
+
+<p>Je pratique la <strong>psychothérapie transpersonnelle</strong>, une approche qui intègre :</p>
+<ul>
+  <li>L'écoute active et la parole</li>
+  <li>Le travail sur les émotions et le corps</li>
+  <li>L'exploration de l'inconscient et des rêves</li>
+  <li>La dimension existentielle et spirituelle</li>
+</ul>
+
+<p>Cette approche holistique permet d'aborder les difficultés sous différents angles et de trouver des solutions durables.</p>
+
+<h3>Flexibilité pour les Sénonais</h3>
+
+<p>Je comprends les contraintes des habitants de Sens, notamment ceux qui travaillent à Paris. Je propose donc des <strong>horaires adaptés</strong> (fin de journée, samedi) et des <strong>consultations en visioconférence</strong> pour ceux qui ne peuvent pas se déplacer.</p>
+`;
+
+const benefits = [
+  'À 25 min de Sens',
+  'Horaires adaptés aux navetteurs',
+  'Consultations en soirée',
+  'Séances le samedi',
+  'Visioconférence possible',
+  'Parking gratuit',
+  'Cadre naturel apaisant',
+  'Tarif solidaire disponible',
+];
+
+const testimonials = [
+  {
+    content: 'Entre Paris et Sens, j\'avais l\'impression de courir sans cesse. Les séances avec David m\'ont aidée à retrouver un équilibre et à prendre soin de moi.',
+    author: 'Sophie T.',
+    location: 'Sens',
+  },
+  {
+    content: 'Le cadre du cabinet change de tout ce que je connais. C\'est un vrai moment de pause dans ma semaine. Je repars toujours plus serein.',
+    author: 'Antoine L.',
+    location: 'Paron',
+  },
+];
+
+const practicalInfo = {
+  distance: '25 km',
+  duration: '25 min',
+  directions: 'Depuis Sens, prendre la D606 direction Joigny. À Saint-Julien-du-Sault, suivre les panneaux "Le Moulin".',
+};
+
+const relatedLinks = [
+  { label: 'Psychothérapeute Yonne', href: '/psychotherapeute-yonne' },
+  { label: 'Psychothérapeute Joigny', href: '/psychotherapeute-joigny' },
+  { label: 'Hypnose Sens', href: '/hypnose-sens' },
+];
+
+export default function PsychotherapeuteSensPage() {
+  return (
+    <GeoPage
+      title="Psychothérapeute près de Sens"
+      subtitle="Cabinet de psychothérapie à 25 minutes de Sens"
+      description="David Duquenne accompagne les Sénonais dans un cabinet accessible, avec des horaires adaptés aux contraintes de chacun."
+      service="psychotherapie"
+      location={{
+        city: 'Sens',
+        department: '89',
+      }}
+      breadcrumbItems={[
+        { name: 'Psychothérapie', href: '/psychotherapie' },
+        { name: 'Psychothérapeute Sens', href: '/psychotherapeute-sens' },
+      ]}
+      mainContent={mainContent}
+      benefits={benefits}
+      testimonials={testimonials}
+      practicalInfo={practicalInfo}
+      relatedLinks={relatedLinks}
+      schemaData={schemaData}
+    />
+  );
+}

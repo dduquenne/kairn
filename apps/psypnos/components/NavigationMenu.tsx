@@ -10,7 +10,7 @@ const navLinks = [
   { href: '/respiration-holotropique', label: 'Respiration' },
   { href: '/a-propos', label: 'À propos' },
   { href: '/blog', label: 'Blog' },
-  { href: '/#contact', label: 'Contact' },
+  { href: '/contact', label: 'Contact' },
 ];
 
 const socialLinks = [
