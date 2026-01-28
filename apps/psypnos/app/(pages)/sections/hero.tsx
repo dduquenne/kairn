@@ -7,8 +7,9 @@ import Link from "next/link";
 import { CTAButton } from "../../../components/CTAButton";
 
 const heroContent = {
-  title1: "Accueillir ce qui est.",
-  title2: "Explorer ce qui vient.",
+  h1: "Psychothérapeute et Hypnothérapeute à Saint-Julien-du-Sault (Yonne)",
+  slogan1: "Accueillir ce qui est.",
+  slogan2: "Explorer ce qui vient.",
   subtitle:
     "Traversez les crises, réveillez votre sagesse intérieure et redonnez du sens à votre vie.",
   ctas: {
@@ -139,10 +140,13 @@ export function HeroSection() {
           transition={hasMounted ? { duration: 0.8, delay: 3.3, ease: "easeOut" } : { duration: 0 }}
           className="max-w-3xl"
         >
-          <h1 className="text-4xl font-semibold text-ivory sm:text-5xl lg:text-6xl">
-            <span className="block">{heroContent.title1}</span>
-            <span className="block">{heroContent.title2}</span>
+          <h1 className="text-2xl font-semibold text-ivory sm:text-3xl lg:text-4xl">
+            {heroContent.h1}
           </h1>
+          <h2 className="mt-4 text-3xl font-semibold text-gold sm:text-4xl lg:text-5xl">
+            <span className="block">{heroContent.slogan1}</span>
+            <span className="block">{heroContent.slogan2}</span>
+          </h2>
           <p className="mt-6 text-base text-ivory/80 sm:text-lg">
             {heroContent.subtitle}
           </p>

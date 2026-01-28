@@ -142,7 +142,7 @@ export function RespirationHolotropiqueContent({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              Le souffle comme <span className="text-gold">chemin de transformation</span>
+              Séminaires de Respiration Holotropique en <span className="text-gold">Bourgogne</span>
             </motion.h1>
             <motion.p
               className="text-ivory/80 mx-auto mb-8 max-w-3xl text-lg sm:text-xl"
