@@ -240,3 +240,9 @@ export function defineSiteConfig(config: SiteConfig): SiteConfig {
 export function definePartialConfig(config: Partial<SiteConfig>): Partial<SiteConfig> {
   return siteConfigSchema.partial().parse(config);
 }
+
+// ============================================================================
+// PERSONNALISATION DU SITE
+// ============================================================================
+
+export * from './customization';

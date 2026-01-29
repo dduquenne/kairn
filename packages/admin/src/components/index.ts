@@ -27,3 +27,6 @@ export * from './testimonials';
 
 // Seminars admin components
 export * from './seminars';
+
+// Customization components
+export * from './customization';
