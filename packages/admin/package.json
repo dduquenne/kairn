@@ -56,6 +56,11 @@
       "import": "./src/components/seminars/index.ts",
       "default": "./src/components/seminars/index.ts"
     },
+    "./components/customization": {
+      "types": "./src/components/customization/index.ts",
+      "import": "./src/components/customization/index.ts",
+      "default": "./src/components/customization/index.ts"
+    },
     "./hooks": {
       "types": "./src/hooks/index.ts",
       "import": "./src/hooks/index.ts",

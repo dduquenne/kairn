@@ -11,6 +11,7 @@ import { verifyAdminToken } from "../api/auth/middleware";
 // Navigation configuration for Psypnos admin
 const psypnosAdminNavigation: NavigationItem[] = [
   { href: "/admin/analytics", label: "Analytiques", icon: "📊" },
+  { href: "/admin/customization", label: "Personnalisation", icon: "🎨" },
   { href: "/admin/settings", label: "Configuration", icon: "⚙️" },
   { href: "/admin/blog", label: "Blog", icon: "📝" },
   { href: "/admin/social", label: "Réseaux sociaux", icon: "📱" },
