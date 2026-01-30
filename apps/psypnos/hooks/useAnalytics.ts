@@ -323,7 +323,7 @@ export function useSectionTimeTracking(sectionId: string) {
  * Records user actions in the conversion funnel
  */
 export async function trackConversionEvent(
-  eventType: "appointment_request" | "seminar_registration" | "contact_form",
+  eventType: "appointment_request" | "seminar_registration" | "contact_form" | "fab_click" | "quick_contact_form",
   stepName: string,
   completed: boolean,
   metadata?: Record<string, unknown>,

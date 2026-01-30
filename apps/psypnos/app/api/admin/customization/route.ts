@@ -1,30 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-// eslint-disable-next-line import/no-unresolved
-import { prisma } from "@kairn/db";
+import { Prisma } from "@prisma/client";
+import { prisma } from "@/lib/db/prisma";
 import { customizationConfigSchema } from "@kairn/config";
 
 export const dynamic = "force-dynamic";
 
 // Site ID for Psypnos (in a real multi-tenant setup, this would come from context)
 const SITE_SLUG = "psypnos";
+const SITE_DOMAIN = "psypnos.fr";
+const SITE_NAME = "Psypnos";
+
+/**
+ * Ensures the site exists in the database, creating it if necessary
+ */
+async function ensureSiteExists() {
+  return prisma.site.upsert({
+    where: { slug: SITE_SLUG },
+    update: {}, // Don't update anything if it exists
+    create: {
+      slug: SITE_SLUG,
+      name: SITE_NAME,
+      domain: SITE_DOMAIN,
+      isActive: true,
+      config: {},
+    },
+    select: { id: true, config: true },
+  });
+}
 
 /**
  * GET - Retrieve current customization settings
  */
 export async function GET() {
   try {
-    const site = await prisma.site.findUnique({
-      where: { slug: SITE_SLUG },
-      select: { config: true },
-    });
-
-    if (!site) {
-      return NextResponse.json(
-        { error: "Site non trouve" },
-        { status: 404 }
-      );
-    }
+    const site = await ensureSiteExists();
 
     // Extract customization from site config
     const config = site.config as Record<string, unknown> | null;
@@ -53,18 +63,8 @@ export async function PUT(request: NextRequest) {
     // Validate the customization config
     const validatedConfig = customizationConfigSchema.parse(body);
 
-    // Get current site config
-    const site = await prisma.site.findUnique({
-      where: { slug: SITE_SLUG },
-      select: { id: true, config: true },
-    });
-
-    if (!site) {
-      return NextResponse.json(
-        { error: "Site non trouve" },
-        { status: 404 }
-      );
-    }
+    // Get or create site
+    const site = await ensureSiteExists();
 
     // Merge with existing config
     const existingConfig = (site.config as Record<string, unknown>) || {};
@@ -77,7 +77,7 @@ export async function PUT(request: NextRequest) {
     // Update site config
     await prisma.site.update({
       where: { slug: SITE_SLUG },
-      data: { config: updatedConfig },
+      data: { config: updatedConfig as Prisma.InputJsonValue },
     });
 
     return NextResponse.json({
@@ -105,17 +105,8 @@ export async function PUT(request: NextRequest) {
  */
 export async function DELETE() {
   try {
-    const site = await prisma.site.findUnique({
-      where: { slug: SITE_SLUG },
-      select: { id: true, config: true },
-    });
-
-    if (!site) {
-      return NextResponse.json(
-        { error: "Site non trouve" },
-        { status: 404 }
-      );
-    }
+    // Get or create site
+    const site = await ensureSiteExists();
 
     // Remove customization from config (destructure to exclude, underscore prefix to avoid lint error)
     const existingConfig = (site.config as Record<string, unknown>) || {};
@@ -125,7 +116,7 @@ export async function DELETE() {
 
     await prisma.site.update({
       where: { slug: SITE_SLUG },
-      data: { config: restConfig },
+      data: { config: restConfig as Prisma.InputJsonValue },
     });
 
     return NextResponse.json({

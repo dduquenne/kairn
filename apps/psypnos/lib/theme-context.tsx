@@ -28,6 +28,7 @@ const STORAGE_KEY = 'psypnos-theme';
 /**
  * Provider pour le thème clair/sombre
  * Persiste la préférence dans localStorage
+ * Note: Les couleurs sont maintenant gérées par CustomizationProvider
  */
 export function ThemeProvider({
   children,
@@ -76,7 +77,7 @@ export function ThemeProvider({
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, [theme]);
 
-  // Applique le thème au document
+  // Applique le thème au document (classe uniquement, les couleurs sont gérées par CustomizationProvider)
   useEffect(() => {
     if (!mounted) return;
 
@@ -88,26 +89,8 @@ export function ThemeProvider({
     // Ajoute la classe du thème résolu
     root.classList.add(resolvedTheme);
 
-    // Met à jour les CSS variables pour le mode clair
-    if (resolvedTheme === 'light') {
-      root.style.setProperty('--color-background', '#FFFFFF');
-      root.style.setProperty('--color-foreground', '#0e1f2f');
-      root.style.setProperty('--color-primary', '#8b7a3f');
-      root.style.setProperty('--color-gold-text', '#8b7a3f');
-      root.style.setProperty('--color-gold-accent', '#b08f4a');
-      root.style.setProperty('--color-gold-hover', '#6b5e32');
-      root.style.setProperty('--color-ivory-text', '#0e1f2f');
-      root.style.setProperty('--color-ivory-muted', '#728a9c');
-    } else {
-      root.style.setProperty('--color-background', '#0e1f2f');
-      root.style.setProperty('--color-foreground', '#f5f1e6');
-      root.style.setProperty('--color-primary', '#E5C78E');
-      root.style.setProperty('--color-gold-text', '#E5C78E');
-      root.style.setProperty('--color-gold-accent', '#c7a962');
-      root.style.setProperty('--color-gold-hover', '#F0D9A3');
-      root.style.setProperty('--color-ivory-text', '#f5f1e6');
-      root.style.setProperty('--color-ivory-muted', '#d4c9b0');
-    }
+    // Met à jour le color-scheme pour les éléments natifs du navigateur
+    root.style.setProperty('color-scheme', resolvedTheme);
   }, [resolvedTheme, mounted]);
 
   const setTheme = useCallback(

@@ -36,7 +36,9 @@ export type DeviceType = 'mobile' | 'tablet' | 'desktop';
 export type ConversionType =
   | 'appointment_request'
   | 'seminar_registration'
-  | 'contact_form';
+  | 'contact_form'
+  | 'fab_click'
+  | 'quick_contact_form';
 
 // ============================================
 // Session

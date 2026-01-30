@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter, Playfair_Display } from 'next/font/google';
 
 import { FloatingContactButton } from '@/components/FloatingContactButton';
+import { CustomizationProvider } from '@/lib/customization-context';
 import { ThemeProvider } from '@/lib/theme-context';
 import { ToastProvider } from '@/lib/toast-context';
 
@@ -483,12 +484,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="bg-night text-ivory antialiased" suppressHydrationWarning>
-        <ThemeProvider defaultTheme="dark">
-          <ToastProvider position="top-right">
-            {children}
-            <FloatingContactButton />
-          </ToastProvider>
-        </ThemeProvider>
+        <CustomizationProvider>
+          <ThemeProvider defaultTheme="dark">
+            <ToastProvider position="top-right">
+              {children}
+              <FloatingContactButton />
+            </ToastProvider>
+          </ThemeProvider>
+        </CustomizationProvider>
       </body>
     </html>
   );
