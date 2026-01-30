@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -15,15 +16,15 @@
  * Types d'événements trackés
  */
 export type TrackingEventType =
-  | 'page_view'        // Vue de page
-  | 'page_exit'        // Sortie de page (avec temps passé)
-  | 'scroll_depth'     // Profondeur de scroll
-  | 'section_view'     // Vue d'une section
-  | 'section_time'     // Temps passé sur une section
-  | 'conversion'       // Événement de conversion
-  | 'custom_event'     // Événement personnalisé
-  | 'session_start'    // Début de session
-  | 'session_end';     // Fin de session
+  | 'page_view' // Vue de page
+  | 'page_exit' // Sortie de page (avec temps passé)
+  | 'scroll_depth' // Profondeur de scroll
+  | 'section_view' // Vue d'une section
+  | 'section_time' // Temps passé sur une section
+  | 'conversion' // Événement de conversion
+  | 'custom_event' // Événement personnalisé
+  | 'session_start' // Début de session
+  | 'session_end'; // Fin de session
 
 /**
  * Types de devices
@@ -96,7 +97,7 @@ export interface PageViewEvent extends BaseTrackingEvent {
  */
 export interface PageExitEvent extends BaseTrackingEvent {
   type: 'page_exit';
-  timeOnPage: number;      // ms
+  timeOnPage: number; // ms
   scrollDepthPercent: number;
   engagementScore: number; // 0-100 basé sur temps + scroll
 }
@@ -167,10 +168,10 @@ export interface SessionStartEvent extends BaseTrackingEvent {
  */
 export interface SessionEndEvent extends BaseTrackingEvent {
   type: 'session_end';
-  duration: number;        // ms
+  duration: number; // ms
   pageViewCount: number;
   exitPage: string;
-  bounced: boolean;        // Session avec une seule page vue
+  bounced: boolean; // Session avec une seule page vue
 }
 
 /**
@@ -229,20 +230,20 @@ export interface TrackingResponse {
  */
 export interface TrackerConfig {
   // Batching
-  batchSize: number;           // Nombre d'événements avant envoi
-  batchInterval: number;       // Intervalle max entre envois (ms)
+  batchSize: number; // Nombre d'événements avant envoi
+  batchInterval: number; // Intervalle max entre envois (ms)
 
   // Session
-  sessionTimeout: number;      // Timeout d'inactivité (ms)
-  sessionStorageKey: string;   // Clé localStorage
+  sessionTimeout: number; // Timeout d'inactivité (ms)
+  sessionStorageKey: string; // Clé localStorage
 
   // Scroll tracking
-  scrollThresholds: number[];  // Seuils de scroll à tracker (%)
-  scrollDebounce: number;      // Debounce du scroll (ms)
+  scrollThresholds: number[]; // Seuils de scroll à tracker (%)
+  scrollDebounce: number; // Debounce du scroll (ms)
 
   // Section tracking
   sectionVisibilityThreshold: number; // % de visibilité pour considérer "vu"
-  sectionTimeInterval: number;        // Intervalle de tracking temps section (ms)
+  sectionTimeInterval: number; // Intervalle de tracking temps section (ms)
 
   // API
   apiEndpoint: string;
@@ -251,8 +252,8 @@ export interface TrackerConfig {
   debug: boolean;
 
   // Exclusions
-  excludedPaths: string[];     // Chemins à ne pas tracker
-  excludedParams: string[];    // Params URL à supprimer
+  excludedPaths: string[]; // Chemins à ne pas tracker
+  excludedParams: string[]; // Params URL à supprimer
 }
 
 /**

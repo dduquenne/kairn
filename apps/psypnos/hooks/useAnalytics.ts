@@ -1,15 +1,16 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
-"use client";
+'use client';
 
-import { useEffect, useRef } from "react";
-import { UAParser } from "ua-parser-js";
+import { useEffect, useRef } from 'react';
+import { UAParser } from 'ua-parser-js';
 
 // Generate or retrieve session ID
 function getSessionId(): string {
-  if (typeof window === "undefined") return "";
+  if (typeof window === 'undefined') return '';
 
-  const key = "psypnos_session_id";
+  const key = 'psypnos_session_id';
   let sessionId = localStorage.getItem(key);
 
   if (!sessionId) {
@@ -25,10 +26,10 @@ function getSessionId(): string {
  * This is a MAJOR improvement that automatically collects all analytics data.
  */
 function enrichPageVisitData() {
-  if (typeof window === "undefined") {
+  if (typeof window === 'undefined') {
     return {
-      sessionId: "",
-      page: "",
+      sessionId: '',
+      page: '',
       referrer: undefined,
       userAgent: undefined,
     };
@@ -40,11 +41,11 @@ function enrichPageVisitData() {
 
   // 2. Extract UTM parameters from URL
   const urlParams = new URLSearchParams(window.location.search);
-  const utmSource = urlParams.get("utm_source") || undefined;
-  const utmMedium = urlParams.get("utm_medium") || undefined;
-  const utmCampaign = urlParams.get("utm_campaign") || undefined;
-  const utmTerm = urlParams.get("utm_term") || undefined;
-  const utmContent = urlParams.get("utm_content") || undefined;
+  const utmSource = urlParams.get('utm_source') || undefined;
+  const utmMedium = urlParams.get('utm_medium') || undefined;
+  const utmCampaign = urlParams.get('utm_campaign') || undefined;
+  const utmTerm = urlParams.get('utm_term') || undefined;
+  const utmContent = urlParams.get('utm_content') || undefined;
 
   // 3. Extract referrer domain
   let referrerDomain = undefined;
@@ -58,11 +59,12 @@ function enrichPageVisitData() {
   }
 
   // 4. Detect device type
-  const deviceType = result.device.type === "mobile"
-    ? "mobile"
-    : result.device.type === "tablet"
-      ? "tablet"
-      : "desktop";
+  const deviceType =
+    result.device.type === 'mobile'
+      ? 'mobile'
+      : result.device.type === 'tablet'
+        ? 'tablet'
+        : 'desktop';
 
   // 5. Bot detection (simple heuristic)
   const isBot = /bot|crawler|spider|crawling|headless/i.test(navigator.userAgent);
@@ -101,8 +103,8 @@ export function usePageTracking() {
 
   useEffect(() => {
     // Early return if server-side or analytics disabled
-    if (typeof window === "undefined") return;
-    if (process.env.NEXT_PUBLIC_ANALYTICS_ENABLED === "false") return;
+    if (typeof window === 'undefined') return;
+    if (process.env.NEXT_PUBLIC_ANALYTICS_ENABLED === 'false') return;
 
     if (hasTrackedRef.current) return;
     hasTrackedRef.current = true;
@@ -112,13 +114,13 @@ export function usePageTracking() {
       try {
         const enrichedData = enrichPageVisitData();
 
-        await fetch("/api/analytics/page-visit", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        await fetch('/api/analytics/page-visit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(enrichedData),
         });
       } catch (error) {
-        console.error("Failed to track page visit:", error);
+        console.error('Failed to track page visit:', error);
       }
     };
 
@@ -131,18 +133,18 @@ export function usePageTracking() {
 
       // Use sendBeacon for reliability when page is unloading
       const data = new FormData();
-      data.append("sessionId", getSessionId());
-      data.append("page", window.location.pathname);
-      data.append("timeOnPage", timeOnPage.toString());
+      data.append('sessionId', getSessionId());
+      data.append('page', window.location.pathname);
+      data.append('timeOnPage', timeOnPage.toString());
 
-      navigator.sendBeacon("/api/analytics/time-on-page", data);
+      navigator.sendBeacon('/api/analytics/time-on-page', data);
     };
 
     // Listen to page unload
-    window.addEventListener("beforeunload", sendTimeOnPage);
+    window.addEventListener('beforeunload', sendTimeOnPage);
 
     return () => {
-      window.removeEventListener("beforeunload", sendTimeOnPage);
+      window.removeEventListener('beforeunload', sendTimeOnPage);
       // Also send on unmount
       sendTimeOnPage();
     };
@@ -159,8 +161,8 @@ export function useScrollTracking() {
 
   useEffect(() => {
     // Early return if server-side or analytics disabled
-    if (typeof window === "undefined") return;
-    if (process.env.NEXT_PUBLIC_ANALYTICS_ENABLED === "false") return;
+    if (typeof window === 'undefined') return;
+    if (process.env.NEXT_PUBLIC_ANALYTICS_ENABLED === 'false') return;
 
     const handleScroll = () => {
       const windowHeight = window.innerHeight;
@@ -168,9 +170,7 @@ export function useScrollTracking() {
       const scrollTop = window.scrollY || document.documentElement.scrollTop;
 
       // Calculate scroll percentage
-      const scrollPercent = Math.round(
-        (scrollTop / (documentHeight - windowHeight)) * 100
-      );
+      const scrollPercent = Math.round((scrollTop / (documentHeight - windowHeight)) * 100);
 
       // Track maximum scroll depth
       if (scrollPercent > maxScrollRef.current) {
@@ -183,25 +183,25 @@ export function useScrollTracking() {
       hasSentRef.current = true;
 
       const data = new FormData();
-      data.append("sessionId", getSessionId());
-      data.append("page", window.location.pathname);
-      data.append("scrollDepthPercent", maxScrollRef.current.toString());
+      data.append('sessionId', getSessionId());
+      data.append('page', window.location.pathname);
+      data.append('scrollDepthPercent', maxScrollRef.current.toString());
 
-      navigator.sendBeacon("/api/analytics/scroll-depth", data);
+      navigator.sendBeacon('/api/analytics/scroll-depth', data);
     };
 
     // Listen to scroll events (throttled by browser for performance)
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener('scroll', handleScroll, { passive: true });
 
     // Send scroll depth when user leaves
-    window.addEventListener("beforeunload", sendScrollDepth);
+    window.addEventListener('beforeunload', sendScrollDepth);
 
     // Initial check
     handleScroll();
 
     return () => {
-      window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("beforeunload", sendScrollDepth);
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('beforeunload', sendScrollDepth);
       sendScrollDepth();
     };
   }, []);
@@ -219,7 +219,7 @@ export function useSectionTimeTracking(sectionId: string) {
 
   useEffect(() => {
     // Early return if analytics are disabled
-    if (process.env.NEXT_PUBLIC_ANALYTICS_ENABLED === "false") {
+    if (process.env.NEXT_PUBLIC_ANALYTICS_ENABLED === 'false') {
       return;
     }
 
@@ -245,28 +245,27 @@ export function useSectionTimeTracking(sectionId: string) {
             isVisibleRef.current = false;
 
             // Send immediately when section goes out of view
-            fetch("/api/analytics/section-time", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
+            fetch('/api/analytics/section-time', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 sessionId: getSessionId(),
                 section: sectionId,
                 timeSpent,
               }),
-            }).catch((error) =>
-              console.error("Failed to track section time:", error)
-            );
+            }).catch(error => console.error('Failed to track section time:', error));
           }
         }
       },
       {
         threshold: 0.1, // Trigger when 10% of section is visible
-        rootMargin: "0px",
+        rootMargin: '0px',
       }
     );
 
     // Find the section element
-    const sectionElement = document.getElementById(sectionId) ||
+    const sectionElement =
+      document.getElementById(sectionId) ||
       document.querySelector(`[data-section="${sectionId}"]`) ||
       elementRef.current;
 
@@ -279,17 +278,15 @@ export function useSectionTimeTracking(sectionId: string) {
     intervalRef.current = setInterval(() => {
       if (isVisibleRef.current && startTimeRef.current) {
         const timeSpent = Date.now() - startTimeRef.current;
-        fetch("/api/analytics/section-time", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        fetch('/api/analytics/section-time', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             sessionId: getSessionId(),
             section: sectionId,
             timeSpent,
           }),
-        }).catch((error) =>
-          console.error("Failed to track section time:", error)
-        );
+        }).catch(error => console.error('Failed to track section time:', error));
         // Reset timer
         startTimeRef.current = Date.now();
       }
@@ -306,11 +303,11 @@ export function useSectionTimeTracking(sectionId: string) {
       if (isVisibleRef.current && startTimeRef.current) {
         const timeSpent = Date.now() - startTimeRef.current;
         const formData = new FormData();
-        formData.append("sessionId", getSessionId());
-        formData.append("section", sectionId);
-        formData.append("timeSpent", timeSpent.toString());
+        formData.append('sessionId', getSessionId());
+        formData.append('section', sectionId);
+        formData.append('timeSpent', timeSpent.toString());
 
-        navigator.sendBeacon("/api/analytics/section-time", formData);
+        navigator.sendBeacon('/api/analytics/section-time', formData);
       }
     };
   }, [sectionId]);
@@ -323,15 +320,20 @@ export function useSectionTimeTracking(sectionId: string) {
  * Records user actions in the conversion funnel
  */
 export async function trackConversionEvent(
-  eventType: "appointment_request" | "seminar_registration" | "contact_form" | "fab_click" | "quick_contact_form",
+  eventType:
+    | 'appointment_request'
+    | 'seminar_registration'
+    | 'contact_form'
+    | 'fab_click'
+    | 'quick_contact_form',
   stepName: string,
   completed: boolean,
-  metadata?: Record<string, unknown>,
+  metadata?: Record<string, unknown>
 ) {
   try {
-    await fetch("/api/analytics/conversion", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    await fetch('/api/analytics/conversion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         sessionId: getSessionId(),
         eventType,
@@ -341,7 +343,7 @@ export async function trackConversionEvent(
       }),
     });
   } catch (error) {
-    console.error("Failed to track conversion event:", error);
+    console.error('Failed to track conversion event:', error);
   }
 }
 
@@ -359,9 +361,9 @@ export interface CustomEvent {
 
 export async function trackEvent(event: CustomEvent) {
   try {
-    await fetch("/api/analytics/events", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    await fetch('/api/analytics/events', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         sessionId: getSessionId(),
         timestamp: new Date().toISOString(),
@@ -369,7 +371,7 @@ export async function trackEvent(event: CustomEvent) {
       }),
     });
   } catch (error) {
-    console.error("Failed to track event:", error);
+    console.error('Failed to track event:', error);
   }
 }
 
@@ -380,8 +382,8 @@ export async function trackEvent(event: CustomEvent) {
 export function useEventTracking() {
   const trackVideoPlay = (videoId: string, videoTitle?: string) => {
     trackEvent({
-      category: "Video",
-      action: "play",
+      category: 'Video',
+      action: 'play',
       label: videoTitle || videoId,
       metadata: { videoId },
     });
@@ -389,8 +391,8 @@ export function useEventTracking() {
 
   const trackVideoPause = (videoId: string, currentTime: number) => {
     trackEvent({
-      category: "Video",
-      action: "pause",
+      category: 'Video',
+      action: 'pause',
       label: videoId,
       value: Math.round(currentTime),
       metadata: { currentTime },
@@ -399,8 +401,8 @@ export function useEventTracking() {
 
   const trackVideoComplete = (videoId: string, duration: number) => {
     trackEvent({
-      category: "Video",
-      action: "complete",
+      category: 'Video',
+      action: 'complete',
       label: videoId,
       value: Math.round(duration),
       metadata: { duration },
@@ -409,8 +411,8 @@ export function useEventTracking() {
 
   const trackDownload = (fileName: string, fileType?: string) => {
     trackEvent({
-      category: "Download",
-      action: "click",
+      category: 'Download',
+      action: 'click',
       label: fileName,
       metadata: { fileType },
     });
@@ -418,8 +420,8 @@ export function useEventTracking() {
 
   const trackCtaClick = (ctaName: string, ctaLocation?: string) => {
     trackEvent({
-      category: "CTA",
-      action: "click",
+      category: 'CTA',
+      action: 'click',
       label: ctaName,
       metadata: { location: ctaLocation },
     });
@@ -427,8 +429,8 @@ export function useEventTracking() {
 
   const trackExternalLink = (url: string, linkText?: string) => {
     trackEvent({
-      category: "Outbound",
-      action: "click",
+      category: 'Outbound',
+      action: 'click',
       label: url,
       metadata: { linkText },
     });
@@ -436,16 +438,16 @@ export function useEventTracking() {
 
   const trackFormStart = (formName: string) => {
     trackEvent({
-      category: "Form",
-      action: "start",
+      category: 'Form',
+      action: 'start',
       label: formName,
     });
   };
 
   const trackFormSubmit = (formName: string, success: boolean) => {
     trackEvent({
-      category: "Form",
-      action: success ? "submit_success" : "submit_error",
+      category: 'Form',
+      action: success ? 'submit_success' : 'submit_error',
       label: formName,
       value: success ? 1 : 0,
     });
@@ -453,8 +455,8 @@ export function useEventTracking() {
 
   const trackSearch = (searchTerm: string, resultsCount?: number) => {
     trackEvent({
-      category: "Search",
-      action: "query",
+      category: 'Search',
+      action: 'query',
       label: searchTerm,
       value: resultsCount,
     });
@@ -462,7 +464,7 @@ export function useEventTracking() {
 
   const trackShare = (platform: string, contentType?: string) => {
     trackEvent({
-      category: "Share",
+      category: 'Share',
       action: platform,
       label: contentType,
     });
@@ -494,9 +496,9 @@ export async function trackFunnelStep(
   metadata?: Record<string, unknown>
 ) {
   try {
-    await fetch("/api/analytics/funnel", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    await fetch('/api/analytics/funnel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         sessionId: getSessionId(),
         funnelName,
@@ -506,7 +508,7 @@ export async function trackFunnelStep(
       }),
     });
   } catch (error) {
-    console.error("Failed to track funnel step:", error);
+    console.error('Failed to track funnel step:', error);
   }
 }
 
@@ -521,20 +523,20 @@ export function useFunnelTracking(funnelName: string) {
 
   // Pre-defined funnel for appointment booking
   const trackAppointmentFunnel = {
-    viewPage: () => trackStep("Page vue", 1),
-    clickCta: () => trackStep("CTA cliqué", 2),
-    openForm: () => trackStep("Formulaire ouvert", 3),
-    fillForm: () => trackStep("Formulaire rempli", 4),
-    submitForm: () => trackStep("Formulaire soumis", 5),
-    confirmBooking: () => trackStep("Réservation confirmée", 6),
+    viewPage: () => trackStep('Page vue', 1),
+    clickCta: () => trackStep('CTA cliqué', 2),
+    openForm: () => trackStep('Formulaire ouvert', 3),
+    fillForm: () => trackStep('Formulaire rempli', 4),
+    submitForm: () => trackStep('Formulaire soumis', 5),
+    confirmBooking: () => trackStep('Réservation confirmée', 6),
   };
 
   // Pre-defined funnel for seminar registration
   const trackSeminarFunnel = {
-    viewSeminar: () => trackStep("Séminaire vu", 1),
-    clickRegister: () => trackStep("Inscription cliquée", 2),
-    fillDetails: () => trackStep("Détails remplis", 3),
-    confirmRegistration: () => trackStep("Inscription confirmée", 4),
+    viewSeminar: () => trackStep('Séminaire vu', 1),
+    clickRegister: () => trackStep('Inscription cliquée', 2),
+    fillDetails: () => trackStep('Détails remplis', 3),
+    confirmRegistration: () => trackStep('Inscription confirmée', 4),
   };
 
   return {
@@ -549,9 +551,9 @@ export function useFunnelTracking(funnelName: string) {
  */
 export async function trackGoalCompletion(goalId: string, value?: number) {
   try {
-    await fetch("/api/analytics/goals/completion", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    await fetch('/api/analytics/goals/completion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         sessionId: getSessionId(),
         goalId,
@@ -560,6 +562,6 @@ export async function trackGoalCompletion(goalId: string, value?: number) {
       }),
     });
   } catch (error) {
-    console.error("Failed to track goal completion:", error);
+    console.error('Failed to track goal completion:', error);
   }
 }
