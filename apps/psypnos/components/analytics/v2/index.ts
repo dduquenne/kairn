@@ -11,6 +11,7 @@ export { ConversionsPanel } from "./panels/ConversionsPanel";
 export { SourcesPanel } from "./panels/SourcesPanel";
 export { SEOPanel } from "./panels/SEOPanel";
 export { BlogPanel, type BlogPanelData, type BlogArticleStats } from "./panels/BlogPanel";
+export { PostsPanel, type PostsPanelData } from "./panels/PostsPanel";
 
 // Hooks
 export { useAnalytics } from "./hooks/useAnalytics";

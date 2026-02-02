@@ -9,9 +9,10 @@ import {
   Bot,
   Sparkles,
   FileText,
+  Share2,
 } from "lucide-react";
 
-export type TabId = "traffic" | "engagement" | "conversions" | "sources" | "seo" | "blog";
+export type TabId = "traffic" | "engagement" | "conversions" | "blog" | "posts" | "sources" | "seo";
 
 interface Tab {
   id: TabId;
@@ -44,6 +45,12 @@ const TABS: Tab[] = [
     label: "Blog",
     icon: <FileText size={18} />,
     description: "Articles et engagement",
+  },
+  {
+    id: "posts",
+    label: "Posts",
+    icon: <Share2 size={18} />,
+    description: "Réseaux sociaux",
   },
   {
     id: "sources",

@@ -15,6 +15,7 @@ import {
   SourcesPanel,
   SEOPanel,
   BlogPanel,
+  PostsPanel,
   useAnalytics,
   SimulationProvider,
   useSimulation,
@@ -348,6 +349,15 @@ function AnalyticsPageContent() {
           <TabContent tabId="blog">
             <BlogPanel
               data={data?.blogData || null}
+              isLoading={isLoading}
+            />
+          </TabContent>
+        )}
+
+        {activeTab === "posts" && (
+          <TabContent tabId="posts">
+            <PostsPanel
+              data={data?.postsData || null}
               isLoading={isLoading}
             />
           </TabContent>

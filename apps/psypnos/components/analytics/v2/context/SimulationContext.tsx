@@ -163,6 +163,72 @@ interface BlogPanelData {
   visitorsChange?: number;
 }
 
+// Posts Panel Types
+interface SocialPost {
+  id: string;
+  platform: "instagram" | "facebook" | "linkedin" | "twitter" | "tiktok";
+  type: "image" | "video" | "carousel" | "story" | "reel" | "text";
+  content: string;
+  publishedAt: string;
+  reach: number;
+  impressions: number;
+  likes: number;
+  comments: number;
+  shares: number;
+  saves?: number;
+  engagementRate: number;
+}
+
+interface PlatformStats {
+  platform: string;
+  icon: "instagram" | "facebook" | "linkedin" | "twitter" | "tiktok";
+  followers: number;
+  followersChange: number;
+  posts: number;
+  reach: number;
+  engagement: number;
+  engagementRate: number;
+  color: string;
+}
+
+interface PostTypeStats {
+  type: string;
+  count: number;
+  avgEngagement: number;
+  percentage: number;
+}
+
+interface EngagementTrend {
+  label: string;
+  reach: number;
+  engagement: number;
+  posts: number;
+}
+
+interface BestPostingTime {
+  day: string;
+  hour: number;
+  engagement: number;
+}
+
+interface PostsPanelData {
+  totalPosts: number;
+  postsChange: number;
+  totalReach: number;
+  reachChange: number;
+  totalEngagement: number;
+  engagementChange: number;
+  avgEngagementRate: number;
+  engagementRateChange: number;
+  totalFollowers: number;
+  followersChange: number;
+  platforms: PlatformStats[];
+  topPosts: SocialPost[];
+  postTypes: PostTypeStats[];
+  engagementTrends: EngagementTrend[];
+  bestPostingTimes: BestPostingTime[];
+}
+
 export interface SimulatedAnalyticsData {
   healthScore: number;
   kpis: KPIData;
@@ -200,6 +266,7 @@ export interface SimulatedAnalyticsData {
   insights: Insight[];
   alerts: Alert[];
   blogData: BlogPanelData | null;
+  postsData: PostsPanelData | null;
 }
 
 interface SimulationContextType {
@@ -502,6 +569,213 @@ function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
     visitorsChange: randomInRange(-8, 20),
   };
 
+  // Posts Data (Social Media)
+  const platforms: PlatformStats[] = [
+    {
+      platform: "Instagram",
+      icon: "instagram",
+      followers: randomInRange(2500, 5000),
+      followersChange: randomInRange(-2, 8),
+      posts: randomInRange(15, 35),
+      reach: randomInRange(15000, 45000),
+      engagement: randomInRange(800, 2500),
+      engagementRate: randomWithVariation(4.5, 30) / 100 * 10,
+      color: "#E4405F",
+    },
+    {
+      platform: "Facebook",
+      icon: "facebook",
+      followers: randomInRange(1800, 4000),
+      followersChange: randomInRange(-3, 5),
+      posts: randomInRange(12, 28),
+      reach: randomInRange(8000, 25000),
+      engagement: randomInRange(400, 1200),
+      engagementRate: randomWithVariation(2.8, 30) / 100 * 10,
+      color: "#1877F2",
+    },
+    {
+      platform: "LinkedIn",
+      icon: "linkedin",
+      followers: randomInRange(800, 2000),
+      followersChange: randomInRange(0, 12),
+      posts: randomInRange(8, 20),
+      reach: randomInRange(5000, 15000),
+      engagement: randomInRange(200, 800),
+      engagementRate: randomWithVariation(3.2, 30) / 100 * 10,
+      color: "#0A66C2",
+    },
+    {
+      platform: "Twitter",
+      icon: "twitter",
+      followers: randomInRange(500, 1500),
+      followersChange: randomInRange(-5, 10),
+      posts: randomInRange(20, 50),
+      reach: randomInRange(3000, 12000),
+      engagement: randomInRange(150, 600),
+      engagementRate: randomWithVariation(2.1, 30) / 100 * 10,
+      color: "#1DA1F2",
+    },
+  ];
+
+  const postContents = [
+    "Nouvelle technique de relaxation : découvrez comment la respiration consciente peut transformer votre quotidien",
+    "5 signes que vous avez besoin de faire une pause dans votre vie professionnelle",
+    "L'importance du sommeil pour votre santé mentale - nos conseils",
+    "Témoignage : comment l'hypnose m'a aidé à surmonter mon anxiété",
+    "Méditation guidée : 10 minutes pour retrouver votre calme intérieur",
+    "Les bienfaits de la marche en pleine conscience",
+    "Comment gérer les relations toxiques au travail ?",
+    "Nouveau séminaire : Développez votre confiance en soi - inscriptions ouvertes",
+    "Question fréquente : combien de séances d'hypnose sont nécessaires ?",
+    "Astuce bien-être : créez votre routine matinale positive",
+    "La différence entre stress et anxiété expliquée simplement",
+    "Prendre soin de sa santé mentale en période de fêtes",
+  ];
+
+  const postTypes: ("image" | "video" | "carousel" | "story" | "reel" | "text")[] = ["image", "video", "carousel", "story", "reel", "text"];
+  const platformNames: ("instagram" | "facebook" | "linkedin" | "twitter")[] = ["instagram", "facebook", "linkedin", "twitter"];
+
+  const topPosts: SocialPost[] = [];
+  for (let i = 0; i < 12; i++) {
+    const reach = randomInRange(500, 8000);
+    const likes = randomInRange(20, Math.floor(reach * 0.15));
+    const comments = randomInRange(5, Math.floor(likes * 0.3));
+    const shares = randomInRange(2, Math.floor(likes * 0.2));
+    const saves = randomInRange(5, Math.floor(likes * 0.25));
+    const engagement = likes + comments + shares + saves;
+    const engagementRate = (engagement / reach) * 100;
+
+    topPosts.push({
+      id: `post-${i + 1}`,
+      platform: platformNames[i % platformNames.length] ?? "instagram",
+      type: postTypes[i % postTypes.length] ?? "image",
+      content: postContents[i] ?? "Post content",
+      publishedAt: new Date(now.getTime() - randomInRange(1, 30) * 24 * 60 * 60 * 1000).toISOString(),
+      reach,
+      impressions: Math.floor(reach * 1.3),
+      likes,
+      comments,
+      shares,
+      saves,
+      engagementRate,
+    });
+  }
+
+  // Sort by engagement rate
+  topPosts.sort((a, b) => b.engagementRate - a.engagementRate);
+
+  const postTypeStats: PostTypeStats[] = [
+    { type: "image", count: randomInRange(20, 40), avgEngagement: randomWithVariation(3.5, 30) / 100 * 10, percentage: 0 },
+    { type: "video", count: randomInRange(10, 25), avgEngagement: randomWithVariation(5.2, 30) / 100 * 10, percentage: 0 },
+    { type: "carousel", count: randomInRange(8, 18), avgEngagement: randomWithVariation(4.8, 30) / 100 * 10, percentage: 0 },
+    { type: "reel", count: randomInRange(5, 15), avgEngagement: randomWithVariation(6.5, 30) / 100 * 10, percentage: 0 },
+    { type: "story", count: randomInRange(15, 35), avgEngagement: randomWithVariation(2.8, 30) / 100 * 10, percentage: 0 },
+  ];
+
+  const totalPostTypeCount = postTypeStats.reduce((sum, pt) => sum + pt.count, 0);
+  postTypeStats.forEach(pt => {
+    pt.percentage = (pt.count / totalPostTypeCount) * 100;
+  });
+
+  // Engagement trends based on period
+  const engagementTrends: EngagementTrend[] = [];
+  let trendPoints = 7;
+
+  switch (period) {
+    case "realtime":
+      trendPoints = 12;
+      for (let i = 0; i < trendPoints; i++) {
+        const date = new Date(now.getTime() - (trendPoints - 1 - i) * 5 * 60 * 1000);
+        engagementTrends.push({
+          label: date.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+          reach: randomInRange(100, 500),
+          engagement: randomInRange(10, 80),
+          posts: randomInRange(0, 2),
+        });
+      }
+      break;
+    case "today":
+    case "yesterday":
+      trendPoints = 24;
+      for (let i = 0; i < trendPoints; i++) {
+        engagementTrends.push({
+          label: `${i.toString().padStart(2, "0")}:00`,
+          reach: randomInRange(200, 1500),
+          engagement: randomInRange(20, 200),
+          posts: randomInRange(0, 3),
+        });
+      }
+      break;
+    case "last7days":
+      trendPoints = 7;
+      for (let i = 0; i < trendPoints; i++) {
+        const date = new Date(now.getTime() - (trendPoints - 1 - i) * 24 * 60 * 60 * 1000);
+        engagementTrends.push({
+          label: date.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric" }),
+          reach: randomInRange(2000, 8000),
+          engagement: randomInRange(150, 800),
+          posts: randomInRange(2, 8),
+        });
+      }
+      break;
+    default:
+      trendPoints = 30;
+      for (let i = 0; i < trendPoints; i++) {
+        const date = new Date(now.getTime() - (trendPoints - 1 - i) * 24 * 60 * 60 * 1000);
+        engagementTrends.push({
+          label: date.toLocaleDateString("fr-FR", { day: "numeric", month: "short" }),
+          reach: randomInRange(1500, 6000),
+          engagement: randomInRange(100, 600),
+          posts: randomInRange(1, 5),
+        });
+      }
+  }
+
+  // Best posting times heatmap
+  const days = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+  const hours = [9, 12, 15, 18, 21];
+  const bestPostingTimes: BestPostingTime[] = [];
+
+  days.forEach(day => {
+    hours.forEach(hour => {
+      // Higher engagement during lunch (12h) and evening (18h-21h)
+      let baseEngagement = randomInRange(50, 150);
+      if (hour === 12 || hour === 18) baseEngagement *= 1.5;
+      if (hour === 21) baseEngagement *= 1.3;
+      // Lower engagement on weekends
+      if (day === "Sam" || day === "Dim") baseEngagement *= 0.7;
+
+      bestPostingTimes.push({
+        day,
+        hour,
+        engagement: Math.round(baseEngagement),
+      });
+    });
+  });
+
+  const totalPostsCount = platforms.reduce((sum, p) => sum + p.posts, 0);
+  const totalReach = platforms.reduce((sum, p) => sum + p.reach, 0);
+  const totalEngagement = platforms.reduce((sum, p) => sum + p.engagement, 0);
+  const totalFollowers = platforms.reduce((sum, p) => sum + p.followers, 0);
+
+  const postsData: PostsPanelData = {
+    totalPosts: totalPostsCount,
+    postsChange: randomInRange(-5, 20),
+    totalReach,
+    reachChange: randomInRange(-8, 25),
+    totalEngagement,
+    engagementChange: randomInRange(-10, 30),
+    avgEngagementRate: totalReach > 0 ? (totalEngagement / totalReach) * 100 : 0,
+    engagementRateChange: randomInRange(-1, 2) / 10,
+    totalFollowers,
+    followersChange: randomInRange(50, 200),
+    platforms,
+    topPosts,
+    postTypes: postTypeStats,
+    engagementTrends,
+    bestPostingTimes,
+  };
+
   // KPIs
   const kpis: KPIData = {
     visitors: totalVisitors,
@@ -562,6 +836,7 @@ function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
     insights,
     alerts,
     blogData,
+    postsData,
   };
 }
 

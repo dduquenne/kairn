@@ -164,6 +164,72 @@ interface BlogPanelData {
   visitorsChange?: number;
 }
 
+// Posts Panel Types (Social Media)
+interface SocialPost {
+  id: string;
+  platform: "instagram" | "facebook" | "linkedin" | "twitter" | "tiktok";
+  type: "image" | "video" | "carousel" | "story" | "reel" | "text";
+  content: string;
+  publishedAt: string;
+  reach: number;
+  impressions: number;
+  likes: number;
+  comments: number;
+  shares: number;
+  saves?: number;
+  engagementRate: number;
+}
+
+interface PlatformStats {
+  platform: string;
+  icon: "instagram" | "facebook" | "linkedin" | "twitter" | "tiktok";
+  followers: number;
+  followersChange: number;
+  posts: number;
+  reach: number;
+  engagement: number;
+  engagementRate: number;
+  color: string;
+}
+
+interface PostTypeStats {
+  type: string;
+  count: number;
+  avgEngagement: number;
+  percentage: number;
+}
+
+interface EngagementTrend {
+  label: string;
+  reach: number;
+  engagement: number;
+  posts: number;
+}
+
+interface BestPostingTime {
+  day: string;
+  hour: number;
+  engagement: number;
+}
+
+interface PostsPanelData {
+  totalPosts: number;
+  postsChange: number;
+  totalReach: number;
+  reachChange: number;
+  totalEngagement: number;
+  engagementChange: number;
+  avgEngagementRate: number;
+  engagementRateChange: number;
+  totalFollowers: number;
+  followersChange: number;
+  platforms: PlatformStats[];
+  topPosts: SocialPost[];
+  postTypes: PostTypeStats[];
+  engagementTrends: EngagementTrend[];
+  bestPostingTimes: BestPostingTime[];
+}
+
 interface AnalyticsData {
   // KPIs
   healthScore: number;
@@ -216,6 +282,9 @@ interface AnalyticsData {
 
   // Blog Panel
   blogData: BlogPanelData | null;
+
+  // Posts Panel (Social Media)
+  postsData: PostsPanelData | null;
 }
 
 interface UseAnalyticsOptions {
@@ -757,6 +826,7 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
         insights,
         alerts,
         blogData,
+        postsData: null, // Social media data requires external API integration
       };
 
       setData(analyticsData);
