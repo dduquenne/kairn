@@ -438,294 +438,296 @@ function ContactModal({ isOpen, onClose }: ContactModalProps) {
             aria-hidden="true"
           />
 
-          {/* Modal */}
-          <motion.div
-            ref={modalRef}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="contact-modal-title"
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: 'spring', bounce: 0.2, duration: 0.4 }}
-            className="border-ivory/10 bg-night fixed inset-x-4 bottom-4 top-4 z-50 mx-auto flex max-w-lg flex-col overflow-hidden rounded-2xl border shadow-2xl md:inset-auto md:left-1/2 md:top-1/2 md:max-h-[85vh] md:w-full md:-translate-x-1/2 md:-translate-y-1/2"
-          >
-            {/* Header */}
-            <div className="border-ivory/10 flex items-center justify-between border-b px-6 py-4">
-              <h2
-                id="contact-modal-title"
-                className="font-display text-ivory text-xl font-semibold"
-              >
-                Prendre rendez-vous ou poser une question
-              </h2>
-              <button
-                ref={firstFocusableRef}
-                onClick={onClose}
-                aria-label="Fermer le formulaire"
-                className="text-ivory/60 hover:bg-ivory/10 hover:text-ivory focus:ring-gold rounded-full p-2 transition-colors focus:outline-none focus:ring-2"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            {/* Form */}
-            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-4" noValidate>
-              <div className="space-y-4">
-                {/* Name fields */}
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label htmlFor="fab-firstName" className={labelClass}>
-                      Prénom <span className="text-feedback-error">*</span>
-                    </label>
-                    <input
-                      id="fab-firstName"
-                      type="text"
-                      value={values.firstName}
-                      onChange={handleFieldChange('firstName')}
-                      onBlur={handleBlur('firstName')}
-                      className={getInputClass('firstName')}
-                      autoComplete="given-name"
-                      aria-invalid={touched.firstName && !!errors.firstName}
-                      aria-describedby={errors.firstName ? 'fab-firstName-error' : undefined}
-                    />
-                    {touched.firstName && errors.firstName && (
-                      <p
-                        id="fab-firstName-error"
-                        className="text-feedback-error-foreground mt-1 text-sm"
-                        role="alert"
-                      >
-                        {errors.firstName}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <label htmlFor="fab-lastName" className={labelClass}>
-                      Nom <span className="text-feedback-error">*</span>
-                    </label>
-                    <input
-                      id="fab-lastName"
-                      type="text"
-                      value={values.lastName}
-                      onChange={handleFieldChange('lastName')}
-                      onBlur={handleBlur('lastName')}
-                      className={getInputClass('lastName')}
-                      autoComplete="family-name"
-                      aria-invalid={touched.lastName && !!errors.lastName}
-                      aria-describedby={errors.lastName ? 'fab-lastName-error' : undefined}
-                    />
-                    {touched.lastName && errors.lastName && (
-                      <p
-                        id="fab-lastName-error"
-                        className="text-feedback-error-foreground mt-1 text-sm"
-                        role="alert"
-                      >
-                        {errors.lastName}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Email */}
-                <div>
-                  <label htmlFor="fab-email" className={labelClass}>
-                    Email <span className="text-feedback-error">*</span>
-                  </label>
-                  <input
-                    id="fab-email"
-                    type="email"
-                    value={values.email}
-                    onChange={handleFieldChange('email')}
-                    onBlur={handleBlur('email')}
-                    className={getInputClass('email')}
-                    autoComplete="email"
-                    aria-invalid={touched.email && !!errors.email}
-                    aria-describedby={errors.email ? 'fab-email-error' : undefined}
-                  />
-                  {touched.email && errors.email && (
-                    <p
-                      id="fab-email-error"
-                      className="text-feedback-error-foreground mt-1 text-sm"
-                      role="alert"
-                    >
-                      {errors.email}
-                    </p>
-                  )}
-                </div>
-
-                {/* Phone */}
-                <div>
-                  <label htmlFor="fab-phone" className={labelClass}>
-                    Téléphone <span className="text-ivory/50">(optionnel)</span>
-                  </label>
-                  <input
-                    id="fab-phone"
-                    type="tel"
-                    value={values.phone}
-                    onChange={handleFieldChange('phone')}
-                    onBlur={handleBlur('phone')}
-                    className={getInputClass('phone')}
-                    autoComplete="tel"
-                    aria-invalid={touched.phone && !!errors.phone}
-                    aria-describedby={errors.phone ? 'fab-phone-error' : undefined}
-                  />
-                  {touched.phone && errors.phone && (
-                    <p
-                      id="fab-phone-error"
-                      className="text-feedback-error-foreground mt-1 text-sm"
-                      role="alert"
-                    >
-                      {errors.phone}
-                    </p>
-                  )}
-                </div>
-
-                {/* Request Type */}
-                <div>
-                  <label htmlFor="fab-requestType" className={labelClass}>
-                    Type de demande <span className="text-feedback-error">*</span>
-                  </label>
-                  <select
-                    id="fab-requestType"
-                    value={values.requestType}
-                    onChange={handleFieldChange('requestType')}
-                    onBlur={handleBlur('requestType')}
-                    className={getInputClass('requestType')}
-                    aria-invalid={touched.requestType && !!errors.requestType}
-                    aria-describedby={errors.requestType ? 'fab-requestType-error' : undefined}
-                  >
-                    {requestTypeOptions.map(option => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                  {touched.requestType && errors.requestType && (
-                    <p
-                      id="fab-requestType-error"
-                      className="text-feedback-error-foreground mt-1 text-sm"
-                      role="alert"
-                    >
-                      {errors.requestType}
-                    </p>
-                  )}
-                </div>
-
-                {/* Message */}
-                <div>
-                  <label htmlFor="fab-message" className={labelClass}>
-                    Message <span className="text-feedback-error">*</span>
-                  </label>
-                  <textarea
-                    id="fab-message"
-                    rows={4}
-                    value={values.message}
-                    onChange={handleFieldChange('message')}
-                    onBlur={handleBlur('message')}
-                    className={getInputClass('message')}
-                    aria-invalid={touched.message && !!errors.message}
-                    aria-describedby={errors.message ? 'fab-message-error' : undefined}
-                  />
-                  {touched.message && errors.message && (
-                    <p
-                      id="fab-message-error"
-                      className="text-feedback-error-foreground mt-1 text-sm"
-                      role="alert"
-                    >
-                      {errors.message}
-                    </p>
-                  )}
-                </div>
-
-                {/* Consent */}
-                <div className="flex items-start gap-3">
-                  <input
-                    id="fab-consent"
-                    type="checkbox"
-                    checked={values.consent}
-                    onChange={handleFieldChange('consent')}
-                    onBlur={handleBlur('consent')}
-                    className="border-ivory/40 bg-night/60 text-gold focus:ring-gold mt-1 h-5 w-5 rounded border"
-                    aria-invalid={touched.consent && !!errors.consent}
-                    aria-describedby={errors.consent ? 'fab-consent-error' : undefined}
-                  />
-                  <div className="flex-1">
-                    <label htmlFor="fab-consent" className="text-ivory/80 text-sm">
-                      J&apos;accepte la{' '}
-                      <Link
-                        href="/politique-de-confidentialite"
-                        target="_blank"
-                        rel="noreferrer noopener"
-                        className="text-gold hover:text-gold-light underline underline-offset-4"
-                      >
-                        politique de confidentialité
-                      </Link>{' '}
-                      <span className="text-feedback-error">*</span>
-                    </label>
-                    {touched.consent && errors.consent && (
-                      <p
-                        id="fab-consent-error"
-                        className="text-feedback-error-foreground mt-1 text-sm"
-                        role="alert"
-                      >
-                        {errors.consent}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Honeypot */}
-                <div className="sr-only" aria-hidden="true">
-                  <label htmlFor="fab-company">Société</label>
-                  <input
-                    id="fab-company"
-                    type="text"
-                    value={values.honeypot}
-                    onChange={handleFieldChange('honeypot')}
-                    tabIndex={-1}
-                    autoComplete="off"
-                  />
-                </div>
-
-                {/* CSRF Error */}
-                {csrfError && (
-                  <div
-                    className="border-feedback-error/40 bg-feedback-error/10 text-feedback-error-foreground rounded-xl border p-3 text-sm"
-                    role="alert"
-                  >
-                    Erreur de sécurité : {csrfError}. Veuillez rafraîchir la page.
-                  </div>
-                )}
-
-                {/* Submission Error */}
-                {status === 'error' && errorMessage && (
-                  <div
-                    className="border-feedback-error/40 bg-feedback-error/10 text-feedback-error-foreground rounded-xl border p-3 text-sm"
-                    role="alert"
-                  >
-                    {errorMessage}
-                  </div>
-                )}
+          {/* Modal Container - handles centering */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              ref={modalRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="contact-modal-title"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: 'spring', bounce: 0.2, duration: 0.4 }}
+              className="border-ivory/10 bg-night flex max-h-[calc(100vh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-2xl border shadow-2xl"
+            >
+              {/* Header */}
+              <div className="border-ivory/10 flex items-center justify-between border-b px-6 py-4">
+                <h2
+                  id="contact-modal-title"
+                  className="font-display text-ivory text-xl font-semibold"
+                >
+                  Prendre rendez-vous ou poser une question
+                </h2>
+                <button
+                  ref={firstFocusableRef}
+                  onClick={onClose}
+                  aria-label="Fermer le formulaire"
+                  className="text-ivory/60 hover:bg-ivory/10 hover:text-ivory focus:ring-gold rounded-full p-2 transition-colors focus:outline-none focus:ring-2"
+                >
+                  <X className="h-5 w-5" />
+                </button>
               </div>
-            </form>
 
-            {/* Footer */}
-            <div className="border-ivory/10 border-t px-6 py-4">
-              <button
-                type="submit"
-                onClick={e => {
-                  e.preventDefault();
-                  const form = modalRef.current?.querySelector('form');
-                  if (form) {
-                    form.requestSubmit();
-                  }
-                }}
-                disabled={status === 'pending' || csrfLoading || !csrfToken || !!csrfError}
-                className="from-gold via-gold/95 to-gold text-night shadow-gold/25 hover:from-gold/90 hover:via-gold hover:to-gold/90 hover:shadow-gold/35 focus:ring-gold focus:ring-offset-night w-full rounded-xl bg-gradient-to-r px-6 py-3 font-semibold shadow-md transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {status === 'pending' ? 'Envoi en cours…' : 'Envoyer'}
-              </button>
-            </div>
-          </motion.div>
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-4" noValidate>
+                <div className="space-y-4">
+                  {/* Name fields */}
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="fab-firstName" className={labelClass}>
+                        Prénom <span className="text-feedback-error">*</span>
+                      </label>
+                      <input
+                        id="fab-firstName"
+                        type="text"
+                        value={values.firstName}
+                        onChange={handleFieldChange('firstName')}
+                        onBlur={handleBlur('firstName')}
+                        className={getInputClass('firstName')}
+                        autoComplete="given-name"
+                        aria-invalid={touched.firstName && !!errors.firstName}
+                        aria-describedby={errors.firstName ? 'fab-firstName-error' : undefined}
+                      />
+                      {touched.firstName && errors.firstName && (
+                        <p
+                          id="fab-firstName-error"
+                          className="text-feedback-error-foreground mt-1 text-sm"
+                          role="alert"
+                        >
+                          {errors.firstName}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label htmlFor="fab-lastName" className={labelClass}>
+                        Nom <span className="text-feedback-error">*</span>
+                      </label>
+                      <input
+                        id="fab-lastName"
+                        type="text"
+                        value={values.lastName}
+                        onChange={handleFieldChange('lastName')}
+                        onBlur={handleBlur('lastName')}
+                        className={getInputClass('lastName')}
+                        autoComplete="family-name"
+                        aria-invalid={touched.lastName && !!errors.lastName}
+                        aria-describedby={errors.lastName ? 'fab-lastName-error' : undefined}
+                      />
+                      {touched.lastName && errors.lastName && (
+                        <p
+                          id="fab-lastName-error"
+                          className="text-feedback-error-foreground mt-1 text-sm"
+                          role="alert"
+                        >
+                          {errors.lastName}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Email */}
+                  <div>
+                    <label htmlFor="fab-email" className={labelClass}>
+                      Email <span className="text-feedback-error">*</span>
+                    </label>
+                    <input
+                      id="fab-email"
+                      type="email"
+                      value={values.email}
+                      onChange={handleFieldChange('email')}
+                      onBlur={handleBlur('email')}
+                      className={getInputClass('email')}
+                      autoComplete="email"
+                      aria-invalid={touched.email && !!errors.email}
+                      aria-describedby={errors.email ? 'fab-email-error' : undefined}
+                    />
+                    {touched.email && errors.email && (
+                      <p
+                        id="fab-email-error"
+                        className="text-feedback-error-foreground mt-1 text-sm"
+                        role="alert"
+                      >
+                        {errors.email}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Phone */}
+                  <div>
+                    <label htmlFor="fab-phone" className={labelClass}>
+                      Téléphone <span className="text-ivory/50">(optionnel)</span>
+                    </label>
+                    <input
+                      id="fab-phone"
+                      type="tel"
+                      value={values.phone}
+                      onChange={handleFieldChange('phone')}
+                      onBlur={handleBlur('phone')}
+                      className={getInputClass('phone')}
+                      autoComplete="tel"
+                      aria-invalid={touched.phone && !!errors.phone}
+                      aria-describedby={errors.phone ? 'fab-phone-error' : undefined}
+                    />
+                    {touched.phone && errors.phone && (
+                      <p
+                        id="fab-phone-error"
+                        className="text-feedback-error-foreground mt-1 text-sm"
+                        role="alert"
+                      >
+                        {errors.phone}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Request Type */}
+                  <div>
+                    <label htmlFor="fab-requestType" className={labelClass}>
+                      Type de demande <span className="text-feedback-error">*</span>
+                    </label>
+                    <select
+                      id="fab-requestType"
+                      value={values.requestType}
+                      onChange={handleFieldChange('requestType')}
+                      onBlur={handleBlur('requestType')}
+                      className={getInputClass('requestType')}
+                      aria-invalid={touched.requestType && !!errors.requestType}
+                      aria-describedby={errors.requestType ? 'fab-requestType-error' : undefined}
+                    >
+                      {requestTypeOptions.map(option => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    {touched.requestType && errors.requestType && (
+                      <p
+                        id="fab-requestType-error"
+                        className="text-feedback-error-foreground mt-1 text-sm"
+                        role="alert"
+                      >
+                        {errors.requestType}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Message */}
+                  <div>
+                    <label htmlFor="fab-message" className={labelClass}>
+                      Message <span className="text-feedback-error">*</span>
+                    </label>
+                    <textarea
+                      id="fab-message"
+                      rows={4}
+                      value={values.message}
+                      onChange={handleFieldChange('message')}
+                      onBlur={handleBlur('message')}
+                      className={getInputClass('message')}
+                      aria-invalid={touched.message && !!errors.message}
+                      aria-describedby={errors.message ? 'fab-message-error' : undefined}
+                    />
+                    {touched.message && errors.message && (
+                      <p
+                        id="fab-message-error"
+                        className="text-feedback-error-foreground mt-1 text-sm"
+                        role="alert"
+                      >
+                        {errors.message}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Consent */}
+                  <div className="flex items-start gap-3">
+                    <input
+                      id="fab-consent"
+                      type="checkbox"
+                      checked={values.consent}
+                      onChange={handleFieldChange('consent')}
+                      onBlur={handleBlur('consent')}
+                      className="border-ivory/40 bg-night/60 text-gold focus:ring-gold mt-1 h-5 w-5 rounded border"
+                      aria-invalid={touched.consent && !!errors.consent}
+                      aria-describedby={errors.consent ? 'fab-consent-error' : undefined}
+                    />
+                    <div className="flex-1">
+                      <label htmlFor="fab-consent" className="text-ivory/80 text-sm">
+                        J&apos;accepte la{' '}
+                        <Link
+                          href="/politique-de-confidentialite"
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          className="text-gold hover:text-gold-light underline underline-offset-4"
+                        >
+                          politique de confidentialité
+                        </Link>{' '}
+                        <span className="text-feedback-error">*</span>
+                      </label>
+                      {touched.consent && errors.consent && (
+                        <p
+                          id="fab-consent-error"
+                          className="text-feedback-error-foreground mt-1 text-sm"
+                          role="alert"
+                        >
+                          {errors.consent}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Honeypot */}
+                  <div className="sr-only" aria-hidden="true">
+                    <label htmlFor="fab-company">Société</label>
+                    <input
+                      id="fab-company"
+                      type="text"
+                      value={values.honeypot}
+                      onChange={handleFieldChange('honeypot')}
+                      tabIndex={-1}
+                      autoComplete="off"
+                    />
+                  </div>
+
+                  {/* CSRF Error */}
+                  {csrfError && (
+                    <div
+                      className="border-feedback-error/40 bg-feedback-error/10 text-feedback-error-foreground rounded-xl border p-3 text-sm"
+                      role="alert"
+                    >
+                      Erreur de sécurité : {csrfError}. Veuillez rafraîchir la page.
+                    </div>
+                  )}
+
+                  {/* Submission Error */}
+                  {status === 'error' && errorMessage && (
+                    <div
+                      className="border-feedback-error/40 bg-feedback-error/10 text-feedback-error-foreground rounded-xl border p-3 text-sm"
+                      role="alert"
+                    >
+                      {errorMessage}
+                    </div>
+                  )}
+                </div>
+              </form>
+
+              {/* Footer */}
+              <div className="border-ivory/10 border-t px-6 py-4">
+                <button
+                  type="submit"
+                  onClick={e => {
+                    e.preventDefault();
+                    const form = modalRef.current?.querySelector('form');
+                    if (form) {
+                      form.requestSubmit();
+                    }
+                  }}
+                  disabled={status === 'pending' || csrfLoading || !csrfToken || !!csrfError}
+                  className="from-gold via-gold/95 to-gold text-night shadow-gold/25 hover:from-gold/90 hover:via-gold hover:to-gold/90 hover:shadow-gold/35 focus:ring-gold focus:ring-offset-night w-full rounded-xl bg-gradient-to-r px-6 py-3 font-semibold shadow-md transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {status === 'pending' ? 'Envoi en cours…' : 'Envoyer'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>
