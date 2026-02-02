@@ -448,7 +448,7 @@ function ContactModal({ isOpen, onClose }: ContactModalProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', bounce: 0.2, duration: 0.4 }}
-            className="border-ivory/10 bg-night fixed inset-4 z-50 mx-auto my-auto flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl border shadow-2xl md:inset-auto md:left-1/2 md:top-1/2 md:max-h-[85vh] md:-translate-x-1/2 md:-translate-y-1/2"
+            className="border-ivory/10 bg-night fixed inset-x-4 bottom-4 top-4 z-50 mx-auto flex max-w-lg flex-col overflow-hidden rounded-2xl border shadow-2xl md:inset-auto md:left-1/2 md:top-1/2 md:max-h-[85vh] md:-translate-x-1/2 md:-translate-y-1/2"
           >
             {/* Header */}
             <div className="border-ivory/10 flex items-center justify-between border-b px-6 py-4">
