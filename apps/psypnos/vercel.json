@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "pnpm install",
+  "buildCommand": "cd ../.. && pnpm turbo run build --filter=@kairn/psypnos",
+  "outputDirectory": ".next",
+  "regions": ["cdg1"],
+  "functions": {
+    "app/api/**/*.ts": {
+      "maxDuration": 60
+    }
+  }
+}
