@@ -142,10 +142,15 @@ export function TestimonialsSection() {
     fetchTestimonials();
   }, []);
 
-  // Split testimonials into two rows for the dual marquee effect
-  const midpoint = Math.ceil(testimonials.length / 2);
-  const topRow = testimonials.slice(0, midpoint);
-  const bottomRow = testimonials.slice(midpoint);
+  // For 10 or fewer testimonials, show all on both rows (second row reversed)
+  // For more than 10, split into two separate halves
+  const shouldShowAllOnBothRows = testimonials.length <= 10;
+  const topRow = shouldShowAllOnBothRows
+    ? testimonials
+    : testimonials.slice(0, Math.ceil(testimonials.length / 2));
+  const bottomRow = shouldShowAllOnBothRows
+    ? [...testimonials].reverse()
+    : testimonials.slice(Math.ceil(testimonials.length / 2));
 
   // Show skeleton while loading or before mount
   if (!hasMounted || loading) {
