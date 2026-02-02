@@ -27,12 +27,12 @@ export async function POST(request: Request, { params }: { params: { id: string 
   try {
     const result = await resetAdminPasswordById(params.id);
 
-    // SÉCURITÉ : Ne jamais retourner le mot de passe temporaire dans la réponse
-    // Il devrait être envoyé par email uniquement
+    // Return the temporary password so admin can share it securely
     return NextResponse.json({
       success: true,
       user: result.user,
-      message: "Un mot de passe temporaire a été généré et devrait être envoyé à l'utilisateur par email",
+      temporaryPassword: result.temporaryPassword,
+      message: "Un mot de passe temporaire a été généré",
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Impossible de réinitialiser le mot de passe";
