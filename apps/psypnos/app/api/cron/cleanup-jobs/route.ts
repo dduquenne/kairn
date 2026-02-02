@@ -10,34 +10,24 @@
  * - Supprime les jobs COMPLETED/FAILED de plus de 7 jours
  * - Nettoie les logs de génération sociale anciens
  *
- * Fréquence recommandée: toutes les 6 heures
- * Cron expression: 0 [star]/6 [star] [star] [star]
+ * Fréquence recommandée: tous les jours à 4h (0 4 * * *)
  *
- * Security: Requires CRON_SECRET in Authorization header
+ * Security: QStash signature or CRON_SECRET
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
+import { verifyCronAuth } from "@kairn/core/scheduler";
 
 // Configuration
 const ORPHAN_TIMEOUT_MINUTES = 30;
 const RETENTION_DAYS = 7;
 const SOCIAL_LOG_RETENTION_DAYS = 30;
 
-// Verify cron secret
-function verifyCronAuth(request: NextRequest): boolean {
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (!cronSecret) {
-    return process.env.NODE_ENV === "development";
-  }
-
-  const authHeader = request.headers.get("authorization");
-  return authHeader === `Bearer ${cronSecret}`;
-}
-
 export async function GET(request: NextRequest) {
-  if (!verifyCronAuth(request)) {
+  // Verify authentication (QStash signature or CRON_SECRET)
+  const authResult = await verifyCronAuth(request);
+  if (!authResult.valid) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

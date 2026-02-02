@@ -5,31 +5,22 @@
  * Phase 4: Scalability & Performance
  *
  * Endpoint to trigger daily aggregations.
- * Can be called by Vercel Cron, GitHub Actions, or external schedulers.
+ * Can be called by QStash, GitHub Actions, or external schedulers.
  *
- * Security: Requires CRON_SECRET in Authorization header
+ * Fréquence recommandée: toutes les heures à :30 (30 * * * *)
+ *
+ * Security: QStash signature or CRON_SECRET
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { runDailyAggregations, backfillAggregations } from "@/lib/analytics/aggregation";
 import { runAnomalyDetection } from "@/app/api/analytics/store-index";
-
-// Verify cron secret
-function verifyCronAuth(request: NextRequest): boolean {
-  const cronSecret = process.env.CRON_SECRET;
-
-  // If no secret configured, allow in development
-  if (!cronSecret) {
-    return process.env.NODE_ENV === "development";
-  }
-
-  const authHeader = request.headers.get("authorization");
-  return authHeader === `Bearer ${cronSecret}`;
-}
+import { verifyCronAuth } from "@kairn/core/scheduler";
 
 export async function POST(request: NextRequest) {
-  // Verify authorization
-  if (!verifyCronAuth(request)) {
+  // Verify authentication (QStash signature or CRON_SECRET)
+  const authResult = await verifyCronAuth(request);
+  if (!authResult.valid) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -99,7 +90,9 @@ export async function POST(request: NextRequest) {
 
 // Also support GET for simple triggers (with query params)
 export async function GET(request: NextRequest) {
-  if (!verifyCronAuth(request)) {
+  // Verify authentication (QStash signature or CRON_SECRET)
+  const authResult = await verifyCronAuth(request);
+  if (!authResult.valid) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
