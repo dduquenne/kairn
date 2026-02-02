@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, X } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 
 import { trackConversionEvent } from '../hooks/useAnalytics';
@@ -134,6 +135,13 @@ export function FloatingContactButton() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isPulsing, setIsPulsing] = useState(false);
   const { isVisible } = useScrollDirection();
+  const pathname = usePathname();
+
+  // Hide on admin pages
+  const isAdminPage = pathname?.startsWith('/admin');
+  if (isAdminPage) {
+    return null;
+  }
 
   // Pulse animation every 10 seconds
   useEffect(() => {
@@ -168,11 +176,6 @@ export function FloatingContactButton() {
             className="fixed bottom-6 right-6 z-40 md:bottom-8 md:right-8"
           >
             <div className="relative">
-              {/* Badge */}
-              <div className="bg-night/90 text-gold absolute -top-2 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-medium shadow-lg backdrop-blur-sm md:-top-3 md:px-3 md:py-1 md:text-xs">
-                Réponse sous 48h
-              </div>
-
               {/* Button */}
               <button
                 onClick={handleOpen}
