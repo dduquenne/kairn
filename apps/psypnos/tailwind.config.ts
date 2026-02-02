@@ -65,11 +65,6 @@ const config: Config = {
           },
         },
       },
-      // Typographie PSYPNOS
-      fontFamily: {
-        display: ["'Playfair Display'", 'serif'],
-        sans: ["'Inter'", 'system-ui', 'sans-serif'],
-      },
       boxShadow: {
         aurora: '0 25px 50px -12px rgba(14, 31, 47, 0.7)',
       },

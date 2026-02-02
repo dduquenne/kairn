@@ -4,6 +4,10 @@
 
 :root {
   color-scheme: dark;
+  /* Default fonts - will be overridden by CustomizationProvider */
+  --font-display: var(--font-display-default, 'Playfair Display'), serif;
+  --font-body: var(--font-sans, 'Inter'), sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 }
 
 html,

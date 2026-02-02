@@ -21,7 +21,7 @@ const inter = Inter({
 const playfairDisplay = Playfair_Display({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-display',
+  variable: '--font-display-default',
 });
 
 // Metadata
