@@ -12,22 +12,17 @@ import {
   getScheduledReports,
   updateScheduledReport,
 } from "../../analytics/store-index";
+import { verifyCronAuth } from "@kairn/core/scheduler";
 
 export const dynamic = "force-dynamic";
 
-const CRON_SECRET = process.env.CRON_SECRET || "default-cron-secret";
-
-// GET - Generate and send weekly reports
+// GET - Generate and send weekly reports (called by QStash)
 export async function GET(request: NextRequest) {
   try {
-    // Verify cron secret
-    const authHeader = request.headers.get("authorization");
-    const cronSecret = request.nextUrl.searchParams.get("secret");
-
-    if (authHeader !== `Bearer ${CRON_SECRET}` && cronSecret !== CRON_SECRET) {
-      if (process.env.NODE_ENV === "production") {
-        return NextResponse.json({ error: "Non autorise" }, { status: 401 });
-      }
+    // Verify authentication (QStash signature or CRON_SECRET)
+    const authResult = await verifyCronAuth(request);
+    if (!authResult.valid) {
+      return NextResponse.json({ error: "Non autorise" }, { status: 401 });
     }
 
     // Get scheduled reports that need to run

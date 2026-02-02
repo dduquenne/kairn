@@ -15,9 +15,9 @@
  * - Met à jour nextScheduled après envoi
  * - Gestion robuste des erreurs par rapport
  *
- * Fréquence recommandée: toutes les 30 minutes
+ * Fréquence recommandée: toutes les heures à :45 (45 * * * *)
  *
- * Security: Requires CRON_SECRET in Authorization header
+ * Security: QStash signature or CRON_SECRET
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -30,18 +30,7 @@ import {
   getSectionHeatmap,
   getAnomalies,
 } from "../../analytics/store-index";
-
-// Verify cron secret
-function verifyCronAuth(request: NextRequest): boolean {
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (!cronSecret) {
-    return process.env.NODE_ENV === "development";
-  }
-
-  const authHeader = request.headers.get("authorization");
-  return authHeader === `Bearer ${cronSecret}`;
-}
+import { verifyCronAuth } from "@kairn/core/scheduler";
 
 interface ReportResult {
   reportId: string;
@@ -53,7 +42,9 @@ interface ReportResult {
 }
 
 export async function GET(request: NextRequest) {
-  if (!verifyCronAuth(request)) {
+  // Verify authentication (QStash signature or CRON_SECRET)
+  const authResult = await verifyCronAuth(request);
+  if (!authResult.valid) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

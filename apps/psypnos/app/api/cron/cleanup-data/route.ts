@@ -16,13 +16,14 @@
  *
  * Note: Les données agrégées (DailySummary, etc.) sont conservées plus longtemps.
  *
- * Fréquence recommandée: tous les dimanches à 3h (0 3 * * 0)
+ * Fréquence recommandée: tous les jours à 3h (0 3 * * *)
  *
- * Security: Requires CRON_SECRET in Authorization header
+ * Security: QStash signature or CRON_SECRET
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
+import { verifyCronAuth } from "@kairn/core/scheduler";
 
 // Configuration de rétention (en jours)
 const RETENTION_CONFIG = {
@@ -38,18 +39,6 @@ const RETENTION_CONFIG = {
   conversionEvents: 90,
 };
 
-// Verify cron secret
-function verifyCronAuth(request: NextRequest): boolean {
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (!cronSecret) {
-    return process.env.NODE_ENV === "development";
-  }
-
-  const authHeader = request.headers.get("authorization");
-  return authHeader === `Bearer ${cronSecret}`;
-}
-
 interface CleanupResult {
   table: string;
   deleted: number;
@@ -57,7 +46,9 @@ interface CleanupResult {
 }
 
 export async function GET(request: NextRequest) {
-  if (!verifyCronAuth(request)) {
+  // Verify authentication (QStash signature or CRON_SECRET)
+  const authResult = await verifyCronAuth(request);
+  if (!authResult.valid) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -181,7 +172,9 @@ export async function GET(request: NextRequest) {
  * POST - Nettoyage avec paramètres personnalisés
  */
 export async function POST(request: NextRequest) {
-  if (!verifyCronAuth(request)) {
+  // Verify authentication (QStash signature or CRON_SECRET)
+  const authResult = await verifyCronAuth(request);
+  if (!authResult.valid) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

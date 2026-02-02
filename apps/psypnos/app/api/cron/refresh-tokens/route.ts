@@ -11,9 +11,9 @@
  * - Rafraîchit automatiquement avec retry
  * - Envoie des alertes si reconnexion nécessaire
  *
- * Fréquence recommandée: tous les jours à 4h (0 4 * * *)
+ * Fréquence recommandée: toutes les heures (0 * * * *)
  *
- * Security: Requires CRON_SECRET in Authorization header
+ * Security: QStash signature or CRON_SECRET
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -22,18 +22,7 @@ import {
   getAccountsNeedingRefresh,
 } from "@/lib/social/oauth/refresh";
 import { prisma } from "@/lib/db/prisma";
-
-// Verify cron secret
-function verifyCronAuth(request: NextRequest): boolean {
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (!cronSecret) {
-    return process.env.NODE_ENV === "development";
-  }
-
-  const authHeader = request.headers.get("authorization");
-  return authHeader === `Bearer ${cronSecret}`;
-}
+import { verifyCronAuth } from "@kairn/core/scheduler";
 
 /**
  * Envoie une notification pour les comptes nécessitant une reconnexion
@@ -94,7 +83,9 @@ async function notifyAccountsNeedingReconnection(
 }
 
 export async function GET(request: NextRequest) {
-  if (!verifyCronAuth(request)) {
+  // Verify authentication (QStash signature or CRON_SECRET)
+  const authResult = await verifyCronAuth(request);
+  if (!authResult.valid) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

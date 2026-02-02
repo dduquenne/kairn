@@ -3,10 +3,10 @@
 /**
  * Cron job pour la publication automatique des posts sur les réseaux sociaux
  *
- * Ce job est exécuté toutes les 5 minutes par Vercel Cron
+ * Ce job est exécuté toutes les 5 minutes par QStash (Upstash)
  * Il publie les posts programmés dont l'heure est arrivée
  *
- * Sécurité : Vérifie CRON_SECRET dans le header Authorization ou le query param
+ * Sécurité : Vérifie la signature QStash ou CRON_SECRET (dev local)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -20,37 +20,11 @@ import {
   markAccountAsUsed,
 } from '@/lib/social/store';
 import { getSocialClient, DEFAULT_RETRY_CONFIG } from '@/lib/social/clients';
+import { verifyCronAuth } from '@kairn/core/scheduler';
 import type { SocialPost } from '@/lib/social/types';
 
-const CRON_SECRET = process.env.CRON_SECRET || 'default-cron-secret';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'contact@psypnos.fr';
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-
-// ===========================================
-// Vérification de sécurité
-// ===========================================
-
-function verifyCronSecret(request: NextRequest): boolean {
-  // Vérifier le header Authorization
-  const authHeader = request.headers.get('authorization');
-  if (authHeader === `Bearer ${CRON_SECRET}`) {
-    return true;
-  }
-
-  // Vérifier le query param
-  const cronSecret = request.nextUrl.searchParams.get('secret');
-  if (cronSecret === CRON_SECRET) {
-    return true;
-  }
-
-  // En développement, autoriser sans secret
-  if (process.env.NODE_ENV !== 'production') {
-    console.warn('[Cron Social Publish] Running without authentication in development');
-    return true;
-  }
-
-  return false;
-}
 
 // ===========================================
 // Publication avec retry
@@ -235,9 +209,10 @@ ${error}
 // ===========================================
 
 export async function GET(request: NextRequest) {
-  // Vérifier l'authentification
-  if (!verifyCronSecret(request)) {
-    console.warn('[Cron Social Publish] Unauthorized access attempt');
+  // Vérifier l'authentification (QStash signature ou CRON_SECRET)
+  const authResult = await verifyCronAuth(request);
+  if (!authResult.valid) {
+    console.warn('[Cron Social Publish] Unauthorized access attempt:', authResult.error);
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   }
 

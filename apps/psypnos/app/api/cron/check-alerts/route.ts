@@ -10,27 +10,20 @@ import {
   type Alert,
   type AlertHistory,
 } from "../../analytics/store-index";
+import { verifyCronAuth } from "@kairn/core/scheduler";
 
 export const dynamic = "force-dynamic";
 
-// Secret for cron authentication (should be set in environment)
-const CRON_SECRET = process.env.CRON_SECRET || "default-cron-secret";
-
-// GET - Check all enabled alerts (called by cron)
+// GET - Check all enabled alerts (called by QStash)
 export async function GET(request: NextRequest) {
   try {
-    // Verify cron secret
-    const authHeader = request.headers.get("authorization");
-    const cronSecret = request.nextUrl.searchParams.get("secret");
-
-    if (authHeader !== `Bearer ${CRON_SECRET}` && cronSecret !== CRON_SECRET) {
-      // Allow without auth for local development
-      if (process.env.NODE_ENV === "production") {
-        return NextResponse.json(
-          { error: "Non autorise" },
-          { status: 401 }
-        );
-      }
+    // Verify authentication (QStash signature or CRON_SECRET)
+    const authResult = await verifyCronAuth(request);
+    if (!authResult.valid) {
+      return NextResponse.json(
+        { error: "Non autorise" },
+        { status: 401 }
+      );
     }
 
     const alerts = await getAlerts(true); // Get only enabled alerts
