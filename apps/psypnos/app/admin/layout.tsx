@@ -12,12 +12,11 @@ import { verifyAdminToken } from "../api/auth/middleware";
 const psypnosAdminNavigation: NavigationItem[] = [
   { href: "/admin/analytics", label: "Analytiques", icon: "📊" },
   { href: "/admin/customization", label: "Personnalisation", icon: "🎨" },
-  { href: "/admin/settings", label: "Configuration", icon: "⚙️" },
+  { href: "/admin/configuration", label: "Configuration", icon: "⚙️" },
   { href: "/admin/blog", label: "Blog", icon: "📝" },
   { href: "/admin/social", label: "Réseaux sociaux", icon: "📱" },
   { href: "/admin/seminars", label: "Séminaires", icon: "🎓" },
   { href: "/admin/testimonials", label: "Témoignages", icon: "⭐" },
-  { href: "/admin/users", label: "Utilisateurs", icon: "👥" },
   { href: "/admin/deployment", label: "Déploiement", icon: "🚀" },
 ];
 
