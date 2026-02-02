@@ -6,7 +6,7 @@ export {
   disconnectPrisma,
   withDatabase,
   type PrismaClientConfig,
-  type PrismaClientLike
+  type PrismaClientLike,
 } from './db/prisma';
 
 // Authentication
@@ -19,7 +19,7 @@ export {
   setSecretsManager,
   type JWTPayload,
   type JWTConfig,
-  type SecretsManagerInterface
+  type SecretsManagerInterface,
 } from './auth/jwt';
 
 // Secrets Management (JWT Key Rotation)
@@ -29,7 +29,7 @@ export {
   createInMemorySecretsManager,
   type SecretKeyRecord,
   type SecretsStorage,
-  type SecretsManagerConfig
+  type SecretsManagerConfig,
 } from './auth/secrets-manager';
 
 // Logger
@@ -41,7 +41,7 @@ export {
   type LogLevel,
   type LogContext,
   type LogEntry,
-  type LoggerConfig
+  type LoggerConfig,
 } from './logger';
 
 // Utils
@@ -53,7 +53,7 @@ export {
   getSessionCookieOptions,
   parseCookies,
   serializeCookie,
-  type CookieOptions
+  type CookieOptions,
 } from './utils/cookies';
 
 // Errors
@@ -71,7 +71,7 @@ export {
   isAppError,
   isOperationalError,
   normalizeError,
-  handleApiError
+  handleApiError,
 } from './errors';
 
 // Environment
@@ -87,7 +87,7 @@ export {
   type ServerEnv,
   type ClientEnv,
   type Env,
-  type EnvValidationResult
+  type EnvValidationResult,
 } from './env';
 
 // Rate Limiting
@@ -100,7 +100,7 @@ export {
   type RateLimitConfig,
   type RateLimitRequest,
   type RateLimitInfo,
-  type RateLimitStore
+  type RateLimitStore,
 } from './middleware/rate-limit';
 
 // Cache
@@ -117,7 +117,7 @@ export {
   type CacheGetOptions,
   type CacheStats,
   type CacheStore,
-  type CacheConfig
+  type CacheConfig,
 } from './cache';
 
 // API Cache
@@ -130,7 +130,7 @@ export {
   type ApiCacheRequest,
   type ApiCacheResponse,
   type CacheControlOptions,
-  type CacheResult
+  type CacheResult,
 } from './middleware/api-cache';
 
 // Site Configuration
@@ -169,5 +169,41 @@ export {
   type LegalConfig,
   type SiteTemplate,
   type ConfigSource,
-  type ConfigLoaderOptions
+  type ConfigLoaderOptions,
 } from './config';
+
+// Scheduler (QStash)
+export {
+  // Client
+  createQStashClient,
+  getQStashClient,
+  resetQStashClient,
+  schedulePost,
+  scheduleRecurring,
+  publishDelayed,
+  cancelMessage,
+  deleteSchedule,
+  listSchedules,
+  getSchedule,
+  pauseSchedule,
+  resumeSchedule,
+  // Verification
+  verifyQStashSignature,
+  verifyCronAuth,
+  isValidCronRequest,
+  verifyCronSecretSync,
+  resetReceiver,
+  // Helpers
+  DEFAULT_CRON_SCHEDULES,
+  getCronEndpointUrl,
+  createScheduleConfigs,
+  // Types
+  type ScheduleConfig,
+  type PublishConfig,
+  type ScheduleResult,
+  type PublishResult,
+  type QStashClientConfig,
+  type VerifyQStashConfig,
+  type VerifyResult,
+  type CronJobName,
+} from './scheduler';
