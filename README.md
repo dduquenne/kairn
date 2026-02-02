@@ -118,11 +118,13 @@ pnpm test
 ## Créer un nouveau site
 
 1. **Initialiser le site**
+
    ```bash
    kairn init mon-site
    ```
 
 2. **Configurer les variables d'environnement**
+
    ```bash
    cd apps/mon-site
    cp .env.local.example .env.local
@@ -130,6 +132,7 @@ pnpm test
    ```
 
 3. **Personnaliser la configuration**
+
    ```bash
    # Éditer apps/mon-site/config/site.config.ts
    ```
@@ -157,10 +160,36 @@ pnpm test
 - **Storage** : Supabase
 - **AI** : Claude (Anthropic) / OpenAI
 
+## Cache distant Turborepo
+
+Le monorepo utilise le cache distant Turborepo (Vercel Remote Cache) pour accélérer les builds CI de 30-50%.
+
+### Configuration requise
+
+1. **Obtenir un token Vercel** :
+
+   ```bash
+   npx turbo login
+   npx turbo link
+   ```
+
+2. **Configurer les secrets GitHub** :
+   - `TURBO_TOKEN` : Token d'authentification Vercel (secret)
+   - `TURBO_TEAM` : Nom de l'équipe Vercel (variable)
+
+3. **Développement local** (optionnel) :
+   ```bash
+   # Créer .env.local à la racine
+   TURBO_TOKEN=your_token
+   TURBO_TEAM=your_team
+   ```
+
+Le cache est automatiquement activé en CI lorsque ces variables sont définies.
+
 ## Licence
 
 MIT
 
 ---
 
-*Kairn : Du cairn qui guide le chemin.*
+_Kairn : Du cairn qui guide le chemin._
