@@ -1,9 +1,5 @@
 {
   "mcpServers": {
-    "vercel": {
-      "type": "http",
-      "url": "https://mcp.vercel.com/vercel"
-    },
     "supabase-kairn": {
       "type": "http",
       "url": "https://mcp.supabase.com/mcp?project_ref=zzhozdoueejugtluxvvb"
@@ -11,6 +7,10 @@
     "supabase-psypnos": {
       "type": "http",
       "url": "https://mcp.supabase.com/mcp?project_ref=ukbbkoadbgifnxbcuxbr"
+    },
+    "vercel": {
+      "type": "http",
+      "url": "https://mcp.vercel.com"
     }
   }
 }
