@@ -2,6 +2,7 @@
  * Migration script: Import blog articles from JSON export to KAIRN
  *
  * This script imports articles from a JSON file (exported from PSYPNOS Supabase)
+ * Uses pg directly (no Prisma dependency).
  *
  * Usage:
  * 1. Export BlogPostExtended table from PSYPNOS Supabase as JSON
@@ -14,12 +15,12 @@
  * - SUPABASE_SERVICE_ROLE_KEY: KAIRN Supabase service role key
  */
 
+import { randomUUID } from 'crypto';
 import { promises as fs } from 'fs';
 import path from 'path';
 
-import { PrismaClient, Prisma } from '@prisma/client';
-import type { InputJsonValue } from '@prisma/client/runtime/library';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { Pool } from 'pg';
 import sharp from 'sharp';
 
 // ============================================
@@ -28,7 +29,8 @@ import sharp from 'sharp';
 
 const BATCH_SIZE = 10;
 const KAIRN_BUCKET = 'blog-images';
-const DATA_FILE = path.join(process.cwd(), 'apps/psypnos/data/psypnos-blog-export.json');
+// Path relative to project root or current working directory
+const DATA_FILE = path.resolve(__dirname, '../data/psypnos-blog-export.json');
 
 // ============================================
 // Types
@@ -42,19 +44,19 @@ interface PsypnosBlogPost {
   content: string;
   author: string;
   category: string;
-  tags: string[];
+  tags: string | string[];
   image: string | null;
-  imagePrompt: string | null;
-  seoIntent: string | null;
+  image_prompt: string | null;
+  seo_intent: string | null;
   persona: string | null;
-  tones: string[];
-  faq: unknown;
-  jsonLd: unknown;
+  tones: string | string[];
+  faq: string | unknown;
+  json_ld: string | unknown;
   published: boolean;
   featured: boolean;
   date: string;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface MigrationReport {
@@ -68,26 +70,52 @@ interface MigrationReport {
 }
 
 // ============================================
-// Clients
+// Helper: Clean env values (remove quotes)
 // ============================================
 
-const prisma = new PrismaClient();
-
-function createKairnSupabase() {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!url || !key) {
-    console.warn("⚠️  Supabase not configured - images won't be migrated");
-    return null;
-  }
-
-  return createClient(url, key, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
+function cleanEnv(value: string | undefined): string | undefined {
+  if (!value) return undefined;
+  return value.replace(/^["']|["']$/g, '');
 }
 
-const kairnSupabase = createKairnSupabase();
+// ============================================
+// Generate CUID-like ID
+// ============================================
+
+function generateCuid(): string {
+  const timestamp = Date.now().toString(36);
+  const randomPart = randomUUID().replace(/-/g, '').substring(0, 16);
+  return `c${timestamp}${randomPart}`;
+}
+
+// ============================================
+// Database & Supabase Clients
+// ============================================
+
+let kairnPool: Pool | null = null;
+let kairnSupabase: SupabaseClient | null = null;
+
+function initConnections(): void {
+  const kairnUrl = cleanEnv(process.env.DATABASE_URL);
+  const supabaseUrl = cleanEnv(process.env.SUPABASE_URL);
+  const supabaseKey =
+    cleanEnv(process.env.SUPABASE_SERVICE_ROLE_KEY) || cleanEnv(process.env.SUPABASE_SERVICE_KEY);
+
+  if (kairnUrl) {
+    kairnPool = new Pool({
+      connectionString: kairnUrl,
+      ssl: { rejectUnauthorized: false },
+    });
+  }
+
+  if (supabaseUrl && supabaseKey) {
+    kairnSupabase = createClient(supabaseUrl, supabaseKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+  } else {
+    console.warn("⚠️  Supabase not configured - images won't be migrated");
+  }
+}
 
 // ============================================
 // Helper Functions
@@ -124,13 +152,13 @@ async function loadArticlesFromJson(): Promise<PsypnosBlogPost[]> {
 }
 
 /**
- * Check existing slugs in KAIRN
+ * Get existing slugs in KAIRN
  */
 async function getExistingKairnSlugs(): Promise<Set<string>> {
-  const posts = await prisma.blogPostExtended.findMany({
-    select: { slug: true },
-  });
-  return new Set(posts.map(p => p.slug));
+  if (!kairnPool) throw new Error('KAIRN pool not initialized');
+
+  const result = await kairnPool.query('SELECT slug FROM "BlogPostExtended"');
+  return new Set(result.rows.map((r: { slug: string }) => r.slug));
 }
 
 /**
@@ -138,12 +166,18 @@ async function getExistingKairnSlugs(): Promise<Set<string>> {
  */
 async function downloadImage(url: string): Promise<Buffer | null> {
   try {
-    const response = await fetch(url, {
+    // Build absolute URL if relative
+    let fullUrl = url;
+    if (url.startsWith('/')) {
+      fullUrl = `https://psypnos.fr${url}`;
+    }
+
+    const response = await fetch(fullUrl, {
       headers: { 'User-Agent': 'KAIRN-Migration-Script/1.0' },
     });
 
     if (!response.ok) {
-      console.warn(`  ⚠️  Failed to download image: ${response.status} ${url}`);
+      console.warn(`  ⚠️  Failed to download image: ${response.status} ${fullUrl}`);
       return null;
     }
 
@@ -244,40 +278,92 @@ function validateUtf8(text: string, field: string, slug: string): boolean {
 }
 
 /**
- * Create article in KAIRN database
+ * Parse JSON field safely
  */
-async function createKairnArticle(
+function parseJsonField(value: string | unknown): unknown {
+  if (!value) return null;
+  if (typeof value === 'string') {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return null;
+    }
+  }
+  return value;
+}
+
+/**
+ * Parse array field (may be JSON string or array)
+ */
+function parseArrayField(value: string | string[] | undefined): string[] {
+  if (!value) return [];
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+/**
+ * Insert article into KAIRN database
+ */
+async function insertArticle(
   article: PsypnosBlogPost,
   newImageUrl: string | null
 ): Promise<boolean> {
-  try {
-    await prisma.blogPostExtended.create({
-      data: {
-        slug: article.slug,
-        title: article.title,
-        description: article.description,
-        content: article.content,
-        author: article.author,
-        category: article.category,
-        tags: article.tags || [],
-        image: newImageUrl || article.image,
-        imagePrompt: article.imagePrompt,
-        seoIntent: article.seoIntent,
-        persona: article.persona,
-        tones: article.tones || [],
-        faq: article.faq ? (article.faq as InputJsonValue) : Prisma.DbNull,
-        jsonLd: article.jsonLd ? (article.jsonLd as InputJsonValue) : Prisma.DbNull,
-        published: article.published,
-        featured: article.featured,
-        date: new Date(article.date),
-        createdAt: new Date(article.createdAt),
-        updatedAt: new Date(),
-      },
-    });
+  if (!kairnPool) throw new Error('KAIRN pool not initialized');
 
+  const id = generateCuid();
+  const tags = parseArrayField(article.tags);
+  const tones = parseArrayField(article.tones);
+  const faq = parseJsonField(article.faq);
+  const jsonLd = parseJsonField(article.json_ld);
+
+  const query = `
+    INSERT INTO "BlogPostExtended" (
+      id, slug, title, description, content, author, category,
+      tags, image, "imagePrompt", "seoIntent", persona, tones,
+      faq, "jsonLd", published, featured, date, "createdAt", "updatedAt"
+    ) VALUES (
+      $1, $2, $3, $4, $5, $6, $7,
+      $8, $9, $10, $11, $12, $13,
+      $14, $15, $16, $17, $18, $19, $20
+    )
+  `;
+
+  const values = [
+    id,
+    article.slug,
+    article.title,
+    article.description,
+    article.content,
+    article.author,
+    article.category,
+    tags,
+    newImageUrl || article.image,
+    article.image_prompt,
+    article.seo_intent,
+    article.persona,
+    tones,
+    faq ? JSON.stringify(faq) : null,
+    jsonLd ? JSON.stringify(jsonLd) : null,
+    article.published,
+    article.featured,
+    new Date(article.date),
+    new Date(article.created_at),
+    new Date(),
+  ];
+
+  try {
+    await kairnPool.query(query, values);
     return true;
   } catch (error) {
-    console.error(`  ❌ Failed to create article: ${error}`);
+    console.error(`  ❌ Failed to insert article: ${error}`);
     return false;
   }
 }
@@ -302,6 +388,13 @@ async function migrate() {
   };
 
   try {
+    // Initialize connections
+    initConnections();
+
+    if (!kairnPool) {
+      throw new Error('DATABASE_URL is required');
+    }
+
     // ========================================
     // ÉTAPE 1: Chargement des données
     // ========================================
@@ -326,7 +419,10 @@ async function migrate() {
     const duplicates = psypnosArticles.filter(a => existingSlugs.has(a.slug));
     if (duplicates.length > 0) {
       console.log(`⚠️  ${duplicates.length} slugs déjà présents (seront ignorés):`);
-      duplicates.forEach(d => console.log(`   - ${d.slug}`));
+      duplicates.slice(0, 5).forEach(d => console.log(`   - ${d.slug}`));
+      if (duplicates.length > 5) {
+        console.log(`   ... et ${duplicates.length - 5} autres`);
+      }
       report.skippedArticles = duplicates.length;
       console.log('');
     }
@@ -354,7 +450,7 @@ async function migrate() {
       console.log(`\n── Batch ${batchNum}/${totalBatches} ──\n`);
 
       for (const article of batch) {
-        console.log(`📝 Traitement: "${article.title}" (${article.slug})`);
+        console.log(`📝 Traitement: "${article.title.substring(0, 50)}..." (${article.slug})`);
 
         // Validate UTF-8
         validateUtf8(article.title, 'title', article.slug);
@@ -364,7 +460,7 @@ async function migrate() {
         const hardcodedUrls = findHardcodedUrls(article.content);
         if (hardcodedUrls.length > 0) {
           console.log(`  ⚠️  URLs PSYPNOS détectées dans le contenu:`);
-          hardcodedUrls.forEach(url => console.log(`     ${url}`));
+          hardcodedUrls.slice(0, 3).forEach(url => console.log(`     ${url}`));
           report.hardcodedUrls.push({ slug: article.slug, urls: hardcodedUrls });
         }
 
@@ -380,7 +476,7 @@ async function migrate() {
         }
 
         // Create article in KAIRN
-        const success = await createKairnArticle(article, newImageUrl);
+        const success = await insertArticle(article, newImageUrl);
         if (success) {
           console.log(`  ✅ Article créé dans KAIRN`);
           report.migratedArticles++;
@@ -399,22 +495,25 @@ async function migrate() {
     console.log('\n' + '═'.repeat(60));
     console.log('🔍 ÉTAPE 3: Vérifications post-migration\n');
 
-    const finalCount = await prisma.blogPostExtended.count();
+    const countResult = await kairnPool.query('SELECT COUNT(*) FROM "BlogPostExtended"');
+    const finalCount = parseInt(countResult.rows[0].count, 10);
     console.log(`📊 Total articles dans KAIRN: ${finalCount}`);
 
     // Verify a sample article
     if (report.migratedArticles > 0) {
       const sampleSlug = toMigrate[0]?.slug;
       if (sampleSlug) {
-        const sample = await prisma.blogPostExtended.findUnique({
-          where: { slug: sampleSlug },
-        });
+        const sampleResult = await kairnPool.query(
+          'SELECT title, category, tags, image, faq, "jsonLd", published FROM "BlogPostExtended" WHERE slug = $1',
+          [sampleSlug]
+        );
 
-        if (sample) {
+        if (sampleResult.rows.length > 0) {
+          const sample = sampleResult.rows[0];
           console.log(`\n✅ Vérification article sample "${sampleSlug}":`);
           console.log(`   - Titre: ${sample.title}`);
           console.log(`   - Catégorie: ${sample.category}`);
-          console.log(`   - Tags: ${sample.tags.join(', ')}`);
+          console.log(`   - Tags: ${(sample.tags || []).join(', ')}`);
           console.log(`   - Image: ${sample.image ? '✓' : '✗'}`);
           console.log(`   - FAQ: ${sample.faq ? '✓' : '✗'}`);
           console.log(`   - JSON-LD: ${sample.jsonLd ? '✓' : '✗'}`);
@@ -428,7 +527,9 @@ async function migrate() {
     console.error('\n❌ ERREUR FATALE:', error);
     throw error;
   } finally {
-    await prisma.$disconnect();
+    if (kairnPool) {
+      await kairnPool.end();
+    }
   }
 }
 
@@ -470,10 +571,13 @@ function printReport(report: MigrationReport) {
 
   if (report.hardcodedUrls.length > 0) {
     console.log('\n⚠️  URLs PSYPNOS HARDCODÉES À CORRIGER:');
-    report.hardcodedUrls.forEach(item => {
-      console.log(`   📝 ${item.slug}:`);
-      item.urls.forEach(url => console.log(`      ${url}`));
+    console.log(`   ${report.hardcodedUrls.length} articles avec URLs à corriger`);
+    report.hardcodedUrls.slice(0, 5).forEach(item => {
+      console.log(`   📝 ${item.slug}: ${item.urls.length} URL(s)`);
     });
+    if (report.hardcodedUrls.length > 5) {
+      console.log(`   ... et ${report.hardcodedUrls.length - 5} autres`);
+    }
   }
 
   console.log('\n' + '═'.repeat(60));
