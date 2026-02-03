@@ -1,5 +1,31 @@
 # Migration des Articles Blog PSYPNOS → KAIRN
 
+> **Important**: Cette migration doit être exécutée **localement** car elle nécessite un accès réseau direct aux bases de données Supabase.
+
+## État actuel
+
+- ✅ 98 articles disponibles dans le fichier JSON (`apps/psypnos/data/psypnos-blog-export.json`)
+- ✅ Scripts de migration prêts à l'emploi
+- ⏳ Migration à exécuter localement
+
+## 🚀 Quick Start (exécution locale)
+
+```bash
+# 1. Cloner le repo et aller à la racine
+git clone [repo] && cd kairn
+
+# 2. Installer les dépendances
+pnpm install
+
+# 3. Vérifier les variables d'environnement (.env)
+# - DATABASE_URL
+# - SUPABASE_URL
+# - SUPABASE_SERVICE_ROLE_KEY
+
+# 4. Exécuter la migration
+npx tsx apps/psypnos/scripts/migrate-blog-from-json.ts
+```
+
 ## Prérequis
 
 1. **Accès à la base PSYPNOS** (source)
@@ -40,18 +66,26 @@ export PSYPNOS_SUPABASE_SERVICE_KEY="eyJ..."
 tsx apps/psypnos/scripts/migrate-blog-from-psypnos.ts
 ```
 
-### 3. `migrate-blog-from-json.ts`
+### 3. `migrate-blog-from-json.ts` (⭐ Recommandé)
 
-Alternative utilisant un fichier JSON exporté depuis Supabase.
+**C'est le script recommandé** car le fichier JSON est déjà exporté et prêt.
 
 ```bash
-# Étape 1: Exporter les données depuis PSYPNOS Supabase
-# Dashboard > Table Editor > BlogPostExtended > Export as JSON
-# Sauvegarder dans: apps/psypnos/data/psypnos-blog-export.json
+# Se placer à la racine du projet
+cd /path/to/kairn
 
-# Étape 2: Exécuter
-tsx apps/psypnos/scripts/migrate-blog-from-json.ts
+# Vérifier que le fichier JSON existe
+ls -la apps/psypnos/data/psypnos-blog-export.json
+
+# Exécuter la migration
+npx tsx apps/psypnos/scripts/migrate-blog-from-json.ts
 ```
+
+**Variables d'environnement requises** (déjà configurées dans `.env`):
+
+- `DATABASE_URL`: Connexion PostgreSQL KAIRN
+- `SUPABASE_URL`: URL Supabase KAIRN (pour upload images)
+- `SUPABASE_SERVICE_ROLE_KEY`: Clé service Supabase KAIRN
 
 ## Obtenir le mot de passe PSYPNOS
 
