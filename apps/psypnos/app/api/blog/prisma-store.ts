@@ -207,19 +207,20 @@ export async function getAllBlogPosts(
     },
   });
 
-  return posts.map(post => ({
-    slug: post.slug,
-    title: post.title,
-    description: post.excerpt || undefined,
-    author: post.authorName || 'PSYPNOS',
-    category: post.category || '',
-    tags: extractTagNames(post.tags),
-    image: post.coverImage || undefined,
-    published: post.status === PostStatus.PUBLISHED,
-    featured: post.featured,
-    date:
-      post.publishedAt?.toISOString().split('T')[0] || post.createdAt.toISOString().split('T')[0],
-  }));
+  return posts.map(
+    (post): BlogPostSummary => ({
+      slug: post.slug,
+      title: post.title,
+      description: post.excerpt || undefined,
+      author: post.authorName || 'PSYPNOS',
+      category: post.category || '',
+      tags: extractTagNames(post.tags),
+      image: post.coverImage || undefined,
+      published: post.status === PostStatus.PUBLISHED,
+      featured: post.featured,
+      date: (post.publishedAt ?? post.createdAt)!.toISOString().split('T')[0] as string,
+    })
+  );
 }
 
 /**
@@ -520,19 +521,20 @@ export async function searchBlogPosts(query: string, limit = 10): Promise<BlogPo
     },
   });
 
-  return posts.map(post => ({
-    slug: post.slug,
-    title: post.title,
-    description: post.excerpt || undefined,
-    author: post.authorName || 'PSYPNOS',
-    category: post.category || '',
-    tags: extractTagNames(post.tags),
-    image: post.coverImage || undefined,
-    published: post.status === PostStatus.PUBLISHED,
-    featured: post.featured,
-    date:
-      post.publishedAt?.toISOString().split('T')[0] || post.createdAt.toISOString().split('T')[0],
-  }));
+  return posts.map(
+    (post): BlogPostSummary => ({
+      slug: post.slug,
+      title: post.title,
+      description: post.excerpt || undefined,
+      author: post.authorName || 'PSYPNOS',
+      category: post.category || '',
+      tags: extractTagNames(post.tags),
+      image: post.coverImage || undefined,
+      published: post.status === PostStatus.PUBLISHED,
+      featured: post.featured,
+      date: (post.publishedAt ?? post.createdAt)!.toISOString().split('T')[0] as string,
+    })
+  );
 }
 
 /**
@@ -634,8 +636,7 @@ function formatBlogPostOutput(post: BlogPostWithTags): BlogPostOutput {
       : {}),
     published: post.status === PostStatus.PUBLISHED,
     featured: post.featured,
-    date:
-      post.publishedAt?.toISOString().split('T')[0] || post.createdAt.toISOString().split('T')[0],
+    date: (post.publishedAt ?? post.createdAt)!.toISOString().split('T')[0] as string,
     createdAt: post.createdAt.toISOString(),
     updatedAt: post.updatedAt.toISOString(),
   };

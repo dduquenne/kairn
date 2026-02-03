@@ -17,7 +17,8 @@
 
 import path from 'path';
 
-import { PostStatus, PrismaClient } from '@prisma/client';
+import { Prisma, PostStatus, PrismaClient } from '@prisma/client';
+import type { InputJsonValue } from '@prisma/client/runtime/library';
 import { config } from 'dotenv';
 
 config({ path: path.join(process.cwd(), '.env.local') });
@@ -155,8 +156,8 @@ async function main() {
             seoIntent: post.seoIntent,
             persona: post.persona,
             tones: post.tones,
-            faq: post.faq,
-            jsonLd: post.jsonLd,
+            faq: post.faq ? (post.faq as InputJsonValue) : Prisma.DbNull,
+            jsonLd: post.jsonLd ? (post.jsonLd as InputJsonValue) : Prisma.DbNull,
             featured: post.featured,
             authorName: post.author,
             // Multi-tenancy

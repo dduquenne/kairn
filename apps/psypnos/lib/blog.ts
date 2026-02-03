@@ -1,6 +1,6 @@
 /* eslint-disable no-console, import/no-named-as-default, import/no-unresolved */
-// @ts-expect-error - reading-time types
 import { PostStatus } from '@prisma/client';
+// @ts-expect-error - reading-time module has no type declarations
 import readingTime from 'reading-time';
 
 import prisma from '@/lib/db/prisma';
@@ -211,13 +211,13 @@ function formatPrismaPostToBlogPost(post: PrismaPostWithTags): BlogPost {
   const tagNames = extractTagNames(post.tags);
 
   // Get date from publishedAt or createdAt
-  const date = post.publishedAt || post.createdAt;
+  const date = (post.publishedAt ?? post.createdAt)!;
 
   return {
     slug: post.slug,
     title: post.title,
     description: post.excerpt || excerpt,
-    date: date.toISOString().split('T')[0],
+    date: date.toISOString().split('T')[0] as string,
     author: post.authorName || 'PSYPNOS',
     category: post.category || '',
     tags: tagNames,
@@ -292,8 +292,9 @@ export async function getAllPostsAsync(includeUnpublished = false): Promise<Blog
     );
 
     if (summaries.length > 0) {
+      const first = summaries[0]!;
       console.log(
-        `[blog] Premier article: "${summaries[0].title}" - Tags: [${summaries[0].tags?.join(', ') || 'aucun'}]`
+        `[blog] Premier article: "${first.title}" - Tags: [${first.tags?.join(', ') || 'aucun'}]`
       );
     }
 
