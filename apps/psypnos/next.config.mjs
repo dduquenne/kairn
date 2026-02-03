@@ -112,7 +112,18 @@ const nextConfig = {
   // Note: @kairn/ui removed from optimizePackageImports to preserve React context sharing
   experimental: {
     optimizePackageImports: [],
+    // Exclude large directories from serverless function bundles
+    outputFileTracingExcludes: {
+      '/api/**': [
+        './public/**',
+        './data/**',
+        './.next/cache/**',
+      ],
+    },
   },
+
+  // Set the root for file tracing in monorepo
+  outputFileTracingRoot: new URL('../..', import.meta.url).pathname,
 
   // Webpack configuration to ensure shared modules are not duplicated
   webpack: (config, { isServer }) => {
