@@ -191,13 +191,33 @@ model BlogPost {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
+  // === Extended fields (from BlogPostExtended) ===
+  /// Article category (e.g., "Comprendre", "Traverser")
+  category    String?
+  /// AI image generation prompt
+  imagePrompt String?
+  /// SEO intent/keyword target
+  seoIntent   String?
+  /// Target reader persona description
+  persona     String?
+  /// Content tones used (e.g., ["pédagogique", "apaisant"])
+  tones       String[]   @default([])
+  /// FAQ section as JSON array [{question, answer, id?}]
+  faq         Json?
+  /// Structured data JSON-LD for SEO
+  jsonLd      Json?
+  /// Featured article (shown prominently)
+  featured    Boolean    @default(false)
+  /// Fallback author name (for articles without User relation)
+  authorName  String?
+
   // Multi-tenancy
   siteId String
   site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
-  // Author
-  authorId String
-  author   User   @relation("author", fields: [authorId], references: [id])
+  // Author (optional for migration compatibility)
+  authorId String?
+  author   User?   @relation("author", fields: [authorId], references: [id])
 
   // Relations
   tags BlogPostTag[]
@@ -205,6 +225,8 @@ model BlogPost {
   @@unique([slug, siteId])
   @@index([siteId, status])
   @@index([publishedAt])
+  @@index([siteId, featured])
+  @@index([category])
 }
 
 /// Tag for categorizing blog posts
