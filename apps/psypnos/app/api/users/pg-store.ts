@@ -1,9 +1,10 @@
 /**
  * PostgreSQL-based user store (alternative to Prisma when binaries can't be downloaded)
  */
-import { randomBytes, randomUUID } from "crypto";
-import bcrypt from "bcrypt";
-import { Pool, QueryResult, QueryResultRow } from "pg";
+import { randomBytes, randomUUID } from 'crypto';
+
+import bcrypt from 'bcrypt';
+import { Pool, QueryResult, QueryResultRow } from 'pg';
 
 // Lazy-load the database connection pool to ensure env vars are loaded
 let _pool: Pool | null = null;
@@ -11,27 +12,31 @@ let _pool: Pool | null = null;
 function getPool(): Pool {
   if (!_pool) {
     // Default to localhost if DATABASE_URL is not set
-    const connectionString = process.env.DATABASE_URL || "postgresql://kairn:kairn123@localhost:5432/kairn_db";
+    const connectionString =
+      process.env.DATABASE_URL || 'postgresql://kairn:kairn123@localhost:5432/kairn_db';
     _pool = new Pool({ connectionString });
   }
   return _pool;
 }
 
-// Wrapper for pool queries
-const pool = {
-  query: async <T extends QueryResultRow = QueryResultRow>(text: string, values?: unknown[]): Promise<QueryResult<T>> => {
+// Wrapper for pool queries - exported for direct access when needed
+export const pool = {
+  query: async <T extends QueryResultRow = QueryResultRow>(
+    text: string,
+    values?: unknown[]
+  ): Promise<QueryResult<T>> => {
     return getPool().query<T>(text, values);
-  }
+  },
 };
 
 // Site slug for psypnos
-const SITE_SLUG = "psypnos";
+const SITE_SLUG = 'psypnos';
 
 export type UserRecord = {
   id: string;
   email: string;
   passwordHash: string;
-  role: "admin" | "speaker" | "attendee";
+  role: 'admin' | 'speaker' | 'attendee';
   createdAt: Date;
   updatedAt: Date;
 };
@@ -39,7 +44,7 @@ export type UserRecord = {
 export type SanitizedUser = {
   id: string;
   email: string;
-  role: "admin" | "speaker" | "attendee";
+  role: 'admin' | 'speaker' | 'attendee';
   createdAt: string;
   updatedAt: string;
 };
@@ -64,24 +69,21 @@ const PASSWORD_SALT_ROUNDS = 12;
 /**
  * Map database role (ADMIN, EDITOR, etc.) to API role (admin, speaker, attendee)
  */
-function mapDatabaseRole(dbRole: string): "admin" | "speaker" | "attendee" {
-  const roleMap: Record<string, "admin" | "speaker" | "attendee"> = {
-    ADMIN: "admin",
-    EDITOR: "admin",
-    PRACTITIONER: "admin",
-    USER: "attendee",
+function mapDatabaseRole(dbRole: string): 'admin' | 'speaker' | 'attendee' {
+  const roleMap: Record<string, 'admin' | 'speaker' | 'attendee'> = {
+    ADMIN: 'admin',
+    EDITOR: 'admin',
+    PRACTITIONER: 'admin',
+    USER: 'attendee',
   };
-  return roleMap[dbRole] || "attendee";
+  return roleMap[dbRole] || 'attendee';
 }
 
 /**
  * Get the psypnos site ID
  */
 async function getSiteId(): Promise<string> {
-  const result = await pool.query(
-    'SELECT id FROM "Site" WHERE slug = $1',
-    [SITE_SLUG]
-  );
+  const result = await pool.query('SELECT id FROM "Site" WHERE slug = $1', [SITE_SLUG]);
   if (result.rows.length === 0) {
     throw new Error(`Site '${SITE_SLUG}' not found`);
   }
@@ -118,7 +120,7 @@ export async function findUserByEmail(email: string): Promise<UserRecord | undef
   return {
     id: row.id,
     email: row.email,
-    passwordHash: row.passwordHash || "",
+    passwordHash: row.passwordHash || '',
     role: mapDatabaseRole(row.role),
     createdAt: new Date(row.createdAt),
     updatedAt: new Date(row.updatedAt),
@@ -130,10 +132,10 @@ export async function listAdminUsers(): Promise<SanitizedUser[]> {
 
   const result = await pool.query(
     'SELECT id, email, role, "createdAt", "updatedAt" FROM "User" WHERE "siteId" = $1 AND role IN ($2, $3, $4)',
-    [siteId, "ADMIN", "EDITOR", "PRACTITIONER"]
+    [siteId, 'ADMIN', 'EDITOR', 'PRACTITIONER']
   );
 
-  return result.rows.map((row) => ({
+  return result.rows.map(row => ({
     id: row.id,
     email: row.email,
     role: mapDatabaseRole(row.role),
@@ -147,13 +149,13 @@ export async function createAdminUser(payload: CreateAdminUserPayload): Promise<
   const siteId = await getSiteId();
 
   // Check if user already exists
-  const existing = await pool.query(
-    'SELECT id FROM "User" WHERE email = $1 AND "siteId" = $2',
-    [email, siteId]
-  );
+  const existing = await pool.query('SELECT id FROM "User" WHERE email = $1 AND "siteId" = $2', [
+    email,
+    siteId,
+  ]);
 
   if (existing.rows.length > 0) {
-    throw new Error("Un utilisateur avec cet email existe déjà");
+    throw new Error('Un utilisateur avec cet email existe déjà');
   }
 
   const passwordHash = await hashPassword(payload.password);
@@ -163,13 +165,13 @@ export async function createAdminUser(payload: CreateAdminUserPayload): Promise<
   await pool.query(
     `INSERT INTO "User" (id, email, "passwordHash", role, "isActive", "emailVerified", "siteId", "createdAt", "updatedAt")
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-    [id, email, passwordHash, "ADMIN", true, now, siteId, now, now]
+    [id, email, passwordHash, 'ADMIN', true, now, siteId, now, now]
   );
 
   return {
     id,
     email,
-    role: "admin",
+    role: 'admin',
     createdAt: now.toISOString(),
     updatedAt: now.toISOString(),
   };
@@ -190,7 +192,7 @@ export async function updateAdminUser(
     );
 
     if (existing.rows.length > 0) {
-      throw new Error("Un utilisateur avec cet email existe déjà");
+      throw new Error('Un utilisateur avec cet email existe déjà');
     }
   }
 
@@ -214,7 +216,7 @@ export async function updateAdminUser(
   values.push(id);
 
   const result = await pool.query(
-    `UPDATE "User" SET ${updates.join(", ")} WHERE id = $${paramIndex} RETURNING id, email, role, "createdAt", "updatedAt"`,
+    `UPDATE "User" SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING id, email, role, "createdAt", "updatedAt"`,
     values
   );
 
@@ -260,12 +262,14 @@ export async function resetAdminPasswordById(id: string): Promise<ResetPasswordR
   };
 }
 
-export async function resetAdminPasswordByEmail(email: string): Promise<ResetPasswordResult | null> {
+export async function resetAdminPasswordByEmail(
+  email: string
+): Promise<ResetPasswordResult | null> {
   const siteId = await getSiteId();
 
   const userResult = await pool.query(
     'SELECT id FROM "User" WHERE email = $1 AND "siteId" = $2 AND role IN ($3, $4, $5)',
-    [email.toLowerCase(), siteId, "ADMIN", "EDITOR", "PRACTITIONER"]
+    [email.toLowerCase(), siteId, 'ADMIN', 'EDITOR', 'PRACTITIONER']
   );
 
   if (userResult.rows.length === 0) {
@@ -285,10 +289,10 @@ async function hashPassword(password: string): Promise<string> {
 }
 
 function generateTemporaryPassword(length = 12): string {
-  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
   const bytes = randomBytes(length);
   return Array.from({ length }, (_, index) => {
     const byte = bytes[index];
     return byte !== undefined ? alphabet[byte % alphabet.length] : alphabet[0];
-  }).join("");
+  }).join('');
 }
