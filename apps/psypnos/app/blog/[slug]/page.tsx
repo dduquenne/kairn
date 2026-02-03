@@ -23,9 +23,8 @@ import { TableOfContents } from '../_components/TableOfContents';
 
 import { BlogPostTracker } from './_components/BlogPostTracker';
 
-// PERFORMANCE : ISR avec revalidation toutes les 5 minutes (fallback)
-// La revalidation à la demande est déclenchée par les API routes lors des opérations CRUD
-export const revalidate = 300;
+// Force dynamic rendering to avoid database access during build
+export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{
