@@ -1,3 +1,4 @@
+/* eslint-disable no-console, security/detect-non-literal-fs-filename */
 /**
  * Migration script: Import blog articles from JSON export to KAIRN
  *
@@ -11,7 +12,7 @@
  * Required env variables:
  * - DATABASE_URL: PostgreSQL connection string for KAIRN
  * - SUPABASE_URL: KAIRN Supabase URL (for image upload)
- * - SUPABASE_SERVICE_ROLE_KEY: KAIRN Supabase service role key
+ * - SUPABASE_SERVICE_KEY: KAIRN Supabase service role key
  */
 
 import { promises as fs } from 'fs';
@@ -20,7 +21,11 @@ import path from 'path';
 import { PrismaClient, Prisma } from '@prisma/client';
 import type { InputJsonValue } from '@prisma/client/runtime/library';
 import { createClient } from '@supabase/supabase-js';
+import { config } from 'dotenv';
 import sharp from 'sharp';
+
+// Load environment variables from .env.local
+config({ path: path.join(process.cwd(), '.env.local') });
 
 // ============================================
 // Configuration
@@ -29,6 +34,7 @@ import sharp from 'sharp';
 const BATCH_SIZE = 10;
 const KAIRN_BUCKET = 'blog-images';
 const DATA_FILE = path.join(process.cwd(), 'apps/psypnos/data/psypnos-blog-export.json');
+const PSYPNOS_BASE_URL = 'https://psypnos.fr';
 
 // ============================================
 // Types
@@ -42,19 +48,19 @@ interface PsypnosBlogPost {
   content: string;
   author: string;
   category: string;
-  tags: string[];
+  tags: string | string[];
   image: string | null;
-  imagePrompt: string | null;
-  seoIntent: string | null;
+  image_prompt: string | null;
+  seo_intent: string | null;
   persona: string | null;
-  tones: string[];
-  faq: unknown;
-  jsonLd: unknown;
+  tones: string | string[];
+  faq: string | unknown;
+  json_ld: string | unknown;
   published: boolean;
   featured: boolean;
   date: string;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface MigrationReport {
@@ -75,7 +81,7 @@ const prisma = new PrismaClient();
 
 function createKairnSupabase() {
   const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const key = process.env.SUPABASE_SERVICE_KEY;
 
   if (!url || !key) {
     console.warn("⚠️  Supabase not configured - images won't be migrated");
@@ -194,7 +200,9 @@ async function uploadImageToKairn(slug: string, buffer: Buffer): Promise<string 
 async function migrateImage(slug: string, imageUrl: string): Promise<string | null> {
   console.log(`  📷 Migrating image for "${slug}"...`);
 
-  const buffer = await downloadImage(imageUrl);
+  // Convert relative paths to full URLs
+  const fullUrl = imageUrl.startsWith('http') ? imageUrl : `${PSYPNOS_BASE_URL}${imageUrl}`;
+  const buffer = await downloadImage(fullUrl);
   if (!buffer) {
     return null;
   }
@@ -244,6 +252,20 @@ function validateUtf8(text: string, field: string, slug: string): boolean {
 }
 
 /**
+ * Parse JSON field (handles both string and object)
+ */
+function parseJsonField(value: string | unknown): unknown {
+  if (typeof value === 'string') {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return value;
+    }
+  }
+  return value;
+}
+
+/**
  * Create article in KAIRN database
  */
 async function createKairnArticle(
@@ -251,6 +273,12 @@ async function createKairnArticle(
   newImageUrl: string | null
 ): Promise<boolean> {
   try {
+    // Parse JSON fields that might be strings
+    const tags = parseJsonField(article.tags);
+    const tones = parseJsonField(article.tones);
+    const faq = parseJsonField(article.faq);
+    const jsonLd = parseJsonField(article.json_ld);
+
     await prisma.blogPostExtended.create({
       data: {
         slug: article.slug,
@@ -259,18 +287,18 @@ async function createKairnArticle(
         content: article.content,
         author: article.author,
         category: article.category,
-        tags: article.tags || [],
+        tags: Array.isArray(tags) ? tags : [],
         image: newImageUrl || article.image,
-        imagePrompt: article.imagePrompt,
-        seoIntent: article.seoIntent,
+        imagePrompt: article.image_prompt,
+        seoIntent: article.seo_intent,
         persona: article.persona,
-        tones: article.tones || [],
-        faq: article.faq ? (article.faq as InputJsonValue) : Prisma.DbNull,
-        jsonLd: article.jsonLd ? (article.jsonLd as InputJsonValue) : Prisma.DbNull,
+        tones: Array.isArray(tones) ? tones : [],
+        faq: faq ? (faq as InputJsonValue) : Prisma.DbNull,
+        jsonLd: jsonLd ? (jsonLd as InputJsonValue) : Prisma.DbNull,
         published: article.published,
         featured: article.featured,
         date: new Date(article.date),
-        createdAt: new Date(article.createdAt),
+        createdAt: new Date(article.created_at),
         updatedAt: new Date(),
       },
     });
