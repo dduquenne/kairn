@@ -3,10 +3,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAdminAuth } from "../../auth/middleware";
 import OpenAI from "openai";
-import sharp from "sharp";
-import { writeFile, mkdir, readdir, unlink } from "fs/promises";
-import { join } from "path";
 import { z } from "zod";
+import { uploadImage, BUCKETS } from "@/lib/supabase/storage";
 
 const generateImageSchema = z.object({
   imagePrompt: z.string().trim().min(1, "Le prompt image est requis"),
@@ -23,6 +21,7 @@ type ImageProposal = {
 
 /**
  * Génère 3 propositions d'images via DALL-E 3 pour un article de blog
+ * Images are stored in Supabase Storage (temp folder) to work in serverless environment
  */
 export async function POST(request: NextRequest) {
   // Vérifier l'authentification admin
@@ -55,28 +54,6 @@ export async function POST(request: NextRequest) {
 
     const openai = new OpenAI({ apiKey });
 
-    // Créer le dossier temp s'il n'existe pas
-    const tempDir = join(process.cwd(), "public", "images", "blog", "temp");
-    await mkdir(tempDir, { recursive: true });
-
-    // Nettoyer les anciennes propositions pour ce slug avant d'en générer de nouvelles
-    try {
-      const existingFiles = await readdir(tempDir);
-      const slugPattern = new RegExp(`^${slug}-proposal-\\d+-\\d+\\.webp$`);
-      const filesToDelete = existingFiles.filter((file) => slugPattern.test(file));
-
-      await Promise.all(
-        filesToDelete.map((file) =>
-          unlink(join(tempDir, file)).catch((err) => {
-            console.error(`Erreur lors de la suppression de ${file}:`, err);
-          })
-        )
-      );
-    } catch (error) {
-      console.error("Erreur lors du nettoyage des anciennes propositions:", error);
-      // Continuer malgré l'erreur de nettoyage
-    }
-
     // Générer 3 images en parallèle
     const timestamp = Date.now();
     const imagePromises = Array.from({ length: 3 }, async (_, index) => {
@@ -105,27 +82,29 @@ export async function POST(request: NextRequest) {
           throw new Error("Impossible de télécharger l'image générée");
         }
 
-        const imageBuffer = await imageResponse.arrayBuffer();
+        const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
 
-        // Convertir en WebP avec Sharp
-        const webpBuffer = await sharp(Buffer.from(imageBuffer))
-          .webp({ quality: 90 })
-          .toBuffer();
+        // Upload to Supabase Storage (temp folder)
+        // Note: DALL-E returns PNG images by default
+        const fileName = `temp/${slug}-proposal-${index + 1}-${timestamp}.png`;
+        const result = await uploadImage(
+          BUCKETS.BLOG_IMAGES,
+          fileName,
+          imageBuffer,
+          "image/png"
+        );
 
-        // Sauvegarder temporairement
-        const fileName = `${slug}-proposal-${index + 1}-${timestamp}.webp`;
-        const filePath = join(tempDir, fileName);
-        await writeFile(filePath, webpBuffer);
+        if (!result.success) {
+          throw new Error(`Upload failed: ${result.error}`);
+        }
 
-        // Récupérer les métadonnées
-        const metadata = await sharp(webpBuffer).metadata();
-        const sizeKB = (webpBuffer.length / 1024).toFixed(0);
+        const sizeKB = (imageBuffer.length / 1024).toFixed(0);
 
         return {
           id: `${index + 1}`,
-          tempPath: `/images/blog/temp/${fileName}`,
+          tempPath: result.url,
           size: `${sizeKB} KB`,
-          dimensions: `${metadata.width}x${metadata.height}`,
+          dimensions: "1792x1024", // DALL-E 3 fixed size
           timestamp,
         };
       } catch (error) {

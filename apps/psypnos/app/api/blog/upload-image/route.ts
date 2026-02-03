@@ -3,7 +3,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAdminAuth } from "../../auth/middleware";
 import { z } from "zod";
-import sharp from "sharp";
 import { uploadImage, BUCKETS } from "@/lib/supabase/storage";
 
 const uploadImageSchema = z.object({
@@ -13,9 +12,36 @@ const uploadImageSchema = z.object({
 });
 
 /**
+ * Detect image type from buffer magic bytes
+ */
+function detectImageType(buffer: Buffer): { type: string; extension: string; mimeType: string } | null {
+  const isJPEG = buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  const isPNG =
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47;
+  const isWebP =
+    buffer.length > 12 &&
+    buffer[0] === 0x52 &&
+    buffer[1] === 0x49 &&
+    buffer[2] === 0x46 &&
+    buffer[3] === 0x46 &&
+    buffer[8] === 0x57 &&
+    buffer[9] === 0x45 &&
+    buffer[10] === 0x42 &&
+    buffer[11] === 0x50;
+
+  if (isJPEG) return { type: 'jpeg', extension: 'jpg', mimeType: 'image/jpeg' };
+  if (isPNG) return { type: 'png', extension: 'png', mimeType: 'image/png' };
+  if (isWebP) return { type: 'webp', extension: 'webp', mimeType: 'image/webp' };
+  return null;
+}
+
+/**
  * Upload a custom image for a blog post
- * Image is renamed to {slug}.webp format
- * Uses Supabase Storage if configured, falls back to local filesystem
+ * Image is uploaded in its original format to reduce serverless function size
+ * (avoiding sharp dependency which adds ~30MB of native binaries)
  */
 export async function POST(request: NextRequest) {
   // Verify admin authentication
@@ -36,8 +62,8 @@ export async function POST(request: NextRequest) {
 
     const { slug, fileData } = parsed.data;
 
-    // Validate slug
-    if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) {
+    // Validate slug (alphanumeric with hyphens, no leading/trailing hyphens)
+    if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(slug) && !/^[a-z0-9]$/.test(slug)) {
       return NextResponse.json(
         { message: "Le slug n'est pas valide" },
         { status: 400 }
@@ -48,41 +74,23 @@ export async function POST(request: NextRequest) {
     const base64Data = fileData.split(",")[1] || fileData;
     const buffer = Buffer.from(base64Data, "base64");
 
-    // Detect image type from magic bytes
-    const isJPEG =
-      buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
-    const isPNG =
-      buffer[0] === 0x89 &&
-      buffer[1] === 0x50 &&
-      buffer[2] === 0x4e &&
-      buffer[3] === 0x47;
-    const isWebP =
-      buffer.length > 12 &&
-      buffer[0] === 0x52 &&
-      buffer[1] === 0x49 &&
-      buffer[2] === 0x46 &&
-      buffer[3] === 0x46 &&
-      buffer[8] === 0x57 &&
-      buffer[9] === 0x45 &&
-      buffer[10] === 0x42 &&
-      buffer[11] === 0x50;
-
-    if (!isJPEG && !isPNG && !isWebP) {
+    // Detect image type
+    const imageInfo = detectImageType(buffer);
+    if (!imageInfo) {
       return NextResponse.json(
         { message: "Format non supporté. Utilisez JPG, PNG ou WebP." },
         { status: 400 }
       );
     }
 
-    // Convert to WebP with Sharp (optimizes even if already WebP)
-    const webpBuffer = await sharp(buffer).webp({ quality: 90 }).toBuffer();
-
-    // Upload to Supabase Storage (or local fallback)
+    // Upload to Supabase Storage in original format
+    // Note: For WebP conversion, use Supabase image transformation on the client side
+    // by appending ?format=webp to the URL
     const result = await uploadImage(
       BUCKETS.BLOG_IMAGES,
-      `${slug}.webp`,
-      webpBuffer,
-      "image/webp"
+      `${slug}.${imageInfo.extension}`,
+      buffer,
+      imageInfo.mimeType
     );
 
     if (!result.success) {

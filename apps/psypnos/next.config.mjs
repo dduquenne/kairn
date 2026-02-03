@@ -70,14 +70,8 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
-  // Output mode: standalone creates minimal bundles for serverless deployments
-  output: 'standalone',
-
   // Transpiler les packages du monorepo
   transpilePackages: ['@kairn/ui', '@kairn/core', '@kairn/config', '@kairn/admin', '@kairn/analytics', '@kairn/blog', '@kairn/social'],
-
-  // Externalize large packages from serverless functions
-  serverExternalPackages: ['sharp'],
 
   // Optimisations
   reactStrictMode: true,
