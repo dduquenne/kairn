@@ -10,6 +10,9 @@ import {
   formatWeek,
   formatMonth,
   getBucketKey,
+  getPeriodDateRange,
+  sampleBucketsForDisplay,
+  type ChartBucket,
 } from '../utils/chartDateUtils';
 
 // Types pour les données simulées
@@ -346,19 +349,71 @@ function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
         });
       }
       break;
-    case 'last30days':
-    case 'thisMonth':
-    case 'lastMonth':
-      dataPoints = 15; // Show 15 points for readability
-      for (let i = 0; i < dataPoints; i++) {
-        const date = new Date(now.getTime() - (dataPoints - 1 - i) * 2 * 24 * 60 * 60 * 1000);
-        chartData.push({
-          label: formatDayMonth(date),
+    case 'last30days': {
+      // Last 30 days - use getPeriodDateRange for consistency
+      const { startDate, endDate } = getPeriodDateRange('last30days');
+      const allBuckets: ChartBucket[] = [];
+      const current = new Date(startDate);
+      while (current <= endDate) {
+        allBuckets.push({
+          label: formatDayMonth(current),
+          timestamp: current.getTime(),
           value: randomInRange(80, 250),
           previousValue: randomInRange(70, 220),
         });
+        current.setDate(current.getDate() + 1);
       }
+      // Sample for display
+      const sampledBuckets = sampleBucketsForDisplay(allBuckets, 15);
+      sampledBuckets.forEach(b =>
+        chartData.push({ label: b.label, value: b.value, previousValue: b.previousValue })
+      );
       break;
+    }
+
+    case 'thisMonth': {
+      // From 1st of current month to today
+      const { startDate, endDate } = getPeriodDateRange('thisMonth');
+      const allBuckets: ChartBucket[] = [];
+      const current = new Date(startDate);
+      while (current <= endDate) {
+        allBuckets.push({
+          label: formatDayMonth(current),
+          timestamp: current.getTime(),
+          value: randomInRange(80, 250),
+          previousValue: randomInRange(70, 220),
+        });
+        current.setDate(current.getDate() + 1);
+      }
+      // Sample for display
+      const sampledBuckets = sampleBucketsForDisplay(allBuckets, 15);
+      sampledBuckets.forEach(b =>
+        chartData.push({ label: b.label, value: b.value, previousValue: b.previousValue })
+      );
+      break;
+    }
+
+    case 'lastMonth': {
+      // Full last month (1st to last day of previous month)
+      const { startDate, endDate } = getPeriodDateRange('lastMonth');
+      const allBuckets: ChartBucket[] = [];
+      const current = new Date(startDate);
+      while (current <= endDate) {
+        allBuckets.push({
+          label: formatDayMonth(current),
+          timestamp: current.getTime(),
+          value: randomInRange(80, 250),
+          previousValue: randomInRange(70, 220),
+        });
+        current.setDate(current.getDate() + 1);
+      }
+      // Sample for display
+      const sampledBuckets = sampleBucketsForDisplay(allBuckets, 15);
+      sampledBuckets.forEach(b =>
+        chartData.push({ label: b.label, value: b.value, previousValue: b.previousValue })
+      );
+      break;
+    }
     case 'last3months':
       dataPoints = 13; // ~13 weeks in 3 months
       for (let i = 0; i < dataPoints; i++) {
@@ -779,51 +834,140 @@ function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
   // Using getBucketKey from shared utils for consistent label formatting
   const botVisitsTimeline: BotVisit[] = [];
 
-  // Generate appropriate number of data points based on period
-  let botTimelinePoints = 7;
-  let botTimelineInterval = 24 * 60 * 60 * 1000; // 1 day
-
+  // Generate bot timeline data using proper date ranges for each period
   switch (period) {
-    case 'realtime':
-      botTimelinePoints = 12;
-      botTimelineInterval = 5 * 60 * 1000; // 5 minutes
+    case 'realtime': {
+      for (let i = 11; i >= 0; i--) {
+        const date = new Date(now.getTime() - i * 5 * 60 * 1000);
+        botVisitsTimeline.push({
+          date: getBucketKey(date, period),
+          visits: randomInRange(5, 25),
+        });
+      }
       break;
-    case 'today':
-    case 'yesterday':
-      botTimelinePoints = 24;
-      botTimelineInterval = 60 * 60 * 1000; // 1 hour
-      break;
-    case 'last7days':
-      botTimelinePoints = 7;
-      botTimelineInterval = 24 * 60 * 60 * 1000; // 1 day
-      break;
-    case 'last3months':
-      botTimelinePoints = 13;
-      botTimelineInterval = 7 * 24 * 60 * 60 * 1000; // 1 week
-      break;
-    case 'thisYear':
-      botTimelinePoints = now.getMonth() + 1;
-      break;
-    default:
-      botTimelinePoints = 15;
-      botTimelineInterval = 2 * 24 * 60 * 60 * 1000; // 2 days
-  }
-
-  if (period === 'thisYear') {
-    for (let i = 0; i < botTimelinePoints; i++) {
-      const date = new Date(now.getFullYear(), i, 1);
-      botVisitsTimeline.push({
-        date: getBucketKey(date, period),
-        visits: randomInRange(50, 200),
-      });
     }
-  } else {
-    for (let i = botTimelinePoints - 1; i >= 0; i--) {
-      const date = new Date(now.getTime() - i * botTimelineInterval);
-      botVisitsTimeline.push({
-        date: getBucketKey(date, period),
-        visits: randomInRange(20, 80),
-      });
+    case 'today':
+    case 'yesterday': {
+      const baseDate = new Date(now);
+      if (period === 'yesterday') baseDate.setDate(baseDate.getDate() - 1);
+      baseDate.setHours(0, 0, 0, 0);
+      for (let i = 0; i < 24; i++) {
+        const date = new Date(baseDate);
+        date.setHours(i);
+        botVisitsTimeline.push({
+          date: getBucketKey(date, period),
+          visits: randomInRange(2, 15),
+        });
+      }
+      break;
+    }
+    case 'last7days': {
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        date.setHours(0, 0, 0, 0);
+        botVisitsTimeline.push({
+          date: getBucketKey(date, period),
+          visits: randomInRange(20, 80),
+        });
+      }
+      break;
+    }
+    case 'last30days': {
+      // Use proper date range
+      const { startDate: l30Start, endDate: l30End } = getPeriodDateRange('last30days');
+      const l30Buckets: { label: string; timestamp: number; visits: number }[] = [];
+      const l30Current = new Date(l30Start);
+      while (l30Current <= l30End) {
+        l30Buckets.push({
+          label: formatDayMonth(l30Current),
+          timestamp: l30Current.getTime(),
+          visits: randomInRange(20, 80),
+        });
+        l30Current.setDate(l30Current.getDate() + 1);
+      }
+      // Sample to ~15 points
+      const step30 = Math.max(1, Math.ceil(l30Buckets.length / 15));
+      for (let i = 0; i < l30Buckets.length; i += step30) {
+        const b = l30Buckets[i];
+        if (b) botVisitsTimeline.push({ date: b.label, visits: b.visits });
+      }
+      break;
+    }
+    case 'thisMonth': {
+      // From 1st of current month to today
+      const { startDate: tmStart, endDate: tmEnd } = getPeriodDateRange('thisMonth');
+      const tmBuckets: { label: string; timestamp: number; visits: number }[] = [];
+      const tmCurrent = new Date(tmStart);
+      while (tmCurrent <= tmEnd) {
+        tmBuckets.push({
+          label: formatDayMonth(tmCurrent),
+          timestamp: tmCurrent.getTime(),
+          visits: randomInRange(20, 80),
+        });
+        tmCurrent.setDate(tmCurrent.getDate() + 1);
+      }
+      // Sample to ~15 points
+      const stepTm = Math.max(1, Math.ceil(tmBuckets.length / 15));
+      for (let i = 0; i < tmBuckets.length; i += stepTm) {
+        const b = tmBuckets[i];
+        if (b) botVisitsTimeline.push({ date: b.label, visits: b.visits });
+      }
+      break;
+    }
+    case 'lastMonth': {
+      // Full previous month
+      const { startDate: lmStart, endDate: lmEnd } = getPeriodDateRange('lastMonth');
+      const lmBuckets: { label: string; timestamp: number; visits: number }[] = [];
+      const lmCurrent = new Date(lmStart);
+      while (lmCurrent <= lmEnd) {
+        lmBuckets.push({
+          label: formatDayMonth(lmCurrent),
+          timestamp: lmCurrent.getTime(),
+          visits: randomInRange(20, 80),
+        });
+        lmCurrent.setDate(lmCurrent.getDate() + 1);
+      }
+      // Sample to ~15 points
+      const stepLm = Math.max(1, Math.ceil(lmBuckets.length / 15));
+      for (let i = 0; i < lmBuckets.length; i += stepLm) {
+        const b = lmBuckets[i];
+        if (b) botVisitsTimeline.push({ date: b.label, visits: b.visits });
+      }
+      break;
+    }
+    case 'last3months': {
+      for (let i = 12; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i * 7);
+        botVisitsTimeline.push({
+          date: getBucketKey(date, period),
+          visits: randomInRange(50, 200),
+        });
+      }
+      break;
+    }
+    case 'thisYear': {
+      for (let i = 0; i <= now.getMonth(); i++) {
+        const date = new Date(now.getFullYear(), i, 1);
+        botVisitsTimeline.push({
+          date: getBucketKey(date, period),
+          visits: randomInRange(100, 400),
+        });
+      }
+      break;
+    }
+    default: {
+      // Custom or fallback - use day+month format
+      for (let i = 14; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        date.setHours(0, 0, 0, 0);
+        botVisitsTimeline.push({
+          date: formatDayMonth(date),
+          visits: randomInRange(20, 80),
+        });
+      }
     }
   }
 
@@ -1260,20 +1404,108 @@ function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
         });
       }
       break;
-    case 'last30days':
-    case 'thisMonth':
-    case 'lastMonth':
-      trendPoints = 15;
-      for (let i = 0; i < trendPoints; i++) {
-        const date = new Date(now.getTime() - (trendPoints - 1 - i) * 2 * 24 * 60 * 60 * 1000);
-        engagementTrends.push({
-          label: formatDayMonth(date),
+    case 'last30days': {
+      const { startDate: l30Start, endDate: l30End } = getPeriodDateRange('last30days');
+      const l30Buckets: {
+        label: string;
+        timestamp: number;
+        reach: number;
+        engagement: number;
+        posts: number;
+      }[] = [];
+      const l30Current = new Date(l30Start);
+      while (l30Current <= l30End) {
+        l30Buckets.push({
+          label: formatDayMonth(l30Current),
+          timestamp: l30Current.getTime(),
           reach: randomInRange(1500, 6000),
           engagement: randomInRange(100, 600),
           posts: randomInRange(1, 5),
         });
+        l30Current.setDate(l30Current.getDate() + 1);
+      }
+      // Sample to 15 points
+      const step30 = Math.max(1, Math.ceil(l30Buckets.length / 15));
+      for (let i = 0; i < l30Buckets.length; i += step30) {
+        const b = l30Buckets[i];
+        if (b)
+          engagementTrends.push({
+            label: b.label,
+            reach: b.reach,
+            engagement: b.engagement,
+            posts: b.posts,
+          });
       }
       break;
+    }
+    case 'thisMonth': {
+      const { startDate: tmStart, endDate: tmEnd } = getPeriodDateRange('thisMonth');
+      const tmBuckets: {
+        label: string;
+        timestamp: number;
+        reach: number;
+        engagement: number;
+        posts: number;
+      }[] = [];
+      const tmCurrent = new Date(tmStart);
+      while (tmCurrent <= tmEnd) {
+        tmBuckets.push({
+          label: formatDayMonth(tmCurrent),
+          timestamp: tmCurrent.getTime(),
+          reach: randomInRange(1500, 6000),
+          engagement: randomInRange(100, 600),
+          posts: randomInRange(1, 5),
+        });
+        tmCurrent.setDate(tmCurrent.getDate() + 1);
+      }
+      // Sample to 15 points
+      const stepTm = Math.max(1, Math.ceil(tmBuckets.length / 15));
+      for (let i = 0; i < tmBuckets.length; i += stepTm) {
+        const b = tmBuckets[i];
+        if (b)
+          engagementTrends.push({
+            label: b.label,
+            reach: b.reach,
+            engagement: b.engagement,
+            posts: b.posts,
+          });
+      }
+      break;
+    }
+    case 'lastMonth': {
+      const { startDate: lmStart, endDate: lmEnd } = getPeriodDateRange('lastMonth');
+      const lmBuckets: {
+        label: string;
+        timestamp: number;
+        reach: number;
+        engagement: number;
+        posts: number;
+      }[] = [];
+      const lmCurrent = new Date(lmStart);
+      while (lmCurrent <= lmEnd) {
+        lmBuckets.push({
+          label: formatDayMonth(lmCurrent),
+          timestamp: lmCurrent.getTime(),
+          reach: randomInRange(1500, 6000),
+          engagement: randomInRange(100, 600),
+          posts: randomInRange(1, 5),
+        });
+        lmCurrent.setDate(lmCurrent.getDate() + 1);
+      }
+      // Sample to 15 points
+      const stepLm = Math.max(1, Math.ceil(lmBuckets.length / 15));
+      for (let i = 0; i < lmBuckets.length; i += stepLm) {
+        const b = lmBuckets[i];
+        if (b)
+          engagementTrends.push({
+            label: b.label,
+            reach: b.reach,
+            engagement: b.engagement,
+            posts: b.posts,
+          });
+      }
+      break;
+    }
     case 'last3months':
       trendPoints = 13;
       for (let i = 0; i < trendPoints; i++) {
