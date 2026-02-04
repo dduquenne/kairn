@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import {
   Share2,
   Sparkles,
@@ -11,9 +10,13 @@ import {
   ExternalLink,
   AlertCircle,
 } from "lucide-react";
-import { SocialPlatformIcon } from "../../social/accounts/_components/SocialPlatformIcon";
-import type { SocialPlatform, ContentTone, ContentAngle } from "@/lib/social/types";
+import { useState, useEffect, useCallback } from "react";
+
 import { CONTENT_TONES, CONTENT_ANGLES } from "@/lib/social/prompts";
+import type { SocialPlatform, ContentTone, ContentAngle } from "@/lib/social/types";
+
+import { SocialPlatformIcon } from "../../social/accounts/_components/SocialPlatformIcon";
+
 
 interface GeneratedContent {
   platform: SocialPlatform;

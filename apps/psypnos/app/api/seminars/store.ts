@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 import { promises as fs } from "fs";
 import { dirname, join } from "path";
+
 import { z } from "zod";
 
 export { SEMINAR_TYPES, type SeminarType } from "./types";

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -5,7 +6,12 @@
  */
 
 import Anthropic from "@anthropic-ai/sdk";
-import { PSYPNOS_STYLE_SYSTEM_PROMPT } from "./psypnos-system-prompt";
+
+import {
+  parseJsonFromText,
+  validateXmlCompletion,
+  withRetryAndTimeout,
+} from "./ai-utils";
 import {
   PSYPNOS_IMAGE_GENERATION_PROMPT,
   enrichImagePromptWithThematics,
@@ -13,11 +19,7 @@ import {
   PSYPNOS_BRAND_COLORS,
   getCategoryStyleModifier,
 } from "./psypnos-image-prompt-generator";
-import {
-  parseJsonFromText,
-  validateXmlCompletion,
-  withRetryAndTimeout,
-} from "./ai-utils";
+import { PSYPNOS_STYLE_SYSTEM_PROMPT } from "./psypnos-system-prompt";
 
 // Configuration des timeouts et retries
 const API_TIMEOUT_MS = 120000; // 2 minutes par appel

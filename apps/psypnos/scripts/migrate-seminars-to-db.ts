@@ -4,9 +4,10 @@
  * Run with: npx tsx scripts/migrate-seminars-to-db.ts
  */
 
-import { PrismaClient, Prisma } from "@prisma/client";
 import { promises as fs } from "fs";
 import path from "path";
+
+import { PrismaClient, Prisma } from "@prisma/client";
 
 const prisma = new PrismaClient();
 

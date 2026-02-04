@@ -6,6 +6,7 @@
  */
 
 import { UAParser } from 'ua-parser-js';
+
 import {
   SessionData,
   DeviceType,

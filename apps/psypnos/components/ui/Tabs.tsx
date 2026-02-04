@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 "use client";
 
-import { ReactNode, useState } from "react";
 import { motion } from "framer-motion";
 import { LucideIcon } from "lucide-react";
+import { ReactNode, useState } from "react";
 
 export interface TabItem {
   id: string;

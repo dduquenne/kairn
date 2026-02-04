@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 "use client";
 
-import { useState } from "react";
 import { Calendar } from "lucide-react";
+import { useState } from "react";
 
 interface DateRangePickerProps {
   startDate: string;

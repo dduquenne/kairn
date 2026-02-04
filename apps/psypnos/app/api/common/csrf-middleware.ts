@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
-import { cookies } from "next/headers";
 import { createHmac, randomBytes, timingSafeEqual } from "crypto";
+
+import { cookies } from "next/headers";
 
 /**
  * Configuration du middleware CSRF

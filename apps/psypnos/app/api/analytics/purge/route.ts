@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - BlogAnalytics model not available in Kairn schema
-import type { NextRequest } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import type { NextRequest } from "next/server";
+
 import { withAdminAuth } from "../../auth/middleware";
 
 const prisma = new PrismaClient();

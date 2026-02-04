@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   FileText,
@@ -12,22 +10,27 @@ import {
   ChevronLeft,
   Loader2,
 } from "lucide-react";
-import { BlogPost } from "@/lib/blog";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
 import { Tabs } from "@/components/ui/Tabs";
-import { EssentialsTab, ContentTab, MediaTab, AdvancedOptionsTab } from "./tabs";
-import { SocialDiffusionSection } from "./SocialDiffusionSection";
-import { ModalContainer } from "./ModalContainer";
-import { useFormData } from "../_hooks/useFormData";
-import { useFormValidation } from "../_hooks/useFormValidation";
-import { useTagManagement } from "../_hooks/useTagManagement";
-import { useJsonLdGeneration } from "../_hooks/useJsonLdGeneration";
-import { useFormSave } from "../_hooks/useFormSave";
-import { useArticleGeneration } from "../_hooks/useArticleGeneration";
-import { useTextImprovement } from "../_hooks/useTextImprovement";
-import { useOneClickImageGeneration } from "../_hooks/useOneClickImageGeneration";
-import { useImageUpload } from "../_hooks/useImageUpload";
+import { BlogPost } from "@/lib/blog";
 import { useToast } from "@/lib/toast-context";
+
+import { useArticleGeneration } from "../_hooks/useArticleGeneration";
+import { useFormData } from "../_hooks/useFormData";
+import { useFormSave } from "../_hooks/useFormSave";
+import { useFormValidation } from "../_hooks/useFormValidation";
+import { useImageUpload } from "../_hooks/useImageUpload";
+import { useJsonLdGeneration } from "../_hooks/useJsonLdGeneration";
+import { useOneClickImageGeneration } from "../_hooks/useOneClickImageGeneration";
+import { useTagManagement } from "../_hooks/useTagManagement";
+import { useTextImprovement } from "../_hooks/useTextImprovement";
 import { generateSlugFromTitleAndCategory } from "../_utils/generateSlug";
+
+import { ModalContainer } from "./ModalContainer";
+import { SocialDiffusionSection } from "./SocialDiffusionSection";
+import { EssentialsTab, ContentTab, MediaTab, AdvancedOptionsTab } from "./tabs";
 
 interface BlogPostFormProps {
   post?: BlogPost;

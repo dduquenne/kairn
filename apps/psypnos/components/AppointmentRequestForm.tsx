@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 "use client";
 
+import Link from "next/link";
 import {
   useCallback,
   useEffect,
@@ -10,8 +12,8 @@ import {
   type ChangeEvent,
   type FormEvent
 } from "react";
-import Link from "next/link";
 import { z } from "zod";
+
 import { trackConversionEvent } from "../hooks/useAnalytics";
 import { useCSRF } from "../hooks/useCSRF";
 

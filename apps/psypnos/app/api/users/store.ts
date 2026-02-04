@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 import { randomBytes, randomUUID } from "crypto";
+
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+
 import { JsonDatabase } from "../common/json-database";
 
 const userSchema = z.object({

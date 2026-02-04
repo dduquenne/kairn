@@ -4,9 +4,12 @@
  * Uses the AnalyticsGoal and AnalyticsGoalCompletion models.
  */
 
-import { prisma } from "@/lib/db/prisma";
 import { GoalType } from "@prisma/client";
+
+import { prisma } from "@/lib/db/prisma";
+
 import type { Goal, GoalCompletion } from "../store/types";
+
 import { getPageVisits } from "./page-visits";
 import { getCurrentSiteId } from "./utils";
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -9,10 +10,12 @@
  * Utilise Claude API pour créer des posts optimisés par plateforme.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
+import { NextRequest, NextResponse } from 'next/server';
+
 import { withAdminAuth } from '@/app/api/auth/middleware';
 import { getStore, type SeminarStore } from '@/app/api/seminars/store';
+import { parseGenerationResponse, parseMultiPlatformResponse } from '@/lib/social/prompts/builder';
 import {
   buildSeminarSystemPrompt,
   buildSeminarUserPrompt,
@@ -20,7 +23,6 @@ import {
   type SeminarInput,
   type SeminarGenerationOptions,
 } from '@/lib/social/prompts/seminar-builder';
-import { parseGenerationResponse, parseMultiPlatformResponse } from '@/lib/social/prompts/builder';
 import type {
   SocialPlatform,
   ContentTone,

@@ -5,10 +5,16 @@
  */
 
 import { join } from 'path';
-import ora from 'ora';
+
+import {
+  SITE_TEMPLATES,
+  COLOR_PALETTES,
+  type SiteTemplate,
+} from '@kairn/core';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import { error, info, header, success, step, warning } from '../utils/log';
+import ora from 'ora';
+
 import {
   findProjectRoot,
   writeFileWithDir,
@@ -16,11 +22,7 @@ import {
   ensureDir,
   writeJsonFile,
 } from '../utils/fs';
-import {
-  SITE_TEMPLATES,
-  COLOR_PALETTES,
-  type SiteTemplate,
-} from '@kairn/core';
+import { error, info, header, step, warning } from '../utils/log';
 
 interface InitOptions {
   template?: string;
@@ -144,7 +146,7 @@ export default nextConfig;
 /**
  * Get tailwind.config.ts template
  */
-function getTailwindConfig(slug: string): string {
+function getTailwindConfig(_slug: string): string {
   return `import type { Config } from 'tailwindcss';
 import karinPreset from '@kairn/tailwind-preset';
 
@@ -341,7 +343,7 @@ export default siteConfig;
 /**
  * Get app/layout.tsx template
  */
-function getLayoutTemplate(name: string): string {
+function getLayoutTemplate(_name: string): string {
   return `import type { Metadata, Viewport } from 'next';
 import { Inter, Playfair_Display } from 'next/font/google';
 import { ToastProvider } from '@kairn/ui';

@@ -21,12 +21,9 @@
  * - palettes: List available color palettes
  */
 
-import { Command } from 'commander';
-import chalk from 'chalk';
-import inquirer from 'inquirer';
-import ora from 'ora';
-import { writeFile, readFile, mkdir, access } from 'fs/promises';
+import { writeFile, readFile, mkdir } from 'fs/promises';
 import { join, dirname } from 'path';
+
 import {
   SITE_TEMPLATES,
   COLOR_PALETTES,
@@ -37,16 +34,20 @@ import {
   type SiteConfig,
   type ColorPalette,
 } from '@kairn/core';
+import chalk from 'chalk';
+import { Command } from 'commander';
+import inquirer from 'inquirer';
+import ora from 'ora';
 
 type SiteTemplateConfig = (typeof SITE_TEMPLATES)[SiteTemplate];
 
-import { devCommand } from './commands/dev';
 import { buildCommand } from './commands/build';
 import { migrateCommand, seedCommand, pushCommand, generateCommand as dbGenerateCommand, studioCommand } from './commands/db';
+import { devCommand } from './commands/dev';
 import { generatePageCommand, generateComponentCommand } from './commands/generate';
 import { initCommand } from './commands/init';
-import { success, error, info, header, formatJson } from './utils/log';
 import { fileExists } from './utils/fs';
+import { success, error, header, formatJson } from './utils/log';
 
 const program = new Command();
 

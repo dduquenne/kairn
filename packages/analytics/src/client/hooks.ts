@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useCallback, useRef } from 'react';
-import { getTracker, initTracker } from './tracker';
+
 import type { ConversionType, TrackerConfig } from '../types';
+
+import { getTracker } from './tracker';
 
 /**
  * Hook for automatic page tracking

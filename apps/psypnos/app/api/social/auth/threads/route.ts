@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -9,12 +10,14 @@
  * Un state token est généré et stocké en session pour validation CSRF.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { randomBytes } from 'crypto';
+
+import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from 'next/server';
+
 import { withAdminAuth } from '@/app/api/auth/middleware';
-import { threads } from '@/lib/social/oauth';
 import { getOAuthStateCookieOptions } from '@/lib/cookies';
+import { threads } from '@/lib/social/oauth';
 
 // Durée de vie du state token (10 minutes)
 const STATE_EXPIRY_MS = 10 * 60 * 1000;

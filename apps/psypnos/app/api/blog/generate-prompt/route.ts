@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -7,14 +8,16 @@
  * PROTÉGÉ: Requiert une authentification admin
  */
 
-import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { NextRequest, NextResponse } from "next/server";
+
+import { withRetryAndTimeout } from "@/app/api/common/ai-utils";
 import {
   PSYPNOS_IMAGE_GENERATION_PROMPT,
   enrichImagePromptWithThematics,
   validatePromptForMandatoryElements,
 } from "@/app/api/common/psypnos-image-prompt-generator";
-import { withRetryAndTimeout } from "@/app/api/common/ai-utils";
+
 import { withAdminAuth } from "../../auth/middleware";
 
 // Configuration timeout et retry

@@ -5,9 +5,12 @@
  * Section time data is stored in the `data` JSON field.
  */
 
-import { prisma } from "@/lib/db/prisma";
 import { EventType } from "@prisma/client";
+
+import { prisma } from "@/lib/db/prisma";
+
 import type { SectionTime } from "../store/types";
+
 import {
   toPrismaJson,
   buildSectionTimeData,

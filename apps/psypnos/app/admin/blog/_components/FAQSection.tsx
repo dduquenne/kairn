@@ -1,7 +1,8 @@
 "use client";
 
-import { FAQEditor } from "./FAQEditor";
 import type { FAQItem } from "@/lib/blog";
+
+import { FAQEditor } from "./FAQEditor";
 
 interface FAQSectionProps {
   faqs: FAQItem[];

@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect, type ElementType } from "react";
+
 import { cn } from "../../utils/cn";
+
 import type {
   BlogPostSummary,
   CategoryColors,

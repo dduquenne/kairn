@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
-import { HypnoseContent } from "./HypnoseContent";
+
 import { getAllPostsAsync } from "@/lib/blog";
 import { filterHypnosisPosts } from "@/lib/therapy-articles";
+
+import { HypnoseContent } from "./HypnoseContent";
 
 // Rendu dynamique pour garantir que les articles sont toujours à jour
 export const dynamic = 'force-dynamic';

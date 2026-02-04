@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
-import { RespirationHolotropiqueContent } from "./RespirationHolotropiqueContent";
+
 import { getAllPostsAsync } from "@/lib/blog";
 import { filterHolotropicPosts } from "@/lib/therapy-articles";
+
+import { RespirationHolotropiqueContent } from "./RespirationHolotropiqueContent";
 
 // Rendu dynamique pour garantir que les articles sont toujours à jour
 export const dynamic = 'force-dynamic';

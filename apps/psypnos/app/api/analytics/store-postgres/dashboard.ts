@@ -5,7 +5,9 @@
  */
 
 import { prisma } from "@/lib/db/prisma";
+
 import type { DashboardConfig } from "../store/types";
+
 import { getCurrentSiteId, toPrismaJson, type InputJsonValue } from "./utils";
 
 /** Widget type definition - matches DashboardConfig.widgets from store/types.ts */

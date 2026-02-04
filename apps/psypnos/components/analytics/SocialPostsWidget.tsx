@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 "use client";
 
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Share2, ArrowRight, Clock, CheckCircle, XCircle, Calendar, Eye, Heart, Facebook, Linkedin, Instagram } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 interface SocialPostData {
   id: string;

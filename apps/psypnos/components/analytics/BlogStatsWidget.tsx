@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 "use client";
 
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { BarChart3, Eye, Users, TrendingUp, ArrowRight, Clock, BookOpen } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 interface BlogArticleEngagement {
   avgScrollDepth: number | null;

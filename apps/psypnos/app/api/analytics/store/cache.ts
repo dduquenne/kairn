@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -7,8 +8,9 @@
 
 import { promises as fs } from "fs";
 import { join } from "path";
-import type { Analytics } from "./types";
+
 import { analyticsSchema } from "./schemas";
+import type { Analytics } from "./types";
 
 // Determine the correct data path
 function getDataFilePath(): string {

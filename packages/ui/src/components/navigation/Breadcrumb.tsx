@@ -1,8 +1,9 @@
 "use client";
 
 import { cn } from "../../utils/cn";
-import type { BreadcrumbItem, SchemaOrgBreadcrumbItem } from "./types";
 import type { LinkComponent } from "../blog/types";
+
+import type { BreadcrumbItem, SchemaOrgBreadcrumbItem } from "./types";
 
 export interface BreadcrumbProps {
   /** Breadcrumb items */
@@ -44,7 +45,7 @@ export function Breadcrumb({
   items,
   linkComponent: LinkComp,
   showHomeIcon = true,
-  homeLabel = "Home",
+  homeLabel: _homeLabel = "Home",
   className,
   itemClassName,
   separatorClassName,

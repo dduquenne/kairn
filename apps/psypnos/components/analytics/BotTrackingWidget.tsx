@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
   Bot,
@@ -21,6 +21,7 @@ import {
   CheckCircle2,
   Target,
 } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
 import {
   LineChart,
   Line,

@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import dynamic from "next/dynamic";
 import { Sun, Moon } from "lucide-react";
+import dynamic from "next/dynamic";
+import { useState, useEffect } from "react";
+
 import "@uiw/react-md-editor/markdown-editor.css";
 import "@uiw/react-markdown-preview/markdown.css";
 import "./markdown-editor.css";
-import { ArticleThemeLight } from "@/app/blog/_components/ArticleThemeLight";
 import { ArticleThemeDark } from "@/app/blog/_components/ArticleThemeDark";
+import { ArticleThemeLight } from "@/app/blog/_components/ArticleThemeLight";
 
 // Charger l'éditeur uniquement côté client pour éviter les problèmes SSR
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), {

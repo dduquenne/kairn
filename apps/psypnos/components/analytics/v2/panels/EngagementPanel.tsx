@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { Clock, MousePointer, Scroll, Percent, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import {
   BarChart,
@@ -12,7 +13,6 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { Clock, MousePointer, Scroll, Percent, ArrowRight } from "lucide-react";
 
 interface SectionEngagement {
   section: string;

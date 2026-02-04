@@ -1,18 +1,20 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { PullToRefresh } from "@/components/mobile/PullToRefresh";
-import { HeroStatCard } from "@/components/mobile/HeroStatCard";
-import { SecondaryMetricsRow } from "@/components/mobile/SecondaryMetricsRow";
-import { RealTimeVisitors } from "@/components/mobile/RealTimeVisitors";
-import { MobileAreaChart } from "@/components/mobile/MobileAreaChart";
-import { TopPagesCondensed } from "@/components/mobile/TopPagesCondensed";
-import { TopArticleWidget } from "@/components/mobile/TopArticleWidget";
-import { TimeRangeSelector, TimeRange } from "@/components/mobile/TimeRangeSelector";
-import { useRealTimeAnalytics } from "@/hooks/useRealTimeAnalytics";
-import { Eye, Users, Clock, Target } from "lucide-react";
-import { isMockMode, generateMockChartData, logDataMode } from "@/lib/pwaDataMode";
 import { motion } from "framer-motion";
+import { Eye, Users, Clock, Target } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+
+import { HeroStatCard } from "@/components/mobile/HeroStatCard";
+import { MobileAreaChart } from "@/components/mobile/MobileAreaChart";
+import { PullToRefresh } from "@/components/mobile/PullToRefresh";
+import { RealTimeVisitors } from "@/components/mobile/RealTimeVisitors";
+import { SecondaryMetricsRow } from "@/components/mobile/SecondaryMetricsRow";
+import { TimeRangeSelector, TimeRange } from "@/components/mobile/TimeRangeSelector";
+import { TopArticleWidget } from "@/components/mobile/TopArticleWidget";
+import { TopPagesCondensed } from "@/components/mobile/TopPagesCondensed";
+import { useRealTimeAnalytics } from "@/hooks/useRealTimeAnalytics";
+import { isMockMode, generateMockChartData, logDataMode } from "@/lib/pwaDataMode";
+
 
 interface DashboardData {
   totalVisits: number;

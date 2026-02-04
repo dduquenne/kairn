@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import {
   AlertTriangle,
   TrendingUp,
@@ -13,6 +13,7 @@ import {
   Filter,
   Activity,
 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
 
 interface Anomaly {
   id: string;

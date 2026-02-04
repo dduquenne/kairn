@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -8,6 +9,7 @@
 
 import { promises as fs } from "fs";
 import path from "path";
+
 import { supabase, isSupabaseStorageConfigured } from "./client";
 
 // Storage bucket names

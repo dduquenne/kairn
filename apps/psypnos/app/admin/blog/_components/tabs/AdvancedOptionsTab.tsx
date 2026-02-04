@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import { Tag, Link2, Search, Users, Palette, ChevronDown, X, RefreshCw } from "lucide-react";
-import { AVAILABLE_TONES } from "../../_utils/toneDefinitions";
-import { generateSlugFromTitleAndCategory } from "../../_utils/generateSlug";
+import { useState } from "react";
+
 import type { FAQItem } from "@/lib/blog";
+
+import { generateSlugFromTitleAndCategory } from "../../_utils/generateSlug";
+import { AVAILABLE_TONES } from "../../_utils/toneDefinitions";
+
 
 interface FormData {
   slug?: string;

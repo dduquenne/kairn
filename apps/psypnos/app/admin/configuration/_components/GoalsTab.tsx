@@ -21,6 +21,8 @@ import {
 } from "lucide-react";
 import { useState, useCallback } from "react";
 
+import { DeleteConfirmationModal } from "../../settings/components/DeleteConfirmationModal";
+import { GoalFormModal } from "../../settings/components/GoalFormModal";
 import type {
   Goal,
   GoalType,
@@ -31,8 +33,6 @@ import {
   GOAL_TYPE_DESCRIPTIONS,
   GOAL_TEMPLATES,
 } from "../../settings/types";
-import { GoalFormModal } from "../../settings/components/GoalFormModal";
-import { DeleteConfirmationModal } from "../../settings/components/DeleteConfirmationModal";
 
 interface GoalsTabProps {
   goals: Goal[];

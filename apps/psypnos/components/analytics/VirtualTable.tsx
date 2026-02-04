@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 "use client";
@@ -10,9 +11,9 @@
  * Only renders rows that are visible in the viewport.
  */
 
-import React, { useState, useEffect, useRef, useCallback, memo, useMemo } from "react";
 import { motion } from "framer-motion";
 import { ChevronUp, ChevronDown, Search } from "lucide-react";
+import React, { useState, useEffect, useRef, useCallback, memo, useMemo } from "react";
 
 export interface Column<T> {
   key: keyof T | string;

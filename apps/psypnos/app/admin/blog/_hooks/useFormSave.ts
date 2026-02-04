@@ -35,10 +35,11 @@
  * ```
  */
 
-import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useToast } from "@/lib/toast-context";
+import { useCallback, useState } from "react";
+
 import type { FAQItem } from "@/lib/blog";
+import { useToast } from "@/lib/toast-context";
 
 /**
  * Nettoie le chemin d'une image en supprimant les paramètres de cache-busting

@@ -2,9 +2,9 @@
 
 export const dynamic = "force-dynamic";
 
-import { useCallback, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { BarChart3, TrendingUp, Users, Eye, ArrowUp, ArrowDown, RotateCcw, Link2, HelpCircle, Clock, BookOpen, Trophy } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 
 interface BlogArticleEngagement {
   avgScrollDepth: number | null;

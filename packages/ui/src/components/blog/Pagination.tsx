@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+
 import { cn } from "../../utils/cn";
 
 export interface PaginationProps {

@@ -1,8 +1,8 @@
 "use client";
 
+import { ApproachInfographic } from "../../../components/ApproachInfographic";
 import { CTAButton } from "../../../components/CTAButton";
 import { SectionTitle } from "../../../components/SectionTitle";
-import { ApproachInfographic } from "../../../components/ApproachInfographic";
 
 type ApproachItem = {
   title: string;

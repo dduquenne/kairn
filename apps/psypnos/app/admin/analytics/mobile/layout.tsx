@@ -1,15 +1,17 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import { BarChart3, FileText, Bell, Settings } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
+
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { InstallPrompt } from "@/components/mobile/InstallPrompt";
-import { useEffect, useState, useCallback } from "react";
+import { offlineQueue } from "@/lib/offlineSync";
 import { setupHoverPrefetch, smartPrefetch } from "@/lib/prefetch";
 import { initWebVitals } from "@/lib/webVitals";
-import { offlineQueue } from "@/lib/offlineSync";
-import { motion, AnimatePresence } from "framer-motion";
+
 
 export default function MobileAnalyticsLayout({
   children,

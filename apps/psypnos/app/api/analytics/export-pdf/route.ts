@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 import { NextRequest, NextResponse } from "next/server";
+
 import {
   getAnalyticsSummary,
   getAnalyticsSummaryWithComparison,
@@ -35,7 +37,7 @@ export async function GET(request: NextRequest) {
 
     // Calculate date range if not provided
     const now = new Date();
-    let effectiveEndDate = endDate || now.toISOString();
+    const effectiveEndDate = endDate || now.toISOString();
     let effectiveStartDate = startDate;
 
     if (!effectiveStartDate) {

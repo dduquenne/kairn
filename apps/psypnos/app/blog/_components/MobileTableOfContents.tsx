@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { List, X } from "lucide-react";
+import { useEffect, useState } from "react";
+
 import type { TocHeading } from "@/lib/mdx";
 
 interface MobileTableOfContentsProps {

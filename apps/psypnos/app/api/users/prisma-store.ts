@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Prisma models may not be available in Kairn schema
 import { randomBytes, randomUUID } from "crypto";
-import bcrypt from "bcryptjs";
+
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 

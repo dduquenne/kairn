@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Prisma models may not be available in Kairn schema
 /**
@@ -9,11 +10,13 @@
  */
 
 import { prisma } from "@/lib/db/prisma";
+
 import {
   generateArticleSectional,
   type GenerationProgress,
   type SectionalGenerationOptions,
 } from "../../common/claude-article-generator-sectional";
+
 import type { CreateJobInput } from "./route";
 
 /**

@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import { Copy, Edit2, Check, X } from "lucide-react";
-import { SocialPlatformIcon } from "../../../accounts/_components/SocialPlatformIcon";
+import { useState } from "react";
+
+
 import type { GeneratedContent, SocialPlatform } from "@/lib/social/types";
 import { PLATFORM_SPECS } from "@/lib/social/types";
+
+import { SocialPlatformIcon } from "../../../accounts/_components/SocialPlatformIcon";
 
 interface GeneratedContentPreviewProps {
   generation: GeneratedContent;

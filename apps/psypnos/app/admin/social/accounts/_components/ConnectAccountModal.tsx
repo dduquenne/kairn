@@ -1,6 +1,7 @@
 "use client";
 
 import { X, ExternalLink, AlertCircle } from "lucide-react";
+
 import { SocialPlatformIcon } from "./SocialPlatformIcon";
 
 interface ConnectAccountModalProps {

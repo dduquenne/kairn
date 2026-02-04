@@ -1,11 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { Calendar, MapPin, Users, Euro } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { Calendar, MapPin, Users, Euro } from "lucide-react";
-import { CTAButton } from "../../components/CTAButton";
+
 import { trackConversionEvent } from "@/hooks/useAnalytics";
+
+import { CTAButton } from "../../components/CTAButton";
+
 
 export interface Seminar {
   id: string;

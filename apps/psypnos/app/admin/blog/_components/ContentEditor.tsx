@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
 import { FileText, Eye, BookOpen, Sparkles } from "lucide-react";
 import dynamic from "next/dynamic";
+import { useState, useMemo, useEffect, useRef } from "react";
 
 // Import dynamique pour éviter les problèmes SSR
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });

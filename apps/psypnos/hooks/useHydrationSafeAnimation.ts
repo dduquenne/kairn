@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import type { Transition, TargetAndTransition } from "framer-motion";
+import { useEffect, useState } from "react";
 
 /**
  * Hook to handle Framer Motion animations safely during hydration.

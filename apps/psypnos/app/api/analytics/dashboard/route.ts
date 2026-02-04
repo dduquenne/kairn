@@ -1,6 +1,10 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 import { NextRequest } from "next/server";
+
+import { isMockMode, generateMockDashboardData, logDataMode } from "@/lib/pwaDataMode";
+
 import {
   getAnalyticsSummary,
   getAnalyticsSummaryWithComparison,
@@ -10,7 +14,6 @@ import {
   getTrafficSources,
   getDeviceBreakdown,
 } from "../store-index";
-import { isMockMode, generateMockDashboardData, logDataMode } from "@/lib/pwaDataMode";
 
 export const dynamic = "force-dynamic";
 

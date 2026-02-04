@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 import { jwtVerify, SignJWT, decodeProtectedHeader } from "jose";
+
 import { getSecretsManager } from "./secrets-manager";
 
 // SÉCURITÉ : JWT_SECRET est obligatoire en production

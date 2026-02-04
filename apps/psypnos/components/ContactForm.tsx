@@ -1,13 +1,15 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 "use client";
 
-import { useCallback, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 import Link from "next/link";
+import { useCallback, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
 
-import { CTAButton } from "./CTAButton";
 import { trackConversionEvent } from "../hooks/useAnalytics";
 import { useCSRF } from "../hooks/useCSRF";
+
+import { CTAButton } from "./CTAButton";
 
 const initialValues = {
   name: "",

@@ -1,12 +1,13 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
  * Anomaly Detection
  */
 
-import type { Anomaly } from "./types";
-import { readAnalyticsData, writeAnalyticsData, generateId } from "./cache";
 import { getAnalyticsSummary } from "./analytics";
+import { readAnalyticsData, writeAnalyticsData, generateId } from "./cache";
+import type { Anomaly } from "./types";
 
 // Calculate baseline statistics for a metric
 export async function calculateBaseline(

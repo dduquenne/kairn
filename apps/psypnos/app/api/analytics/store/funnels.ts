@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
  * Funnel Operations
  */
 
-import type { FunnelStep } from "./types";
 import { readAnalyticsData, writeAnalyticsData, generateId } from "./cache";
+import type { FunnelStep } from "./types";
 
 export async function trackFunnelStep(step: Omit<FunnelStep, "id">): Promise<FunnelStep> {
   const data = await readAnalyticsData();

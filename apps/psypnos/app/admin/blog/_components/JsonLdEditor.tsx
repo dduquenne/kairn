@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { AlertCircle, CheckCircle, Eye } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface JsonLdEditorProps {
   value?: Record<string, any>;

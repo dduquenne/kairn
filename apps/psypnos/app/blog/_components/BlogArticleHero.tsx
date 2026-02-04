@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import Image from "next/image";
 import { Tag } from "lucide-react";
+import Image from "next/image";
+import { useRef } from "react";
 
 interface BlogArticleHeroProps {
   image: string;

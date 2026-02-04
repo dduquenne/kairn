@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
-import { ReactNode } from "react";
 import { ArrowUp, ArrowDown, TrendingUp, TrendingDown, Minus, LucideIcon } from "lucide-react";
+import { ReactNode } from "react";
 
 interface SparklineData {
   value: number;

@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+
 import { ContactForm } from "../../../components/ContactForm";
 import { SectionTitle } from "../../../components/SectionTitle";
 import { SocialLinks } from "../../../components/SocialLinks";

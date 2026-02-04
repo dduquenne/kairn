@@ -1,13 +1,13 @@
-import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { NextResponse } from "next/server";
 
+import { withAdminAuth } from "../../auth/middleware";
 import {
   getSeminarById,
   updateSeminar,
   deleteSeminar,
   seminarPayloadSchema,
 } from "../prisma-store";
-import { withAdminAuth } from "../../auth/middleware";
 
 type RouteContext = {
   params: Promise<{ id: string }>;

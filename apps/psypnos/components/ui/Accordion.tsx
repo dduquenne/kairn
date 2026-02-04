@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 "use client";
 
-import { ReactNode, useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { ReactNode, useState } from "react";
 
 export interface AccordionItem {
   id: string;

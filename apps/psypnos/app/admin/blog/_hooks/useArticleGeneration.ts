@@ -46,9 +46,11 @@
  */
 
 import { useCallback, useState } from "react";
-import { useToast } from "@/lib/toast-context";
-import { generateSlugFromTitleAndCategory } from "../_utils/generateSlug";
+
 import type { FAQItem } from "@/lib/blog";
+import { useToast } from "@/lib/toast-context";
+
+import { generateSlugFromTitleAndCategory } from "../_utils/generateSlug";
 
 /**
  * Generated article data structure returned by AI

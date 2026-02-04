@@ -6,6 +6,7 @@
  */
 
 import { getPublisher as getKairnPublisher, type SocialPublisher } from '@kairn/social/posting';
+
 import type { SocialPlatform } from '../types';
 
 // Type adapter for backward compatibility

@@ -5,14 +5,16 @@
  * Aggregates data from different event types stored in the same table.
  */
 
-import { prisma } from "@/lib/db/prisma";
 import { EventType } from "@prisma/client";
+
 import {
   getCached,
   CACHE_KEYS,
   CACHE_TTL,
   buildCacheKey,
 } from "@/lib/cache/redis";
+import { prisma } from "@/lib/db/prisma";
+
 import {
   buildDateFilter,
   extractFromData,
@@ -246,7 +248,7 @@ export async function getAnalyticsSummaryWithComparison(
 ) {
   const now = new Date();
   let currentStart = new Date();
-  let currentEnd = new Date(now);
+  const currentEnd = new Date(now);
   currentEnd.setHours(23, 59, 59, 999);
 
   let previousStart = new Date();

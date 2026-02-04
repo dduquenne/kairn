@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import Link from "next/link";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { Calendar, Clock, ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useState, useEffect, useMemo } from "react";
+
 import type { BlogPostSummary } from "@/lib/blog";
 import { getCategoryColors } from "@/lib/categoryColors";
 

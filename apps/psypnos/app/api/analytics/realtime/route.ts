@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
-import { getPageVisits, getAnalyticsSummary } from "../store-index";
 import type { NextRequest } from "next/server";
+
+import { getPageVisits, getAnalyticsSummary } from "../store-index";
 
 export const dynamic = 'force-dynamic';
 

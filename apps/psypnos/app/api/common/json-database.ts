@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 import { promises as fs } from "fs";
 import { dirname, join } from "path";
+
 import { ZodSchema } from "zod";
 
 /**

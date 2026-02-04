@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Prisma models may not be available in Kairn schema
 /**
@@ -12,8 +13,10 @@
 
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { recordAttempt, getClientIP } from '../../common/rate-limiter';
+
 import type { TrackingPayload, TrackingEvent, GeolocationData } from '@/lib/tracking/types';
+
+import { recordAttempt, getClientIP } from '../../common/rate-limiter';
 
 // Force le mode dynamique pour cette route
 export const dynamic = 'force-dynamic';

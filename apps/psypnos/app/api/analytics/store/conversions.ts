@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
  * Conversion Event Operations
  */
 
-import type { ConversionEvent } from "./types";
 import { readAnalyticsData, writeAnalyticsData, generateId } from "./cache";
+import type { ConversionEvent } from "./types";
 
 export async function trackConversionEvent(
   event: Omit<ConversionEvent, "id">,

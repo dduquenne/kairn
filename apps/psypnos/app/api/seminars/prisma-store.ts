@@ -7,6 +7,7 @@
 import { Prisma } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 import { z } from "zod";
+
 import prisma from "@/lib/db/prisma";
 
 export { SEMINAR_TYPES, type SeminarType } from "./types";

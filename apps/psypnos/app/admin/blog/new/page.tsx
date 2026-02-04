@@ -3,6 +3,7 @@
 export const dynamic = "force-dynamic";
 
 import { useSearchParams } from "next/navigation";
+
 import { BlogPostForm } from "../_components/BlogPostForm";
 
 export default function NewBlogPostPage() {

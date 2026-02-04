@@ -1,14 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
 import {
   Globe,
   Search,
@@ -19,6 +11,14 @@ import {
   ArrowUpRight,
   ArrowDownRight,
 } from "lucide-react";
+import { useState } from "react";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+} from "recharts";
 
 interface TrafficSource {
   source: string;

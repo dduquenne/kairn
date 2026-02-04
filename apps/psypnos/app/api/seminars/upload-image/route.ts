@@ -1,9 +1,12 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 import { NextRequest, NextResponse } from "next/server";
-import { withAdminAuth } from "../../auth/middleware";
 import { z } from "zod";
+
 import { uploadImage, BUCKETS } from "@/lib/supabase/storage";
+
+import { withAdminAuth } from "../../auth/middleware";
 
 const uploadImageSchema = z.object({
   seminarId: z.string().trim().min(1, "L'identifiant du séminaire est requis"),

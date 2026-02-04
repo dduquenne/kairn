@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -6,13 +7,16 @@
 
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import type { ChangeEvent } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { FormField } from "./FormField";
+
+import { FIELD_MOTION, REASSURANCE_MESSAGES } from "../constants";
 import type { FormField as FormFieldType, FormErrors, SeminarRegistrationFormState, Seminar } from "../types";
 import { joinClassNames, formatSeminarOption, getPriceMessage } from "../utils";
-import { FIELD_MOTION, REASSURANCE_MESSAGES } from "../constants";
+
+import { FormField } from "./FormField";
+
 
 const CARD_SECTION_CLASS =
   "rounded-3xl border border-ivory/10 bg-night/80 p-5 shadow-inner shadow-night/60";

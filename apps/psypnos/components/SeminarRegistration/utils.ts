@@ -1,12 +1,12 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
  * Seminar Registration Utilities
  */
 
-import type { FormField, FormErrors, SeminarRegistrationFormState } from "./types";
 import { seminarRegistrationSchema } from "./schema";
-import type { Seminar } from "./types";
+import type { FormField, FormErrors, SeminarRegistrationFormState , Seminar } from "./types";
 
 export const joinClassNames = (
   ...classes: Array<string | null | false | undefined>

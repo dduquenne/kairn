@@ -1,6 +1,7 @@
 "use client";
 
 import { THEME_DARK, COLOR_PALETTE } from "@/app/blog/_constants/themeConstants";
+
 import { BlogContent } from "./BlogContent";
 
 interface ArticleThemeDarkProps {

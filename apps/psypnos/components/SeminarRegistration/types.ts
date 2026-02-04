@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -5,6 +6,7 @@
  */
 
 import type { z } from "zod";
+
 import type { seminarRegistrationSchema } from "./schema";
 
 export type Seminar = {

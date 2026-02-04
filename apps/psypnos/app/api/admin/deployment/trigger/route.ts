@@ -1,16 +1,19 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Deployment model not available in Kairn schema
+import { spawn } from "child_process";
+import * as path from "path";
+
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db/prisma";
+
 import { withAdminAuth } from "@/app/api/auth/middleware";
+import { prisma } from "@/lib/db/prisma";
 import {
   DeploymentTriggerRequest,
   DeploymentTriggerResponse,
   isAllowedRef,
 } from "@/lib/deployment/types";
 import { generateDeployToken, getTokenExpiration } from "@/lib/deployment/utils";
-import { spawn } from "child_process";
-import * as path from "path";
 
 export const dynamic = "force-dynamic";
 

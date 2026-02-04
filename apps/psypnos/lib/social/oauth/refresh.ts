@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Prisma/type incompatibilities to fix
 /**
@@ -13,9 +14,11 @@
  */
 
 import { prisma } from '@/lib/db/prisma';
+
 import { decryptToken, encryptToken } from '../crypto';
-import { linkedin } from './index';
 import type { SocialPlatform, SocialAccountFull } from '../types';
+
+import { linkedin } from './index';
 
 // Type for Prisma SocialAccount record
 interface PrismaSocialAccount {

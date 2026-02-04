@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -7,9 +8,11 @@
 "use client";
 
 import type { ChangeEvent } from "react";
-import { FormField } from "./FormField";
+
 import type { FormField as FormFieldType, FormErrors, SeminarRegistrationFormState } from "../types";
 import { joinClassNames } from "../utils";
+
+import { FormField } from "./FormField";
 
 const CARD_SECTION_CLASS =
   "rounded-3xl border border-ivory/10 bg-night/80 p-5 shadow-inner shadow-night/60";

@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
  * Section Time Operations
  */
 
-import type { SectionTime } from "./types";
 import { readAnalyticsData, writeAnalyticsData, generateId } from "./cache";
+import type { SectionTime } from "./types";
 
 export async function trackSectionTime(sectionTime: Omit<SectionTime, "id">): Promise<SectionTime> {
   const data = await readAnalyticsData();

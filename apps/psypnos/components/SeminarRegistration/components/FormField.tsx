@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -7,10 +8,10 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { FIELD_MOTION } from "../constants";
-import { joinClassNames } from "../utils";
+
+import { FIELD_MOTION , REASSURANCE_MESSAGES } from "../constants";
 import type { FormField as FormFieldType, FormErrors } from "../types";
-import { REASSURANCE_MESSAGES } from "../constants";
+import { joinClassNames } from "../utils";
 
 interface FormFieldProps {
   id: FormFieldType;

@@ -10,8 +10,8 @@
  * (qui doit matcher le rendu serveur), puis les active après l'hydratation.
  */
 
-import { ReactNode, useEffect, useState } from "react";
 import { LazyMotion, domAnimation, MotionConfig } from "framer-motion";
+import { ReactNode, useEffect, useState } from "react";
 
 interface MotionWrapperProps {
   children: ReactNode;

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -8,8 +9,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { ChangeEvent } from "react";
-import type { FormField, FormErrors, SeminarRegistrationFormState, SeminarRegistrationData } from "../types";
+
 import { INITIAL_FORM_STATE, STORAGE_KEY } from "../constants";
+import type { FormField, FormErrors, SeminarRegistrationFormState, SeminarRegistrationData } from "../types";
 import { validateRegistration, logStorageError } from "../utils";
 
 const initialErrors = validateRegistration(INITIAL_FORM_STATE).errors;

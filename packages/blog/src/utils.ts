@@ -4,6 +4,7 @@
  */
 
 import readingTime from 'reading-time';
+
 import type { BlogPost, BlogPostSummary, BlogPostMetadata } from './types';
 
 /**
@@ -37,7 +38,7 @@ export function formatPrismaPostToBlogPost(post: {
   // Extract excerpt
   const excerpt =
     post.description ||
-    post.content.slice(0, 200).replace(/[#*\[\]]/g, '').trim() + '...';
+    post.content.slice(0, 200).replace(/[#*[\]]/g, '').trim() + '...';
 
   return {
     slug: post.slug,
@@ -100,7 +101,11 @@ export function generateSlug(title: string): string {
  * Validates a slug format
  */
 export function isValidSlug(slug: string): boolean {
-  return /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug);
+  // Simple validation: lowercase alphanumeric with hyphens, not starting/ending with hyphen
+  if (!slug || slug.startsWith('-') || slug.endsWith('-')) {
+    return false;
+  }
+  return /^[a-z0-9-]+$/.test(slug) && !slug.includes('--');
 }
 
 /**

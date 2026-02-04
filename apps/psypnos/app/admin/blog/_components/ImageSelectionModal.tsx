@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { X, Loader, Check, RefreshCw, Maximize2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export interface ImageProposal {
   id: string;

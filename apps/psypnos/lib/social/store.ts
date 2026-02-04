@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - SocialPost model not available in Kairn schema
 /**
@@ -12,6 +13,7 @@
  */
 
 import { prisma } from '@/lib/db/prisma';
+
 import { encryptToken, decryptToken } from './crypto';
 
 // Type for JSON values in Prisma

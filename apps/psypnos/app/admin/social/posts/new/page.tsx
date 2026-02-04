@@ -2,8 +2,6 @@
 
 export const dynamic = "force-dynamic";
 
-import { useCallback, useEffect, useState, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Sparkles,
@@ -16,11 +14,14 @@ import {
   Save,
   FileText,
 } from "lucide-react";
-import { useToast } from "@/lib/toast-context";
-import { SocialPlatformIcon } from "../../accounts/_components/SocialPlatformIcon";
-import { GeneratedContentPreview } from "./_components/GeneratedContentPreview";
-import { ArticleSelector } from "./_components/ArticleSelector";
-import { SavePostModal } from "./_components/SavePostModal";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState, useRef } from "react";
+
+import { CONTENT_TONES, CONTENT_ANGLES } from "@/lib/social/prompts";
+import { FACEBOOK_FORMATS, FACEBOOK_TONE_LEVELS } from "@/lib/social/prompts/facebook-specs";
+import { INSTAGRAM_FORMATS, AUTHENTICITY_LEVELS } from "@/lib/social/prompts/instagram-specs";
+import { LINKEDIN_FORMATS, LINKEDIN_EXPERTISE_LEVELS } from "@/lib/social/prompts/linkedin-specs";
+import { THREADS_FORMATS, THREADS_AUTHENTICITY_LEVELS } from "@/lib/social/prompts/threads-specs";
 import type {
   SocialPlatform,
   ContentTone,
@@ -35,11 +36,13 @@ import type {
   LinkedInPostFormat,
   LinkedInExpertiseLevel,
 } from "@/lib/social/types";
-import { CONTENT_TONES, CONTENT_ANGLES } from "@/lib/social/prompts";
-import { INSTAGRAM_FORMATS, AUTHENTICITY_LEVELS } from "@/lib/social/prompts/instagram-specs";
-import { THREADS_FORMATS, THREADS_AUTHENTICITY_LEVELS } from "@/lib/social/prompts/threads-specs";
-import { FACEBOOK_FORMATS, FACEBOOK_TONE_LEVELS } from "@/lib/social/prompts/facebook-specs";
-import { LINKEDIN_FORMATS, LINKEDIN_EXPERTISE_LEVELS } from "@/lib/social/prompts/linkedin-specs";
+import { useToast } from "@/lib/toast-context";
+
+import { SocialPlatformIcon } from "../../accounts/_components/SocialPlatformIcon";
+
+import { ArticleSelector } from "./_components/ArticleSelector";
+import { GeneratedContentPreview } from "./_components/GeneratedContentPreview";
+import { SavePostModal } from "./_components/SavePostModal";
 
 // ===========================================
 // Types

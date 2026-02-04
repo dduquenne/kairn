@@ -28,6 +28,7 @@ import {
   SessionEndEvent,
   ConversionType,
 } from '../types';
+
 import { SessionManager, getSessionManager } from './session';
 
 // ============================================

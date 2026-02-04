@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import {
   Bell,
   Plus,
@@ -19,6 +19,7 @@ import {
   History,
   RefreshCw,
 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
 
 interface Alert {
   id: string;

@@ -1,11 +1,13 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
+import type { NextRequest } from "next/server";
+
 import {
   trackPageVisit,
   trackSectionTime,
   trackConversionEvent,
 } from "../store-index";
-import type { NextRequest } from "next/server";
 
 // Generate realistic historical data for demo/testing
 export async function POST(request: NextRequest) {

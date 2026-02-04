@@ -1,9 +1,12 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import { verifyToken, JWTPayload } from "./jwt";
+
 import { ErrorCode, createApiError } from "../common/error-codes";
+
+import { verifyToken, JWTPayload } from "./jwt";
 
 /**
  * Extrait et vérifie le JWT token depuis les cookies

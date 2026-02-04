@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Prisma models may not be available in Kairn schema
 /**
@@ -10,8 +11,11 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+
 import { prisma } from "@/lib/db/prisma";
+
 import { withAdminAuth } from "../../auth/middleware";
+
 import { runBlogGenerationWorker } from "./worker";
 
 /**

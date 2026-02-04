@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -23,33 +24,7 @@ import type {
   LinkedInPostFormat,
   LinkedInExpertiseLevel,
 } from '../types';
-import {
-  PLATFORM_GENERATION_SPECS,
-  CONTENT_TONES,
-  CONTENT_ANGLES,
-  type PlatformGenerationSpec,
-} from './platform-specs';
-import {
-  INSTAGRAM_FORMATS,
-  INSTAGRAM_HOOK_PATTERNS,
-  INSTAGRAM_CTA_TEMPLATES,
-  INSTAGRAM_EMOJI_STRATEGY,
-  INSTAGRAM_EMOJIS_TO_AVOID,
-  AUTHENTICITY_LEVELS,
-  suggestInstagramFormat,
-  getHookPatternsForTone,
-  generateBalancedHashtags,
-  type InstagramFormatSpec,
-} from './instagram-specs';
-import {
-  THREADS_FORMATS,
-  THREADS_AUTHENTICITY_LEVELS,
-  THREADS_HOOK_PATTERNS,
-  THREADS_RULES,
-  suggestThreadsFormat,
-  getThreadsHookPatternsForTone,
-  suggestThreadsAuthenticityLevel,
-} from './threads-specs';
+
 import {
   FACEBOOK_FORMATS,
   FACEBOOK_HOOK_PATTERNS,
@@ -64,6 +39,18 @@ import {
   type FacebookFormatSpec,
 } from './facebook-specs';
 import {
+  INSTAGRAM_FORMATS,
+  INSTAGRAM_HOOK_PATTERNS,
+  INSTAGRAM_CTA_TEMPLATES,
+  INSTAGRAM_EMOJI_STRATEGY,
+  INSTAGRAM_EMOJIS_TO_AVOID,
+  AUTHENTICITY_LEVELS,
+  suggestInstagramFormat,
+  getHookPatternsForTone,
+  generateBalancedHashtags,
+  type InstagramFormatSpec,
+} from './instagram-specs';
+import {
   LINKEDIN_FORMATS,
   LINKEDIN_HOOK_PATTERNS,
   LINKEDIN_CTA_TEMPLATES,
@@ -77,6 +64,21 @@ import {
   suggestLinkedInExpertiseLevel,
   type LinkedInFormatSpec,
 } from './linkedin-specs';
+import {
+  PLATFORM_GENERATION_SPECS,
+  CONTENT_TONES,
+  CONTENT_ANGLES,
+  type PlatformGenerationSpec,
+} from './platform-specs';
+import {
+  THREADS_FORMATS,
+  THREADS_AUTHENTICITY_LEVELS,
+  THREADS_HOOK_PATTERNS,
+  THREADS_RULES,
+  suggestThreadsFormat,
+  getThreadsHookPatternsForTone,
+  suggestThreadsAuthenticityLevel,
+} from './threads-specs';
 
 // ===========================================
 // Types

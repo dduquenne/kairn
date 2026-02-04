@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 import { NextRequest } from "next/server";
+
 import { getPageVisits } from "../store-index";
 
 export const dynamic = "force-dynamic";
@@ -68,7 +70,7 @@ function parseTimeRange(range: string): { startDate: string; endDate: string } {
  */
 function generateTitle(page: string): string {
   // Remove leading slash and query params
-  let path = page.replace(/^\//, "").split("?")[0];
+  const path = page.replace(/^\//, "").split("?")[0];
 
   // Handle home page
   if (!path || path === "/") {

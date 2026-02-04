@@ -1,10 +1,12 @@
 "use client";
 
+import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
-import { Menu, X } from "lucide-react";
+
 import { cn } from "../utils/cn";
+
 import type { NavigationItem } from "./admin-sidebar";
 
 export interface MobileNavProps {

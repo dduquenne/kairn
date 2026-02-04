@@ -1,8 +1,8 @@
 "use client";
 
 import { CTAButton } from "../../../components/CTAButton";
-import { SectionTitle } from "../../../components/SectionTitle";
 import { JourneyInfographic } from "../../../components/JourneyInfographic";
+import { SectionTitle } from "../../../components/SectionTitle";
 
 export function JourneySection() {
   return (

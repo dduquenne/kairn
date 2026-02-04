@@ -4,9 +4,10 @@
  * Run with: npx tsx scripts/migrate-testimonials-to-db.ts
  */
 
-import { PrismaClient } from "@prisma/client";
 import { promises as fs } from "fs";
 import path from "path";
+
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 

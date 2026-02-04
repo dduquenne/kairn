@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -9,9 +10,10 @@
  * IMPORTANT: Cet endpoint ne doit JAMAIS être mis en cache.
  */
 
-import { NextResponse } from "next/server";
 import * as fs from "fs";
 import * as path from "path";
+
+import { NextResponse } from "next/server";
 
 // Force dynamic pour éviter le cache
 export const dynamic = "force-dynamic";

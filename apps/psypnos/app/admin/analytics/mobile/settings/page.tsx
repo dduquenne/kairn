@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { Bell, Smartphone, Database, RefreshCw, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
+import { Bell, Smartphone, Database, RefreshCw, ExternalLink } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
 
 export default function MobileSettingsPage() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);

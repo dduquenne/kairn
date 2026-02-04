@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { Plus, Trash2, ChevronDown } from "lucide-react";
+import { useState } from "react";
+
 import { FAQItem } from "@/lib/blog";
 
 interface FAQEditorProps {

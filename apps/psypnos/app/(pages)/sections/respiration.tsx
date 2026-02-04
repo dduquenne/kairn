@@ -1,9 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
+
 import { CTAButton } from "../../../components/CTAButton";
-import { SectionTitle } from "../../../components/SectionTitle";
 import GoldGlowImage from "../../../components/GoldGlowImage";
+import { SectionTitle } from "../../../components/SectionTitle";
 
 export function RespirationSection() {
   return (

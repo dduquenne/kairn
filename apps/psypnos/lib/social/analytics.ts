@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - SocialPost model not available in Kairn schema
 /**
@@ -7,6 +8,7 @@
  */
 
 import { prisma } from '@/lib/db/prisma';
+
 import { getSocialClient } from './clients';
 import { getSocialAccountById, updatePostAnalytics } from './store';
 import type { SocialPlatform, SocialPostAnalytics } from './types';

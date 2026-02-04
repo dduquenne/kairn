@@ -1,12 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { PullToRefresh } from "@/components/mobile/PullToRefresh";
-import { RealTimeIndicator } from "@/components/mobile/RealTimeIndicator";
-import { SwipeableAlertCard } from "@/components/mobile/SwipeableAlertCard";
-import { NotificationToastContainer } from "@/components/mobile/NotificationToast";
-import { useRealTimeAnalytics } from "@/hooks/useRealTimeAnalytics";
-import { useNotifications } from "@/hooks/useNotifications";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertTriangle,
   CheckCircle,
@@ -15,7 +9,14 @@ import {
   Filter,
   Trash2,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState, useCallback } from "react";
+
+import { NotificationToastContainer } from "@/components/mobile/NotificationToast";
+import { PullToRefresh } from "@/components/mobile/PullToRefresh";
+import { RealTimeIndicator } from "@/components/mobile/RealTimeIndicator";
+import { SwipeableAlertCard } from "@/components/mobile/SwipeableAlertCard";
+import { useNotifications } from "@/hooks/useNotifications";
+import { useRealTimeAnalytics } from "@/hooks/useRealTimeAnalytics";
 
 interface Alert {
   id: string;

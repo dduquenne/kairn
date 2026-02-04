@@ -1,12 +1,13 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
  * Cohort Analysis
  */
 
+import { getConversionEvents } from "./conversions";
 import { getPageVisits } from "./page-visits";
 import { getSectionTimes } from "./section-times";
-import { getConversionEvents } from "./conversions";
 
 export async function getCohortAnalysis(
   cohortBy: 'week' | 'month' | 'utm_source' | 'referrer' | 'device' = 'week',
