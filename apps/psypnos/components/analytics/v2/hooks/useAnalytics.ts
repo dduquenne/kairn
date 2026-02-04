@@ -800,10 +800,20 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
         pages: bot.pages || 0,
       }));
 
-      const botTimeline: BotVisit[] = (botsData.timeline || []).map((t: any) => ({
-        date: t.date || "",
-        visits: t.visits || 0,
-      }));
+      const botTimeline: BotVisit[] = (botsData.timeline || []).map((t: any) => {
+        // Format the date for display based on the raw date string
+        let formattedDate = t.date || "";
+        if (t.date) {
+          const date = new Date(t.date);
+          if (!isNaN(date.getTime())) {
+            formattedDate = formatDayMonth(date);
+          }
+        }
+        return {
+          date: formattedDate,
+          visits: t.visits || 0,
+        };
+      });
 
       const crawledPages: CrawledPage[] = (botsData.pages || []).map((p: any) => ({
         path: p.path || "",
