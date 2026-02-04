@@ -421,6 +421,28 @@ const formatShortDate = (date: Date): string => {
   return `${weekday} ${day}`;
 };
 
+// Helper to format day and month (e.g., "15 jan.")
+const formatDayMonth = (date: Date): string => {
+  const months = ["jan.", "fév.", "mar.", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+  const day = date.getDate();
+  const month = months[date.getMonth()];
+  return `${day} ${month}`;
+};
+
+// Helper to format week number (e.g., "Sem. 12")
+const formatWeek = (date: Date): string => {
+  const startOfYear = new Date(date.getFullYear(), 0, 1);
+  const days = Math.floor((date.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000));
+  const weekNumber = Math.ceil((days + startOfYear.getDay() + 1) / 7);
+  return `Sem. ${weekNumber}`;
+};
+
+// Helper to format month name (e.g., "janvier")
+const formatMonth = (date: Date): string => {
+  const months = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+  return months[date.getMonth()];
+};
+
 // Format chart data from API response
 const formatChartData = (visits: any[], period: PeriodType): ChartDataPoint[] => {
   if (!visits || visits.length === 0) return [];
@@ -454,6 +476,7 @@ const formatChartData = (visits: any[], period: PeriodType): ChartDataPoint[] =>
       });
     }
   } else if (period === "last7days") {
+    // Last 7 days with weekday and day number
     for (let i = 6; i >= 0; i--) {
       const date = new Date(now);
       date.setDate(date.getDate() - i);
@@ -463,14 +486,95 @@ const formatChartData = (visits: any[], period: PeriodType): ChartDataPoint[] =>
         value: 0,
       });
     }
-  } else {
-    // Default: use raw data
-    visits.slice(-14).forEach((v: any) => {
+  } else if (period === "last30days" || period === "thisMonth" || period === "lastMonth") {
+    // Days with day number and month
+    let startDate: Date;
+    let endDate: Date;
+
+    if (period === "last30days") {
+      endDate = new Date(now);
+      startDate = new Date(now);
+      startDate.setDate(startDate.getDate() - 29);
+    } else if (period === "thisMonth") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      endDate = new Date(now);
+    } else {
+      // lastMonth
+      startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+    }
+
+    const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000)) + 1;
+    // Show fewer points for readability (max ~15 points)
+    const step = Math.max(1, Math.floor(daysDiff / 15));
+
+    for (let i = 0; i < daysDiff; i += step) {
+      const date = new Date(startDate);
+      date.setDate(date.getDate() + i);
+
       chartData.push({
-        label: v.period || v.timestamp?.split("T")[0] || "",
-        value: v.visits || 0,
+        label: formatDayMonth(date),
+        value: 0,
       });
+    }
+  } else if (period === "last3months") {
+    // Weeks with week number
+    for (let i = 12; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i * 7);
+
+      chartData.push({
+        label: formatWeek(date),
+        value: 0,
+      });
+    }
+  } else if (period === "thisYear") {
+    // Months with month name
+    const currentMonth = now.getMonth();
+    for (let i = 0; i <= currentMonth; i++) {
+      const date = new Date(now.getFullYear(), i, 1);
+
+      chartData.push({
+        label: formatMonth(date),
+        value: 0,
+      });
+    }
+  } else if (period === "custom") {
+    // For custom period, use day/month format with raw data
+    visits.slice(-30).forEach((v: any) => {
+      const timestamp = v.timestamp || v.period;
+      if (timestamp) {
+        const date = new Date(timestamp);
+        chartData.push({
+          label: formatDayMonth(date),
+          value: v.visits || 0,
+        });
+      } else {
+        chartData.push({
+          label: v.period || "",
+          value: v.visits || 0,
+        });
+      }
     });
+    return chartData;
+  } else {
+    // Default fallback: use raw data with formatting
+    visits.slice(-14).forEach((v: any) => {
+      const timestamp = v.timestamp || v.period;
+      if (timestamp) {
+        const date = new Date(timestamp);
+        chartData.push({
+          label: formatDayMonth(date),
+          value: v.visits || 0,
+        });
+      } else {
+        chartData.push({
+          label: v.period || "",
+          value: v.visits || 0,
+        });
+      }
+    });
+    return chartData;
   }
 
   return chartData;
