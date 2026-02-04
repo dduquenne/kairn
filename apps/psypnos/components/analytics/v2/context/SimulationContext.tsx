@@ -284,6 +284,43 @@ function randomInRange(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+// Helper to format time in HH:mm format (consistent with useAnalytics)
+const formatTime = (date: Date): string => {
+  const hours = date.getHours().toString().padStart(2, '0');
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  return `${hours}:${minutes}`;
+};
+
+// Helper to format short weekday and day (consistent with useAnalytics)
+const formatShortDate = (date: Date): string => {
+  const weekdays = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
+  const day = date.getDate();
+  const weekday = weekdays[date.getDay()];
+  return `${weekday} ${day}`;
+};
+
+// Helper to format day and month (consistent with useAnalytics)
+const formatDayMonth = (date: Date): string => {
+  const months = ['jan.', 'fév.', 'mar.', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+  const day = date.getDate();
+  const month = months[date.getMonth()];
+  return `${day} ${month}`;
+};
+
+// Helper to format week number (consistent with useAnalytics)
+const formatWeek = (date: Date): string => {
+  const startOfYear = new Date(date.getFullYear(), 0, 1);
+  const days = Math.floor((date.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000));
+  const weekNumber = Math.ceil((days + startOfYear.getDay() + 1) / 7);
+  return `Sem. ${weekNumber}`;
+};
+
+// Helper to format month name (consistent with useAnalytics)
+const formatMonth = (date: Date): string => {
+  const months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  return months[date.getMonth()];
+};
+
 // Utilitaire pour générer un nombre avec variation
 function randomWithVariation(base: number, variationPercent: number = 20): number {
   const variation = (Math.random() - 0.5) * 2 * ((base * variationPercent) / 100);
@@ -304,7 +341,7 @@ function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
       for (let i = 0; i < dataPoints; i++) {
         const date = new Date(now.getTime() - (dataPoints - 1 - i) * 5 * 60 * 1000);
         chartData.push({
-          label: date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+          label: formatTime(date),
           value: randomInRange(5, 25),
           previousValue: randomInRange(3, 20),
         });
@@ -314,8 +351,11 @@ function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
     case 'yesterday':
       dataPoints = 24;
       for (let i = 0; i < dataPoints; i++) {
+        const date = new Date(now);
+        if (period === 'yesterday') date.setDate(date.getDate() - 1);
+        date.setHours(i, 0, 0, 0);
         chartData.push({
-          label: `${i.toString().padStart(2, '0')}:00`,
+          label: formatTime(date),
           value: randomInRange(10, 80),
           previousValue: randomInRange(8, 70),
         });
@@ -326,7 +366,7 @@ function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
       for (let i = 0; i < dataPoints; i++) {
         const date = new Date(now.getTime() - (dataPoints - 1 - i) * 24 * 60 * 60 * 1000);
         chartData.push({
-          label: date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' }),
+          label: formatShortDate(date),
           value: randomInRange(80, 200),
           previousValue: randomInRange(70, 180),
         });
@@ -335,13 +375,35 @@ function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
     case 'last30days':
     case 'thisMonth':
     case 'lastMonth':
-      dataPoints = 30;
+      dataPoints = 15; // Show 15 points for readability
       for (let i = 0; i < dataPoints; i++) {
-        const date = new Date(now.getTime() - (dataPoints - 1 - i) * 24 * 60 * 60 * 1000);
+        const date = new Date(now.getTime() - (dataPoints - 1 - i) * 2 * 24 * 60 * 60 * 1000);
         chartData.push({
-          label: date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }),
+          label: formatDayMonth(date),
           value: randomInRange(80, 250),
           previousValue: randomInRange(70, 220),
+        });
+      }
+      break;
+    case 'last3months':
+      dataPoints = 13; // ~13 weeks in 3 months
+      for (let i = 0; i < dataPoints; i++) {
+        const date = new Date(now.getTime() - (dataPoints - 1 - i) * 7 * 24 * 60 * 60 * 1000);
+        chartData.push({
+          label: formatWeek(date),
+          value: randomInRange(400, 800),
+          previousValue: randomInRange(350, 750),
+        });
+      }
+      break;
+    case 'thisYear':
+      dataPoints = now.getMonth() + 1; // Months from January to current
+      for (let i = 0; i < dataPoints; i++) {
+        const date = new Date(now.getFullYear(), i, 1);
+        chartData.push({
+          label: formatMonth(date),
+          value: randomInRange(1500, 4000),
+          previousValue: randomInRange(1300, 3500),
         });
       }
       break;
@@ -349,7 +411,7 @@ function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
       for (let i = 0; i < 7; i++) {
         const date = new Date(now.getTime() - (6 - i) * 24 * 60 * 60 * 1000);
         chartData.push({
-          label: date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' }),
+          label: formatShortDate(date),
           value: randomInRange(80, 200),
           previousValue: randomInRange(70, 180),
         });
@@ -742,9 +804,8 @@ function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
   const botVisitsTimeline: BotVisit[] = [];
   for (let i = 6; i >= 0; i--) {
     const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-    const dateStr = date.toISOString().split('T')[0] ?? '';
     botVisitsTimeline.push({
-      date: dateStr,
+      date: formatDayMonth(date),
       visits: randomInRange(20, 80),
     });
   }
@@ -1148,7 +1209,7 @@ function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
       for (let i = 0; i < trendPoints; i++) {
         const date = new Date(now.getTime() - (trendPoints - 1 - i) * 5 * 60 * 1000);
         engagementTrends.push({
-          label: date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+          label: formatTime(date),
           reach: randomInRange(100, 500),
           engagement: randomInRange(10, 80),
           posts: randomInRange(0, 2),
@@ -1159,8 +1220,11 @@ function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
     case 'yesterday':
       trendPoints = 24;
       for (let i = 0; i < trendPoints; i++) {
+        const date = new Date(now);
+        if (period === 'yesterday') date.setDate(date.getDate() - 1);
+        date.setHours(i, 0, 0, 0);
         engagementTrends.push({
-          label: `${i.toString().padStart(2, '0')}:00`,
+          label: formatTime(date),
           reach: randomInRange(200, 1500),
           engagement: randomInRange(20, 200),
           posts: randomInRange(0, 3),
@@ -1172,19 +1236,57 @@ function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
       for (let i = 0; i < trendPoints; i++) {
         const date = new Date(now.getTime() - (trendPoints - 1 - i) * 24 * 60 * 60 * 1000);
         engagementTrends.push({
-          label: date.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' }),
+          label: formatShortDate(date),
           reach: randomInRange(2000, 8000),
           engagement: randomInRange(150, 800),
           posts: randomInRange(2, 8),
         });
       }
       break;
-    default:
-      trendPoints = 30;
+    case 'last30days':
+    case 'thisMonth':
+    case 'lastMonth':
+      trendPoints = 15;
       for (let i = 0; i < trendPoints; i++) {
-        const date = new Date(now.getTime() - (trendPoints - 1 - i) * 24 * 60 * 60 * 1000);
+        const date = new Date(now.getTime() - (trendPoints - 1 - i) * 2 * 24 * 60 * 60 * 1000);
         engagementTrends.push({
-          label: date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }),
+          label: formatDayMonth(date),
+          reach: randomInRange(1500, 6000),
+          engagement: randomInRange(100, 600),
+          posts: randomInRange(1, 5),
+        });
+      }
+      break;
+    case 'last3months':
+      trendPoints = 13;
+      for (let i = 0; i < trendPoints; i++) {
+        const date = new Date(now.getTime() - (trendPoints - 1 - i) * 7 * 24 * 60 * 60 * 1000);
+        engagementTrends.push({
+          label: formatWeek(date),
+          reach: randomInRange(8000, 25000),
+          engagement: randomInRange(600, 2000),
+          posts: randomInRange(8, 25),
+        });
+      }
+      break;
+    case 'thisYear':
+      trendPoints = now.getMonth() + 1;
+      for (let i = 0; i < trendPoints; i++) {
+        const date = new Date(now.getFullYear(), i, 1);
+        engagementTrends.push({
+          label: formatMonth(date),
+          reach: randomInRange(30000, 80000),
+          engagement: randomInRange(2000, 8000),
+          posts: randomInRange(20, 60),
+        });
+      }
+      break;
+    default:
+      trendPoints = 15;
+      for (let i = 0; i < trendPoints; i++) {
+        const date = new Date(now.getTime() - (trendPoints - 1 - i) * 2 * 24 * 60 * 60 * 1000);
+        engagementTrends.push({
+          label: formatDayMonth(date),
           reach: randomInRange(1500, 6000),
           engagement: randomInRange(100, 600),
           posts: randomInRange(1, 5),
