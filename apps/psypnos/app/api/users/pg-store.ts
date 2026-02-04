@@ -3,7 +3,7 @@
  */
 import { randomBytes, randomUUID } from 'crypto';
 
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { Pool, QueryResult, QueryResultRow } from 'pg';
 
 // Lazy-load the database connection pool to ensure env vars are loaded

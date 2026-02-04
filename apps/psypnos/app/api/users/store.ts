@@ -1,7 +1,7 @@
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 import { randomBytes, randomUUID } from "crypto";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { JsonDatabase } from "../common/json-database";
 

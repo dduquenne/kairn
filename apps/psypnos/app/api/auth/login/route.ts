@@ -1,7 +1,7 @@
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 import { NextResponse } from "next/server";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 import { findUserByEmail } from "../../users/pg-store";
 import { createToken } from "../jwt";
