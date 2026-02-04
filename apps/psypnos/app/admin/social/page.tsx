@@ -455,13 +455,13 @@ export default function SocialPage() {
       </motion.div>
 
       {/* Main Content Area */}
-      <div className="flex gap-6">
+      <div className="relative">
         {/* Main Panel */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className={`min-w-0 flex-1 ${selectedPost ? 'lg:mr-[400px]' : ''}`}
+          className="min-w-0"
         >
           <AnimatePresence mode="wait">
             {viewMode === 'calendar' && (
@@ -518,29 +518,15 @@ export default function SocialPage() {
           </AnimatePresence>
         </motion.div>
 
-        {/* Detail Panel (Desktop: Fixed Right) */}
-        <div className="hidden lg:block">
-          <PostDetailPanel
-            post={detailPost}
-            onClose={() => setSelectedPost(null)}
-            onEdit={post => setEditingPost(posts.find(p => p.id === post.id) || null)}
-            onDelete={handleDeletePost}
-            onPublishNow={handlePublishNow}
-            isPublishing={isPublishing}
-          />
-        </div>
-
-        {/* Detail Panel (Mobile: Overlay) */}
-        <div className="lg:hidden">
-          <PostDetailPanel
-            post={detailPost}
-            onClose={() => setSelectedPost(null)}
-            onEdit={post => setEditingPost(posts.find(p => p.id === post.id) || null)}
-            onDelete={handleDeletePost}
-            onPublishNow={handlePublishNow}
-            isPublishing={isPublishing}
-          />
-        </div>
+        {/* Detail Panel - Renders as overlay on all screen sizes */}
+        <PostDetailPanel
+          post={detailPost}
+          onClose={() => setSelectedPost(null)}
+          onEdit={post => setEditingPost(posts.find(p => p.id === post.id) || null)}
+          onDelete={handleDeletePost}
+          onPublishNow={handlePublishNow}
+          isPublishing={isPublishing}
+        />
       </div>
 
       {/* Edit Modal */}

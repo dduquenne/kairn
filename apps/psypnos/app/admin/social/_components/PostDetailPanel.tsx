@@ -187,21 +187,22 @@ export function PostDetailPanel({
     <AnimatePresence>
       {post && (
         <>
-          {/* Backdrop */}
+          {/* Backdrop - visible on all screens */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="bg-night/60 fixed inset-0 z-40 backdrop-blur-sm lg:hidden"
+            className="bg-night/60 fixed inset-0 z-40 backdrop-blur-sm"
           />
 
-          {/* Panel */}
+          {/* Panel - Responsive: full width on mobile, max-w-md on larger screens */}
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, x: '100%' }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            className="border-gold/20 from-night via-night/95 to-night/90 fixed bottom-0 right-0 top-0 z-50 w-full max-w-md overflow-y-auto border-l bg-gradient-to-br shadow-2xl lg:relative lg:z-auto"
+            exit={{ opacity: 0, x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className="border-gold/20 from-night via-night/95 to-night/90 fixed bottom-0 right-0 top-0 z-50 w-full sm:max-w-md overflow-y-auto border-l bg-gradient-to-br shadow-2xl"
           >
             {/* Header */}
             <div className="border-gold/20 bg-night/95 sticky top-0 z-10 border-b p-4 backdrop-blur-sm">
