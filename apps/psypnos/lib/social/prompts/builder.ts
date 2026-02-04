@@ -27,7 +27,6 @@ import type {
 
 import {
   FACEBOOK_FORMATS,
-  FACEBOOK_HOOK_PATTERNS,
   FACEBOOK_CTA_TEMPLATES,
   FACEBOOK_EMOJI_STRATEGY,
   FACEBOOK_EMOJIS_TO_AVOID,
@@ -36,11 +35,9 @@ import {
   getFacebookHookPatternsForTone,
   generateFacebookHashtags,
   suggestFacebookToneLevel,
-  type FacebookFormatSpec,
 } from './facebook-specs';
 import {
   INSTAGRAM_FORMATS,
-  INSTAGRAM_HOOK_PATTERNS,
   INSTAGRAM_CTA_TEMPLATES,
   INSTAGRAM_EMOJI_STRATEGY,
   INSTAGRAM_EMOJIS_TO_AVOID,
@@ -48,11 +45,9 @@ import {
   suggestInstagramFormat,
   getHookPatternsForTone,
   generateBalancedHashtags,
-  type InstagramFormatSpec,
 } from './instagram-specs';
 import {
   LINKEDIN_FORMATS,
-  LINKEDIN_HOOK_PATTERNS,
   LINKEDIN_CTA_TEMPLATES,
   LINKEDIN_EMOJI_STRATEGY,
   LINKEDIN_EMOJIS_TO_AVOID,
@@ -62,18 +57,11 @@ import {
   getLinkedInHookPatternsForTone,
   generateLinkedInHashtags,
   suggestLinkedInExpertiseLevel,
-  type LinkedInFormatSpec,
 } from './linkedin-specs';
-import {
-  PLATFORM_GENERATION_SPECS,
-  CONTENT_TONES,
-  CONTENT_ANGLES,
-  type PlatformGenerationSpec,
-} from './platform-specs';
+import { PLATFORM_GENERATION_SPECS, CONTENT_TONES, CONTENT_ANGLES } from './platform-specs';
 import {
   THREADS_FORMATS,
   THREADS_AUTHENTICITY_LEVELS,
-  THREADS_HOOK_PATTERNS,
   THREADS_RULES,
   suggestThreadsFormat,
   getThreadsHookPatternsForTone,
@@ -174,11 +162,7 @@ Réponds UNIQUEMENT avec le format JSON demandé, sans texte avant ou après.`;
 /**
  * Construit le prompt Instagram avancé avec les spécifications natives
  */
-function buildInstagramPrompt(
-  article: BlogArticleInput,
-  options: GenerationPromptOptions
-): string {
-  const spec = PLATFORM_GENERATION_SPECS.INSTAGRAM;
+function buildInstagramPrompt(article: BlogArticleInput, options: GenerationPromptOptions): string {
   const toneSpec = CONTENT_TONES[options.tone];
   const angleSpec = CONTENT_ANGLES[options.angle];
 
@@ -197,22 +181,22 @@ function buildInstagramPrompt(
   const suggestedHashtags = generateBalancedHashtags(article.category, 10);
 
   // Résumé de l'article
-  const contentSummary = article.content.length > 3000
-    ? article.content.substring(0, 3000) + '...'
-    : article.content;
+  const contentSummary =
+    article.content.length > 3000 ? article.content.substring(0, 3000) + '...' : article.content;
 
   // Construire les sections du prompt
-  const hookPatternsSection = hookPatterns.slice(0, 3).map(h =>
-    `• ${h.name}: "${h.pattern}"\n  Exemples: ${h.examples.slice(0, 2).join(' | ')}`
+  const hookPatternsSection = hookPatterns
+    .slice(0, 3)
+    .map(h => `• ${h.name}: "${h.pattern}"\n  Exemples: ${h.examples.slice(0, 2).join(' | ')}`)
+    .join('\n');
+
+  const ctaSection = INSTAGRAM_CTA_TEMPLATES.map(
+    cta => `• ${cta.category}: ${cta.templates.slice(0, 2).join(' | ')}`
   ).join('\n');
 
-  const ctaSection = INSTAGRAM_CTA_TEMPLATES.map(cta =>
-    `• ${cta.category}: ${cta.templates.slice(0, 2).join(' | ')}`
-  ).join('\n');
-
-  const emojiSection = INSTAGRAM_EMOJI_STRATEGY.slice(0, 4).map(e =>
-    `• ${e.category}: ${e.emojis.join(' ')} - ${e.usage}`
-  ).join('\n');
+  const emojiSection = INSTAGRAM_EMOJI_STRATEGY.slice(0, 4)
+    .map(e => `• ${e.category}: ${e.emojis.join(' ')} - ${e.usage}`)
+    .join('\n');
 
   return `Génère un post Instagram NATIF et ENGAGEANT pour l'article suivant.
 
@@ -351,10 +335,7 @@ Réponds UNIQUEMENT avec ce JSON (sans markdown, sans backticks) :
  * Construit le prompt Threads optimisé pour des posts courts et authentiques
  * Utilise les formats natifs Threads pour une meilleure adaptation à la culture de la plateforme
  */
-function buildThreadsPrompt(
-  article: BlogArticleInput,
-  options: GenerationPromptOptions
-): string {
+function buildThreadsPrompt(article: BlogArticleInput, options: GenerationPromptOptions): string {
   const toneSpec = CONTENT_TONES[options.tone];
   const angleSpec = CONTENT_ANGLES[options.angle];
 
@@ -363,21 +344,22 @@ function buildThreadsPrompt(
   const formatSpec = THREADS_FORMATS[format];
 
   // Déterminer le niveau d'authenticité
-  const authenticityLevel = options.threadsAuthenticityLevel || suggestThreadsAuthenticityLevel(options.tone);
+  const authenticityLevel =
+    options.threadsAuthenticityLevel || suggestThreadsAuthenticityLevel(options.tone);
   const authenticitySpec = THREADS_AUTHENTICITY_LEVELS[authenticityLevel];
 
   // Obtenir les patterns d'accroche pour le ton choisi
   const hookPatterns = getThreadsHookPatternsForTone(options.tone);
 
   // Résumé court de l'article (Threads n'a pas besoin de tout le contenu)
-  const contentSummary = article.content.length > 1500
-    ? article.content.substring(0, 1500) + '...'
-    : article.content;
+  const contentSummary =
+    article.content.length > 1500 ? article.content.substring(0, 1500) + '...' : article.content;
 
   // Construire les sections du prompt
-  const hookPatternsSection = hookPatterns.slice(0, 3).map(h =>
-    `• ${h.name}: "${h.pattern}"\n  Exemples: ${h.examples.slice(0, 2).join(' | ')}`
-  ).join('\n');
+  const hookPatternsSection = hookPatterns
+    .slice(0, 3)
+    .map(h => `• ${h.name}: "${h.pattern}"\n  Exemples: ${h.examples.slice(0, 2).join(' | ')}`)
+    .join('\n');
 
   return `Génère un post Threads AUTHENTIQUE et COURT pour partager cet article.
 
@@ -510,11 +492,7 @@ RAPPEL FINAL :
 /**
  * Construit le prompt Facebook avancé avec les spécifications natives
  */
-function buildFacebookPrompt(
-  article: BlogArticleInput,
-  options: GenerationPromptOptions
-): string {
-  const spec = PLATFORM_GENERATION_SPECS.FACEBOOK;
+function buildFacebookPrompt(article: BlogArticleInput, options: GenerationPromptOptions): string {
   const toneSpec = CONTENT_TONES[options.tone];
   const angleSpec = CONTENT_ANGLES[options.angle];
 
@@ -533,28 +511,22 @@ function buildFacebookPrompt(
   const suggestedHashtags = generateFacebookHashtags(article.category, 2);
 
   // Résumé de l'article
-  const contentSummary = article.content.length > 3000
-    ? article.content.substring(0, 3000) + '...'
-    : article.content;
+  const contentSummary =
+    article.content.length > 3000 ? article.content.substring(0, 3000) + '...' : article.content;
 
   // Construire les sections du prompt
-  const hookPatternsSection = hookPatterns.slice(0, 4).map(h =>
-    `• ${h.name}: "${h.pattern}"\n  Exemples: ${h.examples.slice(0, 2).join(' | ')}`
-  ).join('\n');
+  const hookPatternsSection = hookPatterns
+    .slice(0, 4)
+    .map(h => `• ${h.name}: "${h.pattern}"\n  Exemples: ${h.examples.slice(0, 2).join(' | ')}`)
+    .join('\n');
 
-  const ctaCommentSection = FACEBOOK_CTA_TEMPLATES
-    .filter(c => c.category === 'commentaire')
+  const ctaCommentSection = FACEBOOK_CTA_TEMPLATES.filter(c => c.category === 'commentaire')
     .map(c => c.templates.slice(0, 3).join(' | '))
     .join('\n');
 
-  const ctaLienSection = FACEBOOK_CTA_TEMPLATES
-    .filter(c => c.category === 'lien')
-    .map(c => c.templates.slice(0, 3).join(' | '))
+  const emojiSection = FACEBOOK_EMOJI_STRATEGY.slice(0, 3)
+    .map(e => `• ${e.category}: ${e.emojis.join(' ')} - ${e.usage}`)
     .join('\n');
-
-  const emojiSection = FACEBOOK_EMOJI_STRATEGY.slice(0, 3).map(e =>
-    `• ${e.category}: ${e.emojis.join(' ')} - ${e.usage}`
-  ).join('\n');
 
   return `Génère un post Facebook NATIF et ENGAGEANT pour l'article suivant.
 
@@ -695,11 +667,7 @@ IMPORTANT: NE PAS inclure de lien/URL dans le contenu - le lien vers l'article s
  * Construit le prompt LinkedIn avancé avec les spécifications natives
  * Optimisé pour l'engagement professionnel et le positionnement d'expertise
  */
-function buildLinkedInPrompt(
-  article: BlogArticleInput,
-  options: GenerationPromptOptions
-): string {
-  const spec = PLATFORM_GENERATION_SPECS.LINKEDIN;
+function buildLinkedInPrompt(article: BlogArticleInput, options: GenerationPromptOptions): string {
   const toneSpec = CONTENT_TONES[options.tone];
   const angleSpec = CONTENT_ANGLES[options.angle];
 
@@ -708,7 +676,8 @@ function buildLinkedInPrompt(
   const formatSpec = LINKEDIN_FORMATS[format];
 
   // Déterminer le niveau d'expertise
-  const expertiseLevel = options.linkedinExpertiseLevel || suggestLinkedInExpertiseLevel(article.category);
+  const expertiseLevel =
+    options.linkedinExpertiseLevel || suggestLinkedInExpertiseLevel(article.category);
   const expertiseSpec = LINKEDIN_EXPERTISE_LEVELS[expertiseLevel];
 
   // Obtenir les patterns d'accroche pour le ton choisi
@@ -718,28 +687,26 @@ function buildLinkedInPrompt(
   const suggestedHashtags = generateLinkedInHashtags(article.category, 4);
 
   // Résumé de l'article
-  const contentSummary = article.content.length > 3000
-    ? article.content.substring(0, 3000) + '...'
-    : article.content;
+  const contentSummary =
+    article.content.length > 3000 ? article.content.substring(0, 3000) + '...' : article.content;
 
   // Construire les sections du prompt
-  const hookPatternsSection = hookPatterns.slice(0, 4).map(h =>
-    `• ${h.name}: "${h.pattern}"\n  Exemples: ${h.examples.slice(0, 2).join(' | ')}`
-  ).join('\n');
+  const hookPatternsSection = hookPatterns
+    .slice(0, 4)
+    .map(h => `• ${h.name}: "${h.pattern}"\n  Exemples: ${h.examples.slice(0, 2).join(' | ')}`)
+    .join('\n');
 
-  const ctaCommentSection = LINKEDIN_CTA_TEMPLATES
-    .filter(c => c.category === 'commentaire')
+  const ctaCommentSection = LINKEDIN_CTA_TEMPLATES.filter(c => c.category === 'commentaire')
     .map(c => c.templates.slice(0, 3).join(' | '))
     .join('\n');
 
-  const ctaLienSection = LINKEDIN_CTA_TEMPLATES
-    .filter(c => c.category === 'lien')
+  const ctaLienSection = LINKEDIN_CTA_TEMPLATES.filter(c => c.category === 'lien')
     .map(c => c.templates.slice(0, 3).join(' | '))
     .join('\n');
 
-  const emojiSection = LINKEDIN_EMOJI_STRATEGY.slice(0, 3).map(e =>
-    `• ${e.category}: ${e.emojis.join(' ')} - ${e.usage}`
-  ).join('\n');
+  const emojiSection = LINKEDIN_EMOJI_STRATEGY.slice(0, 3)
+    .map(e => `• ${e.category}: ${e.emojis.join(' ')} - ${e.usage}`)
+    .join('\n');
 
   return `Génère un post LinkedIn PROFESSIONNEL et ENGAGEANT pour l'article suivant.
 
@@ -967,9 +934,8 @@ export function buildUserPrompt(
   const angleSpec = CONTENT_ANGLES[options.angle];
 
   // Résumé de l'article (limité pour ne pas surcharger le contexte)
-  const contentSummary = article.content.length > 3000
-    ? article.content.substring(0, 3000) + '...'
-    : article.content;
+  const contentSummary =
+    article.content.length > 3000 ? article.content.substring(0, 3000) + '...' : article.content;
 
   const prompt = `Génère un post ${spec.name} pour l'article suivant.
 
@@ -1000,7 +966,7 @@ ${spec.structure.map((s, i) => `${i + 1}. ${s}`).join('\n')}
 Hashtags: ${spec.optimalHashtags} hashtags (min: ${spec.minHashtags}, max: ${spec.maxHashtags})
 Style hashtags: ${spec.hashtagStyle}
 
-Lien: ${spec.linkPlacement === 'inline' ? 'Dans le post' : spec.linkPlacement === 'comment' ? 'Mentionner qu\'il sera en commentaire' : 'Mentionner "lien en bio"'}
+Lien: ${spec.linkPlacement === 'inline' ? 'Dans le post' : spec.linkPlacement === 'comment' ? "Mentionner qu'il sera en commentaire" : 'Mentionner "lien en bio"'}
 Émojis: ${spec.emojiUsage === 'minimal' ? 'Peu ou pas' : spec.emojiUsage === 'moderate' ? 'Avec modération' : 'Librement'}
 
 Conseils spécifiques:
@@ -1047,16 +1013,16 @@ export function buildMultiPlatformPrompt(
   const toneSpec = CONTENT_TONES[options.tone];
   const angleSpec = CONTENT_ANGLES[options.angle];
 
-  const contentSummary = article.content.length > 3000
-    ? article.content.substring(0, 3000) + '...'
-    : article.content;
+  const contentSummary =
+    article.content.length > 3000 ? article.content.substring(0, 3000) + '...' : article.content;
 
-  const platformSpecs = platforms.map(platform => {
-    const spec = PLATFORM_GENERATION_SPECS[platform];
+  const platformSpecs = platforms
+    .map(platform => {
+      const spec = PLATFORM_GENERATION_SPECS[platform];
 
-    // Threads utilise des caractères, pas des mots
-    if (platform === 'THREADS') {
-      return `
+      // Threads utilise des caractères, pas des mots
+      if (platform === 'THREADS') {
+        return `
 ### THREADS
 - ⚠️ LIMITE: 150-250 CARACTÈRES maximum (pas mots, CARACTÈRES !)
 - Ton: ${spec.tone}
@@ -1064,9 +1030,9 @@ export function buildMultiPlatformPrompt(
 - Hashtags: 0-1 maximum (Threads n'aime pas les hashtags)
 - Lien: sera ajouté automatiquement après le texte
 - IMPORTANT: Une seule idée percutante, pas de développement`;
-    }
+      }
 
-    return `
+      return `
 ### ${spec.name.toUpperCase()}
 - Longueur: ${spec.optimalLength} mots
 - Ton: ${spec.tone}
@@ -1074,7 +1040,8 @@ export function buildMultiPlatformPrompt(
 - Hashtags: ${spec.optimalHashtags} (style: ${spec.hashtagStyle})
 - Lien: ${spec.linkPlacement === 'inline' ? 'dans le post' : spec.linkPlacement === 'comment' ? 'en commentaire' : 'lien en bio'}
 - Émojis: ${spec.emojiUsage}`;
-  }).join('\n');
+    })
+    .join('\n');
 
   return `Génère des posts pour TOUTES les plateformes suivantes à partir de cet article.
 

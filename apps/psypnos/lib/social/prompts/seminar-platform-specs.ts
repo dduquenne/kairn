@@ -14,11 +14,7 @@
  * 4. Respecter les contraintes déontologiques
  */
 
-import type {
-  ContentTone,
-  ContentAngle,
-  SocialPlatform,
-} from '../types';
+import type { ContentTone, SocialPlatform } from '../types';
 
 // ===========================================
 // Types spécifiques aux séminaires
@@ -28,44 +24,44 @@ import type {
  * Formats de posts Instagram pour la promotion de séminaires
  */
 export type SeminarInstagramFormat =
-  | 'compte_rebours'      // Urgence avec décompte des jours/places
-  | 'apercu_experience'   // Prévisualisation de l'expérience
-  | 'temoignage_passe'    // Retour sur un séminaire précédent
-  | 'question_reflexive'  // Question qui fait réfléchir sur le besoin
-  | 'liste_benefices'     // Liste des bénéfices de participation
-  | 'coulisses';          // Behind-the-scenes de la préparation
+  | 'compte_rebours' // Urgence avec décompte des jours/places
+  | 'apercu_experience' // Prévisualisation de l'expérience
+  | 'temoignage_passe' // Retour sur un séminaire précédent
+  | 'question_reflexive' // Question qui fait réfléchir sur le besoin
+  | 'liste_benefices' // Liste des bénéfices de participation
+  | 'coulisses'; // Behind-the-scenes de la préparation
 
 /**
  * Formats de posts LinkedIn pour la promotion de séminaires
  */
 export type SeminarLinkedInFormat =
-  | 'annonce_expert'      // Annonce avec positionnement d'expertise
-  | 'probleme_solution'   // Problème courant + séminaire comme solution
+  | 'annonce_expert' // Annonce avec positionnement d'expertise
+  | 'probleme_solution' // Problème courant + séminaire comme solution
   | 'observation_terrain' // Observation qui justifie le séminaire
-  | 'invitation_reflexion'// Question pro + invitation au séminaire
-  | 'programme_detaille'  // Présentation structurée du programme
-  | 'derniere_chance';    // Urgence professionnelle
+  | 'invitation_reflexion' // Question pro + invitation au séminaire
+  | 'programme_detaille' // Présentation structurée du programme
+  | 'derniere_chance'; // Urgence professionnelle
 
 /**
  * Formats de posts Facebook pour la promotion de séminaires
  */
 export type SeminarFacebookFormat =
-  | 'invitation_chaleureuse'  // Ton conversationnel et accueillant
+  | 'invitation_chaleureuse' // Ton conversationnel et accueillant
   | 'histoire_transformation' // Récit d'un participant passé
-  | 'question_engagement'     // Question + invitation
-  | 'details_pratiques'       // Infos concrètes avec CTA
-  | 'derniers_jours'          // Urgence bienveillante
-  | 'partage_vision';         // Pourquoi ce séminaire existe
+  | 'question_engagement' // Question + invitation
+  | 'details_pratiques' // Infos concrètes avec CTA
+  | 'derniers_jours' // Urgence bienveillante
+  | 'partage_vision'; // Pourquoi ce séminaire existe
 
 /**
  * Formats de posts Threads pour la promotion de séminaires
  */
 export type SeminarThreadsFormat =
-  | 'pensee_spontanee'    // Réflexion naturelle sur le séminaire
-  | 'micro_confession'    // Partage personnel du praticien
-  | 'question_ouverte'    // Question sans réponse directe
+  | 'pensee_spontanee' // Réflexion naturelle sur le séminaire
+  | 'micro_confession' // Partage personnel du praticien
+  | 'question_ouverte' // Question sans réponse directe
   | 'fragment_anticipation' // Évocation poétique de l'expérience
-  | 'rappel_humain';      // Rappel simple et authentique
+  | 'rappel_humain'; // Rappel simple et authentique
 
 /**
  * Niveau d'urgence pour les posts de séminaires
@@ -87,21 +83,22 @@ export interface SeminarInstagramFormatSpec {
   tips: string[];
 }
 
-export const SEMINAR_INSTAGRAM_FORMATS: Record<SeminarInstagramFormat, SeminarInstagramFormatSpec> = {
-  compte_rebours: {
-    id: 'compte_rebours',
-    name: 'Compte à rebours',
-    description: 'Créer l\'urgence avec le nombre de jours ou de places restantes',
-    structure: [
-      'Chiffre accrocheur (jours restants ou places)',
-      'Saut de ligne',
-      'Contexte émotionnel (ce qui se joue)',
-      'Ce que le participant va vivre',
-      'Dates et informations clés',
-      'CTA d\'inscription urgent mais bienveillant',
-      'Hashtags événement',
-    ],
-    example: `Plus que 5 places.
+export const SEMINAR_INSTAGRAM_FORMATS: Record<SeminarInstagramFormat, SeminarInstagramFormatSpec> =
+  {
+    compte_rebours: {
+      id: 'compte_rebours',
+      name: 'Compte à rebours',
+      description: "Créer l'urgence avec le nombre de jours ou de places restantes",
+      structure: [
+        'Chiffre accrocheur (jours restants ou places)',
+        'Saut de ligne',
+        'Contexte émotionnel (ce qui se joue)',
+        'Ce que le participant va vivre',
+        'Dates et informations clés',
+        "CTA d'inscription urgent mais bienveillant",
+        'Hashtags événement',
+      ],
+      example: `Plus que 5 places.
 
 5 personnes qui vont vivre quelque chose de rare.
 
@@ -118,27 +115,27 @@ Pour retrouver ce qui compte vraiment.
 .
 .
 #seminaire #retraite #bienetre #ressourcement`,
-    bestFor: ['Dernières semaines avant l\'événement', 'Places limitées', 'Urgence positive'],
-    tips: [
-      'Utiliser des chiffres précis (pas "quelques places")',
-      'L\'urgence doit rester bienveillante, pas anxiogène',
-      'Rappeler les dates de manière visuelle',
-    ],
-  },
+      bestFor: ["Dernières semaines avant l'événement", 'Places limitées', 'Urgence positive'],
+      tips: [
+        'Utiliser des chiffres précis (pas "quelques places")',
+        "L'urgence doit rester bienveillante, pas anxiogène",
+        'Rappeler les dates de manière visuelle',
+      ],
+    },
 
-  apercu_experience: {
-    id: 'apercu_experience',
-    name: 'Aperçu de l\'expérience',
-    description: 'Faire vivre par anticipation ce qui attend les participants',
-    structure: [
-      'Visualisation immersive ("Imaginez...")',
-      'Description sensorielle du lieu et de l\'ambiance',
-      'Ce qui va se passer (sans tout révéler)',
-      'La transformation possible',
-      'Informations pratiques',
-      'CTA invitation',
-    ],
-    example: `Imaginez.
+    apercu_experience: {
+      id: 'apercu_experience',
+      name: "Aperçu de l'expérience",
+      description: 'Faire vivre par anticipation ce qui attend les participants',
+      structure: [
+        'Visualisation immersive ("Imaginez...")',
+        "Description sensorielle du lieu et de l'ambiance",
+        'Ce qui va se passer (sans tout révéler)',
+        'La transformation possible',
+        'Informations pratiques',
+        'CTA invitation',
+      ],
+      example: `Imaginez.
 
 Un lieu hors du temps.
 Le silence. La nature.
@@ -159,26 +156,26 @@ C'est ce que propose le séminaire "Retrouver l'Essentiel".
 .
 .
 #seminaire #retraite #respiration #bourgogne`,
-    bestFor: ['Annoncer un nouveau séminaire', 'Créer l\'envie', 'Posts visuels'],
-    tips: [
-      'Faire appel aux sens (vue, son, ressenti)',
-      'Créer un contraste avec le quotidien',
-      'Laisser une part de mystère',
-    ],
-  },
+      bestFor: ['Annoncer un nouveau séminaire', "Créer l'envie", 'Posts visuels'],
+      tips: [
+        'Faire appel aux sens (vue, son, ressenti)',
+        'Créer un contraste avec le quotidien',
+        'Laisser une part de mystère',
+      ],
+    },
 
-  temoignage_passe: {
-    id: 'temoignage_passe',
-    name: 'Témoignage passé',
-    description: 'Utiliser un retour d\'expérience pour illustrer la valeur',
-    structure: [
-      'Citation ou ressenti d\'un participant (anonymisé)',
-      'Contexte du séminaire passé',
-      'Ce que la personne a vécu/appris',
-      'Lien avec le prochain séminaire',
-      'Invitation à vivre la même chose',
-    ],
-    example: `"Je ne m'attendais pas à ça."
+    temoignage_passe: {
+      id: 'temoignage_passe',
+      name: 'Témoignage passé',
+      description: "Utiliser un retour d'expérience pour illustrer la valeur",
+      structure: [
+        "Citation ou ressenti d'un participant (anonymisé)",
+        'Contexte du séminaire passé',
+        'Ce que la personne a vécu/appris',
+        'Lien avec le prochain séminaire',
+        'Invitation à vivre la même chose',
+      ],
+      example: `"Je ne m'attendais pas à ça."
 
 C'est ce qu'elle m'a dit à la fin du dernier séminaire.
 
@@ -195,26 +192,26 @@ Le prochain séminaire a lieu les 17-18 janvier.
 .
 .
 #seminaire #temoignage #transformation #bienetre`,
-    bestFor: ['Après un séminaire réussi', 'Crédibilité', 'Connexion émotionnelle'],
-    tips: [
-      'Toujours anonymiser complètement',
-      'Privilégier le ressenti à la description technique',
-      'Ne pas faire de promesses de résultats',
-    ],
-  },
+      bestFor: ['Après un séminaire réussi', 'Crédibilité', 'Connexion émotionnelle'],
+      tips: [
+        'Toujours anonymiser complètement',
+        'Privilégier le ressenti à la description technique',
+        'Ne pas faire de promesses de résultats',
+      ],
+    },
 
-  question_reflexive: {
-    id: 'question_reflexive',
-    name: 'Question réflexive',
-    description: 'Poser une question qui fait réfléchir sur le besoin',
-    structure: [
-      'Question qui touche un besoin profond',
-      'Pause (saut de ligne)',
-      'Développement de la réflexion',
-      'Lien avec ce que propose le séminaire',
-      'Invitation sans pression',
-    ],
-    example: `À quand remonte la dernière fois où vous avez vraiment déconnecté ?
+    question_reflexive: {
+      id: 'question_reflexive',
+      name: 'Question réflexive',
+      description: 'Poser une question qui fait réfléchir sur le besoin',
+      structure: [
+        'Question qui touche un besoin profond',
+        'Pause (saut de ligne)',
+        'Développement de la réflexion',
+        'Lien avec ce que propose le séminaire',
+        'Invitation sans pression',
+      ],
+      example: `À quand remonte la dernière fois où vous avez vraiment déconnecté ?
 
 Pas juste "posé le téléphone".
 Vraiment déconnecté.
@@ -235,26 +232,26 @@ Le séminaire "Retrouver l'Essentiel" est fait pour ça.
 .
 .
 #deconnexion #ressourcement #seminaire #pause`,
-    bestFor: ['Créer la prise de conscience', 'Cibler un besoin', 'Engagement'],
-    tips: [
-      'La question doit résonner avec une douleur réelle',
-      'Ne pas culpabiliser le lecteur',
-      'Proposer le séminaire comme une possibilité, pas une obligation',
-    ],
-  },
+      bestFor: ['Créer la prise de conscience', 'Cibler un besoin', 'Engagement'],
+      tips: [
+        'La question doit résonner avec une douleur réelle',
+        'Ne pas culpabiliser le lecteur',
+        'Proposer le séminaire comme une possibilité, pas une obligation',
+      ],
+    },
 
-  liste_benefices: {
-    id: 'liste_benefices',
-    name: 'Liste des bénéfices',
-    description: 'Présenter ce que le participant va retirer du séminaire',
-    structure: [
-      'Accroche sur le résultat',
-      'Liste de 3-5 bénéfices avec émojis',
-      'Ce qui rend ce séminaire unique',
-      'Informations pratiques',
-      'CTA',
-    ],
-    example: `Ce que vous allez vivre pendant ces 2 jours :
+    liste_benefices: {
+      id: 'liste_benefices',
+      name: 'Liste des bénéfices',
+      description: 'Présenter ce que le participant va retirer du séminaire',
+      structure: [
+        'Accroche sur le résultat',
+        'Liste de 3-5 bénéfices avec émojis',
+        'Ce qui rend ce séminaire unique',
+        'Informations pratiques',
+        'CTA',
+      ],
+      example: `Ce que vous allez vivre pendant ces 2 jours :
 
 ✨ Un cadre exceptionnel, loin du quotidien
 🌬️ Des pratiques de respiration transformatrices
@@ -271,26 +268,26 @@ Le séminaire "Retrouver l'Essentiel"
 .
 .
 #seminaire #bienfaits #retraite #ressourcement`,
-    bestFor: ['Présentation claire', 'Décision rationnelle', 'Posts informatifs'],
-    tips: [
-      'Bénéfices concrets et tangibles',
-      'Pas de promesses thérapeutiques',
-      'Équilibre entre émotionnel et pratique',
-    ],
-  },
+      bestFor: ['Présentation claire', 'Décision rationnelle', 'Posts informatifs'],
+      tips: [
+        'Bénéfices concrets et tangibles',
+        'Pas de promesses thérapeutiques',
+        'Équilibre entre émotionnel et pratique',
+      ],
+    },
 
-  coulisses: {
-    id: 'coulisses',
-    name: 'Coulisses',
-    description: 'Montrer la préparation et l\'envers du décor',
-    structure: [
-      'Ancrage temporel ("En ce moment...")',
-      'Ce qui se passe en préparation',
-      'Pourquoi c\'est important',
-      'Lien avec l\'expérience des participants',
-      'Invitation',
-    ],
-    example: `En ce moment, je prépare le prochain séminaire.
+    coulisses: {
+      id: 'coulisses',
+      name: 'Coulisses',
+      description: "Montrer la préparation et l'envers du décor",
+      structure: [
+        'Ancrage temporel ("En ce moment...")',
+        'Ce qui se passe en préparation',
+        "Pourquoi c'est important",
+        "Lien avec l'expérience des participants",
+        'Invitation',
+      ],
+      example: `En ce moment, je prépare le prochain séminaire.
 
 Je choisis les musiques.
 Je pense à l'ambiance.
@@ -310,14 +307,14 @@ Peut-être que l'une d'elles vous attend.
 .
 .
 #coulisses #preparation #seminaire #soin`,
-    bestFor: ['Humaniser le praticien', 'Créer de l\'anticipation', 'Authenticité'],
-    tips: [
-      'Montrer l\'attention au détail',
-      'Rester humble et authentique',
-      'Créer un lien personnel',
-    ],
-  },
-};
+      bestFor: ['Humaniser le praticien', "Créer de l'anticipation", 'Authenticité'],
+      tips: [
+        "Montrer l'attention au détail",
+        'Rester humble et authentique',
+        'Créer un lien personnel',
+      ],
+    },
+  };
 
 // ===========================================
 // Formats LinkedIn pour séminaires
@@ -338,14 +335,14 @@ export const SEMINAR_LINKEDIN_FORMATS: Record<SeminarLinkedInFormat, SeminarLink
   annonce_expert: {
     id: 'annonce_expert',
     name: 'Annonce expert',
-    description: 'Annoncer le séminaire avec un positionnement d\'expertise',
+    description: "Annoncer le séminaire avec un positionnement d'expertise",
     structure: [
       'Accroche avec observation professionnelle',
       'Constat qui justifie le séminaire',
       'Présentation du séminaire comme réponse',
       'Détails clés (dates, lieu, capacité)',
       'Lien en commentaire',
-      'Question d\'engagement',
+      "Question d'engagement",
     ],
     example: `En 15 ans d'accompagnement, une chose m'a frappé :
 
@@ -368,10 +365,10 @@ Le programme complet est en commentaire 👇
 Ça vous parle ?
 
 #seminaire #bienetre #respiration #burnout #ressourcement`,
-    bestFor: ['Annonce officielle', 'Positionnement d\'expertise', 'Audience professionnelle'],
+    bestFor: ['Annonce officielle', "Positionnement d'expertise", 'Audience professionnelle'],
     tips: [
-      'Commencer par l\'observation, pas par la vente',
-      'Justifier l\'existence du séminaire par un besoin réel',
+      "Commencer par l'observation, pas par la vente",
+      "Justifier l'existence du séminaire par un besoin réel",
       'Rester professionnel mais accessible',
     ],
     optimalLength: { min: 100, max: 200 },
@@ -412,7 +409,7 @@ Lien vers le programme en commentaire.
 Vous sentez que vous auriez besoin de cette pause ?
 
 #stress #burnout #seminaire #respiration #bienetre`,
-    bestFor: ['Cibler une douleur spécifique', 'Créer l\'urgence', 'Audience stressée'],
+    bestFor: ['Cibler une douleur spécifique', "Créer l'urgence", 'Audience stressée'],
     tips: [
       'Le problème doit être reconnaissable',
       'La solution doit être présentée avec humilité',
@@ -426,7 +423,7 @@ Vous sentez que vous auriez besoin de cette pause ?
     name: 'Observation terrain',
     description: 'Partager une observation professionnelle qui mène au séminaire',
     structure: [
-      'Ancrage d\'expérience',
+      "Ancrage d'expérience",
       'Pattern observé',
       'Réflexion sur ce constat',
       'Lien avec le séminaire',
@@ -455,9 +452,9 @@ Programme complet en commentaire 👇
 #observation #pratique #seminaire #espace #bienetre`,
     bestFor: ['Crédibilité', 'Authenticité', 'Positionnement unique'],
     tips: [
-      'L\'observation doit être universelle',
+      "L'observation doit être universelle",
       'Le séminaire doit être une réponse logique',
-      'Montrer l\'intention derrière la conception',
+      "Montrer l'intention derrière la conception",
     ],
     optimalLength: { min: 80, max: 160 },
   },
@@ -465,7 +462,7 @@ Programme complet en commentaire 👇
   invitation_reflexion: {
     id: 'invitation_reflexion',
     name: 'Invitation réflexion',
-    description: 'Question professionnelle qui ouvre sur l\'invitation au séminaire',
+    description: "Question professionnelle qui ouvre sur l'invitation au séminaire",
     structure: [
       'Question qui fait réfléchir',
       'Développement de la réflexion',
@@ -498,7 +495,7 @@ Infos complètes en commentaire.
     tips: [
       'La question doit toucher un besoin profond',
       'Ne pas culpabiliser',
-      'L\'invitation doit rester ouverte',
+      "L'invitation doit rester ouverte",
     ],
     optimalLength: { min: 70, max: 150 },
   },
@@ -508,7 +505,7 @@ Infos complètes en commentaire.
     name: 'Programme détaillé',
     description: 'Présenter le programme de manière structurée',
     structure: [
-      'Accroche sur l\'expérience',
+      "Accroche sur l'expérience",
       'Déroulé jour par jour (synthétique)',
       'Ce qui rend ce programme unique',
       'Informations pratiques (lieu, dates, prix)',
@@ -550,9 +547,9 @@ Des questions ? Je réponds en commentaire 👇
   derniere_chance: {
     id: 'derniere_chance',
     name: 'Dernière chance',
-    description: 'Créer l\'urgence pour les dernières places',
+    description: "Créer l'urgence pour les dernières places",
     structure: [
-      'Chiffre d\'urgence',
+      "Chiffre d'urgence",
       'Rappel de ce qui se joue',
       'Pourquoi maintenant',
       'CTA direct',
@@ -575,7 +572,7 @@ Prêt(e) à vous accorder ces 2 jours ?
 #derniereplaces #seminaire #decision #janvier`,
     bestFor: ['Derniers jours avant clôture', 'Urgence positive', 'Conversion'],
     tips: [
-      'L\'urgence doit être réelle',
+      "L'urgence doit être réelle",
       'Rester bienveillant, pas pressant',
       'Faciliter la décision',
     ],
@@ -643,7 +640,7 @@ N'hésitez pas à me poser vos questions en commentaire !
   histoire_transformation: {
     id: 'histoire_transformation',
     name: 'Histoire de transformation',
-    description: 'Récit anonymisé d\'un participant pour illustrer la valeur',
+    description: "Récit anonymisé d'un participant pour illustrer la valeur",
     structure: [
       'Début du récit (situation avant)',
       'Le séminaire vécu',
@@ -728,7 +725,7 @@ Dites-moi en commentaire : c'est quoi votre signe que vous avez besoin d'une pau
       'Dates et lieu',
       'Programme synthétique',
       'Prix et modalités',
-      'Comment s\'inscrire',
+      "Comment s'inscrire",
     ],
     example: `📌 SÉMINAIRE "RETROUVER L'ESSENTIEL"
 
@@ -765,7 +762,7 @@ Des questions ? Écrivez-moi !
     name: 'Derniers jours',
     description: 'Urgence bienveillante pour les dernières places',
     structure: [
-      'Annonce de l\'urgence',
+      "Annonce de l'urgence",
       'Rappel de ce qui attend',
       'Pourquoi ne pas hésiter',
       'CTA clair',
@@ -789,11 +786,7 @@ On ferme les inscriptions dans quelques jours.
 
 #dernieresplaces #seminaire #janvier`,
     bestFor: ['Conversion', 'Fin des inscriptions', 'Urgence'],
-    tips: [
-      'L\'urgence doit être réelle',
-      'Rester bienveillant',
-      'Faciliter l\'action immédiate',
-    ],
+    tips: ["L'urgence doit être réelle", 'Rester bienveillant', "Faciliter l'action immédiate"],
     optimalLength: { min: 40, max: 80 },
   },
 
@@ -802,8 +795,8 @@ On ferme les inscriptions dans quelques jours.
     name: 'Partage de vision',
     description: 'Expliquer pourquoi ce séminaire existe',
     structure: [
-      'L\'origine du séminaire',
-      'Ce qui m\'anime',
+      "L'origine du séminaire",
+      "Ce qui m'anime",
       'Ce que je souhaite offrir',
       'Invitation',
     ],
@@ -828,11 +821,7 @@ Qu'est-ce qui vous fait dire "j'aurais besoin de ça" ?
 
 #vision #seminaire #pourquoi #intention`,
     bestFor: ['Connexion personnelle', 'Authenticité', 'Positionnement'],
-    tips: [
-      'Être sincère sur la motivation',
-      'Créer un lien émotionnel',
-      'Inviter à partager',
-    ],
+    tips: ['Être sincère sur la motivation', 'Créer un lien émotionnel', 'Inviter à partager'],
     optimalLength: { min: 60, max: 110 },
   },
 };
@@ -857,15 +846,11 @@ export const SEMINAR_THREADS_FORMATS: Record<SeminarThreadsFormat, SeminarThread
     id: 'pensee_spontanee',
     name: 'Pensée spontanée',
     description: 'Réflexion naturelle comme si on pensait à voix haute',
-    structure: [
-      'Pensée en cours',
-      'Développement bref',
-      'Lien implicite avec le séminaire',
-    ],
+    structure: ['Pensée en cours', 'Développement bref', 'Lien implicite avec le séminaire'],
     examples: [
-      'je prépare le séminaire de janvier et je réalise à quel point on a tous besoin d\'espace. pas d\'espace physique. d\'espace intérieur.',
-      'dans 3 semaines, 18 personnes vont se retrouver dans un lieu hors du temps. j\'ai hâte.',
-      'parfois je me demande ce qui ferait vraiment du bien aux gens. et la réponse c\'est souvent : s\'arrêter. juste s\'arrêter.',
+      "je prépare le séminaire de janvier et je réalise à quel point on a tous besoin d'espace. pas d'espace physique. d'espace intérieur.",
+      "dans 3 semaines, 18 personnes vont se retrouver dans un lieu hors du temps. j'ai hâte.",
+      "parfois je me demande ce qui ferait vraiment du bien aux gens. et la réponse c'est souvent : s'arrêter. juste s'arrêter.",
     ],
     bestFor: ['Authenticité', 'Teasing léger', 'Connexion humaine'],
     tips: [
@@ -880,21 +865,14 @@ export const SEMINAR_THREADS_FORMATS: Record<SeminarThreadsFormat, SeminarThread
     id: 'micro_confession',
     name: 'Micro confession',
     description: 'Partage personnel du praticien sur le séminaire',
-    structure: [
-      'Aveu personnel',
-      'Ce que ça signifie',
-    ],
+    structure: ['Aveu personnel', 'Ce que ça signifie'],
     examples: [
       'je suis toujours un peu ému avant chaque séminaire. même après des années. parce que je sais ce qui peut se passer quand on crée un espace de confiance.',
-      'confession : je prépare le prochain séminaire avec autant de soin que si c\'était le premier.',
+      "confession : je prépare le prochain séminaire avec autant de soin que si c'était le premier.",
       'ce qui me touche le plus ? quand quelqu\'un repart en disant "je me suis retrouvé". ça n\'a pas de prix.',
     ],
     bestFor: ['Humaniser le praticien', 'Authenticité', 'Connexion'],
-    tips: [
-      'Vulnérabilité mesurée',
-      'Sincérité',
-      'Pas de fausse modestie',
-    ],
+    tips: ['Vulnérabilité mesurée', 'Sincérité', 'Pas de fausse modestie'],
     maxLength: 250,
   },
 
@@ -902,14 +880,11 @@ export const SEMINAR_THREADS_FORMATS: Record<SeminarThreadsFormat, SeminarThread
     id: 'question_ouverte',
     name: 'Question ouverte',
     description: 'Question sans réponse directe qui fait réfléchir',
-    structure: [
-      'Question simple',
-      'Éventuellement une nuance',
-    ],
+    structure: ['Question simple', 'Éventuellement une nuance'],
     examples: [
       'c\'est quoi pour vous "retrouver l\'essentiel" ?',
       'quand est-ce que vous vous êtes vraiment arrêté la dernière fois ?',
-      'si vous pouviez prendre 2 jours pour vous, qu\'est-ce que vous en feriez ?',
+      "si vous pouviez prendre 2 jours pour vous, qu'est-ce que vous en feriez ?",
     ],
     bestFor: ['Engagement', 'Réflexion', 'Threads aime les conversations'],
     tips: [
@@ -922,23 +897,16 @@ export const SEMINAR_THREADS_FORMATS: Record<SeminarThreadsFormat, SeminarThread
 
   fragment_anticipation: {
     id: 'fragment_anticipation',
-    name: 'Fragment d\'anticipation',
-    description: 'Évocation poétique de l\'expérience à venir',
-    structure: [
-      'Image ou sensation évoquée',
-      'Lien implicite avec le séminaire',
-    ],
+    name: "Fragment d'anticipation",
+    description: "Évocation poétique de l'expérience à venir",
+    structure: ['Image ou sensation évoquée', 'Lien implicite avec le séminaire'],
     examples: [
       'un feu de cheminée. le silence. 18 personnes qui respirent ensemble. janvier arrive.',
       'imaginez : deux jours sans notification. sans urgence. juste être là.',
       'le moulin. la nature. le groupe. tout est prêt pour janvier.',
     ],
-    bestFor: ['Créer l\'envie', 'Posts visuels', 'Anticipation'],
-    tips: [
-      'Style quasi-poétique',
-      'Sensations plutôt qu\'informations',
-      'Laisser imaginer',
-    ],
+    bestFor: ["Créer l'envie", 'Posts visuels', 'Anticipation'],
+    tips: ['Style quasi-poétique', "Sensations plutôt qu'informations", 'Laisser imaginer'],
     maxLength: 220,
   },
 
@@ -946,21 +914,14 @@ export const SEMINAR_THREADS_FORMATS: Record<SeminarThreadsFormat, SeminarThread
     id: 'rappel_humain',
     name: 'Rappel humain',
     description: 'Rappel simple et authentique sur le séminaire',
-    structure: [
-      'Information simple',
-      'Touche personnelle',
-    ],
+    structure: ['Information simple', 'Touche personnelle'],
     examples: [
-      'petit rappel : il reste quelques places pour le séminaire de janvier. si ça vous parle, c\'est le moment.',
+      "petit rappel : il reste quelques places pour le séminaire de janvier. si ça vous parle, c'est le moment.",
       'séminaire dans 3 semaines. je commence à visualiser le groupe. vous serez peut-être dedans ?',
       'dernières places pour janvier. je dis ça, je dis rien.',
     ],
     bestFor: ['Rappels', 'Urgence douce', 'Dernières places'],
-    tips: [
-      'Ton décontracté',
-      'Pas de pression',
-      'Humour léger acceptable',
-    ],
+    tips: ['Ton décontracté', 'Pas de pression', 'Humour léger acceptable'],
     maxLength: 200,
   },
 };
@@ -982,12 +943,12 @@ export const SEMINAR_URGENCY_LEVELS: Record<SeminarUrgencyLevel, SeminarUrgencyS
   1: {
     level: 1,
     name: 'Annonce douce',
-    description: 'Première annonce, pas d\'urgence, juste information',
-    timing: 'Plus de 6 semaines avant l\'événement',
+    description: "Première annonce, pas d'urgence, juste information",
+    timing: "Plus de 6 semaines avant l'événement",
     characteristics: [
       'Ton informatif',
       'Pas de mention de places limitées',
-      'Focus sur le contenu et l\'expérience',
+      "Focus sur le contenu et l'expérience",
     ],
     examplePhrase: 'Je suis heureux de vous annoncer le prochain séminaire...',
   },
@@ -995,7 +956,7 @@ export const SEMINAR_URGENCY_LEVELS: Record<SeminarUrgencyLevel, SeminarUrgencyS
     level: 2,
     name: 'Invitation ouverte',
     description: 'Invitation chaleureuse avec mention des places',
-    timing: '4-6 semaines avant l\'événement',
+    timing: "4-6 semaines avant l'événement",
     characteristics: [
       'Mention du nombre de places total',
       'Invitation à s\'inscrire "quand vous êtes prêt"',
@@ -1007,7 +968,7 @@ export const SEMINAR_URGENCY_LEVELS: Record<SeminarUrgencyLevel, SeminarUrgencyS
     level: 3,
     name: 'Rappel engagé',
     description: 'Rappel avec mention du remplissage',
-    timing: '2-4 semaines avant l\'événement',
+    timing: "2-4 semaines avant l'événement",
     characteristics: [
       'Mention du nombre de places restantes',
       'Suggestion de ne pas trop attendre',
@@ -1032,12 +993,8 @@ export const SEMINAR_URGENCY_LEVELS: Record<SeminarUrgencyLevel, SeminarUrgencyS
     name: 'Dernière chance',
     description: 'Ultime appel avant clôture des inscriptions',
     timing: 'Derniers jours ou dernières places',
-    characteristics: [
-      'Urgence assumée',
-      'Deadline claire',
-      'CTA direct',
-    ],
-    examplePhrase: 'Inscriptions closes dans 48h. C\'est maintenant ou jamais.',
+    characteristics: ['Urgence assumée', 'Deadline claire', 'CTA direct'],
+    examplePhrase: "Inscriptions closes dans 48h. C'est maintenant ou jamais.",
   },
 };
 
@@ -1059,11 +1016,7 @@ export const SEMINAR_HOOK_PATTERNS: SeminarHookPattern[] = [
     id: 'compte_rebours',
     name: 'Compte à rebours',
     pattern: 'Plus que [X] [places/jours].',
-    examples: [
-      'Plus que 5 places.',
-      'Plus que 3 semaines.',
-      'J-14 avant le séminaire.',
-    ],
+    examples: ['Plus que 5 places.', 'Plus que 3 semaines.', 'J-14 avant le séminaire.'],
     bestFor: ['promotionnel', 'informatif'],
     platforms: ['INSTAGRAM', 'FACEBOOK', 'LINKEDIN'],
   },
@@ -1106,11 +1059,11 @@ export const SEMINAR_HOOK_PATTERNS: SeminarHookPattern[] = [
   {
     id: 'observation_besoin',
     name: 'Observation sur le besoin',
-    pattern: 'Ce que j\'observe depuis [X] ans : [constat].',
+    pattern: "Ce que j'observe depuis [X] ans : [constat].",
     examples: [
-      'Ce que j\'observe depuis 15 ans : on a tous besoin d\'espace.',
+      "Ce que j'observe depuis 15 ans : on a tous besoin d'espace.",
       'Ce que je vois en cabinet : le manque de pause.',
-      'Ce que je constate : le besoin de ralentir n\'a jamais été aussi fort.',
+      "Ce que je constate : le besoin de ralentir n'a jamais été aussi fort.",
     ],
     bestFor: ['informatif', 'educatif'],
     platforms: ['LINKEDIN', 'FACEBOOK'],
@@ -1145,7 +1098,7 @@ export const SEMINAR_CTA_TEMPLATES: SeminarCTATemplate[] = [
     category: 'inscription',
     templates: [
       '→ Réservez votre place (lien en bio)',
-      '→ Inscrivez-vous avant qu\'il ne soit trop tard',
+      "→ Inscrivez-vous avant qu'il ne soit trop tard",
       '→ Votre place vous attend : lien en bio',
       '👉 Inscription : [lien]',
       '→ Réserver ma place',
@@ -1156,7 +1109,7 @@ export const SEMINAR_CTA_TEMPLATES: SeminarCTATemplate[] = [
     category: 'information',
     templates: [
       '→ Programme complet en commentaire',
-      '→ Plus d\'infos : lien en bio',
+      "→ Plus d'infos : lien en bio",
       '→ Toutes les infos en commentaire 👇',
       '→ Découvrez le programme complet',
       '→ Lien en bio pour en savoir plus',
@@ -1168,7 +1121,7 @@ export const SEMINAR_CTA_TEMPLATES: SeminarCTATemplate[] = [
     templates: [
       '→ Ne manquez pas votre place',
       '→ Inscriptions bientôt closes',
-      '→ C\'est le moment de décider',
+      "→ C'est le moment de décider",
       '→ Dernières places disponibles',
       '→ Plus que [X] places !',
     ],
@@ -1179,7 +1132,7 @@ export const SEMINAR_CTA_TEMPLATES: SeminarCTATemplate[] = [
     templates: [
       '→ Des questions ? Écrivez-moi !',
       '→ Je réponds à vos questions en commentaire',
-      '→ N\'hésitez pas à me contacter',
+      "→ N'hésitez pas à me contacter",
       '→ Dites-moi si ça vous parle en commentaire',
       '→ Curieux ? Posez vos questions !',
     ],
@@ -1273,9 +1226,7 @@ export function suggestSeminarFacebookFormat(
 /**
  * Suggère un format Threads approprié selon le ton
  */
-export function suggestSeminarThreadsFormat(
-  tone: ContentTone
-): SeminarThreadsFormat {
+export function suggestSeminarThreadsFormat(tone: ContentTone): SeminarThreadsFormat {
   const suggestions: Record<ContentTone, SeminarThreadsFormat[]> = {
     informatif: ['rappel_humain', 'pensee_spontanee'],
     inspirant: ['fragment_anticipation', 'question_ouverte'],
