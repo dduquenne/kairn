@@ -6,6 +6,108 @@
 import type { PeriodType } from '../PeriodSelector';
 
 // ============================================================================
+// Period Date Range Utilities
+// ============================================================================
+
+/**
+ * Returns the correct start and end dates for a given period.
+ * This is the SINGLE SOURCE OF TRUTH for period date calculations.
+ */
+export const getPeriodDateRange = (
+  period: PeriodType,
+  customStart?: string,
+  customEnd?: string
+): { startDate: Date; endDate: Date } => {
+  const now = new Date();
+
+  if (period === 'custom' && customStart && customEnd) {
+    const start = new Date(customStart);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(customEnd);
+    end.setHours(23, 59, 59, 999);
+    return { startDate: start, endDate: end };
+  }
+
+  let startDate: Date;
+  let endDate: Date = new Date(now); // Default to now
+
+  switch (period) {
+    case 'realtime':
+      startDate = new Date(now.getTime() - 60 * 60 * 1000); // 1 hour ago
+      break;
+
+    case 'today':
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+      break;
+
+    case 'yesterday':
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 0, 0, 0, 0);
+      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 23, 59, 59, 999);
+      break;
+
+    case 'last7days':
+      startDate = new Date(now);
+      startDate.setDate(startDate.getDate() - 6);
+      startDate.setHours(0, 0, 0, 0);
+      break;
+
+    case 'last30days':
+      startDate = new Date(now);
+      startDate.setDate(startDate.getDate() - 29);
+      startDate.setHours(0, 0, 0, 0);
+      break;
+
+    case 'thisMonth':
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+      break;
+
+    case 'lastMonth':
+      startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
+      // End date is the last day of previous month at 23:59:59
+      endDate = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+      break;
+
+    case 'last3months':
+      startDate = new Date(now);
+      startDate.setDate(startDate.getDate() - 90);
+      startDate.setHours(0, 0, 0, 0);
+      break;
+
+    case 'thisYear':
+      startDate = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0);
+      break;
+
+    default:
+      startDate = new Date(now);
+      startDate.setDate(startDate.getDate() - 6);
+      startDate.setHours(0, 0, 0, 0);
+  }
+
+  return { startDate, endDate };
+};
+
+/**
+ * Determines the best period type to use for a custom date range.
+ * This ensures custom periods get appropriate label formatting based on their span.
+ */
+export const getEffectivePeriodForCustomRange = (startDate: Date, endDate: Date): PeriodType => {
+  const diffMs = endDate.getTime() - startDate.getTime();
+  const diffDays = diffMs / (24 * 60 * 60 * 1000);
+
+  if (diffDays <= 1) {
+    return 'today'; // Use hourly labels
+  } else if (diffDays <= 7) {
+    return 'last7days'; // Use weekday + day labels
+  } else if (diffDays <= 60) {
+    return 'last30days'; // Use day + month labels
+  } else if (diffDays <= 120) {
+    return 'last3months'; // Use week labels
+  } else {
+    return 'thisYear'; // Use month labels
+  }
+};
+
+// ============================================================================
 // Date Formatting Functions
 // ============================================================================
 
@@ -95,8 +197,24 @@ export const formatMonth = (date: Date): string => {
 /**
  * Get the bucket key (label) for a date based on the period type.
  * This determines how the date will be displayed on the X-axis.
+ *
+ * For custom periods, pass customStartDate and customEndDate to determine
+ * the appropriate label format based on the date range span.
  */
-export const getBucketKey = (date: Date, period: PeriodType): string => {
+export const getBucketKey = (
+  date: Date,
+  period: PeriodType,
+  customStartDate?: string,
+  customEndDate?: string
+): string => {
+  // For custom period, determine effective period based on date span
+  if (period === 'custom' && customStartDate && customEndDate) {
+    const startDate = new Date(customStartDate);
+    const endDate = new Date(customEndDate);
+    const effectivePeriod = getEffectivePeriodForCustomRange(startDate, endDate);
+    return getBucketKey(date, effectivePeriod); // Recursive call with effective period
+  }
+
   switch (period) {
     case 'realtime':
     case 'today':
@@ -107,12 +225,14 @@ export const getBucketKey = (date: Date, period: PeriodType): string => {
     case 'last30days':
     case 'thisMonth':
     case 'lastMonth':
-    case 'custom':
       return formatDayMonth(date);
     case 'last3months':
       return formatWeek(date);
     case 'thisYear':
       return formatMonth(date);
+    case 'custom':
+      // Fallback for custom without date range - use day+month
+      return formatDayMonth(date);
     default:
       return formatDayMonth(date);
   }
@@ -126,11 +246,27 @@ export const getBucketKey = (date: Date, period: PeriodType): string => {
  * Normalize a date to the start of its bucket based on the period type.
  * This is CRITICAL for correct aggregation - all dates within a bucket
  * must normalize to the same timestamp.
+ *
+ * For custom periods, pass customStartDate and customEndDate to determine
+ * the appropriate normalization based on the date range span.
  */
-export const normalizeToBucketStart = (date: Date, period: PeriodType): Date => {
+export const normalizeToBucketStart = (
+  date: Date,
+  period: PeriodType,
+  customStartDate?: string,
+  customEndDate?: string
+): Date => {
   const normalized = new Date(date);
 
-  switch (period) {
+  // For custom period, determine effective period based on date span
+  let effectivePeriod = period;
+  if (period === 'custom' && customStartDate && customEndDate) {
+    const startDate = new Date(customStartDate);
+    const endDate = new Date(customEndDate);
+    effectivePeriod = getEffectivePeriodForCustomRange(startDate, endDate);
+  }
+
+  switch (effectivePeriod) {
     case 'realtime':
       // Round down to nearest 5-minute interval
       normalized.setMinutes(Math.floor(normalized.getMinutes() / 5) * 5);
@@ -150,7 +286,6 @@ export const normalizeToBucketStart = (date: Date, period: PeriodType): Date => 
     case 'last30days':
     case 'thisMonth':
     case 'lastMonth':
-    case 'custom':
       // Round to start of day
       normalized.setHours(0, 0, 0, 0);
       break;
@@ -168,6 +303,11 @@ export const normalizeToBucketStart = (date: Date, period: PeriodType): Date => 
     case 'thisYear':
       // Round to start of month
       normalized.setDate(1);
+      normalized.setHours(0, 0, 0, 0);
+      break;
+
+    case 'custom':
+      // Fallback for custom without date range - use day start
       normalized.setHours(0, 0, 0, 0);
       break;
 
@@ -192,10 +332,109 @@ export interface ChartBucket {
 /**
  * Generate all chart buckets for a given period.
  * Returns buckets with their labels and normalized timestamps for aggregation.
+ *
+ * For custom periods, optionally pass customStartDate and customEndDate to generate
+ * appropriate buckets for the custom range.
  */
-export const generateChartBuckets = (period: PeriodType): ChartBucket[] => {
+export const generateChartBuckets = (
+  period: PeriodType,
+  customStartDate?: string,
+  customEndDate?: string
+): ChartBucket[] => {
   const now = new Date();
   const buckets: ChartBucket[] = [];
+
+  // Handle custom period specially - determine effective period based on date span
+  if (period === 'custom' && customStartDate && customEndDate) {
+    const startDate = new Date(customStartDate);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(customEndDate);
+    endDate.setHours(23, 59, 59, 999);
+
+    const effectivePeriod = getEffectivePeriodForCustomRange(startDate, endDate);
+
+    // Generate buckets based on effective period type
+    switch (effectivePeriod) {
+      case 'today': {
+        // Hourly buckets
+        const current = new Date(startDate);
+        while (current <= endDate) {
+          buckets.push({
+            label: formatTime(current),
+            timestamp: current.getTime(),
+            value: 0,
+          });
+          current.setHours(current.getHours() + 1);
+        }
+        break;
+      }
+      case 'last7days': {
+        // Daily buckets with weekday
+        const current = new Date(startDate);
+        while (current <= endDate) {
+          buckets.push({
+            label: formatShortDate(current),
+            timestamp: current.getTime(),
+            value: 0,
+          });
+          current.setDate(current.getDate() + 1);
+        }
+        break;
+      }
+      case 'last30days': {
+        // Daily buckets with day+month
+        const current = new Date(startDate);
+        while (current <= endDate) {
+          buckets.push({
+            label: formatDayMonth(current),
+            timestamp: current.getTime(),
+            value: 0,
+          });
+          current.setDate(current.getDate() + 1);
+        }
+        break;
+      }
+      case 'last3months': {
+        // Weekly buckets
+        const seenWeeks = new Set<string>();
+        const current = new Date(startDate);
+        // Align to Monday
+        const dayOfWeek = current.getDay();
+        const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        current.setDate(current.getDate() + diff);
+        current.setHours(0, 0, 0, 0);
+
+        while (current <= endDate) {
+          const weekKey = formatWeek(current);
+          if (!seenWeeks.has(weekKey)) {
+            seenWeeks.add(weekKey);
+            buckets.push({
+              label: weekKey,
+              timestamp: current.getTime(),
+              value: 0,
+            });
+          }
+          current.setDate(current.getDate() + 7);
+        }
+        break;
+      }
+      case 'thisYear': {
+        // Monthly buckets
+        const current = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+        while (current <= endDate) {
+          buckets.push({
+            label: formatMonth(current),
+            timestamp: current.getTime(),
+            value: 0,
+          });
+          current.setMonth(current.getMonth() + 1);
+        }
+        break;
+      }
+    }
+
+    return buckets;
+  }
 
   switch (period) {
     case 'realtime': {
@@ -408,11 +647,16 @@ export interface Visit {
 /**
  * Aggregate visits into chart buckets based on period.
  * Returns buckets with aggregated values.
+ *
+ * For custom periods, pass customStartDate and customEndDate to ensure
+ * proper timestamp normalization.
  */
 export const aggregateVisitsIntoBuckets = (
   buckets: ChartBucket[],
   visits: Visit[],
-  period: PeriodType
+  period: PeriodType,
+  customStartDate?: string,
+  customEndDate?: string
 ): ChartBucket[] => {
   if (!visits || visits.length === 0) {
     return buckets;
@@ -436,7 +680,12 @@ export const aggregateVisitsIntoBuckets = (
     if (isNaN(visitDate.getTime())) return;
 
     // Normalize the visit date to its bucket start
-    const normalizedDate = normalizeToBucketStart(visitDate, period);
+    const normalizedDate = normalizeToBucketStart(
+      visitDate,
+      period,
+      customStartDate,
+      customEndDate
+    );
     const bucketIndex = timestampToIndex.get(normalizedDate.getTime());
 
     if (bucketIndex !== undefined && result[bucketIndex]) {
@@ -450,20 +699,31 @@ export const aggregateVisitsIntoBuckets = (
 /**
  * Format chart data from visits array for a given period.
  * This is the main function to use for chart data generation.
+ *
+ * For custom periods, pass customStartDate and customEndDate to generate
+ * appropriate buckets and formatting based on the date range span.
  */
 export const formatChartDataForPeriod = (
   visits: Visit[],
   period: PeriodType,
-  maxDisplayPoints: number = 15
+  maxDisplayPoints: number = 15,
+  customStartDate?: string,
+  customEndDate?: string
 ): ChartBucket[] => {
   // Generate all buckets
-  let buckets = generateChartBuckets(period);
+  let buckets = generateChartBuckets(period, customStartDate, customEndDate);
 
   // Aggregate visits
-  buckets = aggregateVisitsIntoBuckets(buckets, visits, period);
+  buckets = aggregateVisitsIntoBuckets(buckets, visits, period, customStartDate, customEndDate);
 
-  // Sample for display if needed (only for day-based periods with many points)
-  if (period === 'last30days' || period === 'thisMonth' || period === 'lastMonth') {
+  // Sample for display if needed (for periods with many points)
+  const needsSampling =
+    period === 'last30days' ||
+    period === 'thisMonth' ||
+    period === 'lastMonth' ||
+    (period === 'custom' && buckets.length > maxDisplayPoints);
+
+  if (needsSampling) {
     buckets = sampleBucketsForDisplay(buckets, maxDisplayPoints);
   }
 

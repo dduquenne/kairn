@@ -4,7 +4,12 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 import { useSimulation } from '../context/SimulationContext';
 import type { PeriodType } from '../PeriodSelector';
-import { formatChartDataForPeriod, getBucketKey, type Visit } from '../utils/chartDateUtils';
+import {
+  formatChartDataForPeriod,
+  getBucketKey,
+  getPeriodDateRange,
+  type Visit,
+} from '../utils/chartDateUtils';
 
 // Types
 interface KPIData {
@@ -330,57 +335,17 @@ const mapPeriodToTimeRange = (period: PeriodType): string => {
   }
 };
 
-// Get date range for period
+// Get date range for period - uses the centralized utility for consistency
 const getDateRange = (
   period: PeriodType,
   customStart?: string,
   customEnd?: string
 ): { startDate: string; endDate: string } => {
-  const now = new Date();
-  const endDate = now.toISOString();
-
-  if (period === 'custom' && customStart && customEnd) {
-    return {
-      startDate: new Date(customStart).toISOString(),
-      endDate: new Date(customEnd).toISOString(),
-    };
-  }
-
-  let startDate: Date;
-
-  switch (period) {
-    case 'realtime':
-      startDate = new Date(now.getTime() - 60 * 60 * 1000); // 1 hour
-      break;
-    case 'today':
-      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      break;
-    case 'yesterday':
-      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-      break;
-    case 'last7days':
-      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      break;
-    case 'last30days':
-      startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      break;
-    case 'thisMonth':
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      break;
-    case 'lastMonth':
-      startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      break;
-    case 'last3months':
-      startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-      break;
-    case 'thisYear':
-      startDate = new Date(now.getFullYear(), 0, 1);
-      break;
-    default:
-      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  }
-
-  return { startDate: startDate.toISOString(), endDate };
+  const { startDate, endDate } = getPeriodDateRange(period, customStart, customEnd);
+  return {
+    startDate: startDate.toISOString(),
+    endDate: endDate.toISOString(),
+  };
 };
 
 // Calculate health score
@@ -409,45 +374,21 @@ const calculateHealthScore = (data: any): number => {
 };
 
 // Format chart data from API response using the shared utility
-const formatChartData = (visits: any[], period: PeriodType): ChartDataPoint[] => {
-  // Handle custom period specially - generate buckets from actual data
-  if (period === 'custom') {
-    if (!visits || visits.length === 0) return [];
-
-    const chartData: ChartDataPoint[] = [];
-    const sortedVisits = [...visits].sort((a, b) => {
-      const dateA = new Date(a.timestamp || a.period || 0);
-      const dateB = new Date(b.timestamp || b.period || 0);
-      return dateA.getTime() - dateB.getTime();
-    });
-
-    const seen = new Map<string, number>();
-    sortedVisits.forEach((v: any) => {
-      const timestamp = v.timestamp || v.period;
-      if (timestamp) {
-        const date = new Date(timestamp);
-        if (!isNaN(date.getTime())) {
-          const label = getBucketKey(date, period);
-          const existingIndex = seen.get(label);
-          if (existingIndex !== undefined) {
-            chartData[existingIndex]!.value += v.visits || 1;
-          } else {
-            seen.set(label, chartData.length);
-            chartData.push({
-              label,
-              value: v.visits || 1,
-            });
-          }
-        }
-      }
-    });
-
-    // Limit to last 30 points for display
-    return chartData.slice(-30);
-  }
-
-  // Use the shared utility for standard periods
-  const buckets = formatChartDataForPeriod(visits as Visit[], period);
+const formatChartData = (
+  visits: any[],
+  period: PeriodType,
+  customStartDate?: string,
+  customEndDate?: string
+): ChartDataPoint[] => {
+  // Use the shared utility for ALL periods (including custom)
+  // The utility now properly handles custom periods with adaptive formatting
+  const buckets = formatChartDataForPeriod(
+    visits as Visit[],
+    period,
+    15, // maxDisplayPoints
+    customStartDate,
+    customEndDate
+  );
 
   // Convert ChartBucket to ChartDataPoint
   return buckets.map(bucket => ({
@@ -580,7 +521,12 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
 
       // Calculate derived values
       const healthScore = calculateHealthScore(dashboardData);
-      const chartData = formatChartData(dashboardData.visits || [], period);
+      const chartData = formatChartData(
+        dashboardData.visits || [],
+        period,
+        customStartDate,
+        customEndDate
+      );
 
       // Calculate traffic source totals
       const trafficSources = dashboardData.trafficSources || [];
@@ -744,7 +690,8 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
           const date = new Date(t.date);
           if (!isNaN(date.getTime())) {
             // Use getBucketKey to format date consistently with the selected period
-            formattedDate = getBucketKey(date, period);
+            // Pass custom dates for proper formatting of custom periods
+            formattedDate = getBucketKey(date, period, customStartDate, customEndDate);
           }
         }
         return {
