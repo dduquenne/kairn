@@ -50,18 +50,8 @@ export function AnalyticsDashboard({ data }) {
   return (
     <>
       <div className="grid grid-cols-4 gap-4">
-        <StatCard
-          title="Visiteurs"
-          value={data.visitors}
-          change={+12.5}
-          icon="Users"
-        />
-        <StatCard
-          title="Pages vues"
-          value={data.pageViews}
-          change={+8.2}
-          icon="Eye"
-        />
+        <StatCard title="Visiteurs" value={data.visitors} change={+12.5} icon="Users" />
+        <StatCard title="Pages vues" value={data.pageViews} change={+8.2} icon="Eye" />
       </div>
 
       <LineChart
@@ -92,7 +82,7 @@ export function BlogAdmin() {
   return (
     <BlogPostList
       posts={posts}
-      onEdit={(post) => router.push(`/admin/blog/edit/${post.slug}`)}
+      onEdit={post => router.push(`/admin/blog/edit/${post.slug}`)}
       onDelete={handleDelete}
     />
   );
@@ -112,68 +102,30 @@ export function BlogEditor({ post }) {
 
 ### Social Media
 
-```tsx
-import {
-  SocialAccountsList,
-  SocialPostEditor,
-  SocialCalendar,
-  PlatformSelector,
-} from '@kairn/admin';
-
-export function SocialAdmin() {
-  return (
-    <>
-      <SocialAccountsList
-        accounts={accounts}
-        onConnect={handleConnect}
-        onDisconnect={handleDisconnect}
-      />
-
-      <SocialPostEditor
-        platforms={['facebook', 'instagram', 'linkedin']}
-        onPublish={handlePublish}
-        onSchedule={handleSchedule}
-        aiEnabled={true}
-      />
-
-      <SocialCalendar posts={scheduledPosts} />
-    </>
-  );
-}
-```
+> **Note**: Les composants de gestion des réseaux sociaux ont été déplacés vers les applications individuelles pour une meilleure co-localisation avec les pages refactorisées.
+>
+> Pour Psypnos, voir : `apps/psypnos/app/admin/social/_components/`
+>
+> - `SocialCalendar.tsx` - Calendrier de publications
+> - `PostsHistory.tsx` - Historique des posts
+> - `SocialInsights.tsx` - Analytics et métriques
+> - `EditPostModal.tsx` - Modal d'édition de post
+> - `PostDetailPanel.tsx` - Panneau de détails
 
 ### Common
 
 ```tsx
-import {
-  DataTable,
-  DateRangePicker,
-  ExportButton,
-  ConfirmDialog,
-  Drawer,
-} from '@kairn/admin';
+import { DataTable, DateRangePicker, ExportButton, ConfirmDialog, Drawer } from '@kairn/admin';
 
 export function DataManagement() {
   return (
     <>
-      <div className="flex justify-between mb-4">
-        <DateRangePicker
-          value={dateRange}
-          onChange={setDateRange}
-        />
-        <ExportButton
-          data={filteredData}
-          formats={['xlsx', 'csv', 'pdf']}
-        />
+      <div className="mb-4 flex justify-between">
+        <DateRangePicker value={dateRange} onChange={setDateRange} />
+        <ExportButton data={filteredData} formats={['xlsx', 'csv', 'pdf']} />
       </div>
 
-      <DataTable
-        columns={columns}
-        data={data}
-        pagination
-        sortable
-        searchable
-      />
+      <DataTable columns={columns} data={data} pagination sortable searchable />
 
       <ConfirmDialog
         open={deleteConfirm}
@@ -190,12 +142,7 @@ export function DataManagement() {
 ## Hooks
 
 ```tsx
-import {
-  useAdminAuth,
-  usePagination,
-  useTableSort,
-  useExport,
-} from '@kairn/admin';
+import { useAdminAuth, usePagination, useTableSort, useExport } from '@kairn/admin';
 
 // Vérification authentification admin
 const { user, isAdmin, logout } = useAdminAuth();

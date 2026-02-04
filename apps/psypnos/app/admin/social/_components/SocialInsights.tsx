@@ -22,33 +22,31 @@ import type { SocialPlatform, PostStatus } from '@/lib/social/types';
 import { SocialPlatformIcon } from '../accounts/_components/SocialPlatformIcon';
 
 // Dynamic imports for Recharts to avoid SSR issues
-const ResponsiveContainer = dynamic(() => import('recharts').then(mod => mod.ResponsiveContainer), {
+// Using explicit type casts to resolve TypeScript strict mode incompatibility with next/dynamic
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const ResponsiveContainer = dynamic(
+  () => import('recharts').then(mod => mod.ResponsiveContainer as any),
+  { ssr: false }
+) as any;
+const AreaChart = dynamic(() => import('recharts').then(mod => mod.AreaChart as any), {
   ssr: false,
-});
-const AreaChart = dynamic(() => import('recharts').then(mod => mod.AreaChart), {
+}) as any;
+const Area = dynamic(() => import('recharts').then(mod => mod.Area as any), { ssr: false }) as any;
+const XAxis = dynamic(() => import('recharts').then(mod => mod.XAxis as any), {
   ssr: false,
-});
-const Area = dynamic(() => import('recharts').then(mod => mod.Area), {
+}) as any;
+const YAxis = dynamic(() => import('recharts').then(mod => mod.YAxis as any), {
   ssr: false,
-});
-const XAxis = dynamic(() => import('recharts').then(mod => mod.XAxis), {
+}) as any;
+const Tooltip = dynamic(() => import('recharts').then(mod => mod.Tooltip as any), {
   ssr: false,
-});
-const YAxis = dynamic(() => import('recharts').then(mod => mod.YAxis), {
+}) as any;
+const PieChart = dynamic(() => import('recharts').then(mod => mod.PieChart as any), {
   ssr: false,
-});
-const Tooltip = dynamic(() => import('recharts').then(mod => mod.Tooltip), {
-  ssr: false,
-});
-const PieChart = dynamic(() => import('recharts').then(mod => mod.PieChart), {
-  ssr: false,
-});
-const Pie = dynamic(() => import('recharts').then(mod => mod.Pie), {
-  ssr: false,
-});
-const Cell = dynamic(() => import('recharts').then(mod => mod.Cell), {
-  ssr: false,
-});
+}) as any;
+const Pie = dynamic(() => import('recharts').then(mod => mod.Pie as any), { ssr: false }) as any;
+const Cell = dynamic(() => import('recharts').then(mod => mod.Cell as any), { ssr: false }) as any;
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 // ===========================================
 // Types
