@@ -14,24 +14,41 @@ import {
   Activity,
   BarChart3,
 } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { useMemo } from 'react';
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-} from 'recharts';
 
 import type { SocialPlatform, PostStatus } from '@/lib/social/types';
 
 import { SocialPlatformIcon } from '../accounts/_components/SocialPlatformIcon';
+
+// Dynamic imports for Recharts to avoid SSR issues
+const ResponsiveContainer = dynamic(() => import('recharts').then(mod => mod.ResponsiveContainer), {
+  ssr: false,
+});
+const AreaChart = dynamic(() => import('recharts').then(mod => mod.AreaChart), {
+  ssr: false,
+});
+const Area = dynamic(() => import('recharts').then(mod => mod.Area), {
+  ssr: false,
+});
+const XAxis = dynamic(() => import('recharts').then(mod => mod.XAxis), {
+  ssr: false,
+});
+const YAxis = dynamic(() => import('recharts').then(mod => mod.YAxis), {
+  ssr: false,
+});
+const Tooltip = dynamic(() => import('recharts').then(mod => mod.Tooltip), {
+  ssr: false,
+});
+const PieChart = dynamic(() => import('recharts').then(mod => mod.PieChart), {
+  ssr: false,
+});
+const Pie = dynamic(() => import('recharts').then(mod => mod.Pie), {
+  ssr: false,
+});
+const Cell = dynamic(() => import('recharts').then(mod => mod.Cell), {
+  ssr: false,
+});
 
 // ===========================================
 // Types
@@ -240,31 +257,6 @@ export function SocialInsights({ posts, analytics, isCompact = false }: SocialIn
 
   const publishRate = totalPosts > 0 ? Math.round((publishedPosts / totalPosts) * 100) : 0;
 
-  // Custom tooltip for charts
-  const CustomTooltip = ({
-    active,
-    payload,
-    label,
-  }: {
-    active?: boolean;
-    payload?: Array<{ name: string; value: number; color: string }>;
-    label?: string;
-  }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="border-gold/30 bg-night/95 rounded-lg border p-3 shadow-lg backdrop-blur-sm">
-          <p className="text-gold mb-1 text-xs">{label}</p>
-          {payload.map((entry, index) => (
-            <p key={index} className="text-sm" style={{ color: entry.color || '#F5F1E6' }}>
-              {entry.name}: {entry.value}
-            </p>
-          ))}
-        </div>
-      );
-    }
-    return null;
-  };
-
   if (isCompact) {
     return (
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -345,45 +337,54 @@ export function SocialInsights({ posts, analytics, isCompact = false }: SocialIn
           </div>
 
           {weeklyTrend.some(w => w.posts > 0) ? (
-            <ResponsiveContainer width="100%" height={180}>
-              <AreaChart data={weeklyTrend}>
-                <defs>
-                  <linearGradient id="colorPosts" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#D4AF37" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#D4AF37" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="colorPublished" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#22C55E" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#22C55E" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis
-                  dataKey="date"
-                  stroke="rgba(199,169,98,0.3)"
-                  tick={{ fill: 'rgba(245,241,230,0.5)', fontSize: 10 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis hide />
-                <Tooltip content={<CustomTooltip />} />
-                <Area
-                  type="monotone"
-                  dataKey="posts"
-                  stroke="#D4AF37"
-                  strokeWidth={2}
-                  fill="url(#colorPosts)"
-                  name="Posts"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="published"
-                  stroke="#22C55E"
-                  strokeWidth={2}
-                  fill="url(#colorPublished)"
-                  name="Publiés"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            <div className="h-[180px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={weeklyTrend}>
+                  <defs>
+                    <linearGradient id="colorPosts" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#D4AF37" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#D4AF37" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="colorPublished" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#22C55E" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#22C55E" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis
+                    dataKey="date"
+                    stroke="rgba(199,169,98,0.3)"
+                    tick={{ fill: 'rgba(245,241,230,0.5)', fontSize: 10 }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis hide />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'rgba(26,26,26,0.95)',
+                      border: '1px solid rgba(212,175,55,0.3)',
+                      borderRadius: '8px',
+                    }}
+                    labelStyle={{ color: '#D4AF37' }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="posts"
+                    stroke="#D4AF37"
+                    strokeWidth={2}
+                    fill="url(#colorPosts)"
+                    name="Posts"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="published"
+                    stroke="#22C55E"
+                    strokeWidth={2}
+                    fill="url(#colorPublished)"
+                    name="Publiés"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           ) : (
             <div className="text-ivory/40 flex h-[180px] items-center justify-center text-sm">
               Aucune donnée disponible
@@ -402,24 +403,32 @@ export function SocialInsights({ posts, analytics, isCompact = false }: SocialIn
 
           {statusDistribution.length > 0 ? (
             <>
-              <ResponsiveContainer width="100%" height={120}>
-                <PieChart>
-                  <Pie
-                    data={statusDistribution}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={35}
-                    outerRadius={55}
-                    paddingAngle={3}
-                    dataKey="value"
-                  >
-                    {statusDistribution.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<CustomTooltip />} />
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="h-[120px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={statusDistribution}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={35}
+                      outerRadius={55}
+                      paddingAngle={3}
+                      dataKey="value"
+                    >
+                      {statusDistribution.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'rgba(26,26,26,0.95)',
+                        border: '1px solid rgba(212,175,55,0.3)',
+                        borderRadius: '8px',
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
               <div className="mt-2 space-y-1">
                 {statusDistribution.map(item => (
                   <div key={item.name} className="flex items-center justify-between text-xs">
