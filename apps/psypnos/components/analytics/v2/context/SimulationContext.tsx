@@ -3,6 +3,14 @@
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 
 import type { PeriodType } from '../PeriodSelector';
+import {
+  formatTime,
+  formatShortDate,
+  formatDayMonth,
+  formatWeek,
+  formatMonth,
+  getBucketKey,
+} from '../utils/chartDateUtils';
 
 // Types pour les données simulées
 interface KPIData {
@@ -284,42 +292,8 @@ function randomInRange(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-// Helper to format time in HH:mm format (consistent with useAnalytics)
-const formatTime = (date: Date): string => {
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  return `${hours}:${minutes}`;
-};
-
-// Helper to format short weekday and day (consistent with useAnalytics)
-const formatShortDate = (date: Date): string => {
-  const weekdays = ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'];
-  const day = date.getDate();
-  const weekday = weekdays[date.getDay()];
-  return `${weekday} ${day}`;
-};
-
-// Helper to format day and month (consistent with useAnalytics)
-const formatDayMonth = (date: Date): string => {
-  const months = ['jan.', 'fév.', 'mar.', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
-  const day = date.getDate();
-  const month = months[date.getMonth()];
-  return `${day} ${month}`;
-};
-
-// Helper to format week number (consistent with useAnalytics)
-const formatWeek = (date: Date): string => {
-  const startOfYear = new Date(date.getFullYear(), 0, 1);
-  const days = Math.floor((date.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000));
-  const weekNumber = Math.ceil((days + startOfYear.getDay() + 1) / 7);
-  return `Sem. ${weekNumber}`;
-};
-
-// Helper to format month name (consistent with useAnalytics)
-const formatMonth = (date: Date): string => {
-  const months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
-  return months[date.getMonth()] ?? 'janvier';
-};
+// Note: formatTime, formatShortDate, formatDayMonth, formatWeek, formatMonth, getBucketKey
+// are now imported from ../utils/chartDateUtils for consistency
 
 // Utilitaire pour générer un nombre avec variation
 function randomWithVariation(base: number, variationPercent: number = 20): number {
@@ -802,23 +776,8 @@ function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
   ];
 
   // Generate botVisitsTimeline based on period for consistency
+  // Using getBucketKey from shared utils for consistent label formatting
   const botVisitsTimeline: BotVisit[] = [];
-  const getBotTimelineLabel = (date: Date, p: PeriodType): string => {
-    switch (p) {
-      case 'realtime':
-      case 'today':
-      case 'yesterday':
-        return formatTime(date);
-      case 'last7days':
-        return formatShortDate(date);
-      case 'last3months':
-        return formatWeek(date);
-      case 'thisYear':
-        return formatMonth(date);
-      default:
-        return formatDayMonth(date);
-    }
-  };
 
   // Generate appropriate number of data points based on period
   let botTimelinePoints = 7;
@@ -854,7 +813,7 @@ function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
     for (let i = 0; i < botTimelinePoints; i++) {
       const date = new Date(now.getFullYear(), i, 1);
       botVisitsTimeline.push({
-        date: getBotTimelineLabel(date, period),
+        date: getBucketKey(date, period),
         visits: randomInRange(50, 200),
       });
     }
@@ -862,7 +821,7 @@ function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
     for (let i = botTimelinePoints - 1; i >= 0; i--) {
       const date = new Date(now.getTime() - i * botTimelineInterval);
       botVisitsTimeline.push({
-        date: getBotTimelineLabel(date, period),
+        date: getBucketKey(date, period),
         visits: randomInRange(20, 80),
       });
     }

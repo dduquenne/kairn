@@ -1,9 +1,10 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef } from 'react';
 
-import { useSimulation, type SimulatedAnalyticsData } from "../context/SimulationContext";
-import type { PeriodType } from "../PeriodSelector";
+import { useSimulation } from '../context/SimulationContext';
+import type { PeriodType } from '../PeriodSelector';
+import { formatChartDataForPeriod, getBucketKey, type Visit } from '../utils/chartDateUtils';
 
 // Types
 interface KPIData {
@@ -63,7 +64,7 @@ interface FunnelStep {
 interface Goal {
   id: string;
   name: string;
-  type: "destination" | "event" | "duration" | "pages";
+  type: 'destination' | 'event' | 'duration' | 'pages';
   current: number;
   target: number;
   progress: number;
@@ -95,7 +96,7 @@ interface BotVisit {
 
 interface BotType {
   name: string;
-  type: "search_engine" | "social" | "seo_tool" | "monitoring" | "other";
+  type: 'search_engine' | 'social' | 'seo_tool' | 'monitoring' | 'other';
   visits: number;
   lastSeen: string;
   pages: number;
@@ -110,7 +111,7 @@ interface CrawledPage {
 
 interface Insight {
   id: string;
-  type: "positive" | "negative" | "neutral" | "warning";
+  type: 'positive' | 'negative' | 'neutral' | 'warning';
   title: string;
   description: string;
   metric?: string;
@@ -119,7 +120,7 @@ interface Insight {
 
 interface Alert {
   id: string;
-  severity: "critical" | "warning" | "info";
+  severity: 'critical' | 'warning' | 'info';
   title: string;
   message: string;
   timestamp: string;
@@ -168,8 +169,8 @@ interface BlogPanelData {
 // Posts Panel Types (Social Media)
 interface SocialPost {
   id: string;
-  platform: "instagram" | "facebook" | "linkedin" | "twitter" | "tiktok";
-  type: "image" | "video" | "carousel" | "story" | "reel" | "text";
+  platform: 'instagram' | 'facebook' | 'linkedin' | 'twitter' | 'tiktok';
+  type: 'image' | 'video' | 'carousel' | 'story' | 'reel' | 'text';
   content: string;
   publishedAt: string;
   reach: number;
@@ -183,7 +184,7 @@ interface SocialPost {
 
 interface PlatformStats {
   platform: string;
-  icon: "instagram" | "facebook" | "linkedin" | "twitter" | "tiktok";
+  icon: 'instagram' | 'facebook' | 'linkedin' | 'twitter' | 'tiktok';
   followers: number;
   followersChange: number;
   posts: number;
@@ -308,24 +309,24 @@ interface UseAnalyticsReturn {
 // Map PeriodType to API timeRange
 const mapPeriodToTimeRange = (period: PeriodType): string => {
   switch (period) {
-    case "realtime":
-    case "today":
-      return "hour";
-    case "yesterday":
-    case "last7days":
-      return "day";
-    case "last30days":
-    case "thisMonth":
-    case "lastMonth":
-      return "day";
-    case "last3months":
-      return "week";
-    case "thisYear":
-      return "month";
-    case "custom":
-      return "day";
+    case 'realtime':
+    case 'today':
+      return 'hour';
+    case 'yesterday':
+    case 'last7days':
+      return 'day';
+    case 'last30days':
+    case 'thisMonth':
+    case 'lastMonth':
+      return 'day';
+    case 'last3months':
+      return 'week';
+    case 'thisYear':
+      return 'month';
+    case 'custom':
+      return 'day';
     default:
-      return "day";
+      return 'day';
   }
 };
 
@@ -338,7 +339,7 @@ const getDateRange = (
   const now = new Date();
   const endDate = now.toISOString();
 
-  if (period === "custom" && customStart && customEnd) {
+  if (period === 'custom' && customStart && customEnd) {
     return {
       startDate: new Date(customStart).toISOString(),
       endDate: new Date(customEnd).toISOString(),
@@ -348,31 +349,31 @@ const getDateRange = (
   let startDate: Date;
 
   switch (period) {
-    case "realtime":
+    case 'realtime':
       startDate = new Date(now.getTime() - 60 * 60 * 1000); // 1 hour
       break;
-    case "today":
+    case 'today':
       startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       break;
-    case "yesterday":
+    case 'yesterday':
       startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
       break;
-    case "last7days":
+    case 'last7days':
       startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       break;
-    case "last30days":
+    case 'last30days':
       startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       break;
-    case "thisMonth":
+    case 'thisMonth':
       startDate = new Date(now.getFullYear(), now.getMonth(), 1);
       break;
-    case "lastMonth":
+    case 'lastMonth':
       startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       break;
-    case "last3months":
+    case 'last3months':
       startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
       break;
-    case "thisYear":
+    case 'thisYear':
       startDate = new Date(now.getFullYear(), 0, 1);
       break;
     default:
@@ -407,275 +408,53 @@ const calculateHealthScore = (data: any): number => {
   return Math.max(0, Math.min(100, score));
 };
 
-// Helper to format time in HH:mm format (consistent between server and client)
-const formatTime = (date: Date): string => {
-  const hours = date.getHours().toString().padStart(2, "0");
-  const minutes = date.getMinutes().toString().padStart(2, "0");
-  return `${hours}:${minutes}`;
-};
-
-// Helper to format short weekday and day (consistent between server and client)
-const formatShortDate = (date: Date): string => {
-  const weekdays = ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."];
-  const day = date.getDate();
-  const weekday = weekdays[date.getDay()];
-  return `${weekday} ${day}`;
-};
-
-// Helper to format day and month (e.g., "15 jan.")
-const formatDayMonth = (date: Date): string => {
-  const months = ["jan.", "fév.", "mar.", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
-  const day = date.getDate();
-  const month = months[date.getMonth()];
-  return `${day} ${month}`;
-};
-
-// Helper to format week number (e.g., "Sem. 12")
-const formatWeek = (date: Date): string => {
-  const startOfYear = new Date(date.getFullYear(), 0, 1);
-  const days = Math.floor((date.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000));
-  const weekNumber = Math.ceil((days + startOfYear.getDay() + 1) / 7);
-  return `Sem. ${weekNumber}`;
-};
-
-// Helper to format month name (e.g., "janvier")
-const formatMonth = (date: Date): string => {
-  const months = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
-  return months[date.getMonth()] ?? "janvier";
-};
-
-// Helper to get the bucket key for a date based on period
-const getBucketKey = (date: Date, period: PeriodType): string => {
-  switch (period) {
-    case "realtime":
-    case "today":
-    case "yesterday":
-      return formatTime(date);
-    case "last7days":
-      return formatShortDate(date);
-    case "last30days":
-    case "thisMonth":
-    case "lastMonth":
-    case "custom":
-      return formatDayMonth(date);
-    case "last3months":
-      return formatWeek(date);
-    case "thisYear":
-      return formatMonth(date);
-    default:
-      return formatDayMonth(date);
-  }
-};
-
-// Helper to normalize date to bucket start based on period
-const normalizeToBucket = (date: Date, period: PeriodType): Date => {
-  const normalized = new Date(date);
-  switch (period) {
-    case "realtime":
-      // Round to nearest 5-minute interval
-      normalized.setMinutes(Math.floor(normalized.getMinutes() / 5) * 5);
-      normalized.setSeconds(0);
-      normalized.setMilliseconds(0);
-      break;
-    case "today":
-    case "yesterday":
-      // Round to hour
-      normalized.setMinutes(0);
-      normalized.setSeconds(0);
-      normalized.setMilliseconds(0);
-      break;
-    case "last7days":
-    case "last30days":
-    case "thisMonth":
-    case "lastMonth":
-    case "custom":
-      // Round to day
-      normalized.setHours(0, 0, 0, 0);
-      break;
-    case "last3months":
-      // Round to week start (Monday)
-      const dayOfWeek = normalized.getDay();
-      const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-      normalized.setDate(normalized.getDate() + diff);
-      normalized.setHours(0, 0, 0, 0);
-      break;
-    case "thisYear":
-      // Round to month start
-      normalized.setDate(1);
-      normalized.setHours(0, 0, 0, 0);
-      break;
-  }
-  return normalized;
-};
-
-// Format chart data from API response
+// Format chart data from API response using the shared utility
 const formatChartData = (visits: any[], period: PeriodType): ChartDataPoint[] => {
-  const now = new Date();
-  const chartData: ChartDataPoint[] = [];
-
-  // Step 1: Generate all time buckets with proper labels
-  if (period === "realtime") {
-    // Last 12 intervals of 5 minutes
-    for (let i = 11; i >= 0; i--) {
-      const date = new Date(now);
-      date.setMinutes(date.getMinutes() - i * 5);
-      date.setMinutes(Math.floor(date.getMinutes() / 5) * 5);
-      date.setSeconds(0);
-      date.setMilliseconds(0);
-
-      chartData.push({
-        label: formatTime(date),
-        value: 0,
-      });
-    }
-  } else if (period === "today" || period === "yesterday") {
-    // 24 hours
-    const baseDate = new Date(now);
-    if (period === "yesterday") baseDate.setDate(baseDate.getDate() - 1);
-    baseDate.setHours(0, 0, 0, 0);
-
-    for (let i = 0; i < 24; i++) {
-      const date = new Date(baseDate);
-      date.setHours(i);
-
-      chartData.push({
-        label: formatTime(date),
-        value: 0,
-      });
-    }
-  } else if (period === "last7days") {
-    // Last 7 days with weekday and day number
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(now);
-      date.setDate(date.getDate() - i);
-      date.setHours(0, 0, 0, 0);
-
-      chartData.push({
-        label: formatShortDate(date),
-        value: 0,
-      });
-    }
-  } else if (period === "last30days" || period === "thisMonth" || period === "lastMonth") {
-    // Days with day number and month
-    let startDate: Date;
-    let endDate: Date;
-
-    if (period === "last30days") {
-      endDate = new Date(now);
-      startDate = new Date(now);
-      startDate.setDate(startDate.getDate() - 29);
-    } else if (period === "thisMonth") {
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      endDate = new Date(now);
-    } else {
-      // lastMonth
-      startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      endDate = new Date(now.getFullYear(), now.getMonth(), 0);
-    }
-
-    startDate.setHours(0, 0, 0, 0);
-    endDate.setHours(0, 0, 0, 0);
-
-    const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000)) + 1;
-    // Show fewer points for readability (max ~15 points)
-    const step = Math.max(1, Math.floor(daysDiff / 15));
-
-    for (let i = 0; i < daysDiff; i += step) {
-      const date = new Date(startDate);
-      date.setDate(date.getDate() + i);
-
-      chartData.push({
-        label: formatDayMonth(date),
-        value: 0,
-      });
-    }
-  } else if (period === "last3months") {
-    // Weeks with week number
-    for (let i = 12; i >= 0; i--) {
-      const date = new Date(now);
-      date.setDate(date.getDate() - i * 7);
-      // Normalize to week start
-      const dayOfWeek = date.getDay();
-      const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-      date.setDate(date.getDate() + diff);
-      date.setHours(0, 0, 0, 0);
-
-      chartData.push({
-        label: formatWeek(date),
-        value: 0,
-      });
-    }
-  } else if (period === "thisYear") {
-    // Months with month name
-    const currentMonth = now.getMonth();
-    for (let i = 0; i <= currentMonth; i++) {
-      const date = new Date(now.getFullYear(), i, 1);
-
-      chartData.push({
-        label: formatMonth(date),
-        value: 0,
-      });
-    }
-  } else if (period === "custom") {
-    // For custom period, generate buckets from actual data dates
+  // Handle custom period specially - generate buckets from actual data
+  if (period === 'custom') {
     if (!visits || visits.length === 0) return [];
 
+    const chartData: ChartDataPoint[] = [];
     const sortedVisits = [...visits].sort((a, b) => {
       const dateA = new Date(a.timestamp || a.period || 0);
       const dateB = new Date(b.timestamp || b.period || 0);
       return dateA.getTime() - dateB.getTime();
     });
 
-    const seen = new Set<string>();
-    sortedVisits.slice(-30).forEach((v: any) => {
+    const seen = new Map<string, number>();
+    sortedVisits.forEach((v: any) => {
       const timestamp = v.timestamp || v.period;
       if (timestamp) {
         const date = new Date(timestamp);
-        const label = formatDayMonth(date);
-        if (!seen.has(label)) {
-          seen.add(label);
-          chartData.push({
-            label,
-            value: 0,
-          });
+        if (!isNaN(date.getTime())) {
+          const label = getBucketKey(date, period);
+          const existingIndex = seen.get(label);
+          if (existingIndex !== undefined) {
+            chartData[existingIndex]!.value += v.visits || 1;
+          } else {
+            seen.set(label, chartData.length);
+            chartData.push({
+              label,
+              value: v.visits || 1,
+            });
+          }
         }
       }
     });
+
+    // Limit to last 30 points for display
+    return chartData.slice(-30);
   }
 
-  // Return empty if no buckets and no data
-  if (chartData.length === 0 && (!visits || visits.length === 0)) {
-    return [];
-  }
+  // Use the shared utility for standard periods
+  const buckets = formatChartDataForPeriod(visits as Visit[], period);
 
-  // If we have buckets but no visits, return the empty buckets
-  if (!visits || visits.length === 0) {
-    return chartData;
-  }
-
-  // Step 2: Create a map from label to index for O(1) lookups
-  const labelToIndex = new Map<string, number>();
-  chartData.forEach((point, index) => {
-    labelToIndex.set(point.label, index);
-  });
-
-  // Step 3: Aggregate visits data into the correct buckets
-  visits.forEach((v: any) => {
-    const timestamp = v.timestamp || v.period;
-    if (!timestamp) return;
-
-    const date = new Date(timestamp);
-    if (isNaN(date.getTime())) return;
-
-    const label = getBucketKey(date, period);
-    const index = labelToIndex.get(label);
-
-    if (index !== undefined) {
-      chartData[index]!.value += v.visits || 1;
-    }
-  });
-
-  return chartData;
+  // Convert ChartBucket to ChartDataPoint
+  return buckets.map(bucket => ({
+    label: bucket.label,
+    value: bucket.value,
+    ...(bucket.previousValue !== undefined ? { previousValue: bucket.previousValue } : {}),
+  }));
 };
 
 export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
@@ -727,58 +506,77 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
 
       // Fetch main dashboard data
       const dashboardRes = await fetch(`/api/analytics/dashboard?${params}`, {
-        cache: "no-store",
+        cache: 'no-store',
       });
 
       if (!dashboardRes.ok) {
-        throw new Error("Erreur lors de la récupération des données");
+        throw new Error('Erreur lors de la récupération des données');
       }
 
       const dashboardData = await dashboardRes.json();
 
       // Fetch additional data in parallel - all APIs use the same date range
-      const [geoRes, goalsRes, botsRes, alertsRes, insightsRes, blogAnalyticsRes, blogCtaRes, blogFaqRes] = await Promise.allSettled([
+      const [
+        geoRes,
+        goalsRes,
+        botsRes,
+        alertsRes,
+        insightsRes,
+        blogAnalyticsRes,
+        blogCtaRes,
+        blogFaqRes,
+      ] = await Promise.allSettled([
         fetch(`/api/analytics/geolocation?${params}`),
         fetch(`/api/analytics/goals?summary=true&startDate=${startDate}&endDate=${endDate}`),
         fetch(`/api/analytics/bots?${params}`),
-        fetch("/api/analytics/alerts"),
-        fetch(`/api/analytics/insights?timeRange=${timeRange}&startDate=${startDate}&endDate=${endDate}`),
+        fetch('/api/analytics/alerts'),
+        fetch(
+          `/api/analytics/insights?timeRange=${timeRange}&startDate=${startDate}&endDate=${endDate}`
+        ),
         fetch(`/api/blog/analytics?startDate=${startDate}&endDate=${endDate}`),
         fetch(`/api/blog/cta-clicks?startDate=${startDate}&endDate=${endDate}`),
         fetch(`/api/blog/faq-clicks?startDate=${startDate}&endDate=${endDate}`),
       ]);
 
-      const geoData = geoRes.status === "fulfilled" && geoRes.value.ok
-        ? await geoRes.value.json()
-        : { countries: [], cities: [] };
+      const geoData =
+        geoRes.status === 'fulfilled' && geoRes.value.ok
+          ? await geoRes.value.json()
+          : { countries: [], cities: [] };
 
-      const goalsData = goalsRes.status === "fulfilled" && goalsRes.value.ok
-        ? await goalsRes.value.json()
-        : { goals: [] };
+      const goalsData =
+        goalsRes.status === 'fulfilled' && goalsRes.value.ok
+          ? await goalsRes.value.json()
+          : { goals: [] };
 
-      const botsData = botsRes.status === "fulfilled" && botsRes.value.ok
-        ? await botsRes.value.json()
-        : { bots: [], timeline: [], pages: [] };
+      const botsData =
+        botsRes.status === 'fulfilled' && botsRes.value.ok
+          ? await botsRes.value.json()
+          : { bots: [], timeline: [], pages: [] };
 
-      const alertsData = alertsRes.status === "fulfilled" && alertsRes.value.ok
-        ? await alertsRes.value.json()
-        : { alerts: [] };
+      const alertsData =
+        alertsRes.status === 'fulfilled' && alertsRes.value.ok
+          ? await alertsRes.value.json()
+          : { alerts: [] };
 
-      const insightsData = insightsRes.status === "fulfilled" && insightsRes.value.ok
-        ? await insightsRes.value.json()
-        : { insights: [] };
+      const insightsData =
+        insightsRes.status === 'fulfilled' && insightsRes.value.ok
+          ? await insightsRes.value.json()
+          : { insights: [] };
 
-      const blogAnalyticsData = blogAnalyticsRes.status === "fulfilled" && blogAnalyticsRes.value.ok
-        ? await blogAnalyticsRes.value.json()
-        : { articles: [], totalViews: 0, totalUniqueVisitors: 0 };
+      const blogAnalyticsData =
+        blogAnalyticsRes.status === 'fulfilled' && blogAnalyticsRes.value.ok
+          ? await blogAnalyticsRes.value.json()
+          : { articles: [], totalViews: 0, totalUniqueVisitors: 0 };
 
-      const blogCtaData = blogCtaRes.status === "fulfilled" && blogCtaRes.value.ok
-        ? await blogCtaRes.value.json()
-        : { summary: { appointment: 0, seminar: 0 } };
+      const blogCtaData =
+        blogCtaRes.status === 'fulfilled' && blogCtaRes.value.ok
+          ? await blogCtaRes.value.json()
+          : { summary: { appointment: 0, seminar: 0 } };
 
-      const blogFaqData = blogFaqRes.status === "fulfilled" && blogFaqRes.value.ok
-        ? await blogFaqRes.value.json()
-        : { summary: {}, clicks: [] };
+      const blogFaqData =
+        blogFaqRes.status === 'fulfilled' && blogFaqRes.value.ok
+          ? await blogFaqRes.value.json()
+          : { summary: {}, clicks: [] };
 
       // Calculate derived values
       const healthScore = calculateHealthScore(dashboardData);
@@ -792,23 +590,26 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       let socialTraffic = 0;
 
       trafficSources.forEach((source: any) => {
-        const medium = source.medium?.toLowerCase() || "";
-        if (medium === "direct" || medium === "(none)") {
+        const medium = source.medium?.toLowerCase() || '';
+        if (medium === 'direct' || medium === '(none)') {
           directTraffic += source.visits || 0;
-        } else if (medium === "organic") {
+        } else if (medium === 'organic') {
           organicTraffic += source.visits || 0;
-        } else if (medium === "referral") {
+        } else if (medium === 'referral') {
           referralTraffic += source.visits || 0;
-        } else if (medium === "social") {
+        } else if (medium === 'social') {
           socialTraffic += source.visits || 0;
         }
       });
 
       // Build top pages from section data
       const topSections = dashboardData.summary?.topSections || [];
-      const totalSectionVisits = topSections.reduce((sum: number, s: any) => sum + (s.visits || 0), 0);
+      const totalSectionVisits = topSections.reduce(
+        (sum: number, s: any) => sum + (s.visits || 0),
+        0
+      );
       const topPages: TopPage[] = topSections.map((section: any) => ({
-        path: section.section || "Unknown",
+        path: section.section || 'Unknown',
         views: section.visits || 0,
         uniqueVisitors: Math.round((section.visits || 0) * 0.7), // Estimate
         percentage: totalSectionVisits > 0 ? ((section.visits || 0) / totalSectionVisits) * 100 : 0,
@@ -816,20 +617,27 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
 
       // Build section engagement data
       const heatmapData = dashboardData.heatmap || [];
-      const sectionEngagement: SectionEngagement[] = heatmapData.map((section: any, index: number) => ({
-        section: section.section || "Unknown",
-        avgTime: section.avgTimeSeconds || 0,
-        scrollDepth: section.scrollRate || 0,
-        interactions: section.visitors || 0,
-        // Deterministic bounce rate based on scroll rate (inverse relationship)
-        bounceRate: section.scrollRate ? Math.max(20, Math.min(80, 100 - section.scrollRate)) : 40 + (index * 5) % 40,
-      }));
+      const sectionEngagement: SectionEngagement[] = heatmapData.map(
+        (section: any, index: number) => ({
+          section: section.section || 'Unknown',
+          avgTime: section.avgTimeSeconds || 0,
+          scrollDepth: section.scrollRate || 0,
+          interactions: section.visitors || 0,
+          // Deterministic bounce rate based on scroll rate (inverse relationship)
+          bounceRate: section.scrollRate
+            ? Math.max(20, Math.min(80, 100 - section.scrollRate))
+            : 40 + ((index * 5) % 40),
+        })
+      );
 
       // Build device breakdown
       const deviceData = dashboardData.deviceBreakdown || [];
-      const totalDeviceVisits = deviceData.reduce((sum: number, d: any) => sum + (d.visits || 0), 0);
+      const totalDeviceVisits = deviceData.reduce(
+        (sum: number, d: any) => sum + (d.visits || 0),
+        0
+      );
       const deviceBreakdown: DeviceBreakdown[] = deviceData.map((device: any) => ({
-        device: device.deviceType || "Unknown",
+        device: device.deviceType || 'Unknown',
         sessions: device.visits || 0,
         avgDuration: (device.avgTimeOnSite || 0) / 1000,
         percentage: totalDeviceVisits > 0 ? ((device.visits || 0) / totalDeviceVisits) * 100 : 0,
@@ -840,10 +648,14 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       const conversionTypes: ConversionType[] = Object.entries(conversionByType).map(
         ([key, value]: [string, any]) => ({
           id: key,
-          name: key === "appointment_request" ? "Prise de RDV"
-            : key === "seminar_registration" ? "Inscription séminaire"
-            : key === "contact_form" ? "Formulaire contact"
-            : key,
+          name:
+            key === 'appointment_request'
+              ? 'Prise de RDV'
+              : key === 'seminar_registration'
+                ? 'Inscription séminaire'
+                : key === 'contact_form'
+                  ? 'Formulaire contact'
+                  : key,
           clicks: value.clicks || 0,
           completed: value.completed || 0,
           rate: value.rate || 0,
@@ -852,28 +664,55 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
 
       // Build funnel steps (placeholder - needs real funnel data)
       const funnelSteps: FunnelStep[] = [
-        { name: "Visite", visitors: dashboardData.summary?.totalVisits || 0, percentage: 100, dropoff: 0 },
-        { name: "Engagement", visitors: Math.round((dashboardData.summary?.totalVisits || 0) * 0.6), percentage: 60, dropoff: 40 },
-        { name: "Intérêt", visitors: Math.round((dashboardData.summary?.totalVisits || 0) * 0.3), percentage: 30, dropoff: 30 },
-        { name: "Conversion", visitors: Math.round((dashboardData.summary?.totalVisits || 0) * (dashboardData.summary?.conversionRate || 0) / 100), percentage: dashboardData.summary?.conversionRate || 0, dropoff: 30 - (dashboardData.summary?.conversionRate || 0) },
+        {
+          name: 'Visite',
+          visitors: dashboardData.summary?.totalVisits || 0,
+          percentage: 100,
+          dropoff: 0,
+        },
+        {
+          name: 'Engagement',
+          visitors: Math.round((dashboardData.summary?.totalVisits || 0) * 0.6),
+          percentage: 60,
+          dropoff: 40,
+        },
+        {
+          name: 'Intérêt',
+          visitors: Math.round((dashboardData.summary?.totalVisits || 0) * 0.3),
+          percentage: 30,
+          dropoff: 30,
+        },
+        {
+          name: 'Conversion',
+          visitors: Math.round(
+            ((dashboardData.summary?.totalVisits || 0) *
+              (dashboardData.summary?.conversionRate || 0)) /
+              100
+          ),
+          percentage: dashboardData.summary?.conversionRate || 0,
+          dropoff: 30 - (dashboardData.summary?.conversionRate || 0),
+        },
       ];
 
       // Build goals from API
       const goals: Goal[] = (goalsData.goals || []).map((goal: any) => ({
         id: goal.id || String(Math.random()),
-        name: goal.name || "Objectif",
-        type: goal.type || "event",
+        name: goal.name || 'Objectif',
+        type: goal.type || 'event',
         current: goal.completions || 0,
         target: goal.target || 100,
         progress: goal.target > 0 ? (goal.completions / goal.target) * 100 : 0,
       }));
 
       // Build geo data - combine countries and cities
-      const totalGeoVisitors = (geoData.byCountry || []).reduce((sum: number, c: any) => sum + (c.visitors || 0), 0);
+      const totalGeoVisitors = (geoData.byCountry || []).reduce(
+        (sum: number, c: any) => sum + (c.visitors || 0),
+        0
+      );
 
       // Countries data
       const geoCountries: GeoLocation[] = (geoData.byCountry || []).map((c: any) => ({
-        country: c.country || "Unknown",
+        country: c.country || 'Unknown',
         countryCode: c.countryCode,
         visitors: c.visitors || 0,
         percentage: totalGeoVisitors > 0 ? ((c.visitors || 0) / totalGeoVisitors) * 100 : 0,
@@ -881,7 +720,7 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
 
       // Cities data
       const geoCities: GeoLocation[] = (geoData.byCity || []).map((c: any) => ({
-        country: c.country || "Unknown",
+        country: c.country || 'Unknown',
         countryCode: c.countryCode,
         city: c.city,
         region: c.region,
@@ -891,8 +730,8 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
 
       // Build bot data
       const botTypes: BotType[] = (botsData.bots || []).map((bot: any) => ({
-        name: bot.name || "Unknown",
-        type: bot.type || "other",
+        name: bot.name || 'Unknown',
+        type: bot.type || 'other',
         visits: bot.visits || 0,
         lastSeen: bot.lastSeen || new Date().toISOString(),
         pages: bot.pages || 0,
@@ -900,7 +739,7 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
 
       const botTimeline: BotVisit[] = (botsData.timeline || []).map((t: any) => {
         // Format the date for display based on the selected period
-        let formattedDate = t.date || "";
+        let formattedDate = t.date || '';
         if (t.date) {
           const date = new Date(t.date);
           if (!isNaN(date.getTime())) {
@@ -915,7 +754,7 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       });
 
       const crawledPages: CrawledPage[] = (botsData.pages || []).map((p: any) => ({
-        path: p.path || "",
+        path: p.path || '',
         crawlCount: p.crawlCount || 0,
         lastCrawled: p.lastCrawled || new Date().toISOString(),
         botTypes: p.botTypes || [],
@@ -924,9 +763,9 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       // Build insights
       const insights: Insight[] = (insightsData.insights || []).map((insight: any, i: number) => ({
         id: insight.id || String(i),
-        type: insight.type || "neutral",
-        title: insight.title || "",
-        description: insight.description || insight.message || "",
+        type: insight.type || 'neutral',
+        title: insight.title || '',
+        description: insight.description || insight.message || '',
         metric: insight.metric,
         value: insight.value,
       }));
@@ -934,24 +773,26 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       // Build alerts
       const alerts: Alert[] = (alertsData.alerts || []).map((alert: any, i: number) => ({
         id: alert.id || String(i),
-        severity: alert.severity || "info",
-        title: alert.title || "",
-        message: alert.message || "",
+        severity: alert.severity || 'info',
+        title: alert.title || '',
+        message: alert.message || '',
         timestamp: alert.timestamp || new Date().toISOString(),
         isRead: alert.isRead || false,
       }));
 
       // Build blog panel data
-      const blogArticles: BlogArticleStats[] = (blogAnalyticsData.articles || []).map((article: any) => ({
-        slug: article.slug || "",
-        title: article.title,
-        views: article.views || 0,
-        uniqueVisitors: article.uniqueVisitors || 0,
-        avgTimeOnPage: article.engagement?.avgTimeOnPage ?? null,
-        avgScrollDepth: article.engagement?.avgScrollDepth ?? null,
-        score: article.score ?? 0,
-        lastViewed: article.lastViewed || null,
-      }));
+      const blogArticles: BlogArticleStats[] = (blogAnalyticsData.articles || []).map(
+        (article: any) => ({
+          slug: article.slug || '',
+          title: article.title,
+          views: article.views || 0,
+          uniqueVisitors: article.uniqueVisitors || 0,
+          avgTimeOnPage: article.engagement?.avgTimeOnPage ?? null,
+          avgScrollDepth: article.engagement?.avgScrollDepth ?? null,
+          score: article.score ?? 0,
+          lastViewed: article.lastViewed || null,
+        })
+      );
 
       // Sort articles by score descending
       blogArticles.sort((a, b) => b.score - a.score);
@@ -964,8 +805,8 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       Object.entries(faqSummary).forEach(([faqId, data]: [string, any]) => {
         const faqClick = faqClicks.find((c: any) => c.faqId === faqId);
         topQuestions.push({
-          question: faqClick?.question || "Question non disponible",
-          articleSlug: faqClick?.articleSlug || faqId.split("-").slice(0, -1).join("-"),
+          question: faqClick?.question || 'Question non disponible',
+          articleSlug: faqClick?.articleSlug || faqId.split('-').slice(0, -1).join('-'),
           opens: data.opens || 0,
         });
       });
@@ -975,9 +816,10 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
         articles: blogArticles,
         totalViews: blogAnalyticsData.totalViews || 0,
         totalUniqueVisitors: blogAnalyticsData.totalUniqueVisitors || 0,
-        avgViewsPerVisitor: blogAnalyticsData.totalUniqueVisitors > 0
-          ? blogAnalyticsData.totalViews / blogAnalyticsData.totalUniqueVisitors
-          : 0,
+        avgViewsPerVisitor:
+          blogAnalyticsData.totalUniqueVisitors > 0
+            ? blogAnalyticsData.totalViews / blogAnalyticsData.totalUniqueVisitors
+            : 0,
         ctaStats: {
           appointment: blogCtaData.summary?.appointment || 0,
           seminar: blogCtaData.summary?.seminar || 0,
@@ -987,19 +829,29 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
           totalOpens: topQuestions.reduce((sum, q) => sum + q.opens, 0),
           topQuestions: topQuestions.slice(0, 10),
         },
-        topPerformingArticle: blogArticles.length > 0 ? blogArticles[0] ?? null : null,
+        topPerformingArticle: blogArticles.length > 0 ? (blogArticles[0] ?? null) : null,
       };
 
       // Compose final data object
       const analyticsData: AnalyticsData = {
         healthScore,
         kpis: {
-          visitors: dashboardData.comparison?.current?.totalVisits || dashboardData.summary?.totalVisits || 0,
+          visitors:
+            dashboardData.comparison?.current?.totalVisits ||
+            dashboardData.summary?.totalVisits ||
+            0,
           visitorsChange: dashboardData.comparison?.comparison?.totalVisitsChange || 0,
-          conversionRate: dashboardData.comparison?.current?.conversionRate || dashboardData.summary?.conversionRate || 0,
+          conversionRate:
+            dashboardData.comparison?.current?.conversionRate ||
+            dashboardData.summary?.conversionRate ||
+            0,
           conversionChange: dashboardData.comparison?.comparison?.conversionRateChange || 0,
-          avgDuration: (dashboardData.comparison?.current?.averageTimeOnSite || dashboardData.summary?.averageTimeOnSite || 0) / 1000,
-          durationChange: ((dashboardData.comparison?.comparison?.averageTimeOnSiteChange || 0) / 100) * 60, // convert % to seconds estimate
+          avgDuration:
+            (dashboardData.comparison?.current?.averageTimeOnSite ||
+              dashboardData.summary?.averageTimeOnSite ||
+              0) / 1000,
+          durationChange:
+            ((dashboardData.comparison?.comparison?.averageTimeOnSiteChange || 0) / 100) * 60, // convert % to seconds estimate
         },
         trafficChart: chartData,
         topPages,
@@ -1007,11 +859,17 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
         totalVisitors: dashboardData.summary?.uniqueSessions || 0,
         newVisitors: Math.round((dashboardData.summary?.uniqueSessions || 0) * 0.4), // Estimate
         avgSessionDuration: (dashboardData.summary?.averageTimeOnSite || 0) / 1000,
-        avgPagesPerSession: topPages.length > 0 ? (dashboardData.summary?.totalVisits || 0) / (dashboardData.summary?.uniqueSessions || 1) : 1,
+        avgPagesPerSession:
+          topPages.length > 0
+            ? (dashboardData.summary?.totalVisits || 0) /
+              (dashboardData.summary?.uniqueSessions || 1)
+            : 1,
         bounceRate: 45, // Placeholder
-        scrollDepth: heatmapData.length > 0
-          ? heatmapData.reduce((sum: number, h: any) => sum + (h.scrollRate || 0), 0) / heatmapData.length
-          : 0,
+        scrollDepth:
+          heatmapData.length > 0
+            ? heatmapData.reduce((sum: number, h: any) => sum + (h.scrollRate || 0), 0) /
+              heatmapData.length
+            : 0,
         sectionEngagement,
         deviceBreakdown,
         totalConversions: conversionTypes.reduce((sum, c) => sum + c.completed, 0),
@@ -1030,9 +888,10 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
         totalBotVisits: botTypes.reduce((sum, b) => sum + b.visits, 0),
         uniqueBots: botTypes.length,
         crawledPages: crawledPages.length,
-        avgCrawlRate: botTimeline.length > 0
-          ? botTimeline.reduce((sum, t) => sum + t.visits, 0) / botTimeline.length
-          : 0,
+        avgCrawlRate:
+          botTimeline.length > 0
+            ? botTimeline.reduce((sum, t) => sum + t.visits, 0) / botTimeline.length
+            : 0,
         botVisitsTimeline: botTimeline,
         botTypes,
         topCrawledPages: crawledPages,
@@ -1046,8 +905,8 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       setLastUpdated(new Date());
       setError(null);
     } catch (err) {
-      console.error("Error fetching analytics:", err);
-      setError(err instanceof Error ? err.message : "Erreur inconnue");
+      console.error('Error fetching analytics:', err);
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
     }
   }, [period, customStartDate, customEndDate, isSimulationMode, generateSimulatedData]);
 
@@ -1064,7 +923,7 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       refreshIntervalRef.current = null;
     }
 
-    if (autoRefresh || period === "realtime") {
+    if (autoRefresh || period === 'realtime') {
       refreshIntervalRef.current = setInterval(() => {
         fetchData();
       }, refreshInterval);
