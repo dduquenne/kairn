@@ -19,8 +19,8 @@ export * from './analytics';
 // Blog admin components
 export * from './blog';
 
-// Social admin components
-export * from './social';
+// NOTE: Social admin components have been moved to app/admin/social/_components
+// in the psypnos app for better co-location with the refactored page
 
 // Testimonials admin components
 export * from './testimonials';
