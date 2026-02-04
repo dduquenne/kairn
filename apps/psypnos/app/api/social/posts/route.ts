@@ -12,16 +12,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { withAdminAuth } from '@/app/api/auth/middleware';
 import {
-  getSocialPosts,
   getSocialPostsWithRelations,
   createSocialPost,
   countPostsByStatus,
 } from '@/lib/social/store';
-import type {
-  SocialPlatform,
-  PostStatus,
-  CreateSocialPostInput,
-} from '@/lib/social/types';
+import type { SocialPlatform, PostStatus, CreateSocialPostInput } from '@/lib/social/types';
 
 function parseFilters(searchParams: URLSearchParams) {
   const filters: {
@@ -74,14 +69,47 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const filters = parseFilters(searchParams);
-    const includeRelations = searchParams.get('includeRelations') === 'true';
 
-    const [posts, statusCounts] = await Promise.all([
-      includeRelations
-        ? getSocialPostsWithRelations(filters)
-        : getSocialPosts(filters),
+    // Always include relations to get account name and analytics
+    const [postsWithRelations, statusCounts] = await Promise.all([
+      getSocialPostsWithRelations(filters),
       countPostsByStatus(),
     ]);
+
+    // Transform posts to include accountName at top level for easier frontend consumption
+    const posts = postsWithRelations.map(post => ({
+      id: post.id,
+      platform: post.platform,
+      content: post.content,
+      status: post.status,
+      blogTitle: post.blogTitle,
+      blogSlug: post.blogSlug,
+      scheduledAt: post.scheduledAt,
+      publishedAt: post.publishedAt,
+      createdAt: post.createdAt,
+      updatedAt: post.updatedAt,
+      accountName: post.account?.accountName || 'Compte inconnu',
+      accountId: post.accountId,
+      hashtags: post.hashtags || [],
+      platformUrl: post.platformUrl,
+      errorMessage: post.errorMessage,
+      linkUrl: post.linkUrl,
+      mediaUrls: post.mediaUrls || [],
+      externalPostId: post.externalPostId,
+      generatedBy: post.generatedBy,
+      metadata: post.metadata,
+      // Include analytics summary if available
+      analytics: post.analytics
+        ? {
+            impressions: post.analytics.impressions,
+            reach: post.analytics.reach,
+            engagements: post.analytics.engagements,
+            likes: post.analytics.likes,
+            comments: post.analytics.comments,
+            shares: post.analytics.shares,
+          }
+        : null,
+    }));
 
     return NextResponse.json({
       posts,
@@ -111,10 +139,7 @@ export async function POST(request: NextRequest) {
     // Validation
     const validation = validateCreateInput(body);
     if (!validation.valid) {
-      return NextResponse.json(
-        { error: validation.error },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
     const input: CreateSocialPostInput = {

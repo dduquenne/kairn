@@ -1,261 +1,147 @@
-"use client";
+'use client';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Eye,
-  Users,
-  Heart,
-  MessageCircle,
-  Share2,
-  TrendingUp,
-  Calendar,
   Plus,
-  RefreshCw,
-  CheckCircle,
-  AlertCircle,
-  Clock,
   Sparkles,
+  RefreshCw,
+  Calendar,
+  History,
   BarChart3,
-  Link2,
-} from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-import {
-  BarChart as RechartsBarChart,
-  Bar,
-  LineChart as RechartsLineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
+  ChevronRight,
+  ArrowRight,
+} from 'lucide-react';
+import Link from 'next/link';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 
-import type { SocialPlatform, PostStatus } from "@/lib/social/types";
-import { useToast } from "@/lib/toast-context";
+import type { SocialPlatform, PostStatus } from '@/lib/social/types';
+import { useToast } from '@/lib/toast-context';
 
-import { SocialPlatformIcon } from "./accounts/_components/SocialPlatformIcon";
+import { EditPostModal } from './_components/EditPostModal';
+import { PostDetailPanel, type DetailPost } from './_components/PostDetailPanel';
+import { PostsHistory, type HistoryPost } from './_components/PostsHistory';
+import { SocialCalendar, type CalendarPost } from './_components/SocialCalendar';
+import { SocialInsights } from './_components/SocialInsights';
 
 // ===========================================
 // Types
 // ===========================================
 
-interface DashboardStats {
-  totalPosts: number;
-  publishedPosts: number;
-  scheduledPosts: number;
-  failedPosts: number;
-  draftPosts: number;
-  totalImpressions: number;
-  totalReach: number;
-  totalEngagements: number;
-  totalLikes: number;
-  totalComments: number;
-  totalShares: number;
-  averageEngagementRate: number;
-}
-
-interface PlatformStats {
-  platform: SocialPlatform;
-  postsCount: number;
+interface DashboardAnalytics {
   impressions: number;
-  reach: number;
   engagements: number;
+  reach: number;
   likes: number;
   comments: number;
   shares: number;
   engagementRate: number;
 }
 
-interface TrendDataPoint {
-  date: string;
-  impressions: number;
-  engagements: number;
-  posts: number;
-}
-
-interface RecentPost {
+interface SocialPostData {
   id: string;
   platform: SocialPlatform;
   content: string;
+  status: PostStatus;
   blogTitle: string | null;
-  status: string;
+  blogSlug: string | null;
   scheduledAt: string | null;
   publishedAt: string | null;
-  externalPostId: string | null;
-  errorMessage: string | null;
+  createdAt: string;
   accountName: string;
+  hashtags: string[];
+  platformUrl: string | null;
+  errorMessage: string | null;
+  linkUrl: string | null;
 }
 
-// ===========================================
-// Helpers
-// ===========================================
-
-const PLATFORM_COLORS: Record<string, string> = {
-  FACEBOOK: "#1877F2",
-  LINKEDIN: "#0A66C2",
-  INSTAGRAM: "#E4405F",
-};
-
-function formatNumber(num: number): string {
-  if (num >= 1000000) {
-    return (num / 1000000).toFixed(1) + "M";
-  }
-  if (num >= 1000) {
-    return (num / 1000).toFixed(1) + "K";
-  }
-  return num.toString();
-}
-
-function getStatusBadge(status: string) {
-  switch (status) {
-    case "PUBLISHED":
-      return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-400">
-          <CheckCircle className="h-3 w-3" />
-          Publié
-        </span>
-      );
-    case "SCHEDULED":
-      return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2 py-0.5 text-xs font-medium text-blue-400">
-          <Clock className="h-3 w-3" />
-          Programmé
-        </span>
-      );
-    case "DRAFT":
-      return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-400">
-          <Clock className="h-3 w-3" />
-          Brouillon
-        </span>
-      );
-    case "FAILED":
-      return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-red-500/10 px-2 py-0.5 text-xs font-medium text-red-400">
-          <AlertCircle className="h-3 w-3" />
-          Échec
-        </span>
-      );
-    case "PUBLISHING":
-      return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-purple-500/10 px-2 py-0.5 text-xs font-medium text-purple-400">
-          <RefreshCw className="h-3 w-3 animate-spin" />
-          Publication...
-        </span>
-      );
-    default:
-      return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-gray-500/10 px-2 py-0.5 text-xs font-medium text-gray-400">
-          {status}
-        </span>
-      );
-  }
-}
+type ViewMode = 'calendar' | 'history' | 'insights';
 
 // ===========================================
-// Stat Card Component
+// Main Page Component
 // ===========================================
 
-interface StatCardProps {
-  label: string;
-  value: string | number;
-  icon: React.ElementType;
-  color: string;
-  subValue?: string;
-}
-
-function StatCard({ label, value, icon: Icon, color, subValue }: StatCardProps) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="rounded-lg border border-gold/20 bg-gradient-to-br from-night/60 to-night/40 p-5"
-    >
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm text-ivory/60">{label}</p>
-          <p className="mt-1 text-2xl font-semibold text-ivory">{value}</p>
-          {subValue && <p className="mt-1 text-xs text-ivory/40">{subValue}</p>}
-        </div>
-        <div className={`rounded-lg bg-${color}/20 p-2`}>
-          <Icon className={`h-5 w-5 text-${color}`} style={{ color }} />
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-// ===========================================
-// Main Dashboard Component
-// ===========================================
-
-export default function SocialDashboardPage() {
-  const router = useRouter();
+export default function SocialPage() {
   const { addToast } = useToast();
+
+  // Data states
+  const [posts, setPosts] = useState<SocialPostData[]>([]);
+  const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [platformStats, setPlatformStats] = useState<PlatformStats[]>([]);
-  const [trendData, setTrendData] = useState<TrendDataPoint[]>([]);
-  const [recentPosts, setRecentPosts] = useState<RecentPost[]>([]);
 
-  const loadDashboard = useCallback(async () => {
+  // UI states
+  const [viewMode, setViewMode] = useState<ViewMode>('calendar');
+  const [selectedPost, setSelectedPost] = useState<SocialPostData | null>(null);
+  const [editingPost, setEditingPost] = useState<SocialPostData | null>(null);
+  const [isPublishing, setIsPublishing] = useState(false);
+
+  // ===========================================
+  // Data Loading
+  // ===========================================
+
+  const loadData = useCallback(async () => {
     try {
-      const response = await fetch("/api/social/analytics?days=30&t=" + Date.now(), {
-        cache: "no-store",
+      // Load posts
+      const postsRes = await fetch('/api/social/posts?t=' + Date.now(), {
+        cache: 'no-store',
       });
+      if (postsRes.ok) {
+        const postsData = await postsRes.json();
+        setPosts(postsData.posts || []);
+      }
 
-      if (response.ok) {
-        const data = await response.json();
-        setStats(data.stats);
-        setPlatformStats(data.platformStats || []);
-        setTrendData(data.trendData || []);
-        setRecentPosts(data.recentPosts || []);
+      // Load analytics
+      const analyticsRes = await fetch('/api/social/analytics?days=30&t=' + Date.now(), {
+        cache: 'no-store',
+      });
+      if (analyticsRes.ok) {
+        const analyticsData = await analyticsRes.json();
+        if (analyticsData.stats) {
+          setAnalytics({
+            impressions: analyticsData.stats.totalImpressions || 0,
+            engagements: analyticsData.stats.totalEngagements || 0,
+            reach: analyticsData.stats.totalReach || 0,
+            likes: analyticsData.stats.totalLikes || 0,
+            comments: analyticsData.stats.totalComments || 0,
+            shares: analyticsData.stats.totalShares || 0,
+            engagementRate: analyticsData.stats.averageEngagementRate || 0,
+          });
+        }
       }
     } catch (error) {
-      console.error("Error loading dashboard:", error);
+      console.error('Error loading data:', error);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
-  const handleRefreshAnalytics = async () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      const response = await fetch("/api/social/analytics/refresh", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      // Refresh analytics from platforms
+      const response = await fetch('/api/social/analytics/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ hoursBack: 48 }),
       });
 
       if (response.ok) {
-        const result = await response.json();
         addToast({
-          title: "Analytics rafraîchis",
-          description: result.message,
-          variant: "success",
+          title: 'Données rafraîchies',
+          description: 'Les analytics ont été mis à jour',
+          variant: 'success',
         });
-        // Reload dashboard data
-        await loadDashboard();
+        await loadData();
       } else {
-        addToast({
-          title: "Erreur",
-          description: "Impossible de rafraîchir les analytics",
-          variant: "error",
-        });
+        throw new Error('Failed to refresh');
       }
     } catch {
       addToast({
-        title: "Erreur",
-        description: "Erreur lors du rafraîchissement",
-        variant: "error",
+        title: 'Erreur',
+        description: 'Impossible de rafraîchir les données',
+        variant: 'error',
       });
     } finally {
       setIsRefreshing(false);
@@ -263,456 +149,468 @@ export default function SocialDashboardPage() {
   };
 
   useEffect(() => {
-    loadDashboard();
-  }, [loadDashboard]);
+    loadData();
+  }, [loadData]);
+
+  // ===========================================
+  // Post Actions
+  // ===========================================
+
+  const handlePublishNow = async (postId: string) => {
+    setIsPublishing(true);
+    try {
+      const response = await fetch(`/api/social/posts/${postId}/publish`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        addToast({
+          title: 'Publication réussie',
+          variant: 'success',
+        });
+        await loadData();
+        setSelectedPost(null);
+      } else {
+        const data = await response.json();
+        addToast({
+          title: 'Erreur de publication',
+          description: data.error || 'Une erreur est survenue',
+          variant: 'error',
+        });
+      }
+    } catch {
+      addToast({
+        title: 'Erreur',
+        description: 'Impossible de publier',
+        variant: 'error',
+      });
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
+  const handleSavePost = async (
+    postId: string,
+    data: { scheduledAt: string | null; content?: string }
+  ) => {
+    const status = data.scheduledAt ? 'SCHEDULED' : 'DRAFT';
+
+    const response = await fetch(`/api/social/posts/${postId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...data, status }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Erreur lors de la modification');
+    }
+
+    addToast({
+      title: 'Post modifié',
+      description: data.scheduledAt
+        ? `Programmé pour le ${new Date(data.scheduledAt).toLocaleDateString('fr-FR')}`
+        : 'Converti en brouillon',
+      variant: 'success',
+    });
+
+    await loadData();
+    setEditingPost(null);
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    try {
+      const response = await fetch(`/api/social/posts/${postId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        addToast({
+          title: 'Post supprimé',
+          variant: 'success',
+        });
+        await loadData();
+        setSelectedPost(null);
+      } else {
+        const data = await response.json();
+        addToast({
+          title: 'Erreur',
+          description: data.error || 'Impossible de supprimer',
+          variant: 'error',
+        });
+      }
+    } catch {
+      addToast({
+        title: 'Erreur',
+        description: 'Impossible de supprimer le post',
+        variant: 'error',
+      });
+    }
+  };
+
+  // ===========================================
+  // Computed Data
+  // ===========================================
+
+  const calendarPosts: CalendarPost[] = useMemo(
+    () =>
+      posts.map(p => ({
+        id: p.id,
+        platform: p.platform,
+        content: p.content,
+        status: p.status,
+        blogTitle: p.blogTitle,
+        scheduledAt: p.scheduledAt,
+        publishedAt: p.publishedAt,
+        accountName: p.accountName,
+        hashtags: p.hashtags,
+        platformUrl: p.platformUrl,
+      })),
+    [posts]
+  );
+
+  const historyPosts: HistoryPost[] = useMemo(
+    () =>
+      posts.map(p => ({
+        id: p.id,
+        platform: p.platform,
+        content: p.content,
+        status: p.status,
+        blogTitle: p.blogTitle,
+        blogSlug: p.blogSlug,
+        scheduledAt: p.scheduledAt,
+        publishedAt: p.publishedAt,
+        createdAt: p.createdAt,
+        accountName: p.accountName,
+        hashtags: p.hashtags,
+        platformUrl: p.platformUrl,
+        errorMessage: p.errorMessage,
+      })),
+    [posts]
+  );
+
+  const insightPosts = useMemo(
+    () =>
+      posts.map(p => ({
+        id: p.id,
+        platform: p.platform,
+        status: p.status,
+        publishedAt: p.publishedAt,
+        scheduledAt: p.scheduledAt,
+      })),
+    [posts]
+  );
+
+  const detailPost: DetailPost | null = useMemo(() => {
+    if (!selectedPost) return null;
+    return {
+      ...selectedPost,
+      analytics: null, // TODO: Load individual post analytics
+    };
+  }, [selectedPost]);
+
+  // Stats for quick overview
+  const quickStats = useMemo(() => {
+    const published = posts.filter(p => p.status === 'PUBLISHED').length;
+    const scheduled = posts.filter(p => p.status === 'SCHEDULED').length;
+    const drafts = posts.filter(p => p.status === 'DRAFT').length;
+    return { total: posts.length, published, scheduled, drafts };
+  }, [posts]);
+
+  // ===========================================
+  // Render
+  // ===========================================
 
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="h-8 w-48 animate-pulse rounded bg-gold/20" />
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+        <div className="bg-gold/20 h-10 w-64 animate-pulse rounded" />
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-32 animate-pulse rounded-lg bg-gold/20" />
+            <div key={i} className="bg-gold/20 h-24 animate-pulse rounded-lg" />
           ))}
         </div>
-        <div className="h-80 animate-pulse rounded-lg bg-gold/20" />
+        <div className="bg-gold/20 h-96 animate-pulse rounded-lg" />
       </div>
     );
   }
 
-  // Prepare chart data
-  const chartData = trendData.map((d) => ({
-    name: new Date(d.date).toLocaleDateString("fr-FR", { day: "numeric", month: "short" }),
-    impressions: d.impressions,
-    engagements: d.engagements,
-    posts: d.posts,
-  }));
-
-  const pieData = platformStats.map((p) => ({
-    name: p.platform,
-    value: p.postsCount,
-    color: PLATFORM_COLORS[p.platform] || "#D4AF37",
-  }));
-
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
       >
-        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-gold">
-              Tableau de bord
-            </p>
-            <h1 className="mt-2 text-3xl font-semibold text-ivory">
-              Réseaux sociaux
-            </h1>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              onClick={handleRefreshAnalytics}
-              disabled={isRefreshing}
-              className="inline-flex items-center gap-2 rounded-lg border border-gold/20 bg-night/30 px-4 py-2 text-sm text-ivory/70 transition hover:border-gold/40 hover:text-ivory disabled:opacity-50"
-            >
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-              Actualiser
-            </button>
-            <button
-              onClick={() => router.push("/admin/social/calendar")}
-              className="inline-flex items-center gap-2 rounded-lg border border-gold/20 bg-night/30 px-4 py-2 text-sm text-ivory/70 transition hover:border-gold/40 hover:text-ivory"
-            >
-              <Calendar className="h-4 w-4" />
-              Calendrier
-            </button>
-            <button
-              onClick={() => router.push("/admin/social/posts/new")}
-              className="inline-flex items-center gap-2 rounded-lg bg-gold/20 px-4 py-2 text-sm font-medium text-gold transition hover:bg-gold/30"
-            >
-              <Sparkles className="h-4 w-4" />
-              Générer du contenu
-            </button>
-          </div>
+        <div>
+          <p className="text-gold text-sm uppercase tracking-[0.3em]">Réseaux sociaux</p>
+          <h1 className="text-ivory mt-2 text-3xl font-semibold">Centre de publication</h1>
         </div>
-      </motion.div>
 
-      {/* KPI Cards */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        className="grid grid-cols-2 gap-4 lg:grid-cols-4"
-      >
-        <StatCard
-          label="Posts publiés"
-          value={stats?.publishedPosts || 0}
-          icon={CheckCircle}
-          color="#22C55E"
-          subValue={`${stats?.scheduledPosts || 0} programmés`}
-        />
-        <StatCard
-          label="Impressions"
-          value={formatNumber(stats?.totalImpressions || 0)}
-          icon={Eye}
-          color="#D4AF37"
-          subValue={`Reach: ${formatNumber(stats?.totalReach || 0)}`}
-        />
-        <StatCard
-          label="Engagements"
-          value={formatNumber(stats?.totalEngagements || 0)}
-          icon={Heart}
-          color="#EC4899"
-          subValue={`${(stats?.averageEngagementRate || 0).toFixed(2)}% taux`}
-        />
-        <StatCard
-          label="Interactions"
-          value={formatNumber(
-            (stats?.totalLikes || 0) + (stats?.totalComments || 0) + (stats?.totalShares || 0)
-          )}
-          icon={MessageCircle}
-          color="#3B82F6"
-          subValue={`${stats?.totalLikes || 0} likes, ${stats?.totalComments || 0} com.`}
-        />
-      </motion.div>
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Trend Chart */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="col-span-1 rounded-lg border border-gold/20 bg-gradient-to-br from-night/60 to-night/40 p-6 lg:col-span-2"
-        >
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gold">
-              Tendances (30 derniers jours)
-            </h3>
-            <TrendingUp className="h-5 w-5 text-gold/50" />
-          </div>
-
-          {chartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <RechartsLineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(212,175,55,0.1)" />
-                <XAxis
-                  dataKey="name"
-                  stroke="#C7A962"
-                  tick={{ fill: "rgba(245,241,230,0.7)", fontSize: 12 }}
-                />
-                <YAxis
-                  stroke="#C7A962"
-                  tick={{ fill: "rgba(245,241,230,0.7)", fontSize: 12 }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "rgba(13,10,8,0.95)",
-                    border: "1px solid rgba(212,175,55,0.5)",
-                    borderRadius: "8px",
-                  }}
-                  labelStyle={{ color: "#D4AF37" }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="impressions"
-                  stroke="#D4AF37"
-                  strokeWidth={2}
-                  dot={false}
-                  name="Impressions"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="engagements"
-                  stroke="#EC4899"
-                  strokeWidth={2}
-                  dot={false}
-                  name="Engagements"
-                />
-              </RechartsLineChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex h-[300px] items-center justify-center text-ivory/40">
-              Aucune donnée disponible
-            </div>
-          )}
-        </motion.div>
-
-        {/* Platform Distribution */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="rounded-lg border border-gold/20 bg-gradient-to-br from-night/60 to-night/40 p-6"
-        >
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gold">Par plateforme</h3>
-            <BarChart3 className="h-5 w-5 text-gold/50" />
-          </div>
-
-          {pieData.length > 0 ? (
-            <>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={80}
-                    paddingAngle={2}
-                    dataKey="value"
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "rgba(13,10,8,0.95)",
-                      border: "1px solid rgba(212,175,55,0.5)",
-                      borderRadius: "8px",
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-
-              <div className="mt-4 space-y-2">
-                {platformStats.map((p) => (
-                  <div
-                    key={p.platform}
-                    className="flex items-center justify-between text-sm"
-                  >
-                    <div className="flex items-center gap-2">
-                      <SocialPlatformIcon
-                        platform={p.platform}
-                        className="h-4 w-4"
-                      />
-                      <span className="text-ivory/70 capitalize">
-                        {p.platform.toLowerCase()}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3 text-ivory/50">
-                      <span>{p.postsCount} posts</span>
-                      <span className="text-gold">
-                        {p.engagementRate.toFixed(1)}%
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
-          ) : (
-            <div className="flex h-[200px] items-center justify-center text-ivory/40">
-              Aucune donnée
-            </div>
-          )}
-        </motion.div>
-      </div>
-
-      {/* Platform Performance Cards */}
-      {platformStats.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="grid grid-cols-1 gap-4 md:grid-cols-3"
-        >
-          {platformStats.map((p) => (
-            <div
-              key={p.platform}
-              className="rounded-lg border border-gold/20 bg-gradient-to-br from-night/60 to-night/40 p-5"
-              style={{ borderLeftColor: PLATFORM_COLORS[p.platform], borderLeftWidth: "3px" }}
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <SocialPlatformIcon platform={p.platform} className="h-8 w-8" />
-                <div>
-                  <h4 className="font-semibold text-ivory capitalize">
-                    {p.platform.toLowerCase()}
-                  </h4>
-                  <p className="text-xs text-ivory/50">{p.postsCount} publications</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3 text-center">
-                <div>
-                  <p className="text-lg font-semibold text-ivory">
-                    {formatNumber(p.impressions)}
-                  </p>
-                  <p className="text-xs text-ivory/50">Impressions</p>
-                </div>
-                <div>
-                  <p className="text-lg font-semibold text-ivory">
-                    {formatNumber(p.engagements)}
-                  </p>
-                  <p className="text-xs text-ivory/50">Engagements</p>
-                </div>
-                <div>
-                  <p className="text-lg font-semibold text-gold">
-                    {p.engagementRate.toFixed(1)}%
-                  </p>
-                  <p className="text-xs text-ivory/50">Taux</p>
-                </div>
-              </div>
-
-              <div className="mt-4 flex items-center justify-between text-xs text-ivory/50">
-                <span className="flex items-center gap-1">
-                  <Heart className="h-3 w-3" /> {p.likes}
-                </span>
-                <span className="flex items-center gap-1">
-                  <MessageCircle className="h-3 w-3" /> {p.comments}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Share2 className="h-3 w-3" /> {p.shares}
-                </span>
-              </div>
-            </div>
-          ))}
-        </motion.div>
-      )}
-
-      {/* Recent Publications History */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
-        className="rounded-lg border border-gold/20 bg-gradient-to-br from-night/60 to-night/40 p-6"
-      >
-        <div className="mb-6 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gold">
-            Historique des publications
-          </h3>
+        <div className="flex flex-wrap items-center gap-2">
           <button
-            onClick={() => router.push("/admin/social/posts")}
-            className="text-sm text-ivory/50 hover:text-gold transition"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="border-gold/20 bg-night/30 text-ivory/70 hover:border-gold/40 hover:text-ivory inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition disabled:opacity-50"
           >
-            Voir tout →
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Actualiser
           </button>
+          <Link
+            href="/admin/social/posts/new"
+            className="bg-gold/20 text-gold hover:bg-gold/30 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition"
+          >
+            <Sparkles className="h-4 w-4" />
+            Générer du contenu
+          </Link>
         </div>
+      </motion.div>
 
-        {recentPosts.length > 0 ? (
-          <div className="space-y-3">
-            {recentPosts.slice(0, 10).map((post, index) => (
-              <motion.div
-                key={post.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className="flex items-start gap-4 rounded-lg border border-gold/10 bg-night/30 p-4 transition hover:border-gold/20"
-              >
-                <SocialPlatformIcon
-                  platform={post.platform}
-                  className="h-8 w-8 flex-shrink-0"
-                />
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      {post.blogTitle && (
-                        <p className="text-xs text-ivory/50 mb-1">
-                          Article: {post.blogTitle}
-                        </p>
-                      )}
-                      <p className="line-clamp-2 text-sm text-ivory">
-                        {post.content}
-                      </p>
-                    </div>
-                    {getStatusBadge(post.status)}
-                  </div>
-
-                  <div className="mt-2 flex items-center gap-4 text-xs text-ivory/40">
-                    <span>{post.accountName}</span>
-                    <span>•</span>
-                    <span>
-                      {post.publishedAt
-                        ? `Publié le ${new Date(post.publishedAt).toLocaleDateString("fr-FR")}`
-                        : post.scheduledAt
-                          ? `Prévu le ${new Date(post.scheduledAt).toLocaleDateString("fr-FR")}`
-                          : "Brouillon"}
-                    </span>
-                    {post.externalPostId && (
-                      <>
-                        <span>•</span>
-                        <span className="flex items-center gap-1 text-green-400">
-                          <Link2 className="h-3 w-3" />
-                          Lié
-                        </span>
-                      </>
-                    )}
-                  </div>
-
-                  {post.status === "FAILED" && post.errorMessage && (
-                    <p className="mt-2 text-xs text-red-400">
-                      Erreur: {post.errorMessage}
-                    </p>
-                  )}
-                </div>
-              </motion.div>
-            ))}
+      {/* Quick Stats Bar */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="border-gold/20 from-night/60 to-night/40 flex flex-wrap items-center gap-6 rounded-lg border bg-gradient-to-r px-6 py-4"
+      >
+        <div className="flex items-center gap-3">
+          <div className="bg-gold/10 rounded-lg p-2">
+            <BarChart3 className="text-gold h-5 w-5" />
           </div>
-        ) : (
-          <div className="py-12 text-center">
-            <Sparkles className="mx-auto h-12 w-12 text-gold/30" />
-            <p className="mt-4 text-ivory/50">Aucune publication pour le moment</p>
-            <button
-              onClick={() => router.push("/admin/social/posts/new")}
-              className="mt-4 inline-flex items-center gap-2 rounded-lg bg-gold/20 px-4 py-2 text-sm font-medium text-gold transition hover:bg-gold/30"
-            >
-              <Plus className="h-4 w-4" />
-              Créer ma première publication
-            </button>
+          <div>
+            <p className="text-ivory text-2xl font-semibold">{quickStats.total}</p>
+            <p className="text-ivory/50 text-xs">Publications</p>
           </div>
+        </div>
+        <div className="bg-gold/20 h-8 w-px" />
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-green-400" />
+            <span className="text-ivory/70 text-sm">{quickStats.published} publiés</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-blue-400" />
+            <span className="text-ivory/70 text-sm">{quickStats.scheduled} programmés</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-amber-400" />
+            <span className="text-ivory/70 text-sm">{quickStats.drafts} brouillons</span>
+          </div>
+        </div>
+        {analytics && (
+          <>
+            <div className="bg-gold/20 hidden h-8 w-px sm:block" />
+            <div className="flex hidden items-center gap-2 sm:flex">
+              <span className="text-ivory/50 text-sm">Engagements:</span>
+              <span className="text-gold text-sm font-medium">
+                {analytics.engagements.toLocaleString()}
+              </span>
+              <span className="text-ivory/40 text-xs">
+                ({analytics.engagementRate.toFixed(2)}%)
+              </span>
+            </div>
+          </>
         )}
       </motion.div>
 
-      {/* Quick Actions */}
+      {/* View Mode Tabs */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+        className="flex items-center gap-2"
+      >
+        <button
+          onClick={() => setViewMode('calendar')}
+          className={`
+            inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition
+            ${
+              viewMode === 'calendar'
+                ? 'bg-gold/20 text-gold'
+                : 'text-ivory/60 hover:bg-gold/10 hover:text-ivory'
+            }
+          `}
+        >
+          <Calendar className="h-4 w-4" />
+          Calendrier
+        </button>
+        <button
+          onClick={() => setViewMode('history')}
+          className={`
+            inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition
+            ${
+              viewMode === 'history'
+                ? 'bg-gold/20 text-gold'
+                : 'text-ivory/60 hover:bg-gold/10 hover:text-ivory'
+            }
+          `}
+        >
+          <History className="h-4 w-4" />
+          Historique
+        </button>
+        <button
+          onClick={() => setViewMode('insights')}
+          className={`
+            inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition
+            ${
+              viewMode === 'insights'
+                ? 'bg-gold/20 text-gold'
+                : 'text-ivory/60 hover:bg-gold/10 hover:text-ivory'
+            }
+          `}
+        >
+          <BarChart3 className="h-4 w-4" />
+          Insights
+        </button>
+      </motion.div>
+
+      {/* Main Content Area */}
+      <div className="flex gap-6">
+        {/* Main Panel */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className={`min-w-0 flex-1 ${selectedPost ? 'lg:mr-[400px]' : ''}`}
+        >
+          <AnimatePresence mode="wait">
+            {viewMode === 'calendar' && (
+              <motion.div
+                key="calendar"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+              >
+                <SocialCalendar
+                  posts={calendarPosts}
+                  onPostSelect={post => setSelectedPost(posts.find(p => p.id === post.id) || null)}
+                  onDateSelect={date => {
+                    // Could open a create modal for this date
+                    console.log('Selected date:', date);
+                  }}
+                  onPublishNow={handlePublishNow}
+                  onEditPost={post => setEditingPost(posts.find(p => p.id === post.id) || null)}
+                  onDeletePost={handleDeletePost}
+                  selectedPostId={selectedPost?.id}
+                />
+              </motion.div>
+            )}
+
+            {viewMode === 'history' && (
+              <motion.div
+                key="history"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+              >
+                <PostsHistory
+                  posts={historyPosts}
+                  onPostSelect={post => setSelectedPost(posts.find(p => p.id === post.id) || null)}
+                  onEditPost={post => setEditingPost(posts.find(p => p.id === post.id) || null)}
+                  onDeletePost={handleDeletePost}
+                  onPublishNow={handlePublishNow}
+                  selectedPostId={selectedPost?.id}
+                  isLoading={isLoading}
+                />
+              </motion.div>
+            )}
+
+            {viewMode === 'insights' && (
+              <motion.div
+                key="insights"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+              >
+                <SocialInsights posts={insightPosts} analytics={analytics} />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Detail Panel (Desktop: Fixed Right) */}
+        <div className="hidden lg:block">
+          <PostDetailPanel
+            post={detailPost}
+            onClose={() => setSelectedPost(null)}
+            onEdit={post => setEditingPost(posts.find(p => p.id === post.id) || null)}
+            onDelete={handleDeletePost}
+            onPublishNow={handlePublishNow}
+            isPublishing={isPublishing}
+          />
+        </div>
+
+        {/* Detail Panel (Mobile: Overlay) */}
+        <div className="lg:hidden">
+          <PostDetailPanel
+            post={detailPost}
+            onClose={() => setSelectedPost(null)}
+            onEdit={post => setEditingPost(posts.find(p => p.id === post.id) || null)}
+            onDelete={handleDeletePost}
+            onPublishNow={handlePublishNow}
+            isPublishing={isPublishing}
+          />
+        </div>
+      </div>
+
+      {/* Quick Actions Footer */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.6 }}
-        className="grid grid-cols-1 gap-4 md:grid-cols-3"
+        transition={{ delay: 0.3 }}
+        className="grid grid-cols-1 gap-4 sm:grid-cols-3"
       >
-        <button
-          onClick={() => router.push("/admin/social/accounts")}
-          className="flex items-center gap-4 rounded-lg border border-gold/20 bg-gradient-to-br from-night/60 to-night/40 p-5 text-left transition hover:border-gold/40"
+        <Link
+          href="/admin/social/posts/new"
+          className="border-gold/20 from-night/60 to-night/40 hover:border-gold/40 group flex items-center gap-4 rounded-lg border bg-gradient-to-br p-5 transition"
         >
-          <div className="rounded-lg bg-blue-500/20 p-3">
-            <Users className="h-6 w-6 text-blue-400" />
+          <div className="bg-gold/20 rounded-lg p-3">
+            <Plus className="text-gold h-6 w-6" />
           </div>
-          <div>
-            <h4 className="font-semibold text-ivory">Gérer les comptes</h4>
-            <p className="text-sm text-ivory/50">Connecter ou configurer les comptes sociaux</p>
+          <div className="flex-1">
+            <h4 className="text-ivory font-semibold">Nouvelle publication</h4>
+            <p className="text-ivory/50 text-sm">Créer un post manuellement</p>
           </div>
-        </button>
+          <ArrowRight className="text-ivory/30 group-hover:text-gold h-5 w-5 transition group-hover:translate-x-1" />
+        </Link>
 
-        <button
-          onClick={() => router.push("/admin/social/posts")}
-          className="flex items-center gap-4 rounded-lg border border-gold/20 bg-gradient-to-br from-night/60 to-night/40 p-5 text-left transition hover:border-gold/40"
+        <Link
+          href="/admin/social/posts/new"
+          className="border-gold/20 from-night/60 to-night/40 hover:border-gold/40 group flex items-center gap-4 rounded-lg border bg-gradient-to-br p-5 transition"
         >
           <div className="rounded-lg bg-purple-500/20 p-3">
-            <BarChart3 className="h-6 w-6 text-purple-400" />
+            <Sparkles className="h-6 w-6 text-purple-400" />
           </div>
-          <div>
-            <h4 className="font-semibold text-ivory">Toutes les publications</h4>
-            <p className="text-sm text-ivory/50">Voir et gérer toutes vos publications</p>
+          <div className="flex-1">
+            <h4 className="text-ivory font-semibold">Générer avec l&apos;IA</h4>
+            <p className="text-ivory/50 text-sm">À partir d&apos;un article de blog</p>
           </div>
-        </button>
+          <ArrowRight className="text-ivory/30 h-5 w-5 transition group-hover:translate-x-1 group-hover:text-purple-400" />
+        </Link>
 
-        <button
-          onClick={() => router.push("/admin/social/calendar")}
-          className="flex items-center gap-4 rounded-lg border border-gold/20 bg-gradient-to-br from-night/60 to-night/40 p-5 text-left transition hover:border-gold/40"
+        <Link
+          href="/admin/social/accounts"
+          className="border-gold/20 from-night/60 to-night/40 hover:border-gold/40 group flex items-center gap-4 rounded-lg border bg-gradient-to-br p-5 transition"
         >
-          <div className="rounded-lg bg-green-500/20 p-3">
-            <Calendar className="h-6 w-6 text-green-400" />
+          <div className="rounded-lg bg-blue-500/20 p-3">
+            <ChevronRight className="h-6 w-6 text-blue-400" />
           </div>
-          <div>
-            <h4 className="font-semibold text-ivory">Calendrier</h4>
-            <p className="text-sm text-ivory/50">Planifier vos publications à venir</p>
+          <div className="flex-1">
+            <h4 className="text-ivory font-semibold">Gérer les comptes</h4>
+            <p className="text-ivory/50 text-sm">Connecter ou configurer</p>
           </div>
-        </button>
+          <ArrowRight className="text-ivory/30 h-5 w-5 transition group-hover:translate-x-1 group-hover:text-blue-400" />
+        </Link>
       </motion.div>
+
+      {/* Edit Modal */}
+      <EditPostModal
+        post={editingPost}
+        isOpen={!!editingPost}
+        onClose={() => setEditingPost(null)}
+        onSave={handleSavePost}
+      />
     </div>
   );
 }
