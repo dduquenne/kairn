@@ -1,16 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  Plus,
-  Sparkles,
-  RefreshCw,
-  Calendar,
-  History,
-  BarChart3,
-  ChevronRight,
-  ArrowRight,
-} from 'lucide-react';
+import { Sparkles, RefreshCw, Calendar, History, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useState, useMemo } from 'react';
 
@@ -551,56 +542,6 @@ export default function SocialPage() {
           />
         </div>
       </div>
-
-      {/* Quick Actions Footer */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="grid grid-cols-1 gap-4 sm:grid-cols-3"
-      >
-        <Link
-          href="/admin/social/posts/new"
-          className="border-gold/20 from-night/60 to-night/40 hover:border-gold/40 group flex items-center gap-4 rounded-lg border bg-gradient-to-br p-5 transition"
-        >
-          <div className="bg-gold/20 rounded-lg p-3">
-            <Plus className="text-gold h-6 w-6" />
-          </div>
-          <div className="flex-1">
-            <h4 className="text-ivory font-semibold">Nouvelle publication</h4>
-            <p className="text-ivory/50 text-sm">Créer un post manuellement</p>
-          </div>
-          <ArrowRight className="text-ivory/30 group-hover:text-gold h-5 w-5 transition group-hover:translate-x-1" />
-        </Link>
-
-        <Link
-          href="/admin/social/posts/new"
-          className="border-gold/20 from-night/60 to-night/40 hover:border-gold/40 group flex items-center gap-4 rounded-lg border bg-gradient-to-br p-5 transition"
-        >
-          <div className="rounded-lg bg-purple-500/20 p-3">
-            <Sparkles className="h-6 w-6 text-purple-400" />
-          </div>
-          <div className="flex-1">
-            <h4 className="text-ivory font-semibold">Générer avec l&apos;IA</h4>
-            <p className="text-ivory/50 text-sm">À partir d&apos;un article de blog</p>
-          </div>
-          <ArrowRight className="text-ivory/30 h-5 w-5 transition group-hover:translate-x-1 group-hover:text-purple-400" />
-        </Link>
-
-        <Link
-          href="/admin/social/accounts"
-          className="border-gold/20 from-night/60 to-night/40 hover:border-gold/40 group flex items-center gap-4 rounded-lg border bg-gradient-to-br p-5 transition"
-        >
-          <div className="rounded-lg bg-blue-500/20 p-3">
-            <ChevronRight className="h-6 w-6 text-blue-400" />
-          </div>
-          <div className="flex-1">
-            <h4 className="text-ivory font-semibold">Gérer les comptes</h4>
-            <p className="text-ivory/50 text-sm">Connecter ou configurer</p>
-          </div>
-          <ArrowRight className="text-ivory/30 h-5 w-5 transition group-hover:translate-x-1 group-hover:text-blue-400" />
-        </Link>
-      </motion.div>
 
       {/* Edit Modal */}
       <EditPostModal
