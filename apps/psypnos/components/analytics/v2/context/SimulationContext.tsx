@@ -285,7 +285,11 @@ interface SimulationContextType {
   isSimulationMode: boolean;
   toggleSimulationMode: () => void;
   setSimulationMode: (value: boolean) => void;
-  generateSimulatedData: (period: PeriodType) => SimulatedAnalyticsData;
+  generateSimulatedData: (
+    period: PeriodType,
+    customStartDate?: string,
+    customEndDate?: string
+  ) => SimulatedAnalyticsData;
 }
 
 const SimulationContext = createContext<SimulationContextType | undefined>(undefined);
@@ -305,7 +309,11 @@ function randomWithVariation(base: number, variationPercent: number = 20): numbe
 }
 
 // Générateur de données simulées
-function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
+function generateSimulatedData(
+  period: PeriodType,
+  customStartDate?: string,
+  customEndDate?: string
+): SimulatedAnalyticsData {
   const now = new Date();
 
   // Générer les données de graphique selon la période
@@ -436,6 +444,106 @@ function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
         });
       }
       break;
+
+    case 'custom': {
+      // Custom period - use provided dates or fallback to last 7 days
+      if (customStartDate && customEndDate) {
+        const { startDate, endDate } = getPeriodDateRange('custom', customStartDate, customEndDate);
+        const allBuckets: ChartBucket[] = [];
+        const diffMs = endDate.getTime() - startDate.getTime();
+        const diffDays = diffMs / (24 * 60 * 60 * 1000);
+
+        if (diffDays <= 1) {
+          // Hourly labels for 1 day or less
+          const current = new Date(startDate);
+          while (current <= endDate) {
+            allBuckets.push({
+              label: formatTime(current),
+              timestamp: current.getTime(),
+              value: randomInRange(10, 80),
+              previousValue: randomInRange(8, 70),
+            });
+            current.setHours(current.getHours() + 1);
+          }
+        } else if (diffDays <= 7) {
+          // Weekday + day labels for up to 7 days
+          const current = new Date(startDate);
+          while (current <= endDate) {
+            allBuckets.push({
+              label: formatShortDate(current),
+              timestamp: current.getTime(),
+              value: randomInRange(80, 200),
+              previousValue: randomInRange(70, 180),
+            });
+            current.setDate(current.getDate() + 1);
+          }
+        } else if (diffDays <= 60) {
+          // Day + month labels for up to 60 days
+          const current = new Date(startDate);
+          while (current <= endDate) {
+            allBuckets.push({
+              label: formatDayMonth(current),
+              timestamp: current.getTime(),
+              value: randomInRange(80, 250),
+              previousValue: randomInRange(70, 220),
+            });
+            current.setDate(current.getDate() + 1);
+          }
+        } else if (diffDays <= 120) {
+          // Weekly labels for up to 120 days
+          const current = new Date(startDate);
+          // Align to Monday
+          const dayOfWeek = current.getDay();
+          const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+          current.setDate(current.getDate() + diff);
+          current.setHours(0, 0, 0, 0);
+          const seenWeeks = new Set<string>();
+          while (current <= endDate) {
+            const weekKey = formatWeek(current);
+            if (!seenWeeks.has(weekKey)) {
+              seenWeeks.add(weekKey);
+              allBuckets.push({
+                label: weekKey,
+                timestamp: current.getTime(),
+                value: randomInRange(400, 800),
+                previousValue: randomInRange(350, 750),
+              });
+            }
+            current.setDate(current.getDate() + 7);
+          }
+        } else {
+          // Monthly labels for longer periods
+          const current = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+          while (current <= endDate) {
+            allBuckets.push({
+              label: formatMonth(current),
+              timestamp: current.getTime(),
+              value: randomInRange(1500, 4000),
+              previousValue: randomInRange(1300, 3500),
+            });
+            current.setMonth(current.getMonth() + 1);
+          }
+        }
+
+        // Sample for display if needed
+        const sampledBuckets = sampleBucketsForDisplay(allBuckets, 15);
+        sampledBuckets.forEach(b =>
+          chartData.push({ label: b.label, value: b.value, previousValue: b.previousValue })
+        );
+      } else {
+        // Fallback if no custom dates provided
+        for (let i = 0; i < 7; i++) {
+          const date = new Date(now.getTime() - (6 - i) * 24 * 60 * 60 * 1000);
+          chartData.push({
+            label: formatShortDate(date),
+            value: randomInRange(80, 200),
+            previousValue: randomInRange(70, 180),
+          });
+        }
+      }
+      break;
+    }
+
     default:
       for (let i = 0; i < 7; i++) {
         const date = new Date(now.getTime() - (6 - i) * 24 * 60 * 60 * 1000);
@@ -957,8 +1065,102 @@ function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
       }
       break;
     }
+    case 'custom': {
+      // Custom period - use provided dates
+      if (customStartDate && customEndDate) {
+        const { startDate, endDate } = getPeriodDateRange('custom', customStartDate, customEndDate);
+        const customBuckets: { label: string; timestamp: number; visits: number }[] = [];
+        const diffMs = endDate.getTime() - startDate.getTime();
+        const diffDays = diffMs / (24 * 60 * 60 * 1000);
+
+        if (diffDays <= 1) {
+          // Hourly labels
+          const current = new Date(startDate);
+          while (current <= endDate) {
+            customBuckets.push({
+              label: formatTime(current),
+              timestamp: current.getTime(),
+              visits: randomInRange(2, 15),
+            });
+            current.setHours(current.getHours() + 1);
+          }
+        } else if (diffDays <= 7) {
+          // Weekday + day labels
+          const current = new Date(startDate);
+          while (current <= endDate) {
+            customBuckets.push({
+              label: formatShortDate(current),
+              timestamp: current.getTime(),
+              visits: randomInRange(20, 80),
+            });
+            current.setDate(current.getDate() + 1);
+          }
+        } else if (diffDays <= 60) {
+          // Day + month labels
+          const current = new Date(startDate);
+          while (current <= endDate) {
+            customBuckets.push({
+              label: formatDayMonth(current),
+              timestamp: current.getTime(),
+              visits: randomInRange(20, 80),
+            });
+            current.setDate(current.getDate() + 1);
+          }
+        } else if (diffDays <= 120) {
+          // Weekly labels
+          const current = new Date(startDate);
+          const dayOfWeek = current.getDay();
+          const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+          current.setDate(current.getDate() + diff);
+          current.setHours(0, 0, 0, 0);
+          const seenWeeks = new Set<string>();
+          while (current <= endDate) {
+            const weekKey = formatWeek(current);
+            if (!seenWeeks.has(weekKey)) {
+              seenWeeks.add(weekKey);
+              customBuckets.push({
+                label: weekKey,
+                timestamp: current.getTime(),
+                visits: randomInRange(50, 200),
+              });
+            }
+            current.setDate(current.getDate() + 7);
+          }
+        } else {
+          // Monthly labels
+          const current = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+          while (current <= endDate) {
+            customBuckets.push({
+              label: formatMonth(current),
+              timestamp: current.getTime(),
+              visits: randomInRange(100, 400),
+            });
+            current.setMonth(current.getMonth() + 1);
+          }
+        }
+
+        // Sample to ~15 points
+        const stepCustom = Math.max(1, Math.ceil(customBuckets.length / 15));
+        for (let i = 0; i < customBuckets.length; i += stepCustom) {
+          const b = customBuckets[i];
+          if (b) botVisitsTimeline.push({ date: b.label, visits: b.visits });
+        }
+      } else {
+        // Fallback for custom without dates
+        for (let i = 14; i >= 0; i--) {
+          const date = new Date(now);
+          date.setDate(date.getDate() - i);
+          date.setHours(0, 0, 0, 0);
+          botVisitsTimeline.push({
+            date: formatDayMonth(date),
+            visits: randomInRange(20, 80),
+          });
+        }
+      }
+      break;
+    }
     default: {
-      // Custom or fallback - use day+month format
+      // Fallback - use day+month format for last 15 days
       for (let i = 14; i >= 0; i--) {
         const date = new Date(now);
         date.setDate(date.getDate() - i);
@@ -1530,6 +1732,125 @@ function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
         });
       }
       break;
+
+    case 'custom': {
+      // Custom period - use provided dates
+      if (customStartDate && customEndDate) {
+        const { startDate, endDate } = getPeriodDateRange('custom', customStartDate, customEndDate);
+        const customBuckets: {
+          label: string;
+          timestamp: number;
+          reach: number;
+          engagement: number;
+          posts: number;
+        }[] = [];
+        const diffMs = endDate.getTime() - startDate.getTime();
+        const diffDays = diffMs / (24 * 60 * 60 * 1000);
+
+        if (diffDays <= 1) {
+          // Hourly labels
+          const current = new Date(startDate);
+          while (current <= endDate) {
+            customBuckets.push({
+              label: formatTime(current),
+              timestamp: current.getTime(),
+              reach: randomInRange(200, 1500),
+              engagement: randomInRange(20, 200),
+              posts: randomInRange(0, 3),
+            });
+            current.setHours(current.getHours() + 1);
+          }
+        } else if (diffDays <= 7) {
+          // Weekday + day labels
+          const current = new Date(startDate);
+          while (current <= endDate) {
+            customBuckets.push({
+              label: formatShortDate(current),
+              timestamp: current.getTime(),
+              reach: randomInRange(2000, 8000),
+              engagement: randomInRange(150, 800),
+              posts: randomInRange(2, 8),
+            });
+            current.setDate(current.getDate() + 1);
+          }
+        } else if (diffDays <= 60) {
+          // Day + month labels
+          const current = new Date(startDate);
+          while (current <= endDate) {
+            customBuckets.push({
+              label: formatDayMonth(current),
+              timestamp: current.getTime(),
+              reach: randomInRange(1500, 6000),
+              engagement: randomInRange(100, 600),
+              posts: randomInRange(1, 5),
+            });
+            current.setDate(current.getDate() + 1);
+          }
+        } else if (diffDays <= 120) {
+          // Weekly labels
+          const current = new Date(startDate);
+          const dayOfWeek = current.getDay();
+          const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+          current.setDate(current.getDate() + diff);
+          current.setHours(0, 0, 0, 0);
+          const seenWeeks = new Set<string>();
+          while (current <= endDate) {
+            const weekKey = formatWeek(current);
+            if (!seenWeeks.has(weekKey)) {
+              seenWeeks.add(weekKey);
+              customBuckets.push({
+                label: weekKey,
+                timestamp: current.getTime(),
+                reach: randomInRange(8000, 25000),
+                engagement: randomInRange(600, 2000),
+                posts: randomInRange(8, 25),
+              });
+            }
+            current.setDate(current.getDate() + 7);
+          }
+        } else {
+          // Monthly labels
+          const current = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+          while (current <= endDate) {
+            customBuckets.push({
+              label: formatMonth(current),
+              timestamp: current.getTime(),
+              reach: randomInRange(30000, 80000),
+              engagement: randomInRange(2000, 8000),
+              posts: randomInRange(20, 60),
+            });
+            current.setMonth(current.getMonth() + 1);
+          }
+        }
+
+        // Sample to 15 points
+        const stepCustom = Math.max(1, Math.ceil(customBuckets.length / 15));
+        for (let i = 0; i < customBuckets.length; i += stepCustom) {
+          const b = customBuckets[i];
+          if (b)
+            engagementTrends.push({
+              label: b.label,
+              reach: b.reach,
+              engagement: b.engagement,
+              posts: b.posts,
+            });
+        }
+      } else {
+        // Fallback for custom without dates
+        trendPoints = 15;
+        for (let i = 0; i < trendPoints; i++) {
+          const date = new Date(now.getTime() - (trendPoints - 1 - i) * 2 * 24 * 60 * 60 * 1000);
+          engagementTrends.push({
+            label: formatDayMonth(date),
+            reach: randomInRange(1500, 6000),
+            engagement: randomInRange(100, 600),
+            posts: randomInRange(1, 5),
+          });
+        }
+      }
+      break;
+    }
+
     default:
       trendPoints = 15;
       for (let i = 0; i < trendPoints; i++) {

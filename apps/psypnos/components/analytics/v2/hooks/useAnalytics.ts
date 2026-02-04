@@ -429,7 +429,7 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
   const fetchData = useCallback(async () => {
     // Mode simulation: utiliser les données générées côté client
     if (isSimulationMode && generateSimulatedData) {
-      const simulatedData = generateSimulatedData(period);
+      const simulatedData = generateSimulatedData(period, customStartDate, customEndDate);
       setData(simulatedData as AnalyticsData);
       setLastUpdated(new Date());
       setError(null);
