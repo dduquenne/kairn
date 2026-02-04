@@ -25,19 +25,13 @@ import type {
   SeminarUrgencyLevel,
 } from '../types';
 
-import {
-  PLATFORM_GENERATION_SPECS,
-  CONTENT_TONES,
-  CONTENT_ANGLES,
-} from './platform-specs';
+import { PLATFORM_GENERATION_SPECS, CONTENT_TONES, CONTENT_ANGLES } from './platform-specs';
 import {
   SEMINAR_INSTAGRAM_FORMATS,
   SEMINAR_LINKEDIN_FORMATS,
   SEMINAR_FACEBOOK_FORMATS,
   SEMINAR_THREADS_FORMATS,
   SEMINAR_URGENCY_LEVELS,
-  SEMINAR_HOOK_PATTERNS,
-  SEMINAR_CTA_TEMPLATES,
   suggestSeminarInstagramFormat,
   suggestSeminarLinkedInFormat,
   suggestSeminarFacebookFormat,
@@ -161,9 +155,7 @@ function getDaysUntilEvent(startAt: string): number {
  * Formate les intervenants
  */
 function formatSpeakers(speakers: Array<{ firstName: string; lastName: string }>): string {
-  return speakers
-    .map((s) => `${s.firstName} ${s.lastName}`)
-    .join(' et ');
+  return speakers.map(s => `${s.firstName} ${s.lastName}`).join(' et ');
 }
 
 /**
@@ -232,11 +224,13 @@ function buildSeminarInstagramPrompt(
   const formatSpec = SEMINAR_INSTAGRAM_FORMATS[format];
 
   // Déterminer le niveau d'urgence
-  const urgencyLevel = options.urgencyLevel || calculateUrgencyLevel(
-    daysUntil,
-    options.placesRemaining || Math.floor(seminar.capacity * 0.6),
-    seminar.capacity
-  );
+  const urgencyLevel =
+    options.urgencyLevel ||
+    calculateUrgencyLevel(
+      daysUntil,
+      options.placesRemaining || Math.floor(seminar.capacity * 0.6),
+      seminar.capacity
+    );
   const urgencySpec = SEMINAR_URGENCY_LEVELS[urgencyLevel];
 
   // Obtenir les patterns d'accroche
@@ -251,9 +245,10 @@ function buildSeminarInstagramPrompt(
   const formattedPrice = formatPrice(seminar.price, seminar.deposit);
   const location = extractLocation(seminar.tags);
 
-  const hookPatternsSection = hookPatterns.slice(0, 3).map(h =>
-    `• ${h.name}: "${h.pattern}"\n  Exemples: ${h.examples.slice(0, 2).join(' | ')}`
-  ).join('\n');
+  const hookPatternsSection = hookPatterns
+    .slice(0, 3)
+    .map(h => `• ${h.name}: "${h.pattern}"\n  Exemples: ${h.examples.slice(0, 2).join(' | ')}`)
+    .join('\n');
 
   return `Génère un post Instagram NATIF et ENGAGEANT pour promouvoir ce séminaire.
 
@@ -394,11 +389,13 @@ function buildSeminarLinkedInPrompt(
   const formatSpec = SEMINAR_LINKEDIN_FORMATS[format];
 
   // Déterminer le niveau d'urgence
-  const urgencyLevel = options.urgencyLevel || calculateUrgencyLevel(
-    daysUntil,
-    options.placesRemaining || Math.floor(seminar.capacity * 0.6),
-    seminar.capacity
-  );
+  const urgencyLevel =
+    options.urgencyLevel ||
+    calculateUrgencyLevel(
+      daysUntil,
+      options.placesRemaining || Math.floor(seminar.capacity * 0.6),
+      seminar.capacity
+    );
   const urgencySpec = SEMINAR_URGENCY_LEVELS[urgencyLevel];
 
   // Obtenir les patterns d'accroche
@@ -413,9 +410,10 @@ function buildSeminarLinkedInPrompt(
   const formattedPrice = formatPrice(seminar.price, seminar.deposit);
   const location = extractLocation(seminar.tags);
 
-  const hookPatternsSection = hookPatterns.slice(0, 4).map(h =>
-    `• ${h.name}: "${h.pattern}"\n  Exemples: ${h.examples.slice(0, 2).join(' | ')}`
-  ).join('\n');
+  const hookPatternsSection = hookPatterns
+    .slice(0, 4)
+    .map(h => `• ${h.name}: "${h.pattern}"\n  Exemples: ${h.examples.slice(0, 2).join(' | ')}`)
+    .join('\n');
 
   return `Génère un post LinkedIn PROFESSIONNEL et ENGAGEANT pour promouvoir ce séminaire.
 
@@ -549,11 +547,13 @@ function buildSeminarFacebookPrompt(
   const formatSpec = SEMINAR_FACEBOOK_FORMATS[format];
 
   // Déterminer le niveau d'urgence
-  const urgencyLevel = options.urgencyLevel || calculateUrgencyLevel(
-    daysUntil,
-    options.placesRemaining || Math.floor(seminar.capacity * 0.6),
-    seminar.capacity
-  );
+  const urgencyLevel =
+    options.urgencyLevel ||
+    calculateUrgencyLevel(
+      daysUntil,
+      options.placesRemaining || Math.floor(seminar.capacity * 0.6),
+      seminar.capacity
+    );
   const urgencySpec = SEMINAR_URGENCY_LEVELS[urgencyLevel];
 
   // Obtenir les patterns d'accroche
@@ -568,9 +568,10 @@ function buildSeminarFacebookPrompt(
   const formattedPrice = formatPrice(seminar.price, seminar.deposit);
   const location = extractLocation(seminar.tags);
 
-  const hookPatternsSection = hookPatterns.slice(0, 4).map(h =>
-    `• ${h.name}: "${h.pattern}"\n  Exemples: ${h.examples.slice(0, 2).join(' | ')}`
-  ).join('\n');
+  const hookPatternsSection = hookPatterns
+    .slice(0, 4)
+    .map(h => `• ${h.name}: "${h.pattern}"\n  Exemples: ${h.examples.slice(0, 2).join(' | ')}`)
+    .join('\n');
 
   return `Génère un post Facebook NATIF et ENGAGEANT pour promouvoir ce séminaire.
 
@@ -836,7 +837,7 @@ ${spec.structure.map((s, i) => `${i + 1}. ${s}`).join('\n')}
 Hashtags: ${spec.optimalHashtags} hashtags (min: ${spec.minHashtags}, max: ${spec.maxHashtags})
 Style hashtags: ${spec.hashtagStyle}
 
-Lien: ${spec.linkPlacement === 'inline' ? 'Dans le post (mentionner le lien vers les inscriptions)' : spec.linkPlacement === 'comment' ? 'Mentionner qu\'il sera en commentaire' : 'Mentionner "lien en bio"'}
+Lien: ${spec.linkPlacement === 'inline' ? 'Dans le post (mentionner le lien vers les inscriptions)' : spec.linkPlacement === 'comment' ? "Mentionner qu'il sera en commentaire" : 'Mentionner "lien en bio"'}
 Émojis: ${spec.emojiUsage === 'minimal' ? 'Peu ou pas' : spec.emojiUsage === 'moderate' ? 'Avec modération' : 'Librement'}
 
 ═══════════════════════════════════════════
@@ -901,30 +902,34 @@ export function buildSeminarMultiPlatformPrompt(
   const location = extractLocation(seminar.tags);
 
   // Déterminer le niveau d'urgence
-  const urgencyLevel = options.urgencyLevel || calculateUrgencyLevel(
-    daysUntil,
-    options.placesRemaining || Math.floor(seminar.capacity * 0.6),
-    seminar.capacity
-  );
+  const urgencyLevel =
+    options.urgencyLevel ||
+    calculateUrgencyLevel(
+      daysUntil,
+      options.placesRemaining || Math.floor(seminar.capacity * 0.6),
+      seminar.capacity
+    );
   const urgencySpec = SEMINAR_URGENCY_LEVELS[urgencyLevel];
 
-  const platformSpecs = platforms.map(platform => {
-    if (platform === 'THREADS') {
-      const format = options.threadsFormat || suggestSeminarThreadsFormat(options.tone);
-      const formatSpec = SEMINAR_THREADS_FORMATS[format];
-      return `
+  const platformSpecs = platforms
+    .map(platform => {
+      if (platform === 'THREADS') {
+        const format = options.threadsFormat || suggestSeminarThreadsFormat(options.tone);
+        const formatSpec = SEMINAR_THREADS_FORMATS[format];
+        return `
 ### THREADS
 - ⚠️ LIMITE: ${formatSpec.maxLength} CARACTÈRES maximum
 - Format: ${formatSpec.name} - ${formatSpec.description}
 - Ton: pensée spontanée, authentique
 - Hashtags: 0-1 maximum
 - PAS de lien dans le texte`;
-    }
+      }
 
-    if (platform === 'INSTAGRAM') {
-      const format = options.instagramFormat || suggestSeminarInstagramFormat(options.tone, daysUntil);
-      const formatSpec = SEMINAR_INSTAGRAM_FORMATS[format];
-      return `
+      if (platform === 'INSTAGRAM') {
+        const format =
+          options.instagramFormat || suggestSeminarInstagramFormat(options.tone, daysUntil);
+        const formatSpec = SEMINAR_INSTAGRAM_FORMATS[format];
+        return `
 ### INSTAGRAM
 - Format: ${formatSpec.name}
 - ${formatSpec.description}
@@ -932,12 +937,13 @@ export function buildSeminarMultiPlatformPrompt(
 - Mentionner "lien en bio"
 - Hashtags: 8-10
 - Urgence niveau ${urgencyLevel}: ${urgencySpec.name}`;
-    }
+      }
 
-    if (platform === 'LINKEDIN') {
-      const format = options.linkedinFormat || suggestSeminarLinkedInFormat(options.tone, daysUntil);
-      const formatSpec = SEMINAR_LINKEDIN_FORMATS[format];
-      return `
+      if (platform === 'LINKEDIN') {
+        const format =
+          options.linkedinFormat || suggestSeminarLinkedInFormat(options.tone, daysUntil);
+        const formatSpec = SEMINAR_LINKEDIN_FORMATS[format];
+        return `
 ### LINKEDIN
 - Format: ${formatSpec.name}
 - ${formatSpec.description}
@@ -946,12 +952,13 @@ export function buildSeminarMultiPlatformPrompt(
 - Lien "en commentaire"
 - Hashtags: 4-5
 - Question d'engagement à la fin`;
-    }
+      }
 
-    if (platform === 'FACEBOOK') {
-      const format = options.facebookFormat || suggestSeminarFacebookFormat(options.tone, daysUntil);
-      const formatSpec = SEMINAR_FACEBOOK_FORMATS[format];
-      return `
+      if (platform === 'FACEBOOK') {
+        const format =
+          options.facebookFormat || suggestSeminarFacebookFormat(options.tone, daysUntil);
+        const formatSpec = SEMINAR_FACEBOOK_FORMATS[format];
+        return `
 ### FACEBOOK
 - Format: ${formatSpec.name}
 - ${formatSpec.description}
@@ -960,16 +967,17 @@ export function buildSeminarMultiPlatformPrompt(
 - Inclure [LIEN]
 - Hashtags: 2-3
 - Question pour l'engagement`;
-    }
+      }
 
-    const spec = PLATFORM_GENERATION_SPECS[platform];
-    return `
+      const spec = PLATFORM_GENERATION_SPECS[platform];
+      return `
 ### ${spec.name.toUpperCase()}
 - Longueur: ${spec.optimalLength} mots
 - Ton: ${spec.tone}
 - Hashtags: ${spec.optimalHashtags}
 - Lien: ${spec.linkPlacement === 'inline' ? 'dans le post' : spec.linkPlacement === 'comment' ? 'en commentaire' : 'lien en bio'}`;
-  }).join('\n');
+    })
+    .join('\n');
 
   return `Génère des posts pour TOUTES les plateformes suivantes afin de promouvoir ce séminaire et susciter des inscriptions.
 

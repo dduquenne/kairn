@@ -15,10 +15,6 @@
 import { prisma } from '@/lib/db/prisma';
 
 import { encryptToken, decryptToken } from './crypto';
-
-// Type for JSON values in Prisma
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type PrismaJsonValue = any;
 import type {
   SocialPlatform,
   PostStatus,
@@ -39,6 +35,10 @@ import type {
   SocialGenerationLog,
   CreateSocialGenerationLogInput,
 } from './types';
+
+// Type for JSON values in Prisma
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PrismaJsonValue = any;
 
 // ===========================================
 // Comptes Sociaux
@@ -75,9 +75,7 @@ export async function getActiveAccountsByPlatform(
 /**
  * Récupère un compte par son ID (avec tokens déchiffrés)
  */
-export async function getSocialAccountById(
-  id: string
-): Promise<SocialAccountFull | null> {
+export async function getSocialAccountById(id: string): Promise<SocialAccountFull | null> {
   const account = await prisma.socialAccount.findUnique({
     where: { id },
   });
@@ -183,9 +181,7 @@ export async function deleteSocialAccount(id: string): Promise<void> {
 /**
  * Récupère les posts avec filtres
  */
-export async function getSocialPosts(
-  filters: SocialPostFilters = {}
-): Promise<SocialPost[]> {
+export async function getSocialPosts(filters: SocialPostFilters = {}): Promise<SocialPost[]> {
   const where: Record<string, unknown> = {};
 
   if (filters.platform) where.platform = filters.platform;
@@ -284,9 +280,7 @@ export async function getPostsToPublish(): Promise<SocialPostWithRelations[]> {
 /**
  * Récupère un post par son ID
  */
-export async function getSocialPostById(
-  id: string
-): Promise<SocialPostWithRelations | null> {
+export async function getSocialPostById(id: string): Promise<SocialPostWithRelations | null> {
   const post = await prisma.socialPost.findUnique({
     where: { id },
     include: {
@@ -307,9 +301,7 @@ export async function getSocialPostById(
 /**
  * Crée un nouveau post
  */
-export async function createSocialPost(
-  input: CreateSocialPostInput
-): Promise<SocialPost> {
+export async function createSocialPost(input: CreateSocialPostInput): Promise<SocialPost> {
   const post = await prisma.socialPost.create({
     data: {
       accountId: input.accountId,
@@ -386,10 +378,7 @@ export async function markPostAsPublished(
 /**
  * Marque un post comme échoué
  */
-export async function markPostAsFailed(
-  id: string,
-  errorMessage: string
-): Promise<SocialPost> {
+export async function markPostAsFailed(id: string, errorMessage: string): Promise<SocialPost> {
   const post = await prisma.socialPost.update({
     where: { id },
     data: {
@@ -497,9 +486,7 @@ export async function countPostsByStatus(): Promise<Record<PostStatus, number>> 
 /**
  * Récupère ou crée les analytics d'un post
  */
-export async function getOrCreatePostAnalytics(
-  postId: string
-): Promise<SocialPostAnalytics> {
+export async function getOrCreatePostAnalytics(postId: string): Promise<SocialPostAnalytics> {
   let analytics = await prisma.socialPostAnalytics.findUnique({
     where: { postId },
   });
@@ -560,9 +547,7 @@ export async function getAllTemplates(): Promise<SocialTemplate[]> {
 /**
  * Récupère les templates pour une plateforme
  */
-export async function getTemplatesByPlatform(
-  platform: SocialPlatform
-): Promise<SocialTemplate[]> {
+export async function getTemplatesByPlatform(platform: SocialPlatform): Promise<SocialTemplate[]> {
   const templates = await prisma.socialTemplate.findMany({
     where: { platform },
     orderBy: [{ isDefault: 'desc' }, { usageCount: 'desc' }],
@@ -574,9 +559,7 @@ export async function getTemplatesByPlatform(
 /**
  * Récupère le template par défaut pour une plateforme
  */
-export async function getDefaultTemplate(
-  platform: SocialPlatform
-): Promise<SocialTemplate | null> {
+export async function getDefaultTemplate(platform: SocialPlatform): Promise<SocialTemplate | null> {
   const template = await prisma.socialTemplate.findFirst({
     where: { platform, isDefault: true },
   });
@@ -587,9 +570,7 @@ export async function getDefaultTemplate(
 /**
  * Récupère un template par son ID
  */
-export async function getTemplateById(
-  id: string
-): Promise<SocialTemplate | null> {
+export async function getTemplateById(id: string): Promise<SocialTemplate | null> {
   const template = await prisma.socialTemplate.findUnique({
     where: { id },
   });
@@ -600,9 +581,7 @@ export async function getTemplateById(
 /**
  * Crée un nouveau template
  */
-export async function createTemplate(
-  input: CreateSocialTemplateInput
-): Promise<SocialTemplate> {
+export async function createTemplate(input: CreateSocialTemplateInput): Promise<SocialTemplate> {
   // Si c'est le nouveau défaut, retirer le statut défaut des autres
   if (input.isDefault) {
     await prisma.socialTemplate.updateMany({
@@ -735,9 +714,7 @@ export async function getGenerationLogsByBlogSlug(
 /**
  * Récupère les derniers logs de génération
  */
-export async function getRecentGenerationLogs(
-  limit = 50
-): Promise<SocialGenerationLog[]> {
+export async function getRecentGenerationLogs(limit = 50): Promise<SocialGenerationLog[]> {
   const logs = await prisma.socialGenerationLog.findMany({
     orderBy: { createdAt: 'desc' },
     take: limit,
@@ -750,9 +727,7 @@ export async function getRecentGenerationLogs(
 // Helpers de mapping
 // ===========================================
 
-function mapAccountToPublic(
-  account: Record<string, unknown>
-): SocialAccountPublic {
+function mapAccountToPublic(account: Record<string, unknown>): SocialAccountPublic {
   return {
     id: account.id as string,
     platform: account.platform as SocialPlatform,
@@ -794,9 +769,7 @@ function mapPost(post: Record<string, unknown>): SocialPost {
   };
 }
 
-function mapAnalytics(
-  analytics: Record<string, unknown>
-): SocialPostAnalytics {
+function mapAnalytics(analytics: Record<string, unknown>): SocialPostAnalytics {
   return {
     id: analytics.id as string,
     postId: analytics.postId as string,
@@ -830,9 +803,7 @@ function mapTemplate(template: Record<string, unknown>): SocialTemplate {
   };
 }
 
-function mapGenerationLog(
-  log: Record<string, unknown>
-): SocialGenerationLog {
+function mapGenerationLog(log: Record<string, unknown>): SocialGenerationLog {
   return {
     id: log.id as string,
     blogSlug: log.blogSlug as string,

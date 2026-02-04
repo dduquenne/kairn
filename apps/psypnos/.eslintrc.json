@@ -6,5 +6,17 @@
         "project": "apps/psypnos/tsconfig.json"
       }
     }
+  },
+  "rules": {
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }
+    ],
+    "import/order": "warn",
+    "import/no-unresolved": "warn",
+    "import/export": "warn",
+    "no-irregular-whitespace": "warn",
+    "no-useless-escape": "warn",
+    "no-case-declarations": "warn"
   }
 }

@@ -175,7 +175,7 @@ export class Tracker {
     this.startBatchInterval();
 
     // Callback de fin de session
-    this.sessionManager.setOnSessionEnd((session) => {
+    this.sessionManager.setOnSessionEnd(_session => {
       this.trackSessionEnd();
     });
 
@@ -259,10 +259,7 @@ export class Tracker {
     const timeOnPage = Date.now() - this.pageStartTime;
 
     // Calculer un score d'engagement (0-100)
-    const engagementScore = this.calculateEngagementScore(
-      timeOnPage,
-      this.maxScrollDepth
-    );
+    const engagementScore = this.calculateEngagementScore(timeOnPage, this.maxScrollDepth);
 
     const event: PageExitEvent = {
       type: 'page_exit',
@@ -572,9 +569,7 @@ export class Tracker {
     // Éviter division par zéro
     if (documentHeight <= windowHeight) return;
 
-    const scrollPercent = Math.round(
-      (scrollTop / (documentHeight - windowHeight)) * 100
-    );
+    const scrollPercent = Math.round((scrollTop / (documentHeight - windowHeight)) * 100);
 
     this.trackScrollDepth(Math.min(scrollPercent, 100));
   }
@@ -616,8 +611,8 @@ export class Tracker {
    */
   private setupSectionObserver(): void {
     this.sectionObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
+      entries => {
+        entries.forEach(entry => {
           const element = entry.target as HTMLElement;
           const sectionId = element.dataset.sectionId;
           const sectionName = element.dataset.sectionName;
@@ -686,7 +681,7 @@ export class Tracker {
   private updateSectionTimes(): void {
     const now = Date.now();
 
-    this.visibleSections.forEach((sectionId) => {
+    this.visibleSections.forEach(sectionId => {
       const startTime = this.sectionStartTimes.get(sectionId);
       if (startTime) {
         const elapsed = now - startTime;
@@ -729,7 +724,7 @@ export class Tracker {
    * Envoie tous les temps de section accumulés
    */
   private flushSectionTimes(): void {
-    this.visibleSections.forEach((sectionId) => {
+    this.visibleSections.forEach(sectionId => {
       const element = document.querySelector(`[data-section-id="${sectionId}"]`) as HTMLElement;
       const sectionName = element?.dataset.sectionName || sectionId;
       this.trackSectionTime(sectionId, sectionName);
@@ -741,7 +736,7 @@ export class Tracker {
    */
   private resumeSectionTracking(): void {
     const now = Date.now();
-    this.visibleSections.forEach((sectionId) => {
+    this.visibleSections.forEach(sectionId => {
       this.sectionStartTimes.set(sectionId, now);
     });
   }
@@ -754,7 +749,8 @@ export class Tracker {
    * Récupère les informations client
    */
   private getClientInfo(): TrackingPayload['clientInfo'] {
-    const connection = (navigator as Navigator & { connection?: { effectiveType?: string } }).connection;
+    const connection = (navigator as Navigator & { connection?: { effectiveType?: string } })
+      .connection;
 
     return {
       userAgent: navigator.userAgent,
@@ -788,7 +784,7 @@ export class Tracker {
    */
   private isExcludedPath(path: string): boolean {
     const lowerPath = path.toLowerCase();
-    return this.config.excludedPaths.some((excluded) => {
+    return this.config.excludedPaths.some(excluded => {
       // Comparaison insensible à la casse pour /admin
       if (excluded.toLowerCase() === '/admin') {
         return lowerPath.startsWith('/admin');
