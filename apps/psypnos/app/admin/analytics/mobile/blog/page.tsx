@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { PullToRefresh } from "@/components/mobile/PullToRefresh";
-import { HeroStatCard } from "@/components/mobile/HeroStatCard";
-import { SecondaryMetricsRow } from "@/components/mobile/SecondaryMetricsRow";
-import { HorizontalBarChart } from "@/components/mobile/HorizontalBarChart";
-import { TimeRangeSelector, TimeRange } from "@/components/mobile/TimeRangeSelector";
+import { motion } from "framer-motion";
 import { FileText, Eye, Clock, TrendingUp, Sparkles, Calendar } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+
+import { HeroStatCard } from "@/components/mobile/HeroStatCard";
+import { HorizontalBarChart } from "@/components/mobile/HorizontalBarChart";
+import { PullToRefresh } from "@/components/mobile/PullToRefresh";
+import { SecondaryMetricsRow } from "@/components/mobile/SecondaryMetricsRow";
+import { TimeRangeSelector, TimeRange } from "@/components/mobile/TimeRangeSelector";
 import { logDataMode } from "@/lib/pwaDataMode";
 
 interface BlogStats {

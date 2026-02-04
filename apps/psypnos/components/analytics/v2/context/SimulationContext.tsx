@@ -318,7 +318,7 @@ const formatWeek = (date: Date): string => {
 // Helper to format month name (consistent with useAnalytics)
 const formatMonth = (date: Date): string => {
   const months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
-  return months[date.getMonth()];
+  return months[date.getMonth()] ?? 'janvier';
 };
 
 // Utilitaire pour générer un nombre avec variation

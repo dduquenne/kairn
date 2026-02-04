@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Link from "next/link";
 import { ArrowRight, Calendar } from "lucide-react";
+import Link from "next/link";
+
 import type { BlogPostSummary } from "@/lib/blog";
 import { getCategoryColors } from "@/lib/categoryColors";
 

@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
  * Page Visit Operations
  */
 
-import type { PageVisit } from "./types";
 import { readAnalyticsData, writeAnalyticsData, generateId } from "./cache";
+import type { PageVisit } from "./types";
 
 export async function trackPageVisit(pageVisit: Omit<PageVisit, "id">): Promise<PageVisit> {
   const data = await readAnalyticsData();

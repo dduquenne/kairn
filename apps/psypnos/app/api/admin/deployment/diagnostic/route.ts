@@ -1,15 +1,19 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Deployment model not available in Kairn schema
-import { NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
-import { isDatabaseConnected, prisma } from "@/lib/db/prisma";
-import { checkRedisHealth, getRedisClient } from "@/lib/cache/redis";
-import { withAdminAuth } from "@/app/api/auth/middleware";
-import * as os from "os";
-import * as fs from "fs";
-import * as path from "path";
 import { exec } from "child_process";
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
 import { promisify } from "util";
+
+import Anthropic from "@anthropic-ai/sdk";
+import { NextResponse } from "next/server";
+
+import { withAdminAuth } from "@/app/api/auth/middleware";
+import { checkRedisHealth, getRedisClient } from "@/lib/cache/redis";
+import { isDatabaseConnected, prisma } from "@/lib/db/prisma";
+
 
 const execAsync = promisify(exec);
 

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { ReactNode, ComponentPropsWithoutRef } from "react";
+
 import { cn } from "../utils/cn";
 
 export type CTAButtonVariant = "primary" | "secondary" | "ghost";
@@ -52,7 +53,7 @@ export function CTAButton({
   variant = "primary",
   className,
   children,
-  trackingLabel,
+  trackingLabel: _trackingLabel,
   onTrack,
   ...props
 }: CTAButtonProps) {

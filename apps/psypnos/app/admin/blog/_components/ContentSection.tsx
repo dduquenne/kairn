@@ -1,6 +1,7 @@
 "use client";
 
 import { Wand2 } from "lucide-react";
+
 import { ContentEditor } from "./ContentEditor";
 
 interface ContentSectionProps {

@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { Wand2, Plus, Trash2, ChevronDown, HelpCircle } from "lucide-react";
-import { ContentEditor } from "../ContentEditor";
+import { useState } from "react";
+
 import type { FAQItem } from "@/lib/blog";
+
+import { ContentEditor } from "../ContentEditor";
+
 
 interface ContentTabProps {
   content: string;

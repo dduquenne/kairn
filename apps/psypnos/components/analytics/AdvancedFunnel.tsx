@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 "use client";
 
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { TrendingDown, Users, Clock, AlertTriangle, ChevronDown } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface FunnelStep {
   stepName: string;

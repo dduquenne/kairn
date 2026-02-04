@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { Search, X, Filter, SlidersHorizontal } from "lucide-react";
-import type { BlogPostSummary } from "@/lib/blog";
 import { motion, AnimatePresence } from "framer-motion";
+import { Search, X, Filter, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
+import { useState, useMemo, useEffect } from "react";
+
+import type { BlogPostSummary } from "@/lib/blog";
+
 
 interface SearchBarProps {
   posts: BlogPostSummary[];

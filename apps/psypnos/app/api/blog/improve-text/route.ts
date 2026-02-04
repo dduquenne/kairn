@@ -1,11 +1,13 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
+import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+
 import { validateCSRFMiddleware } from "../../common/csrf-middleware";
-import Anthropic from "@anthropic-ai/sdk";
-import { recordAttempt, getClientIP } from "../../common/rate-limiter";
 import { PSYPNOS_STYLE_SYSTEM_PROMPT } from "../../common/psypnos-system-prompt";
+import { recordAttempt, getClientIP } from "../../common/rate-limiter";
 
 const improveTextSchema = z.object({
   selectedText: z.string().trim().min(1).max(10000),

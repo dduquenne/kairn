@@ -4,9 +4,12 @@
  * Uses the AnalyticsScheduledReport model for report configurations.
  */
 
-import { prisma } from "@/lib/db/prisma";
 import { ReportFrequency } from "@prisma/client";
+
+import { prisma } from "@/lib/db/prisma";
+
 import type { ScheduledReport } from "../store/types";
+
 import { getCurrentSiteId, toPrismaJson } from "./utils";
 
 /**

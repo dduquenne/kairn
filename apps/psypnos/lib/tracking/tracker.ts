@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -14,6 +15,7 @@
  * Les événements sont accumulés et envoyés par batch pour optimiser les performances.
  */
 
+import { SessionManager, getSessionManager } from './session';
 import {
   TrackingEvent,
   TrackingPayload,
@@ -30,7 +32,6 @@ import {
   SessionEndEvent,
   ConversionType,
 } from './types';
-import { SessionManager, getSessionManager } from './session';
 
 // ============================================
 // Utilitaires

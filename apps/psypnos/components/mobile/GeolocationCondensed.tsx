@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Globe, MapPin, ChevronRight, ChevronDown } from "lucide-react";
-import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 
 interface CountryData {
   country: string;

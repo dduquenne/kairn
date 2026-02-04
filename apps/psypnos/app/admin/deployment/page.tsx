@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import {
   Rocket,
   RotateCcw,
@@ -24,6 +23,7 @@ import {
   AlertCircle,
   ChevronRight,
 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
 
 interface DeploymentInfo {
   id: string;

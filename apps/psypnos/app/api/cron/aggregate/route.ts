@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -12,10 +13,11 @@
  * Security: QStash signature or CRON_SECRET
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { runDailyAggregations, backfillAggregations } from "@/lib/analytics/aggregation";
-import { runAnomalyDetection } from "@/app/api/analytics/store-index";
 import { verifyCronAuth } from "@kairn/core/scheduler";
+import { NextRequest, NextResponse } from "next/server";
+
+import { runAnomalyDetection } from "@/app/api/analytics/store-index";
+import { runDailyAggregations, backfillAggregations } from "@/lib/analytics/aggregation";
 
 export async function POST(request: NextRequest) {
   // Verify authentication (QStash signature or CRON_SECRET)

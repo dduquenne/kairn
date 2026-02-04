@@ -4,6 +4,8 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { BookOpen, List } from 'lucide-react';
 import { useState, useMemo, useRef, useEffect } from 'react';
 
+import type { BlogPostSummary } from '@/lib/blog';
+
 import { CurrentYear } from '../../../components/CurrentYear';
 import { NavigationMenu } from '../../../components/NavigationMenu';
 
@@ -14,7 +16,6 @@ import { FeaturedCarousel } from './FeaturedCarousel';
 import { Pagination } from './Pagination';
 import { SearchBar } from './SearchBar';
 
-import type { BlogPostSummary } from '@/lib/blog';
 
 interface BlogPageClientProps {
   allPosts: BlogPostSummary[];

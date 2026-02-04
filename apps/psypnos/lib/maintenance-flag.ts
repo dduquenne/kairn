@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -8,8 +9,8 @@
  * évitant ainsi le problème de requête auto-référentielle en Edge Runtime.
  */
 
-import { writeFile, unlink, mkdir } from 'fs/promises';
 import { existsSync } from 'fs';
+import { writeFile, unlink, mkdir } from 'fs/promises';
 import path from 'path';
 
 // Le fichier est dans public/ pour être servi comme asset statique

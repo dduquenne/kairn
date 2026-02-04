@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Deployment model not available in Kairn schema
 import { NextRequest, NextResponse } from "next/server";
+
 import { prisma } from "@/lib/db/prisma";
 import { isTokenValid, sanitizeLogs } from "@/lib/deployment/utils";
 

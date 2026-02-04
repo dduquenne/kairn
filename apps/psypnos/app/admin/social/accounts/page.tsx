@@ -2,8 +2,6 @@
 
 export const dynamic = "force-dynamic";
 
-import { useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Plus,
@@ -14,10 +12,15 @@ import {
   ExternalLink,
   Settings,
 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+
 import { useToast } from "@/lib/toast-context";
+
 import { DeleteConfirmation } from "../../_components/DeleteConfirmation";
-import { SocialPlatformIcon } from "./_components/SocialPlatformIcon";
+
 import { ConnectAccountModal } from "./_components/ConnectAccountModal";
+import { SocialPlatformIcon } from "./_components/SocialPlatformIcon";
 
 interface SocialAccount {
   id: string;

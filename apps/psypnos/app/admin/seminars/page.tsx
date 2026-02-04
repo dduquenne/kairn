@@ -5,11 +5,13 @@ export const dynamic = "force-dynamic";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useToast } from "@/lib/toast-context";
+
 import { DeleteConfirmation } from "../_components/DeleteConfirmation";
+
 import { SeminarDrawer } from "./_components/SeminarDrawer";
+import { SeminarSocialModal } from "./_components/SeminarSocialModal";
 import { SeminarsSkeleton } from "./_components/SeminarsSkeleton";
 import { SeminarsTable } from "./_components/SeminarsTable";
-import { SeminarSocialModal } from "./_components/SeminarSocialModal";
 import type { Seminar, SeminarFormValues } from "./types";
 
 const emptySeminarValues: SeminarFormValues = {

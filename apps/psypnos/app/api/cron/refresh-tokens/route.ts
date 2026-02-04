@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -16,13 +17,14 @@
  * Security: QStash signature or CRON_SECRET
  */
 
+import { verifyCronAuth } from "@kairn/core/scheduler";
 import { NextRequest, NextResponse } from "next/server";
+
+import { prisma } from "@/lib/db/prisma";
 import {
   refreshAllExpiringTokens,
   getAccountsNeedingRefresh,
 } from "@/lib/social/oauth/refresh";
-import { prisma } from "@/lib/db/prisma";
-import { verifyCronAuth } from "@kairn/core/scheduler";
 
 /**
  * Envoie une notification pour les comptes nécessitant une reconnexion

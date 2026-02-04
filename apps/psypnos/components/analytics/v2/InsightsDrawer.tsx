@@ -1,7 +1,6 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
 import {
   X,
   Sparkles,
@@ -16,6 +15,7 @@ import {
   ChevronRight,
   Clock,
 } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface Insight {
   id: string;

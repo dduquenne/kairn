@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Upload, FileJson, AlertCircle, CheckCircle2, Loader, AlertTriangle } from "lucide-react";
+import { useState, useCallback, useRef } from "react";
+
 import { generateSlugFromTitleAndCategory, validateSlug } from "../_utils/generateSlug";
 
 interface ArticleImportData {

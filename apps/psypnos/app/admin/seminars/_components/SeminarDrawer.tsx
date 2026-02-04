@@ -2,8 +2,9 @@
 
 import { useEffect } from "react";
 
-import { SeminarForm } from "./SeminarForm";
 import { SeminarFormValues } from "../types";
+
+import { SeminarForm } from "./SeminarForm";
 const headings = {
   create: {
     title: "Créer un séminaire",

@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState, type ElementType } from "react";
+
 import { cn } from "../../utils/cn";
+
 import type { TocHeading } from "./types";
 
 export interface MobileTableOfContentsProps {

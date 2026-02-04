@@ -2,8 +2,6 @@
 
 export const dynamic = "force-dynamic";
 
-import { useCallback, useEffect, useState, useMemo, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Plus,
@@ -27,9 +25,13 @@ import {
   ArrowDown,
   Loader2,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState, useMemo, useRef } from "react";
+
 import { BlogPostSummary } from "@/lib/blog";
-import { DeleteConfirmation } from "../_components/DeleteConfirmation";
 import { useToast } from "@/lib/toast-context";
+
+import { DeleteConfirmation } from "../_components/DeleteConfirmation";
 
 type SortField = "title" | "category" | "date" | "published";
 type SortOrder = "asc" | "desc";
@@ -216,7 +218,7 @@ export default function BlogManagementPage() {
 
   // Filter, sort and paginate
   const { paginatedPosts, totalPages, totalFiltered } = useMemo(() => {
-    let filtered = posts.filter((post) => {
+    const filtered = posts.filter((post) => {
       const matchesSearch =
         searchQuery === "" ||
         post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||

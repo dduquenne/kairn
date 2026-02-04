@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -9,7 +10,10 @@
  * Sécurité : Vérifie la signature QStash ou CRON_SECRET (dev local)
  */
 
+import { verifyCronAuth } from '@kairn/core/scheduler';
 import { NextRequest, NextResponse } from 'next/server';
+
+import { getSocialClient, DEFAULT_RETRY_CONFIG } from '@/lib/social/clients';
 import {
   getScheduledPosts,
   getSocialAccountById,
@@ -19,8 +23,6 @@ import {
   incrementRetryCount,
   markAccountAsUsed,
 } from '@/lib/social/store';
-import { getSocialClient, DEFAULT_RETRY_CONFIG } from '@/lib/social/clients';
-import { verifyCronAuth } from '@kairn/core/scheduler';
 import type { SocialPost } from '@/lib/social/types';
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'contact@psypnos.fr';

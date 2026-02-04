@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -10,9 +11,10 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+
 import { withAdminAuth } from '@/app/api/auth/middleware';
-import { getSocialAccountById } from '@/lib/social/store';
 import { refreshAccountToken } from '@/lib/social/oauth/refresh';
+import { getSocialAccountById } from '@/lib/social/store';
 import type { SocialAccountFull } from '@/lib/social/types';
 
 interface RouteParams {

@@ -1,7 +1,9 @@
+import { ToastProvider } from '@kairn/ui';
 import type { Metadata, Viewport } from 'next';
 import { Inter, Playfair_Display } from 'next/font/google';
-import { ToastProvider } from '@kairn/ui';
+
 import { siteConfig } from '@/config/site.config';
+
 import './globals.css';
 
 // Fonts configuration

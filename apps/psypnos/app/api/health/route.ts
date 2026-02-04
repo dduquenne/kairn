@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 /**
  * Health Check API Route
@@ -10,10 +11,12 @@
  * - Uptime
  */
 
-import { NextResponse } from "next/server";
 import os from "os";
-import { isDatabaseConnected, prisma } from "@/lib/db/prisma";
+
+import { NextResponse } from "next/server";
+
 import { checkRedisHealth } from "@/lib/cache/redis";
+import { isDatabaseConnected, prisma } from "@/lib/db/prisma";
 
 interface HealthStatus {
   status: "healthy" | "degraded" | "unhealthy";

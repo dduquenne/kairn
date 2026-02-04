@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
  * Dashboard Config Operations
  */
 
-import type { DashboardConfig } from "./types";
 import { readAnalyticsData, writeAnalyticsData, generateId } from "./cache";
+import type { DashboardConfig } from "./types";
 
 export async function createDashboardConfig(config: Omit<DashboardConfig, "id" | "createdAt" | "updatedAt">): Promise<DashboardConfig> {
   const data = await readAnalyticsData();

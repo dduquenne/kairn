@@ -1,15 +1,16 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
-import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { NextRequest, NextResponse } from "next/server";
 
+import { withAdminAuth } from "../../../auth/middleware";
 import {
   getBlogPostBySlug,
   updateBlogPost,
   deleteBlogPost,
   validateSlug,
 } from "../../prisma-store";
-import { withAdminAuth } from "../../../auth/middleware";
 
 // GET - Retrieve a specific post
 export async function GET(

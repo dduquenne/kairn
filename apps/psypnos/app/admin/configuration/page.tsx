@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Settings2,
@@ -10,13 +9,16 @@ import {
   Users,
   Sparkles,
 } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
 
-import { ConfigurationTabNavigation, type ConfigTabId } from "./_components/ConfigurationTabNavigation";
+import type { Alert, Goal } from "../settings/types";
+
 import { AlertsTab } from "./_components/AlertsTab";
+import { ConfigurationTabNavigation, type ConfigTabId } from "./_components/ConfigurationTabNavigation";
 import { GoalsTab } from "./_components/GoalsTab";
 import { SocialNetworksTab } from "./_components/SocialNetworksTab";
 import { UsersTab } from "./_components/UsersTab";
-import type { Alert, Goal } from "../settings/types";
+
 
 interface SocialAccount {
   id: string;

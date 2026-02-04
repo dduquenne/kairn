@@ -1,6 +1,7 @@
 "use client";
 
 import { type ElementType } from "react";
+
 import { cn } from "../../utils/cn";
 
 export interface CategoryFilterProps {

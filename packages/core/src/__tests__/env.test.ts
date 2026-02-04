@@ -179,7 +179,7 @@ describe('Environment Validation', () => {
     it('should return fallback for missing variable', () => {
       delete process.env.CUSTOM_VAR;
 
-      expect(getEnv('OPENAI_API_KEY', 'default')).toBe('default');
+      expect(getEnv('NONEXISTENT_TEST_VAR_12345', 'default')).toBe('default');
     });
 
     it('should return undefined without fallback', () => {

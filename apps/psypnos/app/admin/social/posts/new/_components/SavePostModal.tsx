@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -15,7 +14,9 @@ import {
   Sparkles,
   ChevronDown,
 } from "lucide-react";
-import { SocialPlatformIcon } from "../../../accounts/_components/SocialPlatformIcon";
+import { useState, useEffect, useCallback, useMemo } from "react";
+
+
 import type {
   SocialPlatform,
   GeneratedContent,
@@ -24,6 +25,8 @@ import type {
   ContentAngle,
 } from "@/lib/social/types";
 import { OPTIMAL_POSTING_TIMES, PLATFORM_SPECS } from "@/lib/social/types";
+
+import { SocialPlatformIcon } from "../../../accounts/_components/SocialPlatformIcon";
 
 // ===========================================
 // Types

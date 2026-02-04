@@ -1,7 +1,8 @@
 "use client";
 
-import { ReactNode, useState } from "react";
 import { motion } from "framer-motion";
+import { ReactNode, useState } from "react";
+
 import { cn } from "../utils/cn";
 
 export interface TabItem {

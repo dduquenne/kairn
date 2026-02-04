@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - BlogAnalytics model not available in Kairn schema
 /**
@@ -21,9 +22,10 @@
  * Security: QStash signature or CRON_SECRET
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db/prisma";
 import { verifyCronAuth } from "@kairn/core/scheduler";
+import { NextRequest, NextResponse } from "next/server";
+
+import { prisma } from "@/lib/db/prisma";
 
 // Configuration de rétention (en jours)
 const RETENTION_CONFIG = {

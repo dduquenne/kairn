@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -24,7 +25,7 @@ export function parseJsonFromText<T>(text: string, fallback?: T): T {
   }
 
   // Nettoyer le texte
-  let cleanedText = text
+  const cleanedText = text
     .replace(/```json\s*/gi, '')
     .replace(/```\s*/g, '')
     .trim();

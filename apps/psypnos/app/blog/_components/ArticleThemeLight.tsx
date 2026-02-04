@@ -1,6 +1,7 @@
 "use client";
 
 import { THEME_LIGHT, COLOR_PALETTE } from "@/app/blog/_constants/themeConstants";
+
 import { BlogContent } from "./BlogContent";
 
 interface ArticleThemeLightProps {

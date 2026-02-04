@@ -1,12 +1,13 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
  * Analytics Summary Functions
  */
 
+import { getConversionEvents } from "./conversions";
 import { getPageVisits } from "./page-visits";
 import { getSectionTimes } from "./section-times";
-import { getConversionEvents } from "./conversions";
 
 export async function getAnalyticsSummary(
   startDate?: string,
@@ -162,7 +163,7 @@ export async function getAnalyticsSummaryWithComparison(
   const now = new Date();
 
   let currentStart = new Date();
-  let currentEnd = new Date(now);
+  const currentEnd = new Date(now);
   currentEnd.setHours(23, 59, 59, 999);
 
   let previousStart = new Date();

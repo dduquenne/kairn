@@ -5,8 +5,9 @@
  * Run with: pnpm db:seed
  */
 
-import { PrismaClient, UserRole, PostStatus, ContactStatus } from '@prisma/client';
 import { randomBytes, createHash } from 'crypto';
+
+import { PrismaClient, UserRole, PostStatus, ContactStatus } from '@prisma/client';
 
 const prisma = new PrismaClient();
 

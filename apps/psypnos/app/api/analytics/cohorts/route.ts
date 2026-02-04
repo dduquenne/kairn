@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 import { NextRequest } from "next/server";
+
 import { getCohortAnalysis } from "../store-index";
 
 export const dynamic = "force-dynamic";

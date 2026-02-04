@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 import { NextRequest } from "next/server";
 import * as XLSX from "xlsx";
+
 import {
   getAnalyticsSummary,
   getPageVisits,

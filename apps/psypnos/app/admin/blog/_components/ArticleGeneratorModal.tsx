@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
 import { X, Loader, Wand2 } from "lucide-react";
-import { ToneOption, AVAILABLE_TONES } from "../_utils/toneDefinitions";
+import { useState, useEffect, useRef, useCallback } from "react";
+
 import { FAQItem } from "@/lib/blog";
+
+import { ToneOption, AVAILABLE_TONES } from "../_utils/toneDefinitions";
+
 
 // Intervalle de polling en millisecondes
 const POLLING_INTERVAL_MS = 2500;

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -341,7 +342,7 @@ export function getThemeColor(
  */
 export function generateCSSVariables(theme: 'dark' | 'light'): string {
   const config = getThemeConfig(theme);
-  let css = `
+  const css = `
   --theme-box-bg: ${config.box.backgroundColor};
   --theme-box-border: ${config.box.borderColor};
   --theme-box-text: ${config.box.textColor};

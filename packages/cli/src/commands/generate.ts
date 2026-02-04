@@ -5,11 +5,13 @@
  */
 
 import { join } from 'path';
-import ora from 'ora';
+
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import { error, info, header, success, step } from '../utils/log';
+import ora from 'ora';
+
 import { findProjectRoot, findSiteDir, writeFileWithDir, fileExists, listFiles } from '../utils/fs';
+import { error, info, header, step } from '../utils/log';
 
 interface GeneratePageOptions {
   site?: string;
@@ -44,7 +46,7 @@ function toKebabCase(str: string): string {
 /**
  * Get templates for page generation
  */
-function getPageTemplate(name: string, route: string): string {
+function getPageTemplate(name: string, _route: string): string {
   const componentName = toPascalCase(name);
 
   return `import type { Metadata } from 'next';

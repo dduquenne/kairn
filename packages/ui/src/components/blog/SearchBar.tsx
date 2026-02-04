@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useMemo, useEffect, type ElementType } from "react";
+
 import { cn } from "../../utils/cn";
+
 import type { BlogPostSummary, BlogSortOption, LinkComponent } from "./types";
 
 export interface SearchBarProps {

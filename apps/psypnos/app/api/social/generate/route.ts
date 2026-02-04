@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -10,7 +11,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+
 import { withAdminAuth } from '@/app/api/auth/middleware';
+import { getPostBySlug } from '@/lib/blog';
 import {
   generateForMultiplePlatforms,
   checkGenerationConfig,
@@ -29,7 +32,6 @@ import type {
   LinkedInPostFormat,
   LinkedInExpertiseLevel,
 } from '@/lib/social/types';
-import { getPostBySlug } from '@/lib/blog';
 
 // ===========================================
 // Types

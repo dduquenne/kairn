@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState, useCallback, type ElementType } from "react";
+
 import { cn } from "../../utils/cn";
+
 import { TestimonialCard } from "./TestimonialCard";
 import type { Testimonial } from "./types";
 

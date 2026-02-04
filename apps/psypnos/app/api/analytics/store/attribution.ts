@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
  * Marketing Attribution
  */
 
-import { getPageVisits } from "./page-visits";
 import { getConversionEvents } from "./conversions";
+import { getPageVisits } from "./page-visits";
 
 export async function getMarketingAttribution(
   startDate?: string,

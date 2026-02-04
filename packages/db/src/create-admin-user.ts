@@ -1,5 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment, @typescript-eslint/no-explicit-any */
 // @ts-nocheck
-/* eslint-disable */
 /**
  * Script to create an admin user for Psypnos
  * Run with: pnpm tsx src/create-admin-user.ts

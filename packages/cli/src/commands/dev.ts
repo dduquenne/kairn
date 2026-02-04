@@ -6,10 +6,12 @@
 
 import { spawn } from 'child_process';
 import { join } from 'path';
-import ora from 'ora';
+
 import chalk from 'chalk';
-import { error, info, header, success } from '../utils/log';
+import ora from 'ora';
+
 import { findProjectRoot, findSiteDir, fileExists, listFiles } from '../utils/fs';
+import { error, info, header } from '../utils/log';
 
 interface DevOptions {
   site?: string;

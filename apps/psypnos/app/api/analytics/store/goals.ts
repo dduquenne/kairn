@@ -1,12 +1,13 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
  * Goal Operations
  */
 
-import type { Goal, GoalCompletion } from "./types";
 import { readAnalyticsData, writeAnalyticsData, generateId } from "./cache";
 import { getPageVisits } from "./page-visits";
+import type { Goal, GoalCompletion } from "./types";
 
 export async function createGoal(goal: Omit<Goal, "id" | "createdAt">): Promise<Goal> {
   const data = await readAnalyticsData();

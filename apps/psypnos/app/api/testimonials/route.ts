@@ -1,12 +1,13 @@
-import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { NextResponse } from "next/server";
+
+import { withAdminAuth } from "../auth/middleware";
 
 import {
   getAllTestimonials,
   createTestimonial,
   testimonialPayloadSchema,
 } from "./prisma-store";
-import { withAdminAuth } from "../auth/middleware";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

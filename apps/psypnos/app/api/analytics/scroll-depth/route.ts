@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
-import { NextRequest } from "next/server";
 import { promises as fs } from "fs";
 import { join } from "path";
+
+import { NextRequest } from "next/server";
 
 export const dynamic = "force-dynamic";
 

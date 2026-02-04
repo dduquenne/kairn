@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
-import { PsychotherapieContent } from "./PsychotherapieContent";
+
 import { getAllPostsAsync } from "@/lib/blog";
 import { filterPsychotherapyPosts } from "@/lib/therapy-articles";
+
+import { PsychotherapieContent } from "./PsychotherapieContent";
 
 // Rendu dynamique pour garantir que les articles sont toujours à jour
 export const dynamic = 'force-dynamic';

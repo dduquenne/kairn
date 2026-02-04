@@ -1,6 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
+import { verifyCronAuth } from "@kairn/core/scheduler";
 import { NextRequest, NextResponse } from "next/server";
+
 import {
   getAlerts,
   getMetricValue,
@@ -10,7 +13,6 @@ import {
   type Alert,
   type AlertHistory,
 } from "../../analytics/store-index";
-import { verifyCronAuth } from "@kairn/core/scheduler";
 
 export const dynamic = "force-dynamic";
 

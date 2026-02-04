@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 import { NextResponse } from "next/server";
 
-import { resetAdminPasswordById } from "../../../../users/pg-store";
 import { withAdminAuth } from "../../../../auth/middleware";
+import { resetAdminPasswordById } from "../../../../users/pg-store";
 
 export const dynamic = 'force-dynamic';
 

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import type { PeriodType } from "../PeriodSelector";
+
 import { useSimulation, type SimulatedAnalyticsData } from "../context/SimulationContext";
+import type { PeriodType } from "../PeriodSelector";
 
 // Types
 interface KPIData {
@@ -440,7 +441,7 @@ const formatWeek = (date: Date): string => {
 // Helper to format month name (e.g., "janvier")
 const formatMonth = (date: Date): string => {
   const months = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
-  return months[date.getMonth()];
+  return months[date.getMonth()] ?? "janvier";
 };
 
 // Helper to get the bucket key for a date based on period

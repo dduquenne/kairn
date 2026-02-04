@@ -8,6 +8,7 @@
  */
 
 import { z } from "zod";
+
 import prisma from "@/lib/db/prisma";
 
 // Site slug for Psypnos (used for multi-tenancy)

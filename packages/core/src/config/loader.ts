@@ -9,13 +9,13 @@
  * Supports configuration caching and hot-reloading in development.
  */
 
+import { DEFAULT_THEME, DEFAULT_NAVIGATION } from './defaults';
 import {
   type SiteConfig,
   SiteConfigSchema,
   validateSiteConfig,
   mergeSiteConfig,
 } from './site-config';
-import { DEFAULT_THEME, DEFAULT_NAVIGATION } from './defaults';
 
 // =============================================================================
 // Types

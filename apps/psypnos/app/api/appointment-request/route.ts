@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 import { NextResponse } from "next/server";
 import { z } from "zod";
+
 import { validateCSRFMiddleware } from "../common/csrf-middleware";
 import { recordAttempt, getClientIP } from "../common/rate-limiter";
 

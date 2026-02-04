@@ -1,13 +1,14 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
  * Alert Operations
  */
 
-import type { Alert, AlertHistory } from "./types";
-import { readAnalyticsData, writeAnalyticsData, generateId } from "./cache";
 import { getAnalyticsSummary } from "./analytics";
+import { readAnalyticsData, writeAnalyticsData, generateId } from "./cache";
 import { getPageVisits } from "./page-visits";
+import type { Alert, AlertHistory } from "./types";
 
 export async function createAlert(alert: Omit<Alert, "id" | "createdAt" | "updatedAt" | "triggerCount">): Promise<Alert> {
   const data = await readAnalyticsData();
@@ -95,7 +96,7 @@ export async function getMetricValue(
   timeWindow: Alert['timeWindow'],
 ): Promise<number> {
   const now = new Date();
-  let startDate = new Date();
+  const startDate = new Date();
 
   switch (timeWindow) {
     case 'hour':

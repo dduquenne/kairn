@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 "use client";
 
-import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   TrendingUp,
@@ -13,6 +13,7 @@ import {
   RefreshCw,
   Loader2,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface Insight {
   type: "positive" | "negative" | "neutral" | "warning";

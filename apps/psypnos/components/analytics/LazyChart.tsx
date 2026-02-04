@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 "use client";
@@ -10,8 +11,8 @@
  * Only renders the chart when it becomes visible in the viewport.
  */
 
-import React, { useState, useEffect, useRef, Suspense, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect, useRef, Suspense, memo } from "react";
 
 interface LazyChartProps {
   children: React.ReactNode;

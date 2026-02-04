@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import { NextRequest, NextResponse } from 'next/server';
+
 import { prisma } from '@/lib/db/prisma';
 import { isMockMode, generateMockFaqClicks, logDataMode } from '@/lib/pwaDataMode';
 
@@ -25,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     // Calculate date filters
     const endDate = endDateParam ? new Date(endDateParam) : new Date();
-    let startDate = startDateParam ? new Date(startDateParam) : new Date();
+    const startDate = startDateParam ? new Date(startDateParam) : new Date();
 
     if (!startDateParam) {
       // Default: last 30 days

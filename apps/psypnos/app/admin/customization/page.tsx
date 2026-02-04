@@ -1,11 +1,11 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Palette, Sparkles, ArrowLeft } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
 import { CustomizationPanel } from "@kairn/admin";
 import type { CustomizationConfig } from "@kairn/config";
+import { motion } from "framer-motion";
+import { Palette, Sparkles, ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { useState, useEffect, useCallback } from "react";
 
 export default function CustomizationPage() {
   const [initialConfig, setInitialConfig] = useState<Partial<CustomizationConfig> | null>(null);

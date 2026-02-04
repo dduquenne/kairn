@@ -1,6 +1,7 @@
 "use client";
 
 import { Share2 } from "lucide-react";
+
 import type { Seminar } from "../types";
 
 type SeminarsTableProps = {

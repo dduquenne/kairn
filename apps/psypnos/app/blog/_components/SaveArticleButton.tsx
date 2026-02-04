@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Bookmark } from "lucide-react";
+import { useState, useEffect } from "react";
 
 interface SaveArticleButtonProps {
   slug: string;

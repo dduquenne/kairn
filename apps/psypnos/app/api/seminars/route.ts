@@ -1,5 +1,7 @@
-import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { NextResponse } from "next/server";
+
+import { withAdminAuth } from "../auth/middleware";
 
 import {
   getAllSeminars,
@@ -7,7 +9,6 @@ import {
   createSeminar,
   seminarPayloadSchema,
 } from "./prisma-store";
-import { withAdminAuth } from "../auth/middleware";
 
 /**
  * Get all seminars, optionally filtered by upcoming and limited

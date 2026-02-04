@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Deployment model not available in Kairn schema
 import { NextRequest, NextResponse } from "next/server";
+
 import { prisma } from "@/lib/db/prisma";
-import { isTokenValid, sanitizeLogs } from "@/lib/deployment/utils";
 import type { DeploymentStatus, DeploymentPhase } from "@/lib/deployment/types";
+import { isTokenValid, sanitizeLogs } from "@/lib/deployment/utils";
 
 export const dynamic = "force-dynamic";
 

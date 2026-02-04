@@ -2,7 +2,9 @@
 
 import type { ReactNode } from "react";
 import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
+
 import { ToastProvider } from "@/lib/toast-context";
+
 import { ClarityProvider } from "../components/analytics/ClarityIntegration";
 import { VersionChecker } from "../components/VersionChecker";
 

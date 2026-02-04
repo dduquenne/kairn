@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 import { NextRequest, NextResponse } from 'next/server';
+
 import { isMockMode, logDataMode } from '@/lib/pwaDataMode';
 
 export const dynamic = 'force-dynamic';

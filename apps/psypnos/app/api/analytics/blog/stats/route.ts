@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - BlogAnalytics model not available in Kairn schema
-import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { NextRequest, NextResponse } from 'next/server';
+
 import { isMockMode, logDataMode } from '@/lib/pwaDataMode';
 
 const prisma = new PrismaClient();
@@ -93,7 +95,7 @@ export async function GET(request: NextRequest) {
 
     // Calculer la date de début en fonction du timeRange
     const now = new Date();
-    let startDate = new Date();
+    const startDate = new Date();
 
     switch (timeRange) {
       case '24h':

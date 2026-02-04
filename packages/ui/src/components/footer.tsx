@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+
 import { cn } from "../utils/cn";
+
 import { SocialLinks, type SocialLink } from "./social-links";
 
 export interface FooterLink {
@@ -97,7 +99,7 @@ export function Footer({
             Tous droits réservés.
           </span>
 
-          {links.map((link, index) => (
+          {links.map((link) => (
             <span key={link.href} className="contents">
               <span className={`hidden sm:inline text-${text}/30`}>|</span>
               <Link

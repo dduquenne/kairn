@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import {
   useCallback,
   useEffect,
@@ -10,10 +11,9 @@ import {
   type FormEvent,
 } from "react";
 import { z } from "zod";
-import Image from "next/image";
 
-import type { SeminarFormValues } from "../types";
 import { SEMINAR_TYPES } from "../../../api/seminars/types";
+import type { SeminarFormValues } from "../types";
 
 const speakerFormSchema = z.object({
   firstName: z.string().trim().min(1, "Le prénom est requis"),

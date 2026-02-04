@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Prisma models may not be available in Kairn schema
 /**
@@ -20,8 +21,11 @@
  * Security: QStash signature or CRON_SECRET
  */
 
+import { verifyCronAuth } from "@kairn/core/scheduler";
 import { NextRequest, NextResponse } from "next/server";
+
 import { prisma } from "@/lib/db/prisma";
+
 import {
   getAnalyticsSummary,
   getAnalyticsSummaryWithComparison,
@@ -30,7 +34,6 @@ import {
   getSectionHeatmap,
   getAnomalies,
 } from "../../analytics/store-index";
-import { verifyCronAuth } from "@kairn/core/scheduler";
 
 interface ReportResult {
   reportId: string;

@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { pool } from "../../../../users/pg-store";
+import { NextResponse } from "next/server";
+
 import { withAdminAuth } from "../../../../auth/middleware";
+import { pool } from "../../../../users/pg-store";
 
 export const dynamic = 'force-dynamic';
 

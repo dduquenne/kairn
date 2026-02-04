@@ -9,11 +9,13 @@ import {
   type ReactNode,
 } from "react";
 import { z } from "zod";
+
 import { cn } from "../../utils/cn";
+
 import { FormField } from "./FormField";
 import { FormSection } from "./FormSection";
-import { useFormValidation } from "./useFormValidation";
 import type { FormSubmissionStatus, FormMessages, FormColors } from "./types";
+import { useFormValidation } from "./useFormValidation";
 
 /**
  * Default contact form schema
@@ -98,7 +100,7 @@ export function ContactForm({
   labels = {},
   placeholders = {},
   messages = {},
-  colors = {},
+  colors: _colors = {},
   submitText = "Send",
   loadingText = "Sending...",
   privacyPolicyUrl,

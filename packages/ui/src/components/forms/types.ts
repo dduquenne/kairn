@@ -3,7 +3,6 @@
  * @package @kairn/ui
  */
 
-import type { ReactNode } from "react";
 import type { ZodType, ZodTypeDef } from "zod";
 
 /**

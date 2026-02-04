@@ -1,10 +1,13 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
-import { NextRequest, NextResponse } from "next/server";
-import { withAdminAuth } from "../../auth/middleware";
 import { copyFile } from "fs/promises";
 import { join, basename } from "path";
+
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+
+import { withAdminAuth } from "../../auth/middleware";
 
 const confirmSelectionSchema = z.object({
   selectedProposalId: z.string(),

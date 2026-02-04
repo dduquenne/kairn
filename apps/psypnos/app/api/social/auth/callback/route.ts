@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -10,8 +11,9 @@
  * le compte social dans la base de données.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { NextRequest, NextResponse } from 'next/server';
+
 import { verifyAdminToken } from '@/app/api/auth/middleware';
 import { facebook, linkedin, instagram, threads, twitter } from '@/lib/social/oauth';
 import {

@@ -9,8 +9,9 @@
  * - Automatic cache invalidation on mutations
  */
 
-import { Cache, getCache, CACHE_TTL, type CacheSetOptions } from '../cache';
 import { createHash } from 'crypto';
+
+import { Cache, getCache, CACHE_TTL, type CacheSetOptions } from '../cache';
 
 /**
  * HTTP Cache-Control directives

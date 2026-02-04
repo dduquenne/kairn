@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -13,13 +14,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
-import type {
-  SocialPlatform,
-  ContentTone,
-  ContentAngle,
-  GeneratedContent,
-  GenerationOptions,
-} from './types';
+
 import {
   buildSystemPrompt,
   buildUserPrompt,
@@ -30,6 +25,13 @@ import {
   type BlogArticleInput,
 } from './prompts';
 import { createGenerationLog } from './store';
+import type {
+  SocialPlatform,
+  ContentTone,
+  ContentAngle,
+  GeneratedContent,
+  GenerationOptions,
+} from './types';
 
 // ===========================================
 // Configuration

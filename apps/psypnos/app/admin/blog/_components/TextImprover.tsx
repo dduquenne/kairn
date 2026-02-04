@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Sparkles, Loader } from "lucide-react";
+import { useState } from "react";
 
 interface TextImproverProps {
   isOpen: boolean;

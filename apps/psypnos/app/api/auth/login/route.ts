@@ -1,14 +1,16 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
-import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { NextResponse } from "next/server";
 
+import { getAdminCookieOptions } from "@/lib/cookies";
+
+import { ErrorCode, ErrorMessages, createApiError } from "../../common/error-codes";
 import { findUserByEmail } from "../../users/pg-store";
 import { createToken } from "../jwt";
-import { loginSchema } from "../schemas";
 import { isRateLimited, recordFailedAttempt, clearAttempts } from "../rate-limiter";
-import { ErrorCode, ErrorMessages, createApiError } from "../../common/error-codes";
-import { getAdminCookieOptions } from "@/lib/cookies";
+import { loginSchema } from "../schemas";
 
 export async function POST(request: Request) {
   try {

@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
  * Custom Event Operations
  */
 
-import type { CustomEvent } from "./types";
 import { readAnalyticsData, writeAnalyticsData, generateId } from "./cache";
+import type { CustomEvent } from "./types";
 
 export async function trackCustomEvent(event: Omit<CustomEvent, "id">): Promise<CustomEvent> {
   const data = await readAnalyticsData();

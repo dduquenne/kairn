@@ -5,9 +5,12 @@
  * Custom event data is stored in the `data` JSON field.
  */
 
-import { prisma } from "@/lib/db/prisma";
 import { EventType } from "@prisma/client";
+
+import { prisma } from "@/lib/db/prisma";
+
 import type { CustomEvent } from "../store/types";
+
 import {
   toPrismaJson,
   buildCustomEventData,

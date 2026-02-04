@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
  * Scheduled Reports Operations
  */
 
-import type { ScheduledReport } from "./types";
 import { readAnalyticsData, writeAnalyticsData, generateId } from "./cache";
+import type { ScheduledReport } from "./types";
 
 export async function createScheduledReport(report: Omit<ScheduledReport, "id" | "createdAt" | "updatedAt">): Promise<ScheduledReport> {
   const data = await readAnalyticsData();

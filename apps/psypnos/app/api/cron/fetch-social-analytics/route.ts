@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - SocialPost model not available in Kairn schema
 /**
@@ -17,10 +18,11 @@
  * Security: QStash signature or CRON_SECRET
  */
 
+import { verifyCronAuth } from "@kairn/core/scheduler";
 import { NextRequest, NextResponse } from "next/server";
+
 import { prisma } from "@/lib/db/prisma";
 import { refreshPostAnalytics } from "@/lib/social/analytics";
-import { verifyCronAuth } from "@kairn/core/scheduler";
 
 // Configuration
 const RECENT_HOURS = 48; // Posts des dernières 48h

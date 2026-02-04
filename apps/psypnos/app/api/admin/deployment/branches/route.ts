@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 import { NextResponse } from "next/server";
+
 import { withAdminAuth } from "@/app/api/auth/middleware";
 import { ALLOWED_REFS } from "@/lib/deployment/types";
 

@@ -5,9 +5,12 @@
  * Funnel step data is stored in the `data` JSON field.
  */
 
-import { prisma } from "@/lib/db/prisma";
 import { EventType } from "@prisma/client";
+
+import { prisma } from "@/lib/db/prisma";
+
 import type { FunnelStep } from "../store/types";
+
 import {
   toPrismaJson,
   buildFunnelStepData,

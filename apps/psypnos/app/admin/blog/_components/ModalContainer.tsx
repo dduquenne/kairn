@@ -42,11 +42,12 @@
 
 "use client";
 
+import type { FAQItem } from "@/lib/blog";
+
 import { ArticleGeneratorModal } from "./ArticleGeneratorModal";
 import { ArticleImprover } from "./ArticleImprover";
-import { TextImprover } from "./TextImprover";
 import { ImageSelectionModal, type ImageProposal } from "./ImageSelectionModal";
-import type { FAQItem } from "@/lib/blog";
+import { TextImprover } from "./TextImprover";
 
 /**
  * Props for ModalContainer component

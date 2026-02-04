@@ -6,10 +6,11 @@
 
 import { spawn } from 'child_process';
 import { join } from 'path';
+
 import ora from 'ora';
-import chalk from 'chalk';
-import { error, info, header, success, warning } from '../utils/log';
+
 import { findProjectRoot, fileExists } from '../utils/fs';
+import { error, info, header, success, warning } from '../utils/log';
 
 interface MigrateOptions {
   name?: string;

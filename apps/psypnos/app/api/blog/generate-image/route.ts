@@ -1,10 +1,13 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 import { NextRequest, NextResponse } from "next/server";
-import { withAdminAuth } from "../../auth/middleware";
 import OpenAI from "openai";
 import { z } from "zod";
+
 import { uploadImage, BUCKETS } from "@/lib/supabase/storage";
+
+import { withAdminAuth } from "../../auth/middleware";
 
 const generateImageSchema = z.object({
   imagePrompt: z.string().trim().min(1, "Le prompt image est requis"),

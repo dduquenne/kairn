@@ -5,10 +5,13 @@
  * Conversion data is stored in the `data` JSON field.
  */
 
-import { prisma } from "@/lib/db/prisma";
 import { EventType } from "@prisma/client";
+
 import { invalidateDashboardCache } from "@/lib/cache/redis";
+import { prisma } from "@/lib/db/prisma";
+
 import type { ConversionEvent } from "../store/types";
+
 import {
   toPrismaJson,
   buildConversionData,

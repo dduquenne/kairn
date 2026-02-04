@@ -4,9 +4,12 @@
  * Uses the AnalyticsAlert and AnalyticsAlertHistory models.
  */
 
-import { prisma } from "@/lib/db/prisma";
 import { AlertType, AlertCondition, AlertTimeWindow } from "@prisma/client";
+
+import { prisma } from "@/lib/db/prisma";
+
 import type { Alert, AlertHistory } from "../store/types";
+
 import { getCurrentSiteId } from "./utils";
 
 /**

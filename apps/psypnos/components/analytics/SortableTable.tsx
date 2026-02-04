@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 "use client";
 
-import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { ArrowUpDown, ArrowUp, ArrowDown, Medal, TrendingUp, TrendingDown } from "lucide-react";
+import { useState, useMemo } from "react";
 
 export interface Column<T> {
   key: keyof T | string;

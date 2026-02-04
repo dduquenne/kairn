@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -6,22 +7,22 @@
 
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 
 import seminarsData from "../../data/seminars.json";
 import { trackConversionEvent } from "../../hooks/useAnalytics";
 import { useCSRF } from "../../hooks/useCSRF";
 
-import type { Seminar, SeminarRegistrationData } from "./types";
-import { useFormState } from "./hooks/useFormState";
+import { FormField } from "./components/FormField";
 import { IdentitySection } from "./components/IdentitySection";
 import { SeminarSection } from "./components/SeminarSection";
-import { FormField } from "./components/FormField";
 import { FORM_VARIANTS, FIELD_MOTION, ALL_FIELDS_TOUCHED, COUNTRY_LIST, REASSURANCE_MESSAGES } from "./constants";
+import { useFormState } from "./hooks/useFormState";
 import { getBirthYearBounds } from "./schema";
+import type { Seminar, SeminarRegistrationData } from "./types";
 import { joinClassNames } from "./utils";
 
 const CARD_SECTION_CLASS =

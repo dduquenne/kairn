@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db/prisma";
 import { generateCSSVariables, customizationConfigSchema } from "@kairn/config";
+import { NextResponse } from "next/server";
+
+import { prisma } from "@/lib/db/prisma";
 
 export const dynamic = "force-dynamic";
 

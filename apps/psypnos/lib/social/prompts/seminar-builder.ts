@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -23,6 +24,7 @@ import type {
   SeminarThreadsFormat,
   SeminarUrgencyLevel,
 } from '../types';
+
 import {
   PLATFORM_GENERATION_SPECS,
   CONTENT_TONES,

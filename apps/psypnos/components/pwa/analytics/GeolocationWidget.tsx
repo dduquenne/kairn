@@ -1,9 +1,10 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 'use client';
 
-import { useEffect, useState } from 'react';
 import { Globe, MapPin, Users } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface VisitorLocation {
   id: string;

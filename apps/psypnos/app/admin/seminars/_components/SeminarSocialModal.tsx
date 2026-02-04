@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
 import {
   Share2,
   Sparkles,
@@ -13,7 +12,9 @@ import {
   ChevronUp,
   Settings2,
 } from "lucide-react";
-import { SocialPlatformIcon } from "../../social/accounts/_components/SocialPlatformIcon";
+import { useState, useCallback, useMemo } from "react";
+
+import { CONTENT_TONES, CONTENT_ANGLES } from "@/lib/social/prompts";
 import type {
   SocialPlatform,
   ContentTone,
@@ -24,7 +25,8 @@ import type {
   SeminarThreadsFormat,
   SeminarUrgencyLevel,
 } from "@/lib/social/types";
-import { CONTENT_TONES, CONTENT_ANGLES } from "@/lib/social/prompts";
+
+import { SocialPlatformIcon } from "../../social/accounts/_components/SocialPlatformIcon";
 import type { Seminar } from "../types";
 
 interface GeneratedContent {

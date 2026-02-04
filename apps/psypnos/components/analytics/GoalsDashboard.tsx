@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 "use client";
 
-import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Target, Plus, Edit2, Trash2, CheckCircle, TrendingUp, X, Save } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface Goal {
   id: string;

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
 import {
   Sparkles,
   Upload,
@@ -10,6 +9,8 @@ import {
   Trash2,
   Wand2,
 } from "lucide-react";
+import { useState, useMemo, useCallback } from "react";
+
 import { BlogImage, BlogImageProposal, getCleanImagePath } from "../BlogImage";
 
 interface MediaTabProps {

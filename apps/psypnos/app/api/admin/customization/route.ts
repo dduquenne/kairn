@@ -1,8 +1,10 @@
+import { customizationConfigSchema } from "@kairn/config";
+import { Prisma } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { Prisma } from "@prisma/client";
+
 import { prisma } from "@/lib/db/prisma";
-import { customizationConfigSchema } from "@kairn/config";
+
 
 export const dynamic = "force-dynamic";
 

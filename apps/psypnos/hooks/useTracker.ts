@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 /**
@@ -27,6 +28,7 @@
 'use client';
 
 import { useEffect, useRef, useCallback } from 'react';
+
 import { initTracker, getTracker, type ConversionType } from '@/lib/tracking';
 
 // ============================================

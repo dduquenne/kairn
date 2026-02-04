@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
-import { trackPageVisit } from "../store-index";
 import type { NextRequest } from "next/server";
+
 import { withAdminAuth } from "../../auth/middleware";
 import { recordAttempt, getClientIP } from "../../common/rate-limiter";
+import { trackPageVisit } from "../store-index";
 
 export const dynamic = 'force-dynamic';
 

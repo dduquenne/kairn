@@ -27,10 +27,10 @@ import {
 } from "lucide-react";
 import { useState, useCallback } from "react";
 
-import type { Alert, AlertHistory, AlertCondition, AlertTemplate } from "../../settings/types";
-import { METRIC_LABELS, TIME_WINDOW_LABELS, ALERT_TEMPLATES } from "../../settings/types";
 import { AlertFormModal } from "../../settings/components/AlertFormModal";
 import { DeleteConfirmationModal } from "../../settings/components/DeleteConfirmationModal";
+import type { Alert, AlertHistory, AlertCondition, AlertTemplate } from "../../settings/types";
+import { METRIC_LABELS, TIME_WINDOW_LABELS, ALERT_TEMPLATES } from "../../settings/types";
 
 interface AlertsTabProps {
   alerts: Alert[];
