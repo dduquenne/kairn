@@ -801,13 +801,71 @@ function generateSimulatedData(period: PeriodType): SimulatedAnalyticsData {
     },
   ];
 
+  // Generate botVisitsTimeline based on period for consistency
   const botVisitsTimeline: BotVisit[] = [];
-  for (let i = 6; i >= 0; i--) {
-    const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-    botVisitsTimeline.push({
-      date: formatDayMonth(date),
-      visits: randomInRange(20, 80),
-    });
+  const getBotTimelineLabel = (date: Date, p: PeriodType): string => {
+    switch (p) {
+      case 'realtime':
+      case 'today':
+      case 'yesterday':
+        return formatTime(date);
+      case 'last7days':
+        return formatShortDate(date);
+      case 'last3months':
+        return formatWeek(date);
+      case 'thisYear':
+        return formatMonth(date);
+      default:
+        return formatDayMonth(date);
+    }
+  };
+
+  // Generate appropriate number of data points based on period
+  let botTimelinePoints = 7;
+  let botTimelineInterval = 24 * 60 * 60 * 1000; // 1 day
+
+  switch (period) {
+    case 'realtime':
+      botTimelinePoints = 12;
+      botTimelineInterval = 5 * 60 * 1000; // 5 minutes
+      break;
+    case 'today':
+    case 'yesterday':
+      botTimelinePoints = 24;
+      botTimelineInterval = 60 * 60 * 1000; // 1 hour
+      break;
+    case 'last7days':
+      botTimelinePoints = 7;
+      botTimelineInterval = 24 * 60 * 60 * 1000; // 1 day
+      break;
+    case 'last3months':
+      botTimelinePoints = 13;
+      botTimelineInterval = 7 * 24 * 60 * 60 * 1000; // 1 week
+      break;
+    case 'thisYear':
+      botTimelinePoints = now.getMonth() + 1;
+      break;
+    default:
+      botTimelinePoints = 15;
+      botTimelineInterval = 2 * 24 * 60 * 60 * 1000; // 2 days
+  }
+
+  if (period === 'thisYear') {
+    for (let i = 0; i < botTimelinePoints; i++) {
+      const date = new Date(now.getFullYear(), i, 1);
+      botVisitsTimeline.push({
+        date: getBotTimelineLabel(date, period),
+        visits: randomInRange(50, 200),
+      });
+    }
+  } else {
+    for (let i = botTimelinePoints - 1; i >= 0; i--) {
+      const date = new Date(now.getTime() - i * botTimelineInterval);
+      botVisitsTimeline.push({
+        date: getBotTimelineLabel(date, period),
+        visits: randomInRange(20, 80),
+      });
+    }
   }
 
   const topCrawledPages: CrawledPage[] = [

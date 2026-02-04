@@ -443,13 +443,76 @@ const formatMonth = (date: Date): string => {
   return months[date.getMonth()];
 };
 
+// Helper to get the bucket key for a date based on period
+const getBucketKey = (date: Date, period: PeriodType): string => {
+  switch (period) {
+    case "realtime":
+    case "today":
+    case "yesterday":
+      return formatTime(date);
+    case "last7days":
+      return formatShortDate(date);
+    case "last30days":
+    case "thisMonth":
+    case "lastMonth":
+    case "custom":
+      return formatDayMonth(date);
+    case "last3months":
+      return formatWeek(date);
+    case "thisYear":
+      return formatMonth(date);
+    default:
+      return formatDayMonth(date);
+  }
+};
+
+// Helper to normalize date to bucket start based on period
+const normalizeToBucket = (date: Date, period: PeriodType): Date => {
+  const normalized = new Date(date);
+  switch (period) {
+    case "realtime":
+      // Round to nearest 5-minute interval
+      normalized.setMinutes(Math.floor(normalized.getMinutes() / 5) * 5);
+      normalized.setSeconds(0);
+      normalized.setMilliseconds(0);
+      break;
+    case "today":
+    case "yesterday":
+      // Round to hour
+      normalized.setMinutes(0);
+      normalized.setSeconds(0);
+      normalized.setMilliseconds(0);
+      break;
+    case "last7days":
+    case "last30days":
+    case "thisMonth":
+    case "lastMonth":
+    case "custom":
+      // Round to day
+      normalized.setHours(0, 0, 0, 0);
+      break;
+    case "last3months":
+      // Round to week start (Monday)
+      const dayOfWeek = normalized.getDay();
+      const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      normalized.setDate(normalized.getDate() + diff);
+      normalized.setHours(0, 0, 0, 0);
+      break;
+    case "thisYear":
+      // Round to month start
+      normalized.setDate(1);
+      normalized.setHours(0, 0, 0, 0);
+      break;
+  }
+  return normalized;
+};
+
 // Format chart data from API response
 const formatChartData = (visits: any[], period: PeriodType): ChartDataPoint[] => {
-  if (!visits || visits.length === 0) return [];
-
   const now = new Date();
   const chartData: ChartDataPoint[] = [];
 
+  // Step 1: Generate all time buckets with proper labels
   if (period === "realtime") {
     // Last 12 intervals of 5 minutes
     for (let i = 11; i >= 0; i--) {
@@ -457,18 +520,22 @@ const formatChartData = (visits: any[], period: PeriodType): ChartDataPoint[] =>
       date.setMinutes(date.getMinutes() - i * 5);
       date.setMinutes(Math.floor(date.getMinutes() / 5) * 5);
       date.setSeconds(0);
+      date.setMilliseconds(0);
 
       chartData.push({
         label: formatTime(date),
-        value: 0, // Will be aggregated
+        value: 0,
       });
     }
   } else if (period === "today" || period === "yesterday") {
     // 24 hours
-    for (let i = 23; i >= 0; i--) {
-      const date = new Date(now);
-      if (period === "yesterday") date.setDate(date.getDate() - 1);
-      date.setHours(date.getHours() - i);
+    const baseDate = new Date(now);
+    if (period === "yesterday") baseDate.setDate(baseDate.getDate() - 1);
+    baseDate.setHours(0, 0, 0, 0);
+
+    for (let i = 0; i < 24; i++) {
+      const date = new Date(baseDate);
+      date.setHours(i);
 
       chartData.push({
         label: formatTime(date),
@@ -480,6 +547,7 @@ const formatChartData = (visits: any[], period: PeriodType): ChartDataPoint[] =>
     for (let i = 6; i >= 0; i--) {
       const date = new Date(now);
       date.setDate(date.getDate() - i);
+      date.setHours(0, 0, 0, 0);
 
       chartData.push({
         label: formatShortDate(date),
@@ -504,6 +572,9 @@ const formatChartData = (visits: any[], period: PeriodType): ChartDataPoint[] =>
       endDate = new Date(now.getFullYear(), now.getMonth(), 0);
     }
 
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(0, 0, 0, 0);
+
     const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000)) + 1;
     // Show fewer points for readability (max ~15 points)
     const step = Math.max(1, Math.floor(daysDiff / 15));
@@ -522,6 +593,11 @@ const formatChartData = (visits: any[], period: PeriodType): ChartDataPoint[] =>
     for (let i = 12; i >= 0; i--) {
       const date = new Date(now);
       date.setDate(date.getDate() - i * 7);
+      // Normalize to week start
+      const dayOfWeek = date.getDay();
+      const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      date.setDate(date.getDate() + diff);
+      date.setHours(0, 0, 0, 0);
 
       chartData.push({
         label: formatWeek(date),
@@ -540,42 +616,63 @@ const formatChartData = (visits: any[], period: PeriodType): ChartDataPoint[] =>
       });
     }
   } else if (period === "custom") {
-    // For custom period, use day/month format with raw data
-    visits.slice(-30).forEach((v: any) => {
+    // For custom period, generate buckets from actual data dates
+    if (!visits || visits.length === 0) return [];
+
+    const sortedVisits = [...visits].sort((a, b) => {
+      const dateA = new Date(a.timestamp || a.period || 0);
+      const dateB = new Date(b.timestamp || b.period || 0);
+      return dateA.getTime() - dateB.getTime();
+    });
+
+    const seen = new Set<string>();
+    sortedVisits.slice(-30).forEach((v: any) => {
       const timestamp = v.timestamp || v.period;
       if (timestamp) {
         const date = new Date(timestamp);
-        chartData.push({
-          label: formatDayMonth(date),
-          value: v.visits || 0,
-        });
-      } else {
-        chartData.push({
-          label: v.period || "",
-          value: v.visits || 0,
-        });
+        const label = formatDayMonth(date);
+        if (!seen.has(label)) {
+          seen.add(label);
+          chartData.push({
+            label,
+            value: 0,
+          });
+        }
       }
     });
-    return chartData;
-  } else {
-    // Default fallback: use raw data with formatting
-    visits.slice(-14).forEach((v: any) => {
-      const timestamp = v.timestamp || v.period;
-      if (timestamp) {
-        const date = new Date(timestamp);
-        chartData.push({
-          label: formatDayMonth(date),
-          value: v.visits || 0,
-        });
-      } else {
-        chartData.push({
-          label: v.period || "",
-          value: v.visits || 0,
-        });
-      }
-    });
+  }
+
+  // Return empty if no buckets and no data
+  if (chartData.length === 0 && (!visits || visits.length === 0)) {
+    return [];
+  }
+
+  // If we have buckets but no visits, return the empty buckets
+  if (!visits || visits.length === 0) {
     return chartData;
   }
+
+  // Step 2: Create a map from label to index for O(1) lookups
+  const labelToIndex = new Map<string, number>();
+  chartData.forEach((point, index) => {
+    labelToIndex.set(point.label, index);
+  });
+
+  // Step 3: Aggregate visits data into the correct buckets
+  visits.forEach((v: any) => {
+    const timestamp = v.timestamp || v.period;
+    if (!timestamp) return;
+
+    const date = new Date(timestamp);
+    if (isNaN(date.getTime())) return;
+
+    const label = getBucketKey(date, period);
+    const index = labelToIndex.get(label);
+
+    if (index !== undefined) {
+      chartData[index]!.value += v.visits || 1;
+    }
+  });
 
   return chartData;
 };
@@ -801,12 +898,13 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       }));
 
       const botTimeline: BotVisit[] = (botsData.timeline || []).map((t: any) => {
-        // Format the date for display based on the raw date string
+        // Format the date for display based on the selected period
         let formattedDate = t.date || "";
         if (t.date) {
           const date = new Date(t.date);
           if (!isNaN(date.getTime())) {
-            formattedDate = formatDayMonth(date);
+            // Use getBucketKey to format date consistently with the selected period
+            formattedDate = getBucketKey(date, period);
           }
         }
         return {
