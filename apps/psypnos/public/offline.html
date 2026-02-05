@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1a1a2e">
+  <title>Hors ligne - Psypnos</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --color-primary: #c7a962;
+      --color-primary-dark: #b89850;
+      --color-background: #1a1a2e;
+      --color-surface: #252542;
+      --color-text: #ffffff;
+      --color-text-muted: rgba(255, 255, 255, 0.7);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: var(--color-background);
+      color: var(--color-text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .container {
+      max-width: 500px;
+      width: 100%;
+    }
+
+    .icon {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 2rem;
+      opacity: 0.8;
+    }
+
+    .icon svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: var(--color-primary);
+      margin-bottom: 1rem;
+    }
+
+    p {
+      color: var(--color-text-muted);
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.875rem 1.5rem;
+      border-radius: 0.5rem;
+      font-size: 1rem;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+    }
+
+    .btn-primary {
+      background: var(--color-primary);
+      color: var(--color-background);
+    }
+
+    .btn-primary:hover {
+      background: var(--color-primary-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--color-surface);
+      color: var(--color-text);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .cached-pages {
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .cached-pages h2 {
+      font-size: 1rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+      color: var(--color-text-muted);
+    }
+
+    .cached-list {
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+
+    .cached-list a {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background: var(--color-surface);
+      color: var(--color-primary);
+      text-decoration: none;
+      border-radius: 0.25rem;
+      font-size: 0.875rem;
+      transition: all 0.2s ease;
+    }
+
+    .cached-list a:hover {
+      background: rgba(199, 169, 98, 0.1);
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 2rem;
+      padding: 0.75rem 1rem;
+      background: var(--color-surface);
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+    }
+
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ef4444;
+    }
+
+    .status-indicator.online {
+      background: #22c55e;
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .icon {
+        width: 80px;
+        height: 80px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+        <circle cx="12" cy="12" r="3"/>
+        <line x1="2" y1="2" x2="22" y2="22" stroke="#c7a962" stroke-width="2"/>
+      </svg>
+    </div>
+
+    <h1>Vous êtes hors ligne</h1>
+
+    <p>
+      Il semble que vous n'ayez pas de connexion internet.
+      Certaines pages que vous avez déjà visitées restent accessibles.
+    </p>
+
+    <div class="status" id="status">
+      <span class="status-indicator" id="status-indicator"></span>
+      <span id="status-text">Hors ligne</span>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" onclick="location.reload()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+          <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+          <path d="M16 16h5v5"/>
+        </svg>
+        Réessayer
+      </button>
+
+      <a href="/" class="btn btn-secondary">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Page d'accueil
+      </a>
+    </div>
+
+    <div class="cached-pages" id="cached-pages" style="display: none;">
+      <h2>Pages disponibles hors ligne</h2>
+      <ul class="cached-list" id="cached-list"></ul>
+    </div>
+  </div>
+
+  <script>
+    // Vérification du statut de connexion
+    function updateStatus() {
+      const indicator = document.getElementById('status-indicator');
+      const text = document.getElementById('status-text');
+
+      if (navigator.onLine) {
+        indicator.classList.add('online');
+        text.textContent = 'Connexion rétablie';
+        // Recharger après un court délai
+        setTimeout(() => {
+          location.reload();
+        }, 1500);
+      } else {
+        indicator.classList.remove('online');
+        text.textContent = 'Hors ligne';
+      }
+    }
+
+    window.addEventListener('online', updateStatus);
+    window.addEventListener('offline', updateStatus);
+    updateStatus();
+
+    // Afficher les pages en cache
+    async function showCachedPages() {
+      if (!('caches' in window)) return;
+
+      try {
+        const cacheNames = await caches.keys();
+        const cachedUrls = new Set();
+
+        for (const cacheName of cacheNames) {
+          const cache = await caches.open(cacheName);
+          const keys = await cache.keys();
+
+          for (const request of keys) {
+            const url = new URL(request.url);
+            // Filtrer pour n'afficher que les pages HTML
+            if (
+              url.origin === location.origin &&
+              !url.pathname.startsWith('/_next/') &&
+              !url.pathname.startsWith('/api/') &&
+              !url.pathname.match(/\.(js|css|json|png|jpg|svg|ico|woff2?)$/)
+            ) {
+              cachedUrls.add(url.pathname);
+            }
+          }
+        }
+
+        if (cachedUrls.size > 0) {
+          const container = document.getElementById('cached-pages');
+          const list = document.getElementById('cached-list');
+
+          const pageNames = {
+            '/': 'Accueil',
+            '/services': 'Services',
+            '/contact': 'Contact',
+            '/qui-suis-je': 'Qui suis-je',
+            '/blog': 'Blog',
+            '/seminaires': 'Séminaires'
+          };
+
+          const sortedUrls = Array.from(cachedUrls).sort();
+
+          for (const pathname of sortedUrls) {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = pathname;
+            a.textContent = pageNames[pathname] || pathname;
+            li.appendChild(a);
+            list.appendChild(li);
+          }
+
+          container.style.display = 'block';
+        }
+      } catch (error) {
+        console.error('Erreur lors de la lecture du cache:', error);
+      }
+    }
+
+    showCachedPages();
+  </script>
+</body>
+</html>
