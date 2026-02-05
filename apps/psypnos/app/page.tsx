@@ -2,105 +2,34 @@
  * Page d'accueil de Psypnos - Server Component
  *
  * Cette page utilise le Server-Side Rendering pour précharger les données
- * et éviter les problèmes de fetch côté client sur Vercel.
+ * directement depuis la base de données via Prisma, évitant les problèmes
+ * de fetch côté client sur Vercel.
  *
  * Les sections avec données dynamiques reçoivent leurs données initiales
  * en props, permettant un rendu instantané.
  */
-import dynamic from 'next/dynamic';
-import { Suspense } from 'react';
-
 import { Footer } from '../components/Footer';
 import { NavigationMenu } from '../components/NavigationMenu';
 import {
   getUpcomingSeminars,
   getFeaturedBlogPosts,
   getTestimonials,
-  type SeminarData,
-  type BlogPostData,
-  type TestimonialData,
 } from '../lib/server/data-fetchers';
 
+import { ApproachSection } from './(pages)/sections/approach';
+import { BlogSection } from './(pages)/sections/blog';
+import { RespirationSection, ContactSection } from './(pages)/sections/dynamic-sections';
+import { SessionFormatsSection } from './(pages)/sections/formats';
 import { HeroSection } from './(pages)/sections/hero';
-import {
-  ApproachSectionSkeleton,
-  JourneySectionSkeleton,
-  PricingSectionSkeleton,
-  FormatsSectionSkeleton,
-  TherapySectionsSkeleton,
-  RespirationSectionSkeleton,
-  SeminarsSectionSkeleton,
-  BlogSectionSkeleton,
-  TestimonialsSectionSkeleton,
-  ContactSectionSkeleton,
-} from './(pages)/sections/skeletons';
-
-// Static sections - loaded with dynamic import for code splitting
-const ApproachSection = dynamic(
-  () => import('./(pages)/sections/approach').then(mod => mod.ApproachSection),
-  { loading: () => <ApproachSectionSkeleton /> }
-);
-
-const JourneySection = dynamic(
-  () => import('./(pages)/sections/journey').then(mod => mod.JourneySection),
-  { loading: () => <JourneySectionSkeleton /> }
-);
-
-const PricingSection = dynamic(
-  () => import('./(pages)/sections/pricing').then(mod => mod.PricingSection),
-  { loading: () => <PricingSectionSkeleton /> }
-);
-
-const SessionFormatsSection = dynamic(
-  () => import('./(pages)/sections/formats').then(mod => mod.SessionFormatsSection),
-  { loading: () => <FormatsSectionSkeleton /> }
-);
-
-const TherapySections = dynamic(
-  () => import('./(pages)/sections/therapy').then(mod => mod.TherapySections),
-  { loading: () => <TherapySectionsSkeleton /> }
-);
-
-const RespirationSection = dynamic(
-  () => import('./(pages)/sections/respiration').then(mod => mod.RespirationSection),
-  { loading: () => <RespirationSectionSkeleton /> }
-);
-
-// Data-dependent sections - receive SSR data as props
-const SeminarsSection = dynamic(
-  () => import('./(pages)/sections/seminars').then(mod => mod.SeminarsSection),
-  { loading: () => <SeminarsSectionSkeleton /> }
-);
-
-const BlogSection = dynamic(() => import('./(pages)/sections/blog').then(mod => mod.BlogSection), {
-  loading: () => <BlogSectionSkeleton />,
-});
-
-const TestimonialsSection = dynamic(
-  () => import('./(pages)/sections/testimonials').then(mod => mod.TestimonialsSection),
-  { loading: () => <TestimonialsSectionSkeleton /> }
-);
-
-const ContactSection = dynamic(
-  () => import('./(pages)/sections/contact').then(mod => mod.ContactSection),
-  { loading: () => <ContactSectionSkeleton /> }
-);
-
-// Props types for sections that need server data
-interface SeminarsSectionProps {
-  initialData?: SeminarData[];
-}
-
-interface BlogSectionProps {
-  initialData?: BlogPostData[];
-}
-
-interface TestimonialsSectionProps {
-  initialData?: TestimonialData[];
-}
+import { JourneySection } from './(pages)/sections/journey';
+import { PricingSection } from './(pages)/sections/pricing';
+import { SeminarsSection } from './(pages)/sections/seminars';
+import { TestimonialsSection } from './(pages)/sections/testimonials';
+import { TherapySections } from './(pages)/sections/therapy';
 
 export default async function HomePage() {
-  // Parallel data fetching server-side for optimal performance
+  // Prefetch all data in parallel directly from database via Prisma
+  // This is more reliable than HTTP fetch as it avoids client-side network issues
   const [seminars, blogPosts, testimonials] = await Promise.all([
     getUpcomingSeminars(3),
     getFeaturedBlogPosts(3),
@@ -116,47 +45,18 @@ export default async function HomePage() {
       <HeroSection />
 
       <main>
-        {/* Static sections - no data dependencies */}
-        <Suspense fallback={<ApproachSectionSkeleton />}>
-          <ApproachSection />
-        </Suspense>
-
-        <Suspense fallback={<JourneySectionSkeleton />}>
-          <JourneySection />
-        </Suspense>
-
-        <Suspense fallback={<FormatsSectionSkeleton />}>
-          <SessionFormatsSection />
-        </Suspense>
-
-        <Suspense fallback={<PricingSectionSkeleton />}>
-          <PricingSection />
-        </Suspense>
-
-        <Suspense fallback={<TherapySectionsSkeleton />}>
-          <TherapySections />
-        </Suspense>
-
-        <Suspense fallback={<RespirationSectionSkeleton />}>
-          <RespirationSection />
-        </Suspense>
-
-        {/* Data-dependent sections - receive SSR-prefetched data */}
-        <Suspense fallback={<SeminarsSectionSkeleton />}>
-          <SeminarsSection initialData={seminars} />
-        </Suspense>
-
-        <Suspense fallback={<BlogSectionSkeleton />}>
-          <BlogSection initialData={blogPosts} />
-        </Suspense>
-
-        <Suspense fallback={<TestimonialsSectionSkeleton />}>
-          <TestimonialsSection initialData={testimonials} />
-        </Suspense>
-
-        <Suspense fallback={<ContactSectionSkeleton />}>
-          <ContactSection />
-        </Suspense>
+        {/* Sections statiques - rendu côté serveur */}
+        <ApproachSection />
+        <JourneySection />
+        <SessionFormatsSection />
+        <PricingSection />
+        <TherapySections />
+        <RespirationSection />
+        {/* Sections avec données préchargées depuis Prisma */}
+        <SeminarsSection initialData={seminars} />
+        <BlogSection initialData={blogPosts} />
+        <TestimonialsSection initialData={testimonials} />
+        <ContactSection />
       </main>
 
       <Footer />

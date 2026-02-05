@@ -7,12 +7,12 @@
 
 import useSWR, { SWRConfiguration } from 'swr';
 
-interface Speaker {
+export interface Speaker {
   firstName: string;
   lastName: string;
 }
 
-interface Seminar {
+export interface Seminar {
   id: string;
   title: string;
   description: string;
@@ -35,6 +35,7 @@ interface UseSeminarsOptions {
   revalidateOnFocus?: boolean;
   revalidateOnReconnect?: boolean;
   refreshInterval?: number;
+  initialData?: Seminar[];
 }
 
 const fetcher = async (url: string): Promise<Seminar[]> => {
@@ -55,7 +56,7 @@ const DEFAULT_SWR_CONFIG: SWRConfiguration = {
 };
 
 export function useSeminars(options: UseSeminarsOptions = {}) {
-  const { upcoming = true, limit = 3, ...swrOptions } = options;
+  const { upcoming = true, limit = 3, initialData, ...swrOptions } = options;
 
   const params = new URLSearchParams();
   if (upcoming) params.append('upcoming', 'true');
@@ -67,6 +68,7 @@ export function useSeminars(options: UseSeminarsOptions = {}) {
     {
       ...DEFAULT_SWR_CONFIG,
       ...swrOptions,
+      fallbackData: initialData,
     }
   );
 

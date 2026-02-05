@@ -10,6 +10,10 @@ import { useSeminars } from '../../../lib/hooks';
 import { BLUR_DATA_URL, IMAGE_DIMENSIONS } from '../../../lib/image-utils';
 import type { SeminarData } from '../../../lib/server/data-fetchers';
 
+interface SeminarsSectionProps {
+  initialData?: SeminarData[];
+}
+
 function formatSeminarDate(startAt: string, endAt: string): string {
   const start = new Date(startAt);
   const end = new Date(endAt);
@@ -33,10 +37,6 @@ function formatSeminarDate(startAt: string, endAt: string): string {
   return `${startStr} - ${endStr}`;
 }
 
-interface SeminarsSectionProps {
-  initialData?: SeminarData[];
-}
-
 export function SeminarsSection({ initialData }: SeminarsSectionProps) {
   const [hasMounted, setHasMounted] = useState(false);
 
@@ -45,6 +45,7 @@ export function SeminarsSection({ initialData }: SeminarsSectionProps) {
   const { seminars: fetchedSeminars, isLoading } = useSeminars({
     upcoming: true,
     limit: 3,
+    initialData,
   });
 
   // Use initialData if available, otherwise use fetched data
