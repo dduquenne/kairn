@@ -1,26 +1,24 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
- * Module de Tracking Analytics
+ * Tracking Analytics Module for Psypnos
  *
- * Ce module exporte toutes les fonctionnalités de tracking pour le site Psypnos.
+ * Re-exports the shared tracking module from @kairn/analytics with Psypnos-specific
+ * configuration. This maintains backwards compatibility with existing imports.
  *
  * Usage:
  * ```typescript
  * import { initTracker, getTracker } from '@/lib/tracking';
  *
- * // Initialiser le tracker (une fois au démarrage)
+ * // Initialize tracker (once at startup)
  * initTracker();
  *
- * // Tracker des événements
+ * // Track events
  * const tracker = getTracker();
  * tracker.trackEvent('CTA', 'click', 'book-appointment');
  * tracker.trackConversion('appointment_request', 'form_opened', 1, false);
  * ```
  */
 
-// Types
+// Re-export types from @kairn/analytics
 export type {
   TrackingEventType,
   DeviceType,
@@ -41,27 +39,23 @@ export type {
   TrackingResponse,
   TrackerConfig,
   GeolocationData,
-} from './types';
+} from '@kairn/analytics';
 
-// Constantes et utilitaires
+// Re-export utilities
 export {
   DEFAULT_TRACKER_CONFIG,
   isValidTrackingEvent,
   generateSessionId,
   generateEventId,
-} from './types';
+} from '@kairn/analytics';
 
-// Session Manager
+// Re-export client-side modules
 export {
   SessionManager,
   getSessionManager,
   resetSessionManager,
-} from './session';
-
-// Tracker principal
-export {
   Tracker,
   getTracker,
   initTracker,
   resetTracker,
-} from './tracker';
+} from '@kairn/analytics';

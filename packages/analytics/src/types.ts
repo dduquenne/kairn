@@ -37,6 +37,8 @@ export type ConversionType =
   | 'contact_form'
   | 'newsletter_signup'
   | 'download'
+  | 'fab_click'
+  | 'quick_contact_form'
   | 'custom';
 
 // ============================================
