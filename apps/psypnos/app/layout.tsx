@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Playfair_Display } from 'next/font/google';
 
 import { FloatingContactButton } from '@/components/FloatingContactButton';
 import { CustomizationProvider } from '@/lib/customization-context';
@@ -10,19 +9,6 @@ import './globals.css';
 
 // PERFORMANCE : ISR avec revalidation toutes les 24h
 export const revalidate = 86400;
-
-// Fonts configuration - identique au projet source
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-sans',
-});
-
-const playfairDisplay = Playfair_Display({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-display-default',
-});
 
 // Metadata
 export const metadata: Metadata = {
@@ -470,15 +456,16 @@ function generateStructuredData() {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="fr"
-      className={`${inter.variable} ${playfairDisplay.variable}`}
-      suppressHydrationWarning
-    >
+    <html lang="fr" suppressHydrationWarning>
       <head>
         {/* Preconnect to Google Fonts for faster font loading */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Load fonts via stylesheet (more reliable than next/font during build) */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
         {/* DNS prefetch for external resources */}
         <link rel="dns-prefetch" href="https://api.resend.com" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />

@@ -1,8 +1,8 @@
-import bcrypt from "bcryptjs";
-import { NextResponse } from "next/server";
+import bcrypt from 'bcryptjs';
+import { NextResponse } from 'next/server';
 
-import { withAdminAuth } from "../../../../auth/middleware";
-import { pool } from "../../../../users/pg-store";
+import { withAdminAuth } from '../../../../auth/middleware';
+import { pool } from '../../../../users/pg-store';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,24 +24,27 @@ interface ChangePasswordRequest {
   currentPassword?: string;
 }
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   // Verify authentication
   const authResult = await withAdminAuth();
   if (authResult.error) return authResult.error;
 
+  // Await params (Next.js 16+ async params)
+  const { id } = await params;
+
   // Validate UUID
-  if (!isValidUUID(params.id)) {
-    return NextResponse.json({ error: "ID utilisateur invalide" }, { status: 400 });
+  if (!isValidUUID(id)) {
+    return NextResponse.json({ error: 'ID utilisateur invalide' }, { status: 400 });
   }
 
   try {
-    const body = await request.json() as ChangePasswordRequest;
+    const body = (await request.json()) as ChangePasswordRequest;
     const { newPassword, currentPassword } = body;
 
     // Validate new password
     if (!newPassword || newPassword.length < 8) {
       return NextResponse.json(
-        { error: "Le nouveau mot de passe doit contenir au moins 8 caractères" },
+        { error: 'Le nouveau mot de passe doit contenir au moins 8 caractères' },
         { status: 400 }
       );
     }
@@ -49,35 +52,40 @@ export async function POST(request: Request, { params }: { params: { id: string 
     // Get the current user
     const userResult = await pool.query(
       `SELECT id, email, "passwordHash" FROM "User" WHERE id = $1`,
-      [params.id]
+      [id]
     );
 
     const user = userResult.rows[0];
     if (!user) {
-      return NextResponse.json({ error: "Utilisateur non trouvé" }, { status: 404 });
+      return NextResponse.json({ error: 'Utilisateur non trouvé' }, { status: 404 });
     }
 
     // If currentPassword is provided, verify it
     if (currentPassword) {
       const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
       if (!isCurrentPasswordValid) {
-        return NextResponse.json({ error: "Le mot de passe actuel est incorrect" }, { status: 400 });
+        return NextResponse.json(
+          { error: 'Le mot de passe actuel est incorrect' },
+          { status: 400 }
+        );
       }
     }
 
     // Hash and update the new password
     const newPasswordHash = await hashPassword(newPassword);
-    await pool.query(
-      `UPDATE "User" SET "passwordHash" = $1, "updatedAt" = $2 WHERE id = $3`,
-      [newPasswordHash, new Date(), params.id]
-    );
+    await pool.query(`UPDATE "User" SET "passwordHash" = $1, "updatedAt" = $2 WHERE id = $3`, [
+      newPasswordHash,
+      new Date(),
+      id,
+    ]);
 
     return NextResponse.json({
       success: true,
-      message: "Le mot de passe a été modifié avec succès",
+      message: 'Le mot de passe a été modifié avec succès',
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Impossible de modifier le mot de passe";
+    const message =
+      error instanceof Error ? error.message : 'Impossible de modifier le mot de passe';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

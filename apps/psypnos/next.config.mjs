@@ -1,7 +1,4 @@
-import { createRequire } from 'module';
 import bundleAnalyzer from '@next/bundle-analyzer';
-
-const require = createRequire(import.meta.url);
 
 const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
@@ -83,11 +80,6 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
 
-  // Désactiver ESLint pendant le build (géré séparément)
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-
   // Configuration des images optimisée
   images: {
     // Formats modernes avec fallback
@@ -118,30 +110,25 @@ const nextConfig = {
   // Note: @kairn/ui removed from optimizePackageImports to preserve React context sharing
   experimental: {
     optimizePackageImports: [],
-    // Exclude large directories from serverless function bundles
-    outputFileTracingExcludes: {
-      '/api/**': [
-        './public/**',
-        './data/**',
-        './.next/cache/**',
-      ],
-    },
+    // Enable system TLS certs for Turbopack to fetch Google Fonts
+    turbopackUseSystemTlsCerts: true,
+  },
+
+  // Exclude large directories from serverless function bundles (moved from experimental)
+  outputFileTracingExcludes: {
+    '/api/**': [
+      './public/**',
+      './data/**',
+      './.next/cache/**',
+    ],
   },
 
   // Set the root for file tracing in monorepo
   outputFileTracingRoot: new URL('../..', import.meta.url).pathname,
 
-  // Webpack configuration to ensure shared modules are not duplicated
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      // Ensure @kairn/ui is treated as a singleton to preserve React context
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        '@kairn/ui': require.resolve('@kairn/ui'),
-      };
-    }
-    return config;
-  },
+  // Turbopack configuration (Next.js 16+)
+  // Note: Turbopack handles monorepo packages better than Webpack, no alias needed
+  turbopack: {},
 
   // Headers de sécurité et cache
   async headers() {
