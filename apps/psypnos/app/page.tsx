@@ -8,6 +8,11 @@
  * Les sections avec données dynamiques reçoivent leurs données initiales
  * en props, permettant un rendu instantané.
  */
+
+// Force dynamic rendering to ensure database queries run at request time
+// (not during build when DATABASE_URL may not be available)
+export const dynamic = 'force-dynamic';
+
 import { Footer } from '../components/Footer';
 import { NavigationMenu } from '../components/NavigationMenu';
 import {
