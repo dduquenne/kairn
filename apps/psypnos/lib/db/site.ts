@@ -18,29 +18,20 @@ let cachedSiteId: string | null = null;
  * Uses caching to avoid repeated queries
  */
 export async function getSiteId(): Promise<string> {
-  console.log('[getSiteId] Called, cachedSiteId:', cachedSiteId);
   if (cachedSiteId) {
-    console.log('[getSiteId] Returning cached:', cachedSiteId);
     return cachedSiteId;
   }
-
-  console.log('[getSiteId] Querying database for slug:', SITE_SLUG);
-  console.log('[getSiteId] DATABASE_URL exists:', !!process.env.DATABASE_URL);
 
   const site = await prisma.site.findUnique({
     where: { slug: SITE_SLUG },
     select: { id: true },
   });
 
-  console.log('[getSiteId] Query result:', site);
-
   if (!site) {
-    console.error('[getSiteId] Site not found!');
     throw new Error(`Site "${SITE_SLUG}" not found in database`);
   }
 
   cachedSiteId = site.id;
-  console.log('[getSiteId] Cached and returning:', cachedSiteId);
   return cachedSiteId;
 }
 
