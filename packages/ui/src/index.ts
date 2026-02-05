@@ -147,5 +147,15 @@ export {
   type ToastHookResult,
 } from './components/floating-contact-button';
 
+// Contexts
+export {
+  ThemeProvider,
+  useTheme,
+  ThemeAware,
+  type ThemeMode,
+  type ThemeContextValue,
+  type ThemeProviderProps,
+} from './contexts';
+
 // Utils
 export { cn } from './utils/cn';
