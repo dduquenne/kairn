@@ -7,7 +7,7 @@
 
 import useSWR, { SWRConfiguration } from 'swr';
 
-interface Testimonial {
+export interface Testimonial {
   id: string;
   quote: string;
   author: string;
@@ -21,6 +21,7 @@ interface UseTestimonialsOptions {
   revalidateOnFocus?: boolean;
   revalidateOnReconnect?: boolean;
   refreshInterval?: number;
+  initialData?: Testimonial[];
 }
 
 const fetcher = async (url: string): Promise<Testimonial[]> => {
@@ -41,7 +42,7 @@ const DEFAULT_SWR_CONFIG: SWRConfiguration = {
 };
 
 export function useTestimonials(options: UseTestimonialsOptions = {}) {
-  const { limit = 10, ...swrOptions } = options;
+  const { limit = 10, initialData, ...swrOptions } = options;
 
   const { data, error, isLoading, isValidating, mutate } = useSWR<Testimonial[]>(
     `/api/testimonials?limit=${limit}`,
@@ -49,6 +50,7 @@ export function useTestimonials(options: UseTestimonialsOptions = {}) {
     {
       ...DEFAULT_SWR_CONFIG,
       ...swrOptions,
+      fallbackData: initialData,
     }
   );
 
