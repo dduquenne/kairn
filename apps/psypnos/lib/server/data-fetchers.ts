@@ -62,12 +62,13 @@ export interface TestimonialData {
 
 /**
  * Get the base URL for internal API calls
- * Uses VERCEL_URL in production, falls back to localhost for dev
+ * In production, use the canonical domain
  */
 function getBaseUrl(): string {
-  // Vercel provides VERCEL_URL for the deployment
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
+  // Use NODE_ENV to determine environment
+  if (process.env.NODE_ENV === 'production') {
+    // Use the production domain for API calls
+    return 'https://kairn-psypnos.vercel.app';
   }
   // For local development
   return 'http://localhost:3000';
