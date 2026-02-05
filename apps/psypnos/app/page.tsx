@@ -40,27 +40,36 @@ export default async function HomePage() {
   let blogPostsData: BlogPostData[] = [];
   let testimonialsData: TestimonialData[] = [];
   let ssrError: string | null = null;
+  const debugInfo = {
+    hasDbUrl: !!process.env.DATABASE_URL,
+    nodeEnv: process.env.NODE_ENV,
+    timestamp: new Date().toISOString(),
+    seminarsCount: 0,
+    blogPostsCount: 0,
+    testimonialsCount: 0,
+  };
 
   try {
     // Get upcoming seminars, fallback to all if none upcoming
     let seminarsRaw = await getAPISeminars(3);
+    debugInfo.seminarsCount = seminarsRaw.length;
+
     if (seminarsRaw.length === 0) {
       const allSeminars = await getAllAPISeminars();
       seminarsRaw = allSeminars.slice(0, 3);
+      debugInfo.seminarsCount = seminarsRaw.length;
     }
 
     // Get blog posts with featured first
     const blogPostsRaw = await getAPIBlogPosts({ limit: 3, featuredFirst: true });
+    debugInfo.blogPostsCount = blogPostsRaw.length;
 
     // Get testimonials
     const testimonialsRaw = await getAPITestimonials(10);
+    debugInfo.testimonialsCount = testimonialsRaw.length;
 
     // eslint-disable-next-line no-console
-    console.log('[HomePage SSR] Data fetched via API store functions:', {
-      seminars: seminarsRaw.length,
-      blogPosts: blogPostsRaw.length,
-      testimonials: testimonialsRaw.length,
-    });
+    console.log('[HomePage SSR] Data fetched:', debugInfo);
 
     // The API store functions already return properly formatted data
     // Just cast to the expected types
@@ -85,12 +94,12 @@ export default async function HomePage() {
       {/* Hero - loaded immediately (above the fold) */}
       <HeroSection />
 
-      {/* Debug: Show SSR error if any */}
-      {ssrError && (
-        <div className="m-4 rounded border border-red-500 bg-red-900/50 p-4 text-red-200">
-          <strong>SSR Error:</strong> {ssrError}
-        </div>
-      )}
+      {/* Debug: Show SSR info (temporary) */}
+      <div className="m-4 rounded border border-blue-500 bg-blue-900/50 p-4 text-xs text-blue-200">
+        <strong>SSR Debug:</strong>
+        <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
+        {ssrError && <p className="mt-2 text-red-400">Error: {ssrError}</p>}
+      </div>
 
       <main>
         {/* Sections statiques - rendu côté serveur */}
