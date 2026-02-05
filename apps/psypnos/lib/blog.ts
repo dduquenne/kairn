@@ -1,36 +1,18 @@
 /* eslint-disable no-console */
 /**
- * Blog Library - PostgreSQL via Raw SQL
+ * Blog Library - Multi-tenant Prisma Models
  *
- * IMPORTANT: The psypnos database uses a single-tenant schema with simple table names:
- * - blog_posts (not BlogPost with siteId)
- *
- * We use raw SQL queries to match the actual database structure.
+ * This module provides blog post access using the Kairn multi-tenant database schema.
+ * All queries filter by siteId to ensure tenant isolation.
  */
 import readingTime from 'reading-time';
 
 import prisma from '@/lib/db/prisma';
+import { getSiteId } from '@/lib/db/site';
 
 // ============================================
-// Raw Database Types (matching actual psypnos schema)
+// Types
 // ============================================
-
-interface RawBlogPost {
-  id: string;
-  slug: string;
-  title: string;
-  description: string | null;
-  content: string;
-  author: string;
-  category: string;
-  tags: string[] | null;
-  image: string | null;
-  published: boolean;
-  featured: boolean;
-  date: Date;
-  created_at: Date;
-  updated_at: Date;
-}
 
 export interface FAQItem {
   id?: string;
@@ -74,6 +56,72 @@ let postsCache: BlogPost[] | null = null;
 let postsCacheTimestamp = 0;
 const CACHE_TTL = 60000; // 1 minute
 
+// ============================================
+// Helper Functions
+// ============================================
+
+/**
+ * Format Prisma BlogPost to our BlogPost interface
+ */
+function formatPrismaPost(post: {
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  content: string;
+  coverImage: string | null;
+  status: string;
+  category: string | null;
+  imagePrompt: string | null;
+  seoIntent: string | null;
+  persona: string | null;
+  tones: string[];
+  faq: unknown;
+  jsonLd: unknown;
+  featured: boolean | null;
+  authorName: string | null;
+  publishedAt: Date | null;
+  createdAt: Date;
+  tags: Array<{ tag: { name: string } }>;
+}): BlogPost {
+  const stats = readingTime(post.content);
+  const excerpt =
+    post.excerpt ||
+    post.content
+      .slice(0, 200)
+      .replace(/[#*[\]]/g, '')
+      .trim() + '...';
+
+  const dateStr = post.publishedAt
+    ? post.publishedAt.toISOString().split('T')[0]!
+    : post.createdAt.toISOString().split('T')[0]!;
+
+  return {
+    slug: post.slug,
+    title: post.title,
+    description: post.excerpt || excerpt,
+    date: dateStr,
+    author: post.authorName || 'PSYPNOS',
+    category: post.category || '',
+    tags: post.tags.map(t => t.tag.name),
+    image: post.coverImage || undefined,
+    published: post.status === 'PUBLISHED',
+    featured: post.featured || false,
+    faq: post.faq as FAQItem[] | undefined,
+    jsonLd: post.jsonLd as Record<string, unknown> | undefined,
+    imagePrompt: post.imagePrompt || undefined,
+    seoIntent: post.seoIntent || undefined,
+    persona: post.persona || undefined,
+    tones: post.tones || [],
+    content: post.content,
+    readingTime: stats.text,
+    excerpt,
+  };
+}
+
+// ============================================
+// Async API Functions (Recommended)
+// ============================================
+
 /**
  * Get image URL for a blog post
  */
@@ -100,9 +148,14 @@ export function getBlogPostImage(_slug: string): string | null {
  */
 export async function getAllPostSlugsAsync(): Promise<string[]> {
   try {
-    const posts = await prisma.$queryRaw<Array<{ slug: string }>>`
-      SELECT slug FROM blog_posts WHERE published = true
-    `;
+    const siteId = await getSiteId();
+    const posts = await prisma.blogPost.findMany({
+      where: {
+        siteId,
+        status: 'PUBLISHED',
+      },
+      select: { slug: true },
+    });
     return posts.map(post => post.slug);
   } catch (error) {
     console.error('Error fetching post slugs:', error);
@@ -127,15 +180,21 @@ export function getAllPostSlugs(): string[] {
  */
 export async function getPostBySlugAsync(slug: string): Promise<BlogPost | null> {
   try {
-    const posts = await prisma.$queryRaw<RawBlogPost[]>`
-      SELECT id, slug, title, description, content, author, category, tags, image, published, featured, date, created_at, updated_at
-      FROM blog_posts
-      WHERE slug = ${slug}
-    `;
+    const siteId = await getSiteId();
+    const post = await prisma.blogPost.findUnique({
+      where: {
+        slug_siteId: { slug, siteId },
+      },
+      include: {
+        tags: {
+          include: { tag: true },
+        },
+      },
+    });
 
-    if (posts.length === 0) return null;
+    if (!post) return null;
 
-    return formatRawPostToBlogPost(posts[0]!);
+    return formatPrismaPost(post);
   } catch (error) {
     console.error(`Error fetching post ${slug}:`, error);
     return null;
@@ -156,45 +215,6 @@ export function getPostBySlug(slug: string): BlogPost | null {
 }
 
 /**
- * Format raw database post to BlogPost interface
- */
-function formatRawPostToBlogPost(post: RawBlogPost): BlogPost {
-  // Calculate reading time
-  const stats = readingTime(post.content);
-
-  // Extract excerpt
-  const excerpt =
-    post.description ||
-    post.content
-      .slice(0, 200)
-      .replace(/[#*[\]]/g, '')
-      .trim() + '...';
-
-  // Format date
-  const dateStr =
-    post.date instanceof Date
-      ? (post.date.toISOString().split('T')[0] as string)
-      : String(post.date);
-
-  return {
-    slug: post.slug,
-    title: post.title,
-    description: post.description || excerpt,
-    date: dateStr,
-    author: post.author || 'PSYPNOS',
-    category: post.category || '',
-    tags: post.tags || [],
-    image: post.image || undefined,
-    published: post.published,
-    featured: post.featured,
-    // Note: Extended fields (faq, jsonLd, imagePrompt, seoIntent, persona, tones) are not in the psypnos schema
-    content: post.content,
-    readingTime: stats.text,
-    excerpt,
-  };
-}
-
-/**
  * Get all blog posts (async version - recommended)
  */
 export async function getAllPostsAsync(includeUnpublished = false): Promise<BlogPostSummary[]> {
@@ -202,30 +222,33 @@ export async function getAllPostsAsync(includeUnpublished = false): Promise<Blog
   console.log(`[blog] getAllPostsAsync appelé (includeUnpublished: ${includeUnpublished})`);
 
   try {
+    const siteId = await getSiteId();
     const today = new Date();
     today.setHours(23, 59, 59, 999);
 
-    let posts: RawBlogPost[];
-    if (includeUnpublished) {
-      posts = await prisma.$queryRaw<RawBlogPost[]>`
-        SELECT id, slug, title, description, content, author, category, tags, image, published, featured, date, created_at, updated_at
-        FROM blog_posts
-        ORDER BY date DESC
-      `;
-    } else {
-      posts = await prisma.$queryRaw<RawBlogPost[]>`
-        SELECT id, slug, title, description, content, author, category, tags, image, published, featured, date, created_at, updated_at
-        FROM blog_posts
-        WHERE published = true AND date <= ${today}
-        ORDER BY date DESC
-      `;
-    }
+    const posts = await prisma.blogPost.findMany({
+      where: {
+        siteId,
+        ...(includeUnpublished
+          ? {}
+          : {
+              status: 'PUBLISHED',
+              publishedAt: { lte: today },
+            }),
+      },
+      include: {
+        tags: {
+          include: { tag: true },
+        },
+      },
+      orderBy: { publishedAt: 'desc' },
+    });
 
     console.log(
       `[blog] ${posts.length} articles récupérés de la base de données en ${Date.now() - startTime}ms`
     );
 
-    const formattedPosts = posts.map(formatRawPostToBlogPost);
+    const formattedPosts = posts.map(formatPrismaPost);
 
     // Update cache for sync functions
     postsCache = formattedPosts;
@@ -363,10 +386,20 @@ export function getPostsByTag(tag: string, includeUnpublished = false): BlogPost
  */
 export async function getAllCategoriesAsync(): Promise<string[]> {
   try {
-    const result = await prisma.$queryRaw<Array<{ category: string }>>`
-      SELECT DISTINCT category FROM blog_posts WHERE published = true AND category IS NOT NULL
-    `;
-    return result.map(r => r.category).sort();
+    const siteId = await getSiteId();
+    const posts = await prisma.blogPost.findMany({
+      where: {
+        siteId,
+        status: 'PUBLISHED',
+        category: { not: null },
+      },
+      select: { category: true },
+      distinct: ['category'],
+    });
+    return posts
+      .map(p => p.category)
+      .filter((c): c is string => c !== null)
+      .sort();
   } catch (error) {
     console.error('Error fetching categories:', error);
     return [];
@@ -388,10 +421,25 @@ export function getAllCategories(): string[] {
  */
 export async function getAllTagsAsync(): Promise<string[]> {
   try {
-    const result = await prisma.$queryRaw<Array<{ tag: string }>>`
-      SELECT DISTINCT unnest(tags) as tag FROM blog_posts WHERE published = true AND tags IS NOT NULL
-    `;
-    return result.map(r => r.tag).sort();
+    const siteId = await getSiteId();
+    const posts = await prisma.blogPost.findMany({
+      where: {
+        siteId,
+        status: 'PUBLISHED',
+      },
+      include: {
+        tags: {
+          include: { tag: true },
+        },
+      },
+    });
+    const tags = new Set<string>();
+    for (const post of posts) {
+      for (const t of post.tags) {
+        tags.add(t.tag.name);
+      }
+    }
+    return Array.from(tags).sort();
   } catch (error) {
     console.error('Error fetching tags:', error);
     return [];
@@ -469,21 +517,27 @@ export function getRelatedPosts(slug: string, limit = 3): BlogPostSummary[] {
  */
 export async function searchPostsAsync(query: string): Promise<BlogPostSummary[]> {
   try {
-    const searchPattern = `%${query}%`;
-    const posts = await prisma.$queryRaw<RawBlogPost[]>`
-      SELECT id, slug, title, description, content, author, category, tags, image, published, featured, date, created_at, updated_at
-      FROM blog_posts
-      WHERE published = true
-        AND (
-          title ILIKE ${searchPattern}
-          OR description ILIKE ${searchPattern}
-          OR content ILIKE ${searchPattern}
-          OR category ILIKE ${searchPattern}
-        )
-      ORDER BY date DESC
-    `;
+    const siteId = await getSiteId();
+    const posts = await prisma.blogPost.findMany({
+      where: {
+        siteId,
+        status: 'PUBLISHED',
+        OR: [
+          { title: { contains: query, mode: 'insensitive' } },
+          { excerpt: { contains: query, mode: 'insensitive' } },
+          { content: { contains: query, mode: 'insensitive' } },
+          { category: { contains: query, mode: 'insensitive' } },
+        ],
+      },
+      include: {
+        tags: {
+          include: { tag: true },
+        },
+      },
+      orderBy: { publishedAt: 'desc' },
+    });
 
-    return posts.map(formatRawPostToBlogPost).map(
+    return posts.map(formatPrismaPost).map(
       (post: BlogPost): BlogPostSummary => ({
         slug: post.slug,
         title: post.title,
