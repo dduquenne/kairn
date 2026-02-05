@@ -8,6 +8,7 @@ import { CTAButton } from '../../../components/CTAButton';
 import { SectionTitle } from '../../../components/SectionTitle';
 import { useSeminars } from '../../../lib/hooks';
 import { BLUR_DATA_URL, IMAGE_DIMENSIONS } from '../../../lib/image-utils';
+import type { SeminarData } from '../../../lib/server/data-fetchers';
 
 function formatSeminarDate(startAt: string, endAt: string): string {
   const start = new Date(startAt);
@@ -32,22 +33,33 @@ function formatSeminarDate(startAt: string, endAt: string): string {
   return `${startStr} - ${endStr}`;
 }
 
-export function SeminarsSection() {
+interface SeminarsSectionProps {
+  initialData?: SeminarData[];
+}
+
+export function SeminarsSection({ initialData }: SeminarsSectionProps) {
   const [hasMounted, setHasMounted] = useState(false);
 
   // Use SWR for optimized data fetching with caching
-  const { seminars: upcomingSeminars, isLoading: loading } = useSeminars({
+  // If initialData is provided, SWR will use it immediately and skip initial fetch
+  const { seminars: fetchedSeminars, isLoading } = useSeminars({
     upcoming: true,
     limit: 3,
   });
+
+  // Use initialData if available, otherwise use fetched data
+  const upcomingSeminars = initialData && initialData.length > 0 ? initialData : fetchedSeminars;
 
   // Track mounting to avoid hydration mismatch
   useEffect(() => {
     setHasMounted(true);
   }, []);
 
+  // Show loading only if no initialData AND still loading from SWR
+  const showLoading = !initialData && !hasMounted;
+
   // During SSR and initial client render, show skeleton to prevent hydration mismatch
-  if (!hasMounted || loading) {
+  if (showLoading || (!initialData && isLoading)) {
     return (
       <section id="seminaires" className="bg-night/60 px-6 py-20 sm:px-10 lg:px-16">
         <div className="mx-auto max-w-6xl space-y-12">

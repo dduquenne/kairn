@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 
 import { SectionTitle } from '../../../components/SectionTitle';
 import { useTestimonials } from '../../../lib/hooks';
+import type { TestimonialData } from '../../../lib/server/data-fetchers';
 
 /**
  * Compact testimonial card for the marquee
@@ -104,17 +105,24 @@ function Marquee({
   );
 }
 
+interface TestimonialsSectionProps {
+  initialData?: TestimonialData[];
+}
+
 /**
  * Testimonials section with dual-direction infinite marquee
  * - Two rows scrolling in opposite directions create visual interest
  * - Hover to pause allows reading individual testimonials
  * - Reduced motion support for accessibility
  */
-export function TestimonialsSection() {
+export function TestimonialsSection({ initialData }: TestimonialsSectionProps) {
   const [hasMounted, setHasMounted] = useState(false);
 
   // Use SWR for optimized data fetching with caching
-  const { testimonials, isLoading: loading } = useTestimonials({ limit: 10 });
+  const { testimonials: fetchedTestimonials, isLoading } = useTestimonials({ limit: 10 });
+
+  // Use initialData if available, otherwise use fetched data
+  const testimonials = initialData && initialData.length > 0 ? initialData : fetchedTestimonials;
 
   useEffect(() => {
     setHasMounted(true);
@@ -130,8 +138,8 @@ export function TestimonialsSection() {
     ? [...testimonials].reverse()
     : testimonials.slice(Math.ceil(testimonials.length / 2));
 
-  // Show skeleton while loading or before mount
-  if (!hasMounted || loading) {
+  // Show skeleton only if no initialData AND (not mounted OR still loading)
+  if (!initialData && (!hasMounted || isLoading)) {
     return (
       <section className="bg-night/60 overflow-hidden py-20">
         <div className="mx-auto max-w-6xl space-y-10 px-6 sm:px-10 lg:px-16">
