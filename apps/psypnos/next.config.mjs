@@ -239,7 +239,18 @@ const nextConfig = {
       // PAGES - Smart caching
       // ============================================
 
-      // Pages statiques (ISR compatible)
+      // Homepage - no cache (dynamic SSR data)
+      {
+        source: '/',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'private, no-cache, no-store, must-revalidate',
+          },
+        ],
+      },
+
+      // Other pages (ISR compatible)
       {
         source: '/((?!api|_next|admin).*)',
         headers: [
