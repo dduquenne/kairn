@@ -246,3 +246,9 @@ export function definePartialConfig(config: Partial<SiteConfig>): Partial<SiteCo
 // ============================================================================
 
 export * from './customization';
+
+// ============================================================================
+// CATEGORY COLORS
+// ============================================================================
+
+export * from './category-colors';
