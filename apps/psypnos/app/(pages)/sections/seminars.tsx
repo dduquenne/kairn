@@ -1,25 +1,13 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
 import { CTAButton } from '../../../components/CTAButton';
 import { SectionTitle } from '../../../components/SectionTitle';
-
-interface Seminar {
-  id: string;
-  title: string;
-  description: string;
-  speakers: Array<{ firstName: string; lastName: string }>;
-  startAt: string;
-  endAt: string;
-  capacity: number;
-  price?: number;
-  deposit?: number;
-  tags: string[];
-  thumbnail?: string;
-  seminarType?: string;
-}
+import { useSeminars } from '../../../lib/hooks';
+import { BLUR_DATA_URL, IMAGE_DIMENSIONS } from '../../../lib/image-utils';
 
 function formatSeminarDate(startAt: string, endAt: string): string {
   const start = new Date(startAt);
@@ -45,30 +33,17 @@ function formatSeminarDate(startAt: string, endAt: string): string {
 }
 
 export function SeminarsSection() {
-  const [upcomingSeminars, setUpcomingSeminars] = useState<Seminar[]>([]);
-  const [loading, setLoading] = useState(true);
   const [hasMounted, setHasMounted] = useState(false);
+
+  // Use SWR for optimized data fetching with caching
+  const { seminars: upcomingSeminars, isLoading: loading } = useSeminars({
+    upcoming: true,
+    limit: 3,
+  });
 
   // Track mounting to avoid hydration mismatch
   useEffect(() => {
     setHasMounted(true);
-  }, []);
-
-  useEffect(() => {
-    async function fetchSeminars() {
-      try {
-        const response = await fetch('/api/seminars?upcoming=true&limit=3');
-        if (response.ok) {
-          const data = await response.json();
-          setUpcomingSeminars(data);
-        }
-      } catch (error) {
-        console.error('Erreur lors du chargement des séminaires:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchSeminars();
   }, []);
 
   // During SSR and initial client render, show skeleton to prevent hydration mismatch
@@ -129,9 +104,13 @@ export function SeminarsSection() {
                 >
                   <div className="from-night/80 to-night/40 relative aspect-[16/9] w-full overflow-hidden bg-gradient-to-br">
                     {thumbnail ? (
-                      <img
+                      <Image
                         src={thumbnail}
                         alt={title}
+                        width={IMAGE_DIMENSIONS.seminarCard.width}
+                        height={IMAGE_DIMENSIONS.seminarCard.height}
+                        placeholder="blur"
+                        blurDataURL={BLUR_DATA_URL}
                         className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     ) : (

@@ -4,13 +4,7 @@ import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
 import { SectionTitle } from '../../../components/SectionTitle';
-
-interface Testimonial {
-  id: string;
-  quote: string;
-  author: string;
-  role?: string;
-}
+import { useTestimonials } from '../../../lib/hooks';
 
 /**
  * Compact testimonial card for the marquee
@@ -118,28 +112,12 @@ function Marquee({
  */
 export function TestimonialsSection() {
   const [hasMounted, setHasMounted] = useState(false);
-  const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
-  const [loading, setLoading] = useState(true);
+
+  // Use SWR for optimized data fetching with caching
+  const { testimonials, isLoading: loading } = useTestimonials({ limit: 10 });
 
   useEffect(() => {
     setHasMounted(true);
-  }, []);
-
-  useEffect(() => {
-    async function fetchTestimonials() {
-      try {
-        const response = await fetch('/api/testimonials?limit=10');
-        if (response.ok) {
-          const data = await response.json();
-          setTestimonials(data);
-        }
-      } catch (error) {
-        console.error('Erreur lors du chargement des témoignages:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchTestimonials();
   }, []);
 
   // For 10 or fewer testimonials, show all on both rows (second row reversed)
