@@ -7,7 +7,6 @@
  * All queries filter by siteId to ensure tenant isolation.
  */
 
-import { headers } from 'next/headers';
 import { cache } from 'react';
 
 // ============================================
@@ -63,12 +62,15 @@ export interface TestimonialData {
 
 /**
  * Get the base URL for internal API calls
+ * Uses VERCEL_URL in production, falls back to localhost for dev
  */
-async function getBaseUrl(): Promise<string> {
-  const headersList = await headers();
-  const host = headersList.get('host') || 'localhost:3000';
-  const protocol = host.includes('localhost') ? 'http' : 'https';
-  return `${protocol}://${host}`;
+function getBaseUrl(): string {
+  // Vercel provides VERCEL_URL for the deployment
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  // For local development
+  return 'http://localhost:3000';
 }
 
 /**
@@ -77,7 +79,7 @@ async function getBaseUrl(): Promise<string> {
  */
 export const getUpcomingSeminars = cache(async (limit = 3): Promise<SeminarData[]> => {
   try {
-    const baseUrl = await getBaseUrl();
+    const baseUrl = getBaseUrl();
     const response = await fetch(`${baseUrl}/api/seminars?upcoming=true&limit=${limit}`, {
       cache: 'no-store',
     });
@@ -114,7 +116,7 @@ export const getUpcomingSeminars = cache(async (limit = 3): Promise<SeminarData[
  */
 export const getFeaturedBlogPosts = cache(async (limit = 3): Promise<BlogPostData[]> => {
   try {
-    const baseUrl = await getBaseUrl();
+    const baseUrl = getBaseUrl();
     const response = await fetch(`${baseUrl}/api/blog/posts?limit=${limit}&featuredFirst=true`, {
       cache: 'no-store',
     });
@@ -149,7 +151,7 @@ export const getFeaturedBlogPosts = cache(async (limit = 3): Promise<BlogPostDat
  */
 export const getTestimonials = cache(async (limit = 10): Promise<TestimonialData[]> => {
   try {
-    const baseUrl = await getBaseUrl();
+    const baseUrl = getBaseUrl();
     const response = await fetch(`${baseUrl}/api/testimonials?limit=${limit}`, {
       cache: 'no-store',
     });
