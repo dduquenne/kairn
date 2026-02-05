@@ -1,84 +1,81 @@
-'use client';
-
 /**
  * Page d'accueil de Psypnos
  *
- * Cette page utilise next/dynamic pour le lazy loading des sections sous le pli.
- * next/dynamic gère correctement le SSR et évite les erreurs d'hydratation
- * contrairement à React.lazy() qui ne fonctionne pas bien avec SSR.
+ * Cette page utilise le Server-Side Rendering (SSR) pour un chargement initial rapide.
+ * Les données sont préchargées côté serveur et passées aux sections client.
+ * Les sections avec interactions lourdes utilisent dynamic imports avec ssr: false.
  */
-import dynamic from 'next/dynamic';
-
 import { Footer } from '../components/Footer';
 import { NavigationMenu } from '../components/NavigationMenu';
+import type { Seminar, Testimonial } from '../lib/hooks';
 
+import { ApproachSection } from './(pages)/sections/approach';
+import { BlogSection, type BlogPost } from './(pages)/sections/blog';
+import { RespirationSection, ContactSection } from './(pages)/sections/dynamic-sections';
+import { SessionFormatsSection } from './(pages)/sections/formats';
 import { HeroSection } from './(pages)/sections/hero';
-import {
-  ApproachSectionSkeleton,
-  JourneySectionSkeleton,
-  PricingSectionSkeleton,
-  FormatsSectionSkeleton,
-  TherapySectionsSkeleton,
-  RespirationSectionSkeleton,
-  SeminarsSectionSkeleton,
-  BlogSectionSkeleton,
-  TestimonialsSectionSkeleton,
-  ContactSectionSkeleton,
-} from './(pages)/sections/skeletons';
 
-// Dynamic import with SSR disabled to prevent hydration mismatches
-// ssr: false ensures the component only renders on the client
-const ApproachSection = dynamic(
-  () => import('./(pages)/sections/approach').then(mod => mod.ApproachSection),
-  { loading: () => <ApproachSectionSkeleton />, ssr: false }
-);
+// Sections statiques - SSR activé pour un rendu initial rapide
+import { JourneySection } from './(pages)/sections/journey';
+import { PricingSection } from './(pages)/sections/pricing';
+import { SeminarsSection } from './(pages)/sections/seminars';
+import { TestimonialsSection } from './(pages)/sections/testimonials';
+import { TherapySections } from './(pages)/sections/therapy';
 
-const JourneySection = dynamic(
-  () => import('./(pages)/sections/journey').then(mod => mod.JourneySection),
-  { loading: () => <JourneySectionSkeleton />, ssr: false }
-);
+// Sections dynamiques (Client Component wrapper)
 
-const PricingSection = dynamic(
-  () => import('./(pages)/sections/pricing').then(mod => mod.PricingSection),
-  { loading: () => <PricingSectionSkeleton />, ssr: false }
-);
+// Base URL for API calls (server-side)
+const getBaseUrl = () => {
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
+  return 'http://localhost:3000';
+};
 
-const SessionFormatsSection = dynamic(
-  () => import('./(pages)/sections/formats').then(mod => mod.SessionFormatsSection),
-  { loading: () => <FormatsSectionSkeleton />, ssr: false }
-);
+// Server-side data fetching functions
+async function fetchBlogPosts(): Promise<BlogPost[]> {
+  try {
+    const res = await fetch(`${getBaseUrl()}/api/blog/posts?limit=3&featuredFirst=true`, {
+      next: { revalidate: 300 }, // Cache for 5 minutes
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
 
-const TherapySections = dynamic(
-  () => import('./(pages)/sections/therapy').then(mod => mod.TherapySections),
-  { loading: () => <TherapySectionsSkeleton />, ssr: false }
-);
+async function fetchSeminars(): Promise<Seminar[]> {
+  try {
+    const res = await fetch(`${getBaseUrl()}/api/seminars?upcoming=true&limit=3`, {
+      next: { revalidate: 300 }, // Cache for 5 minutes
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
 
-const RespirationSection = dynamic(
-  () => import('./(pages)/sections/respiration').then(mod => mod.RespirationSection),
-  { loading: () => <RespirationSectionSkeleton />, ssr: false }
-);
+async function fetchTestimonials(): Promise<Testimonial[]> {
+  try {
+    const res = await fetch(`${getBaseUrl()}/api/testimonials?limit=10`, {
+      next: { revalidate: 3600 }, // Cache for 1 hour
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
 
-const SeminarsSection = dynamic(
-  () => import('./(pages)/sections/seminars').then(mod => mod.SeminarsSection),
-  { loading: () => <SeminarsSectionSkeleton />, ssr: false }
-);
+export default async function HomePage() {
+  // Prefetch all data in parallel for optimal performance
+  const [blogPosts, seminars, testimonials] = await Promise.all([
+    fetchBlogPosts(),
+    fetchSeminars(),
+    fetchTestimonials(),
+  ]);
 
-const BlogSection = dynamic(() => import('./(pages)/sections/blog').then(mod => mod.BlogSection), {
-  loading: () => <BlogSectionSkeleton />,
-  ssr: false,
-});
-
-const TestimonialsSection = dynamic(
-  () => import('./(pages)/sections/testimonials').then(mod => mod.TestimonialsSection),
-  { loading: () => <TestimonialsSectionSkeleton />, ssr: false }
-);
-
-const ContactSection = dynamic(
-  () => import('./(pages)/sections/contact').then(mod => mod.ContactSection),
-  { loading: () => <ContactSectionSkeleton />, ssr: false }
-);
-
-export default function HomePage() {
   return (
     <div className="from-night via-night/95 to-night text-ivory min-h-screen bg-gradient-to-b">
       {/* Navigation sticky - apparaît au scroll */}
@@ -88,17 +85,17 @@ export default function HomePage() {
       <HeroSection />
 
       <main>
-        {/* All sections below use next/dynamic with ssr: false */}
-        {/* This ensures they only render on client, preventing hydration mismatches */}
+        {/* Sections statiques - rendu côté serveur */}
         <ApproachSection />
         <JourneySection />
         <SessionFormatsSection />
         <PricingSection />
         <TherapySections />
         <RespirationSection />
-        <SeminarsSection />
-        <BlogSection />
-        <TestimonialsSection />
+        {/* Sections avec données préchargées côté serveur */}
+        <SeminarsSection initialData={seminars} />
+        <BlogSection initialData={blogPosts} />
+        <TestimonialsSection initialData={testimonials} />
         <ContactSection />
       </main>
 

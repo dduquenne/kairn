@@ -4,7 +4,11 @@ import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
 import { SectionTitle } from '../../../components/SectionTitle';
-import { useTestimonials } from '../../../lib/hooks';
+import { useTestimonials, type Testimonial } from '../../../lib/hooks';
+
+interface TestimonialsSectionProps {
+  initialData?: Testimonial[];
+}
 
 /**
  * Compact testimonial card for the marquee
@@ -110,11 +114,11 @@ function Marquee({
  * - Hover to pause allows reading individual testimonials
  * - Reduced motion support for accessibility
  */
-export function TestimonialsSection() {
+export function TestimonialsSection({ initialData }: TestimonialsSectionProps = {}) {
   const [hasMounted, setHasMounted] = useState(false);
 
   // Use SWR for optimized data fetching with caching
-  const { testimonials, isLoading: loading } = useTestimonials({ limit: 10 });
+  const { testimonials, isLoading: loading } = useTestimonials({ limit: 10, initialData });
 
   useEffect(() => {
     setHasMounted(true);
@@ -130,8 +134,12 @@ export function TestimonialsSection() {
     ? [...testimonials].reverse()
     : testimonials.slice(Math.ceil(testimonials.length / 2));
 
+  // If we have initial data, skip the skeleton during SSR
+  const hasInitialData = initialData && initialData.length > 0;
+
   // Show skeleton while loading or before mount
-  if (!hasMounted || loading) {
+  // Skip this if we have initial data from the server
+  if (!hasInitialData && (!hasMounted || loading)) {
     return (
       <section className="bg-night/60 overflow-hidden py-20">
         <div className="mx-auto max-w-6xl space-y-10 px-6 sm:px-10 lg:px-16">

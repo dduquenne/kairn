@@ -8,5 +8,5 @@
  * - Optimistic updates support
  */
 
-export { useTestimonials } from './use-testimonials';
-export { useSeminars } from './use-seminars';
+export { useTestimonials, type Testimonial } from './use-testimonials';
+export { useSeminars, type Seminar, type Speaker } from './use-seminars';
