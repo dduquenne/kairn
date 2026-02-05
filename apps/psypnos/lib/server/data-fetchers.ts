@@ -1,13 +1,17 @@
 /**
  * Server-side data fetchers for SSR prefetching
  *
- * These functions fetch data from internal API routes for use in Server Components.
- * Using API routes ensures consistent behavior between SSR and client-side.
+ * These functions fetch data directly from the Kairn multi-tenant database for use in Server Components.
+ * This avoids client-side fetch issues and provides instant initial data.
  *
  * All queries filter by siteId to ensure tenant isolation.
  */
 
-import { cache } from 'react';
+import { Decimal } from '@prisma/client/runtime/library';
+import { unstable_noStore as noStore } from 'next/cache';
+
+import prisma from '@/lib/db/prisma';
+import { getSiteId } from '@/lib/db/site';
 
 // ============================================
 // Seminar Types
@@ -57,120 +61,188 @@ export interface TestimonialData {
 }
 
 // ============================================
-// Server-side Data Fetchers (cached per request)
+// Server-side Data Fetchers
 // ============================================
 
 /**
- * Get the base URL for internal API calls
- * In production, use the canonical domain
- */
-function getBaseUrl(): string {
-  // Use NODE_ENV to determine environment
-  if (process.env.NODE_ENV === 'production') {
-    // Use the production domain for API calls
-    return 'https://kairn-psypnos.vercel.app';
-  }
-  // For local development
-  return 'http://localhost:3000';
-}
-
-/**
  * Fetch upcoming seminars for SSR
- * Uses internal API route for consistent behavior
+ * Uses Prisma models with multi-tenant siteId filtering
  */
-export const getUpcomingSeminars = cache(async (limit = 3): Promise<SeminarData[]> => {
+export async function getUpcomingSeminars(limit = 3): Promise<SeminarData[]> {
+  noStore(); // Opt out of caching for fresh data
   try {
-    const baseUrl = getBaseUrl();
-    const response = await fetch(`${baseUrl}/api/seminars?upcoming=true&limit=${limit}`, {
-      cache: 'no-store',
+    const siteId = await getSiteId();
+    const now = new Date();
+
+    // Query upcoming seminars
+    let seminars = await prisma.seminar.findMany({
+      where: {
+        siteId,
+        startAt: { gte: now },
+      },
+      orderBy: { startAt: 'asc' },
+      take: limit,
     });
 
-    if (!response.ok) {
-      console.error('[SSR] Seminars API error:', response.status, response.statusText);
-      return [];
+    // If no upcoming seminars, get most recent ones
+    if (seminars.length === 0) {
+      seminars = await prisma.seminar.findMany({
+        where: { siteId },
+        orderBy: { startAt: 'desc' },
+        take: limit,
+      });
     }
 
-    const data = await response.json();
-    return data.map((s: SeminarData) => ({
-      id: s.id,
-      title: s.title,
-      description: s.description,
-      speakers: s.speakers || [],
-      startAt: s.startAt,
-      endAt: s.endAt,
-      capacity: s.capacity,
-      price: s.price,
-      deposit: s.deposit,
-      tags: s.tags || [],
-      thumbnail: s.thumbnail,
-      seminarType: s.seminarType,
-    }));
+    return seminars.map(formatSeminar);
   } catch (error) {
     console.error('[SSR] Error fetching seminars:', error);
     return [];
   }
-});
+}
 
 /**
  * Fetch featured blog posts for SSR
- * Uses internal API route for consistent behavior
+ * Uses Prisma models with multi-tenant siteId filtering
  */
-export const getFeaturedBlogPosts = cache(async (limit = 3): Promise<BlogPostData[]> => {
+export async function getFeaturedBlogPosts(limit = 3): Promise<BlogPostData[]> {
+  noStore(); // Opt out of caching for fresh data
   try {
-    const baseUrl = getBaseUrl();
-    const response = await fetch(`${baseUrl}/api/blog/posts?limit=${limit}&featuredFirst=true`, {
-      cache: 'no-store',
+    const siteId = await getSiteId();
+
+    // Query published posts, ordered by featured first then by date
+    const posts = await prisma.blogPost.findMany({
+      where: {
+        siteId,
+        status: 'PUBLISHED',
+      },
+      include: {
+        tags: {
+          include: { tag: true },
+        },
+      },
+      orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }],
+      take: limit,
     });
 
-    if (!response.ok) {
-      console.error('[SSR] Blog API error:', response.status, response.statusText);
-      return [];
-    }
-
-    const data = await response.json();
-    return data.map((p: BlogPostData) => ({
-      slug: p.slug,
-      title: p.title,
-      description: p.description,
-      author: p.author,
-      category: p.category,
-      tags: p.tags || [],
-      image: p.image,
-      published: p.published,
-      featured: p.featured,
-      date: p.date,
-    }));
+    return posts.map(formatBlogPost);
   } catch (error) {
     console.error('[SSR] Error fetching blog posts:', error);
     return [];
   }
-});
+}
 
 /**
  * Fetch testimonials for SSR
- * Uses internal API route for consistent behavior
+ * Uses Prisma models with multi-tenant siteId filtering
  */
-export const getTestimonials = cache(async (limit = 10): Promise<TestimonialData[]> => {
+export async function getTestimonials(limit = 10): Promise<TestimonialData[]> {
+  noStore(); // Opt out of caching for fresh data
   try {
-    const baseUrl = getBaseUrl();
-    const response = await fetch(`${baseUrl}/api/testimonials?limit=${limit}`, {
-      cache: 'no-store',
+    const siteId = await getSiteId();
+
+    // Query approved testimonials
+    const testimonials = await prisma.testimonial.findMany({
+      where: {
+        siteId,
+        isApproved: true,
+      },
+      orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
+      take: limit,
     });
 
-    if (!response.ok) {
-      console.error('[SSR] Testimonials API error:', response.status, response.statusText);
-      return [];
-    }
-
-    const data = await response.json();
-    return data.map((t: TestimonialData) => ({
-      id: t.id,
-      quote: t.quote,
-      author: t.author,
-      role: t.role,
-    }));
+    return testimonials.map(formatTestimonial);
   } catch (error) {
     console.error('[SSR] Error fetching testimonials:', error);
     return [];
   }
-});
+}
+
+// ============================================
+// Format Helpers
+// ============================================
+
+/**
+ * Get numeric value from Decimal or number
+ */
+function getNumericValue(val: Decimal | number | null): number | undefined {
+  if (val === null) return undefined;
+  if (typeof val === 'number') return val;
+  if (val instanceof Decimal) return val.toNumber();
+  return undefined;
+}
+
+function formatSeminar(seminar: {
+  id: string;
+  title: string;
+  description: string;
+  speakers: unknown;
+  startAt: Date;
+  endAt: Date;
+  capacity: number;
+  price: Decimal | null;
+  deposit: Decimal | null;
+  tags: string[];
+  thumbnail: string | null;
+  seminarType: string | null;
+}): SeminarData {
+  return {
+    id: seminar.id,
+    title: seminar.title,
+    description: seminar.description,
+    speakers: (seminar.speakers as Array<{ firstName: string; lastName: string }>) || [],
+    startAt: seminar.startAt.toISOString(),
+    endAt: seminar.endAt.toISOString(),
+    capacity: seminar.capacity,
+    ...(seminar.price !== null && { price: getNumericValue(seminar.price) }),
+    ...(seminar.deposit !== null && { deposit: getNumericValue(seminar.deposit) }),
+    tags: seminar.tags || [],
+    ...(seminar.thumbnail && { thumbnail: seminar.thumbnail }),
+    ...(seminar.seminarType && { seminarType: seminar.seminarType }),
+  };
+}
+
+function formatBlogPost(post: {
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  coverImage: string | null;
+  status: string;
+  category: string | null;
+  featured: boolean | null;
+  authorName: string | null;
+  publishedAt: Date | null;
+  createdAt: Date;
+  tags: Array<{ tag: { name: string } }>;
+}): BlogPostData {
+  return {
+    slug: post.slug,
+    title: post.title,
+    description: post.excerpt || undefined,
+    author: post.authorName || 'PSYPNOS',
+    category: post.category || '',
+    tags: post.tags.map(t => t.tag.name),
+    image: post.coverImage || undefined,
+    published: post.status === 'PUBLISHED',
+    featured: post.featured || false,
+    date: post.publishedAt
+      ? post.publishedAt.toISOString().split('T')[0]!
+      : post.createdAt.toISOString().split('T')[0]!,
+  };
+}
+
+function formatTestimonial(testimonial: {
+  id: string;
+  clientName: string;
+  clientInitials: string | null;
+  content: string;
+  rating: number | null;
+  isApproved: boolean;
+  order: number;
+}): TestimonialData {
+  return {
+    id: testimonial.id,
+    quote: testimonial.content,
+    author: testimonial.clientName,
+    // Note: The multi-tenant schema doesn't have a 'role' field
+  };
+}
