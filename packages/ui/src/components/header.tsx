@@ -1,18 +1,20 @@
-"use client";
+'use client';
 
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
+import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 
-import { cn } from "../utils/cn";
+import { cn } from '../utils/cn';
+
+import { SkipLinks } from './skip-links';
 
 export type HeaderContext =
-  | "home"
-  | "blog-list"
-  | "blog-article"
-  | "appointment"
-  | "seminar"
-  | "privacy"
-  | "login";
+  | 'home'
+  | 'blog-list'
+  | 'blog-article'
+  | 'appointment'
+  | 'seminar'
+  | 'privacy'
+  | 'login';
 
 export interface HeaderProps {
   /** Context to determine navigation behavior */
@@ -53,9 +55,9 @@ export interface HeaderProps {
 }
 
 export function Header({
-  context = "home",
+  context = 'home',
   showBackButton = false,
-  siteName = "Site",
+  siteName = 'Site',
   practitionerName,
   practitionerImage,
   tagline,
@@ -65,212 +67,226 @@ export function Header({
   className,
   colors = {},
 }: HeaderProps) {
-  const {
-    primary = "gold",
-    secondary = "night",
-    background = "night",
-    text = "ivory",
-  } = colors;
+  const { primary = 'gold', background = 'night', text = 'ivory' } = colors;
 
   // Determine which button should be highlighted based on context
-  const isPrimaryAppointment = context === "seminar" || context === "blog-list" || context === "blog-article";
-  const isPrimarySeminar = context === "appointment" || context === "blog-list" || context === "blog-article";
-  const hideCtaButtons = context === "login";
+  const isPrimaryAppointment =
+    context === 'seminar' || context === 'blog-list' || context === 'blog-article';
+  const isPrimarySeminar =
+    context === 'appointment' || context === 'blog-list' || context === 'blog-article';
+  const hideCtaButtons = context === 'login';
 
   // Navigation text based on context
   const getNavText = (): { show: boolean; text?: string; href: string; icon?: boolean } => {
     switch (context) {
-      case "blog-article":
-        return { show: true, text: "Articles", href: "/blog", icon: true };
-      case "blog-list":
-        return { show: true, text: siteName, href: "/", icon: false };
-      case "appointment":
-      case "seminar":
-      case "privacy":
-        return { show: true, text: siteName, href: "/", icon: false };
+      case 'blog-article':
+        return { show: true, text: 'Articles', href: '/blog', icon: true };
+      case 'blog-list':
+        return { show: true, text: siteName, href: '/', icon: false };
+      case 'appointment':
+      case 'seminar':
+      case 'privacy':
+        return { show: true, text: siteName, href: '/', icon: false };
       default:
-        return { show: false, href: "/" };
+        return { show: false, href: '/' };
     }
   };
 
   const navInfo = getNavText();
-  const isHomePage = context === "home";
+  const isHomePage = context === 'home';
+
+  // Consistent focus styles for accessibility (WCAG 2.1 AA)
+  const focusClasses = 'focus-ring focus-visible:outline-none';
 
   return (
-    <header
-      className={cn(
-        `sticky top-0 z-40 bg-gradient-to-r from-${background} via-${background} to-${background}/95 backdrop-blur-md`,
-        isHomePage && `border-b border-${primary}/20`,
-        className
-      )}
-    >
-      <div className="mx-auto max-w-7xl px-6 py-2 sm:px-10 lg:px-16">
-        <div className="flex items-center justify-between gap-8">
-          {/* Left: Logo + Text */}
-          <Link
-            href="/"
-            className={cn(
-              "flex items-center gap-4 min-w-0 group rounded-lg",
-              isHomePage && `focus:outline-none focus:ring-2 focus:ring-${primary} focus:ring-offset-2 focus:ring-offset-${secondary}`
-            )}
-          >
-            {practitionerImage && (
-              <div>
-                <img
-                  src={practitionerImage}
-                  alt={practitionerName || "Practitioner"}
-                  className="h-24 w-24 fade-mask"
-                />
-                {practitionerName && (
-                  <h2 className={`text-sm text-${primary} font-medium`}>{practitionerName}</h2>
-                )}
-              </div>
-            )}
-            {tagline && (
-              <div className="hidden sm:block">
-                <h1 className={`text-4xl sm:text-4xl lg:text-2xl text-lg font-semibold text-${text} leading-tight`}>
-                  {tagline}
-                </h1>
-                {subtitle && (
-                  <p className={`text-xs text-${text}/70 mt-1`}>
-                    {subtitle}
-                  </p>
-                )}
-              </div>
-            )}
-          </Link>
+    <>
+      {/* Skip Links for keyboard navigation - WCAG 2.1 AA */}
+      <SkipLinks />
 
-          {/* Mobile menu toggle */}
-          <div className="sm:hidden">
-            {showBackButton && context === "blog-article" ? (
-              <Link
-                href="/blog"
-                className={cn(
-                  `inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-${text}/70 transition hover:bg-${primary}/10 hover:text-${primary}`,
-                  isHomePage && `focus:outline-none focus:ring-2 focus:ring-${primary} focus:ring-offset-2 focus:ring-offset-${secondary}`
-                )}
-                title="Retour aux articles"
-              >
-                <ArrowLeft className="h-4 w-4" />
-              </Link>
-            ) : (
-              <Link
-                href="/"
-                className={cn(
-                  `text-lg font-semibold text-${primary} transition hover:text-${primary}/80 rounded`,
-                  isHomePage && `focus:outline-none focus:ring-2 focus:ring-${primary} focus:ring-offset-2 focus:ring-offset-${secondary}`
-                )}
-                title="Retour à l'accueil"
-              >
-                {siteName}
-              </Link>
-            )}
-          </div>
-
-          {/* Right: Navigation + CTA */}
-          <div className="hidden sm:flex items-center gap-4 flex-shrink-0">
-            {/* Navigation */}
-            {navInfo.show && navInfo.text && (
-              <>
-                {navInfo.icon ? (
-                  <Link
-                    href={navInfo.href}
-                    className={cn(
-                      `inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-${text}/70 transition hover:bg-${primary}/10 hover:text-${primary}`,
-                      isHomePage && `focus:outline-none focus:ring-2 focus:ring-${primary} focus:ring-offset-2 focus:ring-offset-${secondary}`
-                    )}
-                    title={navInfo.text}
+      <header
+        className={cn(
+          `sticky top-0 z-40 bg-gradient-to-r from-${background} via-${background} to-${background}/95 backdrop-blur-md`,
+          isHomePage && `border-b border-${primary}/20`,
+          className
+        )}
+        role="banner"
+      >
+        <nav
+          id="main-navigation"
+          className="mx-auto max-w-7xl px-6 py-2 sm:px-10 lg:px-16"
+          aria-label="Navigation principale"
+        >
+          <div className="flex items-center justify-between gap-8">
+            {/* Left: Logo + Text */}
+            <Link
+              href="/"
+              className={cn('group flex min-w-0 items-center gap-4 rounded-lg', focusClasses)}
+              aria-label={`Retour à l'accueil - ${siteName}`}
+            >
+              {practitionerImage && (
+                <div>
+                  <img
+                    src={practitionerImage}
+                    alt={practitionerName || 'Practitioner'}
+                    className="fade-mask h-24 w-24"
+                  />
+                  {practitionerName && (
+                    <h2 className={`text-sm text-${primary} font-medium`}>{practitionerName}</h2>
+                  )}
+                </div>
+              )}
+              {tagline && (
+                <div className="hidden sm:block">
+                  <h1
+                    className={`text-4xl text-lg font-semibold sm:text-4xl lg:text-2xl text-${text} leading-tight`}
                   >
-                    <ArrowLeft className="h-4 w-4" />
-                    <span>{navInfo.text}</span>
-                  </Link>
-                ) : (
-                  <Link
-                    href={navInfo.href}
-                    className={cn(
-                      `text-sm font-semibold text-${text}/70 transition hover:text-${primary} rounded`,
-                      isHomePage && `focus:outline-none focus:ring-2 focus:ring-${primary} focus:ring-offset-2 focus:ring-offset-${secondary}`
-                    )}
-                    title={navInfo.text}
-                  >
-                    ← {navInfo.text}
-                  </Link>
-                )}
-              </>
-            )}
+                    {tagline}
+                  </h1>
+                  {subtitle && <p className={`text-xs text-${text}/70 mt-1`}>{subtitle}</p>}
+                </div>
+              )}
+            </Link>
 
-            {/* CTA Buttons */}
-            {!hideCtaButtons && primaryCta && secondaryCta && (
-              <div className={cn("flex items-center gap-2 pl-4", isHomePage && `border-l border-${primary}/20`)}>
+            {/* Mobile menu toggle */}
+            <div className="sm:hidden">
+              {showBackButton && context === 'blog-article' ? (
                 <Link
-                  href={primaryCta.href}
+                  href="/blog"
                   className={cn(
-                    `rounded-lg px-4 py-2 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-${primary} focus:ring-offset-2 focus:ring-offset-${secondary}`,
-                    isPrimaryAppointment
-                      ? `bg-${primary}/20 text-${primary} hover:bg-${primary}/30`
-                      : `bg-${primary}/10 text-${primary} hover:bg-${primary}/20`
+                    `inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-${text}/70 transition hover:bg-${primary}/10 hover:text-${primary}`,
+                    focusClasses
+                  )}
+                  title="Retour aux articles"
+                  aria-label="Retour aux articles"
+                >
+                  <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              ) : (
+                <Link
+                  href="/"
+                  className={cn(
+                    `text-lg font-semibold text-${primary} transition hover:text-${primary}/80 rounded`,
+                    focusClasses
+                  )}
+                  title="Retour à l'accueil"
+                  aria-label="Retour à l'accueil"
+                >
+                  {siteName}
+                </Link>
+              )}
+            </div>
+
+            {/* Right: Navigation + CTA */}
+            <div className="hidden flex-shrink-0 items-center gap-4 sm:flex">
+              {/* Navigation */}
+              {navInfo.show && navInfo.text && (
+                <>
+                  {navInfo.icon ? (
+                    <Link
+                      href={navInfo.href}
+                      className={cn(
+                        `inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-${text}/70 transition hover:bg-${primary}/10 hover:text-${primary}`,
+                        focusClasses
+                      )}
+                      title={navInfo.text}
+                      aria-label={`Retour à ${navInfo.text}`}
+                    >
+                      <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                      <span>{navInfo.text}</span>
+                    </Link>
+                  ) : (
+                    <Link
+                      href={navInfo.href}
+                      className={cn(
+                        `text-sm font-semibold text-${text}/70 transition hover:text-${primary} rounded`,
+                        focusClasses
+                      )}
+                      title={navInfo.text}
+                      aria-label={`Retour à ${navInfo.text}`}
+                    >
+                      <span aria-hidden="true">← </span>
+                      {navInfo.text}
+                    </Link>
+                  )}
+                </>
+              )}
+
+              {/* CTA Buttons */}
+              {!hideCtaButtons && primaryCta && secondaryCta && (
+                <div
+                  className={cn(
+                    'flex items-center gap-2 pl-4',
+                    isHomePage && `border-l border-${primary}/20`
                   )}
                 >
-                  {primaryCta.label}
-                </Link>
-                <Link
-                  href={secondaryCta.href}
-                  className={cn(
-                    `rounded-lg px-4 py-2 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-${primary} focus:ring-offset-2 focus:ring-offset-${secondary}`,
-                    isPrimarySeminar
-                      ? `bg-${primary}/20 text-${primary} hover:bg-${primary}/30`
-                      : `bg-${primary}/10 text-${primary} hover:bg-${primary}/20`
-                  )}
-                >
-                  {secondaryCta.label}
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Mobile subtitle */}
-        {tagline && (
-          <div className="sm:hidden mt-4 text-center">
-            <h1 className={`text-sm font-semibold text-${text} leading-tight`}>
-              {tagline}
-            </h1>
-            {subtitle && (
-              <p className={`text-[11px] text-${text}/70 mt-1`}>
-                {subtitle}
-              </p>
-            )}
-          </div>
-        )}
-
-        {/* Mobile CTA Buttons */}
-        {!hideCtaButtons && primaryCta && secondaryCta && (
-          <div className="sm:hidden flex gap-2 mt-4">
-            <Link
-              href={primaryCta.href}
-              className={cn(
-                `flex-1 rounded-lg px-3 py-2 text-xs font-medium text-center transition focus:outline-none focus:ring-2 focus:ring-${primary} focus:ring-offset-2 focus:ring-offset-${secondary}`,
-                isPrimaryAppointment
-                  ? `bg-${primary}/20 text-${primary} hover:bg-${primary}/30`
-                  : `bg-${primary}/10 text-${primary} hover:bg-${primary}/20`
+                  <Link
+                    href={primaryCta.href}
+                    className={cn(
+                      `rounded-lg px-4 py-2 text-sm font-medium transition`,
+                      focusClasses,
+                      isPrimaryAppointment
+                        ? `bg-${primary}/20 text-${primary} hover:bg-${primary}/30`
+                        : `bg-${primary}/10 text-${primary} hover:bg-${primary}/20`
+                    )}
+                  >
+                    {primaryCta.label}
+                  </Link>
+                  <Link
+                    href={secondaryCta.href}
+                    className={cn(
+                      `rounded-lg px-4 py-2 text-sm font-medium transition`,
+                      focusClasses,
+                      isPrimarySeminar
+                        ? `bg-${primary}/20 text-${primary} hover:bg-${primary}/30`
+                        : `bg-${primary}/10 text-${primary} hover:bg-${primary}/20`
+                    )}
+                  >
+                    {secondaryCta.label}
+                  </Link>
+                </div>
               )}
-            >
-              {primaryCta.mobileLabel || primaryCta.label}
-            </Link>
-            <Link
-              href={secondaryCta.href}
-              className={cn(
-                `flex-1 rounded-lg px-3 py-2 text-xs font-medium text-center transition focus:outline-none focus:ring-2 focus:ring-${primary} focus:ring-offset-2 focus:ring-offset-${secondary}`,
-                isPrimarySeminar
-                  ? `bg-${primary}/20 text-${primary} hover:bg-${primary}/30`
-                  : `bg-${primary}/10 text-${primary} hover:bg-${primary}/20`
-              )}
-            >
-              {secondaryCta.mobileLabel || secondaryCta.label}
-            </Link>
+            </div>
           </div>
-        )}
-      </div>
-    </header>
+
+          {/* Mobile subtitle */}
+          {tagline && (
+            <div className="mt-4 text-center sm:hidden">
+              <h1 className={`text-sm font-semibold text-${text} leading-tight`}>{tagline}</h1>
+              {subtitle && <p className={`text-[11px] text-${text}/70 mt-1`}>{subtitle}</p>}
+            </div>
+          )}
+
+          {/* Mobile CTA Buttons */}
+          {!hideCtaButtons && primaryCta && secondaryCta && (
+            <div className="mt-4 flex gap-2 sm:hidden">
+              <Link
+                href={primaryCta.href}
+                className={cn(
+                  `flex-1 rounded-lg px-3 py-2 text-center text-xs font-medium transition`,
+                  focusClasses,
+                  isPrimaryAppointment
+                    ? `bg-${primary}/20 text-${primary} hover:bg-${primary}/30`
+                    : `bg-${primary}/10 text-${primary} hover:bg-${primary}/20`
+                )}
+              >
+                {primaryCta.mobileLabel || primaryCta.label}
+              </Link>
+              <Link
+                href={secondaryCta.href}
+                className={cn(
+                  `flex-1 rounded-lg px-3 py-2 text-center text-xs font-medium transition`,
+                  focusClasses,
+                  isPrimarySeminar
+                    ? `bg-${primary}/20 text-${primary} hover:bg-${primary}/30`
+                    : `bg-${primary}/10 text-${primary} hover:bg-${primary}/20`
+                )}
+              >
+                {secondaryCta.mobileLabel || secondaryCta.label}
+              </Link>
+            </div>
+          )}
+        </nav>
+      </header>
+    </>
   );
 }
