@@ -160,5 +160,14 @@ export {
   type ThemeProviderProps,
 } from './contexts';
 
+// Chat Components
+export {
+  ChatWidget,
+  type ChatWidgetProps,
+  type ChatWidgetColors,
+  type ChatMessage,
+  type SuggestedAction,
+} from './components/chat';
+
 // Utils
 export { cn } from './utils/cn';

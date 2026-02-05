@@ -1,10 +1,10 @@
 {
-  "name": "Psypnos Analytics",
-  "short_name": "Analytics",
-  "description": "Tableau de bord analytics mobile pour Psypnos - Suivez vos statistiques en temps réel",
-  "start_url": "/admin/analytics/mobile",
+  "name": "Psypnos - Hypnose & Sophrologie",
+  "short_name": "Psypnos",
+  "description": "Cabinet d'hypnothérapie et sophrologie - Accompagnement personnalisé pour votre bien-être",
+  "start_url": "/",
   "display": "standalone",
-  "scope": "/admin/analytics/",
+  "scope": "/",
   "theme_color": "#1a1a2e",
   "background_color": "#1a1a2e",
   "orientation": "portrait-primary",
@@ -34,43 +34,35 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["business", "productivity", "analytics"],
+  "categories": ["health", "lifestyle", "medical"],
   "shortcuts": [
     {
-      "name": "Dashboard",
-      "short_name": "Dashboard",
-      "description": "Vue d'ensemble des statistiques",
-      "url": "/admin/analytics/mobile/dashboard",
-      "icons": [
-        {
-          "src": "/favicon.svg",
-          "sizes": "96x96"
-        }
-      ]
+      "name": "Services",
+      "short_name": "Services",
+      "description": "Découvrir les services proposés",
+      "url": "/services",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
     },
     {
-      "name": "Blog Stats",
+      "name": "Contact",
+      "short_name": "Contact",
+      "description": "Prendre rendez-vous",
+      "url": "/contact",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Blog",
       "short_name": "Blog",
-      "description": "Statistiques des articles de blog",
-      "url": "/admin/analytics/mobile/blog",
-      "icons": [
-        {
-          "src": "/favicon.svg",
-          "sizes": "96x96"
-        }
-      ]
+      "description": "Articles et conseils",
+      "url": "/blog",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
     },
     {
-      "name": "Alertes",
-      "short_name": "Alertes",
-      "description": "Anomalies et alertes",
-      "url": "/admin/analytics/mobile/alerts",
-      "icons": [
-        {
-          "src": "/favicon.svg",
-          "sizes": "96x96"
-        }
-      ]
+      "name": "Séminaires",
+      "short_name": "Séminaires",
+      "description": "Ateliers et événements",
+      "url": "/seminaires",
+      "icons": [{ "src": "/favicon.svg", "sizes": "96x96" }]
     }
   ],
   "screenshots": [
@@ -79,7 +71,9 @@
       "sizes": "540x720",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "Dashboard Analytics Mobile"
+      "label": "Accueil Psypnos"
     }
-  ]
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
 }

@@ -1141,3 +1141,246 @@ model MaintenanceMode {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 }
+
+// =============================================================================
+// PUSH NOTIFICATIONS
+// =============================================================================
+
+/// Push notification subscription
+model PushSubscription {
+  id           String   @id @default(cuid())
+  /// Web Push endpoint URL
+  endpoint     String   @unique
+  /// Auth key (encrypted)
+  auth         String
+  /// P256DH key (encrypted)
+  p256dh       String
+  /// User agent for tracking
+  userAgent    String?
+  /// Device type (mobile, desktop, tablet)
+  deviceType   String?
+  /// Subscription topics (e.g., "blog", "seminars", "offers")
+  topics       String[] @default(["all"])
+  /// Whether subscription is active
+  isActive     Boolean  @default(true)
+  /// Last successful push timestamp
+  lastPushAt   DateTime?
+  /// Number of failed push attempts
+  failCount    Int      @default(0)
+  /// Session ID for correlation
+  sessionId    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([topics])
+  @@index([sessionId])
+}
+
+/// Push notification log
+model PushNotificationLog {
+  id            String   @id @default(cuid())
+  /// Notification title
+  title         String
+  /// Notification body
+  body          String
+  /// Target URL when clicked
+  url           String?
+  /// Notification type (blog, seminar, offer, system)
+  type          String
+  /// Topic targeted
+  topic         String   @default("all")
+  /// Total subscriptions targeted
+  targetCount   Int      @default(0)
+  /// Successful deliveries
+  successCount  Int      @default(0)
+  /// Failed deliveries
+  failCount     Int      @default(0)
+  /// Who triggered the notification
+  triggeredBy   String?
+  /// Additional metadata
+  metadata      Json?
+  sentAt        DateTime @default(now())
+
+  @@index([type])
+  @@index([sentAt])
+}
+
+// =============================================================================
+// CHAT / CONVERSATIONS
+// =============================================================================
+
+/// Chat conversation for FAQ chatbot
+model ChatConversation {
+  id         String        @id @default(cuid())
+  /// Session identifier
+  sessionId  String
+  /// User's IP hash for analytics
+  ipHash     String?
+  /// Conversation status
+  status     String        @default("active") // active, ended, transferred
+  /// Number of messages
+  messageCount Int         @default(0)
+  /// Whether user was satisfied (feedback)
+  satisfied  Boolean?
+  /// Referrer page
+  referrer   String?
+  /// Device type
+  deviceType String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  endedAt    DateTime?
+
+  // Relations
+  messages   ChatMessage[]
+
+  @@index([sessionId])
+  @@index([createdAt])
+  @@index([status])
+}
+
+/// Chat message
+model ChatMessage {
+  id             String           @id @default(cuid())
+  conversationId String
+  conversation   ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  /// Message role (user, assistant, system)
+  role           String
+  /// Message content
+  content        String
+  /// Tokens used (for cost tracking)
+  tokensUsed     Int?
+  /// Processing time in ms
+  processingTime Int?
+  /// Suggested actions from this message
+  suggestedActions Json?
+  createdAt      DateTime         @default(now())
+
+  @@index([conversationId])
+  @@index([createdAt])
+}
+
+// =============================================================================
+// A/B TESTING / EXPERIMENTS
+// =============================================================================
+
+/// Experiment definition
+model Experiment {
+  id          String   @id @default(cuid())
+  /// Experiment name (e.g., "cta-color-test")
+  name        String   @unique
+  /// Description
+  description String?
+  /// Experiment status
+  status      String   @default("draft") // draft, running, paused, completed
+  /// Traffic percentage (0-100)
+  trafficPercent Int   @default(100)
+  /// Start date
+  startedAt   DateTime?
+  /// End date
+  endedAt     DateTime?
+  /// Winning variant ID
+  winningVariant String?
+  /// Statistical significance reached
+  significanceReached Boolean @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  variants    ExperimentVariant[]
+  assignments ExperimentAssignment[]
+
+  @@index([status])
+  @@index([name])
+}
+
+/// Experiment variant
+model ExperimentVariant {
+  id           String     @id @default(cuid())
+  experimentId String
+  experiment   Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  /// Variant name (e.g., "control", "variant-a")
+  name         String
+  /// Traffic weight (relative)
+  weight       Int        @default(1)
+  /// Variant configuration as JSON
+  config       Json
+  /// Whether this is the control variant
+  isControl    Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+
+  // Relations
+  assignments ExperimentAssignment[]
+  results     ExperimentResult[]
+
+  @@unique([experimentId, name])
+  @@index([experimentId])
+}
+
+/// User assignment to experiment variant
+model ExperimentAssignment {
+  id           String            @id @default(cuid())
+  experimentId String
+  experiment   Experiment        @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  variantId    String
+  variant      ExperimentVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  /// Session or user identifier
+  sessionId    String
+  /// IP hash for consistency
+  ipHash       String?
+  assignedAt   DateTime          @default(now())
+
+  @@unique([experimentId, sessionId])
+  @@index([experimentId])
+  @@index([variantId])
+  @@index([sessionId])
+}
+
+/// Experiment results/conversions
+model ExperimentResult {
+  id          String            @id @default(cuid())
+  variantId   String
+  variant     ExperimentVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  /// Session identifier
+  sessionId   String
+  /// Metric name (e.g., "click", "conversion", "time_on_page")
+  metric      String
+  /// Metric value
+  value       Float             @default(1)
+  /// Additional metadata
+  metadata    Json?
+  recordedAt  DateTime          @default(now())
+
+  @@index([variantId])
+  @@index([metric])
+  @@index([recordedAt])
+}
+
+// =============================================================================
+// SMART FORM PREFILL
+// =============================================================================
+
+/// User navigation history for smart prefill (with consent)
+model NavigationHistory {
+  id           String   @id @default(cuid())
+  /// Session identifier
+  sessionId    String
+  /// Pages visited as JSON array
+  pagesVisited Json
+  /// Time spent per page as JSON
+  timePerPage  Json?
+  /// Inferred interests based on navigation
+  interests    String[] @default([])
+  /// Suggested service
+  suggestedService String?
+  /// Consent given for tracking
+  consentGiven Boolean  @default(false)
+  /// Consent timestamp
+  consentAt    DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([sessionId])
+  @@index([sessionId])
+  @@index([suggestedService])
+}
