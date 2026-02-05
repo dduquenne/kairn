@@ -307,6 +307,309 @@ const posts = await prisma.blogPost.findMany({
 - Tree shaking des packages
 - Lazy loading des composants lourds
 
+## Créer un nouveau site
+
+### 1. Copier le template
+
+```bash
+# Copier la structure de base depuis psypnos
+cp -r apps/psypnos apps/nouveau-site
+
+# Ou utiliser le CLI
+kairn init nouveau-site
+```
+
+### 2. Configurer le site
+
+Créer `apps/nouveau-site/site.config.ts`:
+
+```typescript
+import { defineSiteConfig } from '@kairn/config';
+
+export const siteConfig = defineSiteConfig({
+  id: 'nouveau-site',
+  name: 'Nouveau Site',
+  domain: 'nouveau-site.fr',
+  locale: 'fr',
+
+  practitioner: {
+    name: 'Dr. Nom',
+    title: 'Thérapeute',
+    bio: '...',
+    // ...
+  },
+
+  contact: {
+    email: 'contact@nouveau-site.fr',
+    phone: '01 23 45 67 89',
+    // ...
+  },
+
+  services: [
+    { id: 'therapy', name: 'Thérapie', slug: 'therapie', /* ... */ },
+  ],
+
+  features: {
+    blog: true,
+    seminars: false,
+    analytics: true,
+    // ...
+  },
+
+  theme: {
+    colors: {
+      primary: '#d4af37',
+      secondary: '#1a1a2e',
+      // ...
+    },
+    fonts: {
+      display: 'Cormorant Garamond',
+      body: 'Inter',
+    },
+  },
+});
+```
+
+### 3. Personnaliser les composants
+
+Créer des wrappers pour les composants partagés:
+
+```typescript
+// apps/nouveau-site/components/FloatingContactButtonWrapper.tsx
+import { FloatingContactButton } from '@kairn/ui';
+import { useCSRF } from '../hooks/useCSRF';
+import { useToast } from '../lib/toast-context';
+
+export function SiteFloatingContactButton() {
+  const csrf = useCSRF();
+  const { addToast } = useToast();
+
+  return (
+    <FloatingContactButton
+      csrf={csrf}
+      toast={{ addToast }}
+      colors={{
+        primary: 'bg-primary',
+        // ...
+      }}
+      // ...
+    />
+  );
+}
+```
+
+### 4. Configurer les couleurs de catégories (blog)
+
+```typescript
+// apps/nouveau-site/lib/categoryColors.ts
+import { defineCategoryColors, COLOR_PRESETS } from '@kairn/config';
+
+export const CATEGORY_COLORS = defineCategoryColors({
+  'Catégorie A': COLOR_PRESETS.blue,
+  'Catégorie B': COLOR_PRESETS.green,
+  // ...
+});
+```
+
+### 5. Configurer package.json
+
+```json
+{
+  "name": "@kairn/nouveau-site",
+  "dependencies": {
+    "@kairn/ui": "workspace:*",
+    "@kairn/config": "workspace:*",
+    "@kairn/analytics": "workspace:*",
+    "@kairn/db": "workspace:*"
+  }
+}
+```
+
+### 6. Ajouter au turbo.json
+
+Le site sera automatiquement inclus s'il est dans `apps/`.
+
+## Conventions de code
+
+### Structure des fichiers
+
+```
+apps/site/
+├── app/                    # Next.js App Router
+│   ├── (public)/          # Routes publiques
+│   ├── admin/             # Routes admin
+│   ├── api/               # API routes
+│   ├── layout.tsx
+│   └── page.tsx
+├── components/            # Composants spécifiques au site
+│   └── XxxWrapper.tsx     # Wrappers pour composants partagés
+├── hooks/                 # Custom hooks
+├── lib/                   # Utilitaires et configuration
+│   ├── tracking/          # Re-exports @kairn/analytics
+│   ├── theme-context.tsx  # Re-exports @kairn/ui ThemeProvider
+│   └── categoryColors.ts  # Utilise @kairn/config
+├── public/                # Assets statiques
+└── site.config.ts         # Configuration du site
+```
+
+### Nommage
+
+| Élément | Convention | Exemple |
+|---------|------------|---------|
+| Composants | PascalCase | `FloatingContactButton.tsx` |
+| Hooks | camelCase avec `use` | `useAnalytics.ts` |
+| Utilitaires | camelCase | `categoryColors.ts` |
+| Types | PascalCase avec suffixe | `FloatingContactButtonProps` |
+| Constantes | SCREAMING_SNAKE_CASE | `CATEGORY_COLORS` |
+| Packages | kebab-case | `@kairn/category-colors` |
+
+### Imports
+
+Ordre des imports:
+1. Modules externes (React, Next.js)
+2. Packages @kairn
+3. Imports relatifs (composants, hooks, lib)
+4. Types
+
+```typescript
+// 1. External
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+
+// 2. @kairn packages
+import { FloatingContactButton } from '@kairn/ui';
+import { defineCategoryColors } from '@kairn/config';
+
+// 3. Relative
+import { useCSRF } from '../hooks/useCSRF';
+import { siteConfig } from '../site.config';
+
+// 4. Types
+import type { FC } from 'react';
+```
+
+### Composants partagés vs spécifiques
+
+**Partagés** (`packages/ui/`):
+- Configurables via props
+- Pas de dépendances vers les apps
+- Utilisent l'injection de dépendances pour les hooks
+
+**Spécifiques** (`apps/site/components/`):
+- Wrappers qui configurent les composants partagés
+- Peuvent utiliser les hooks locaux
+- Import depuis `@kairn/ui`
+
+### Gestion des types
+
+```typescript
+// Dans packages/ui/src/components/xxx/types.ts
+export interface XxxProps {
+  // Props configurables
+}
+
+// Dans packages/ui/src/index.ts
+export { Xxx, type XxxProps } from './components/xxx';
+
+// Dans apps/site/
+import { Xxx, type XxxProps } from '@kairn/ui';
+```
+
+## Flow de données détaillé
+
+### Page publique (Blog)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ Browser Request: GET /blog/article-slug                          │
+└─────────────────────┬───────────────────────────────────────────┘
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ Next.js App Router                                               │
+│ - app/blog/[slug]/page.tsx                                       │
+│ - generateStaticParams() for ISR                                 │
+└─────────────────────┬───────────────────────────────────────────┘
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ @kairn/db (Prisma)                                               │
+│ - prisma.blogPost.findUnique({ where: { slug, siteId } })       │
+└─────────────────────┬───────────────────────────────────────────┘
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ @kairn/ui Components                                             │
+│ - BlogCard, ReadingProgress, RelatedPosts                        │
+│ - CategoryColors from @kairn/config                              │
+└─────────────────────┬───────────────────────────────────────────┘
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ @kairn/analytics (client-side)                                   │
+│ - Page view tracking                                             │
+│ - Scroll depth tracking                                          │
+│ - Section time tracking                                          │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Formulaire de contact (FAB)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ User clicks FloatingContactButton                                │
+└─────────────────────┬───────────────────────────────────────────┘
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ @kairn/ui FloatingContactButton                                  │
+│ - Opens modal                                                    │
+│ - Validates form with onBlur                                     │
+│ - Tracks fab_click conversion                                    │
+└─────────────────────┬───────────────────────────────────────────┘
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ Form Submit → POST /api/quick-contact                            │
+│ - CSRF token validation                                          │
+│ - Honeypot check                                                 │
+└─────────────────────┬───────────────────────────────────────────┘
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ @kairn/api handlers                                              │
+│ - withCsrf middleware                                            │
+│ - withValidation (Zod)                                           │
+│ - withRateLimit                                                  │
+└─────────────────────┬───────────────────────────────────────────┘
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ @kairn/db + Email Service                                        │
+│ - Save to Contact table                                          │
+│ - Send email via Resend                                          │
+└─────────────────────┬───────────────────────────────────────────┘
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ Response + Analytics                                             │
+│ - Show success toast                                             │
+│ - Track quick_contact_form conversion                            │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Theme switching
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ User toggles theme                                               │
+└─────────────────────┬───────────────────────────────────────────┘
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ @kairn/ui ThemeProvider                                          │
+│ - Updates state                                                  │
+│ - Persists to localStorage                                       │
+│ - Applies class to document                                      │
+└─────────────────────┬───────────────────────────────────────────┘
+                      ▼
+┌─────────────────────────────────────────────────────────────────┐
+│ Tailwind CSS                                                     │
+│ - .dark/.light class triggers styles                             │
+│ - color-scheme property for native elements                      │
+└─────────────────────────────────────────────────────────────────┘
+```
+
 ## Déploiement
 
 ### Développement
@@ -343,3 +646,28 @@ SUPABASE_ANON_KEY=...
 ANTHROPIC_API_KEY=...
 OPENAI_API_KEY=...
 ```
+
+## Migration vers les packages partagés
+
+Lors de l'ajout de fonctionnalités à un nouveau site, vérifier:
+
+1. **Le composant existe-t-il dans @kairn/ui?**
+   - Si oui: créer un wrapper avec la config spécifique
+   - Si non: évaluer si le composant doit être mutualisé
+
+2. **Le type existe-t-il dans @kairn/config?**
+   - Si oui: importer et étendre si nécessaire
+   - Si non: créer un schéma Zod réutilisable
+
+3. **La logique existe-t-elle dans un package?**
+   - Si oui: re-exporter depuis le package
+   - Si non: évaluer la mutualisation
+
+### Checklist de migration
+
+- [ ] Identifier les doublons de code entre sites
+- [ ] Extraire les composants configurables vers @kairn/ui
+- [ ] Créer les types/schémas dans @kairn/config
+- [ ] Mettre à jour les imports dans les apps
+- [ ] Supprimer le code dupliqué
+- [ ] Tester sur tous les sites impactés
