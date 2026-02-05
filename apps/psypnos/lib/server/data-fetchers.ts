@@ -69,11 +69,15 @@ export interface TestimonialData {
  * Uses Prisma models with multi-tenant siteId filtering
  */
 export const getUpcomingSeminars = cache(async (limit = 3): Promise<SeminarData[]> => {
+  console.log('[SSR] getUpcomingSeminars called with limit:', limit);
   try {
+    console.log('[SSR] Getting siteId...');
     const siteId = await getSiteId();
+    console.log('[SSR] Got siteId:', siteId);
     const now = new Date();
 
     // Query upcoming seminars
+    console.log('[SSR] Querying seminars...');
     let seminars = await prisma.seminar.findMany({
       where: {
         siteId,
@@ -82,19 +86,27 @@ export const getUpcomingSeminars = cache(async (limit = 3): Promise<SeminarData[
       orderBy: { startAt: 'asc' },
       take: limit,
     });
+    console.log('[SSR] Found', seminars.length, 'upcoming seminars');
 
     // If no upcoming seminars, get most recent ones
     if (seminars.length === 0) {
+      console.log('[SSR] No upcoming seminars, fetching recent...');
       seminars = await prisma.seminar.findMany({
         where: { siteId },
         orderBy: { startAt: 'desc' },
         take: limit,
       });
+      console.log('[SSR] Found', seminars.length, 'recent seminars');
     }
 
-    return seminars.map(formatSeminar);
+    const result = seminars.map(formatSeminar);
+    console.log('[SSR] Returning', result.length, 'formatted seminars');
+    return result;
   } catch (error) {
-    console.error('Error fetching seminars:', error);
+    console.error('[SSR] ERROR in getUpcomingSeminars:', error);
+    console.error('[SSR] Error name:', error instanceof Error ? error.name : 'unknown');
+    console.error('[SSR] Error message:', error instanceof Error ? error.message : String(error));
+    console.error('[SSR] Error stack:', error instanceof Error ? error.stack : 'no stack');
     return [];
   }
 });
