@@ -1,45 +1,64 @@
+/* eslint-disable no-console */
 /**
- * Seminars Store - PostgreSQL via Prisma
+ * Seminars Store - PostgreSQL via Raw SQL
  *
- * This store manages seminars using the Kairn Prisma schema with multi-tenancy support.
+ * IMPORTANT: The psypnos database uses a single-tenant schema with simple table names:
+ * - seminars (not Seminar with siteId)
+ *
+ * We use raw SQL queries to match the actual database structure.
  */
 
-import { Prisma } from "@prisma/client";
-import { Decimal } from "@prisma/client/runtime/library";
-import { z } from "zod";
+import { z } from 'zod';
 
-import prisma from "@/lib/db/prisma";
+import prisma from '@/lib/db/prisma';
 
-export { SEMINAR_TYPES, type SeminarType } from "./types";
+export { SEMINAR_TYPES, type SeminarType } from './types';
 
-// Site slug for Psypnos (used for multi-tenancy)
-const SITE_SLUG = "psypnos";
+// ============================================
+// Raw Database Types (matching actual psypnos schema)
+// ============================================
+
+interface RawSeminar {
+  id: string;
+  title: string;
+  description: string;
+  speakers: unknown; // JSONB
+  start_at: Date;
+  end_at: Date;
+  capacity: number;
+  price: { toNumber?: () => number } | number | null;
+  deposit: { toNumber?: () => number } | number | null;
+  display_order: string | null;
+  tags: string[] | null;
+  thumbnail: string | null;
+  seminar_type: string | null;
+  created_at: Date;
+  updated_at: Date;
+}
 
 // ============================================
 // Validation Schemas
 // ============================================
 
 const speakerSchema = z.object({
-  firstName: z.string().trim().min(1, "Le prénom est obligatoire"),
-  lastName: z.string().trim().min(1, "Le nom est obligatoire"),
+  firstName: z.string().trim().min(1, 'Le prénom est obligatoire'),
+  lastName: z.string().trim().min(1, 'Le nom est obligatoire'),
 });
 
 export const seminarPayloadSchema = z
   .object({
-    title: z.string().trim().min(1, "Le titre est obligatoire"),
-    description: z.string().trim().min(1, "La description est obligatoire"),
-    speakers: z
-      .array(speakerSchema)
-      .length(2, "Deux intervenants sont requis"),
-    startAt: z.string().min(1, "La date de début est obligatoire"),
-    endAt: z.string().min(1, "La date de fin est obligatoire"),
+    title: z.string().trim().min(1, 'Le titre est obligatoire'),
+    description: z.string().trim().min(1, 'La description est obligatoire'),
+    speakers: z.array(speakerSchema).length(2, 'Deux intervenants sont requis'),
+    startAt: z.string().min(1, 'La date de début est obligatoire'),
+    endAt: z.string().min(1, 'La date de fin est obligatoire'),
     capacity: z
-      .number({ invalid_type_error: "La capacité doit être un nombre" })
-      .int("La capacité doit être un nombre entier")
-      .min(1, "Au moins 1 place"),
+      .number({ invalid_type_error: 'La capacité doit être un nombre' })
+      .int('La capacité doit être un nombre entier')
+      .min(1, 'Au moins 1 place'),
     price: z
-      .number({ invalid_type_error: "Le prix doit être un nombre" })
-      .positive("Le prix doit être positif")
+      .number({ invalid_type_error: 'Le prix doit être un nombre' })
+      .positive('Le prix doit être positif')
       .optional(),
     deposit: z
       .number({ invalid_type_error: "L'acompte doit être un nombre" })
@@ -47,25 +66,19 @@ export const seminarPayloadSchema = z
       .optional(),
     order: z.string().trim().optional(),
     tags: z
-      .array(z.string().trim().min(1, "Chaque mot-clé doit contenir au moins un caractère"))
-      .min(1, "Au moins un mot-clé"),
+      .array(z.string().trim().min(1, 'Chaque mot-clé doit contenir au moins un caractère'))
+      .min(1, 'Au moins un mot-clé'),
     thumbnail: z.string().trim().optional(),
     seminarType: z.string().trim().optional(),
   })
-  .refine(
-    (data) => new Date(data.startAt).getTime() <= new Date(data.endAt).getTime(),
-    {
-      message: "La date de fin doit être postérieure à la date de début",
-      path: ["endAt"],
-    },
-  )
-  .refine(
-    (data) => new Set(data.tags.map((tag) => tag.toLowerCase())).size === data.tags.length,
-    {
-      message: "Chaque mot-clé doit être unique",
-      path: ["tags"],
-    },
-  );
+  .refine(data => new Date(data.startAt).getTime() <= new Date(data.endAt).getTime(), {
+    message: 'La date de fin doit être postérieure à la date de début',
+    path: ['endAt'],
+  })
+  .refine(data => new Set(data.tags.map(tag => tag.toLowerCase())).size === data.tags.length, {
+    message: 'Chaque mot-clé doit être unique',
+    path: ['tags'],
+  });
 
 export type SeminarAttributes = z.infer<typeof seminarPayloadSchema>;
 export type SeminarPayload = SeminarAttributes;
@@ -93,110 +106,111 @@ export interface SeminarOutput {
 }
 
 // ============================================
-// Site Helper
-// ============================================
-
-/**
- * Get or create the Psypnos site for multi-tenancy
- */
-async function getSiteId(): Promise<string> {
-  let site = await prisma.site.findUnique({
-    where: { slug: SITE_SLUG },
-    select: { id: true },
-  });
-
-  if (!site) {
-    // Create the site if it doesn't exist
-    site = await prisma.site.create({
-      data: {
-        slug: SITE_SLUG,
-        name: "Psypnos",
-        domain: "psypnos.fr",
-        isActive: true,
-      },
-      select: { id: true },
-    });
-  }
-
-  return site.id;
-}
-
-// ============================================
-// Database Operations
+// Database Operations (using raw SQL for single-tenant psypnos schema)
 // ============================================
 
 /**
  * Get all seminars from database
  */
 export async function getAllSeminars(): Promise<SeminarOutput[]> {
-  const siteId = await getSiteId();
+  try {
+    const seminars = await prisma.$queryRaw<RawSeminar[]>`
+      SELECT id, title, description, speakers, start_at, end_at, capacity, price, deposit, display_order, tags, thumbnail, seminar_type, created_at, updated_at
+      FROM seminars
+      ORDER BY start_at ASC
+    `;
 
-  const seminars = await prisma.seminar.findMany({
-    where: { siteId },
-    orderBy: { startAt: "asc" },
-  });
-
-  return seminars.map(formatSeminarOutput);
+    return seminars.map(formatSeminarOutput);
+  } catch (error) {
+    console.error('Error fetching seminars:', error);
+    return [];
+  }
 }
 
 /**
  * Get upcoming seminars (startAt >= now)
  */
 export async function getUpcomingSeminars(limit?: number): Promise<SeminarOutput[]> {
-  const siteId = await getSiteId();
-  const now = new Date();
+  try {
+    const now = new Date();
 
-  const seminars = await prisma.seminar.findMany({
-    where: {
-      siteId,
-      startAt: { gte: now },
-    },
-    orderBy: { startAt: "asc" },
-    take: limit,
-  });
+    let seminars: RawSeminar[];
+    if (limit) {
+      seminars = await prisma.$queryRaw<RawSeminar[]>`
+        SELECT id, title, description, speakers, start_at, end_at, capacity, price, deposit, display_order, tags, thumbnail, seminar_type, created_at, updated_at
+        FROM seminars
+        WHERE start_at >= ${now}
+        ORDER BY start_at ASC
+        LIMIT ${limit}
+      `;
+    } else {
+      seminars = await prisma.$queryRaw<RawSeminar[]>`
+        SELECT id, title, description, speakers, start_at, end_at, capacity, price, deposit, display_order, tags, thumbnail, seminar_type, created_at, updated_at
+        FROM seminars
+        WHERE start_at >= ${now}
+        ORDER BY start_at ASC
+      `;
+    }
 
-  return seminars.map(formatSeminarOutput);
+    return seminars.map(formatSeminarOutput);
+  } catch (error) {
+    console.error('Error fetching upcoming seminars:', error);
+    return [];
+  }
 }
 
 /**
  * Get seminar by ID
  */
 export async function getSeminarById(id: string): Promise<SeminarOutput | null> {
-  const siteId = await getSiteId();
+  try {
+    const seminars = await prisma.$queryRaw<RawSeminar[]>`
+      SELECT id, title, description, speakers, start_at, end_at, capacity, price, deposit, display_order, tags, thumbnail, seminar_type, created_at, updated_at
+      FROM seminars
+      WHERE id = ${id}
+    `;
 
-  const seminar = await prisma.seminar.findFirst({
-    where: { id, siteId },
-  });
-
-  return seminar ? formatSeminarOutput(seminar) : null;
+    return seminars.length > 0 ? formatSeminarOutput(seminars[0]!) : null;
+  } catch (error) {
+    console.error('Error fetching seminar by ID:', error);
+    return null;
+  }
 }
 
 /**
  * Create a new seminar
  */
 export async function createSeminar(data: SeminarPayload): Promise<SeminarOutput> {
-  const siteId = await getSiteId();
   const normalized = normalizeSeminarInput(data);
+  const now = new Date();
 
-  const seminar = await prisma.seminar.create({
-    data: {
-      siteId,
-      title: normalized.title,
-      description: normalized.description,
-      speakers: normalized.speakers,
-      startAt: new Date(normalized.startAt),
-      endAt: new Date(normalized.endAt),
-      capacity: normalized.capacity,
-      price: normalized.price ? new Decimal(normalized.price) : null,
-      deposit: normalized.deposit ? new Decimal(normalized.deposit) : null,
-      displayOrder: normalized.order || null,
-      tags: normalized.tags,
-      thumbnail: normalized.thumbnail || null,
-      seminarType: normalized.seminarType || null,
-    },
-  });
+  try {
+    const result = await prisma.$queryRaw<RawSeminar[]>`
+      INSERT INTO seminars (title, description, speakers, start_at, end_at, capacity, price, deposit, display_order, tags, thumbnail, seminar_type, created_at, updated_at)
+      VALUES (
+        ${normalized.title},
+        ${normalized.description},
+        ${JSON.stringify(normalized.speakers)}::jsonb,
+        ${new Date(normalized.startAt)},
+        ${new Date(normalized.endAt)},
+        ${normalized.capacity},
+        ${normalized.price ?? null},
+        ${normalized.deposit ?? null},
+        ${normalized.order ?? null},
+        ${normalized.tags}::text[],
+        ${normalized.thumbnail ?? null},
+        ${normalized.seminarType ?? null},
+        ${now},
+        ${now}
+      )
+      RETURNING id, title, description, speakers, start_at, end_at, capacity, price, deposit, display_order, tags, thumbnail, seminar_type, created_at, updated_at
+    `;
 
-  return formatSeminarOutput(seminar);
+    return formatSeminarOutput(result[0]!);
+  } catch (error) {
+    console.error('Error creating seminar:', error);
+    throw error;
+  }
 }
 
 /**
@@ -206,59 +220,56 @@ export async function updateSeminar(
   id: string,
   data: SeminarPayload
 ): Promise<SeminarOutput | null> {
-  const siteId = await getSiteId();
   const normalized = normalizeSeminarInput(data);
+  const now = new Date();
 
-  // First check if seminar exists for this site
-  const existing = await prisma.seminar.findFirst({
-    where: { id, siteId },
-  });
+  try {
+    // First check if seminar exists
+    const existing = await getSeminarById(id);
+    if (!existing) {
+      return null;
+    }
 
-  if (!existing) {
-    return null;
+    const result = await prisma.$queryRaw<RawSeminar[]>`
+      UPDATE seminars
+      SET
+        title = ${normalized.title},
+        description = ${normalized.description},
+        speakers = ${JSON.stringify(normalized.speakers)}::jsonb,
+        start_at = ${new Date(normalized.startAt)},
+        end_at = ${new Date(normalized.endAt)},
+        capacity = ${normalized.capacity},
+        price = ${normalized.price ?? null},
+        deposit = ${normalized.deposit ?? null},
+        display_order = ${normalized.order ?? null},
+        tags = ${normalized.tags}::text[],
+        thumbnail = ${normalized.thumbnail ?? null},
+        seminar_type = ${normalized.seminarType ?? null},
+        updated_at = ${now}
+      WHERE id = ${id}
+      RETURNING id, title, description, speakers, start_at, end_at, capacity, price, deposit, display_order, tags, thumbnail, seminar_type, created_at, updated_at
+    `;
+
+    return formatSeminarOutput(result[0]!);
+  } catch (error) {
+    console.error('Error updating seminar:', error);
+    throw error;
   }
-
-  const seminar = await prisma.seminar.update({
-    where: { id },
-    data: {
-      title: normalized.title,
-      description: normalized.description,
-      speakers: normalized.speakers,
-      startAt: new Date(normalized.startAt),
-      endAt: new Date(normalized.endAt),
-      capacity: normalized.capacity,
-      price: normalized.price ? new Decimal(normalized.price) : null,
-      deposit: normalized.deposit ? new Decimal(normalized.deposit) : null,
-      displayOrder: normalized.order || null,
-      tags: normalized.tags,
-      thumbnail: normalized.thumbnail || null,
-      seminarType: normalized.seminarType || null,
-    },
-  });
-
-  return formatSeminarOutput(seminar);
 }
 
 /**
  * Delete a seminar
  */
 export async function deleteSeminar(id: string): Promise<boolean> {
-  const siteId = await getSiteId();
-
-  // First check if seminar exists for this site
-  const existing = await prisma.seminar.findFirst({
-    where: { id, siteId },
-  });
-
-  if (!existing) {
+  try {
+    const result = await prisma.$queryRaw<Array<{ id: string }>>`
+      DELETE FROM seminars WHERE id = ${id} RETURNING id
+    `;
+    return result.length > 0;
+  } catch (error) {
+    console.error('Error deleting seminar:', error);
     return false;
   }
-
-  await prisma.seminar.delete({
-    where: { id },
-  });
-
-  return true;
 }
 
 // ============================================
@@ -272,7 +283,7 @@ export function normalizeSeminarInput(data: SeminarPayload): SeminarAttributes {
   return {
     title: data.title.trim(),
     description: data.description.trim(),
-    speakers: data.speakers.map((speaker) => ({
+    speakers: data.speakers.map(speaker => ({
       firstName: speaker.firstName.trim(),
       lastName: speaker.lastName.trim(),
     })),
@@ -304,12 +315,10 @@ function normalizeTags(tags: string[]): string[] {
 function toIsoString(value: string): string {
   // Handle datetime-local format (YYYY-MM-DDTHH:mm) as local time, not UTC
   const datetimeLocalMatch =
-    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?(?:\.(\d{3}))?$/.exec(
-      value
-    );
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?(?:\.(\d{3}))?$/.exec(value);
 
   if (datetimeLocalMatch) {
-    const [, year, month, day, hours, minutes, seconds = "0", milliseconds = "0"] =
+    const [, year, month, day, hours, minutes, seconds = '0', milliseconds = '0'] =
       datetimeLocalMatch;
     const date = new Date(
       parseInt(year!, 10),
@@ -332,40 +341,34 @@ function toIsoString(value: string): string {
 }
 
 /**
+ * Get numeric value from Decimal or number
+ */
+function getNumericValue(val: { toNumber?: () => number } | number | null): number | undefined {
+  if (val === null) return undefined;
+  if (typeof val === 'number') return val;
+  if (typeof val === 'object' && val.toNumber) return val.toNumber();
+  return undefined;
+}
+
+/**
  * Format database record to API output
  */
-function formatSeminarOutput(seminar: {
-  id: string;
-  title: string;
-  description: string;
-  speakers: unknown;
-  startAt: Date;
-  endAt: Date;
-  capacity: number;
-  price: Decimal | null;
-  deposit: Decimal | null;
-  displayOrder: string | null;
-  tags: string[];
-  thumbnail: string | null;
-  seminarType: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}): SeminarOutput {
+function formatSeminarOutput(seminar: RawSeminar): SeminarOutput {
   return {
     id: seminar.id,
     title: seminar.title,
     description: seminar.description,
     speakers: seminar.speakers as Array<{ firstName: string; lastName: string }>,
-    startAt: seminar.startAt.toISOString(),
-    endAt: seminar.endAt.toISOString(),
+    startAt: seminar.start_at.toISOString(),
+    endAt: seminar.end_at.toISOString(),
     capacity: seminar.capacity,
-    ...(seminar.price && { price: seminar.price.toNumber() }),
-    ...(seminar.deposit && { deposit: seminar.deposit.toNumber() }),
-    ...(seminar.displayOrder && { order: seminar.displayOrder }),
-    tags: seminar.tags,
+    ...(seminar.price !== null && { price: getNumericValue(seminar.price) }),
+    ...(seminar.deposit !== null && { deposit: getNumericValue(seminar.deposit) }),
+    ...(seminar.display_order && { order: seminar.display_order }),
+    tags: seminar.tags || [],
     ...(seminar.thumbnail && { thumbnail: seminar.thumbnail }),
-    ...(seminar.seminarType && { seminarType: seminar.seminarType }),
-    createdAt: seminar.createdAt.toISOString(),
-    updatedAt: seminar.updatedAt.toISOString(),
+    ...(seminar.seminar_type && { seminarType: seminar.seminar_type }),
+    createdAt: seminar.created_at.toISOString(),
+    updatedAt: seminar.updated_at.toISOString(),
   };
 }

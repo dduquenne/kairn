@@ -1,48 +1,52 @@
+/* eslint-disable no-console */
 /**
- * Testimonials Store - PostgreSQL via Prisma
+ * Testimonials Store - PostgreSQL via Raw SQL
  *
- * This store manages testimonials using the Kairn Prisma schema with multi-tenancy support.
+ * IMPORTANT: The psypnos database uses a single-tenant schema with simple table names:
+ * - testimonials (not Testimonial with siteId)
  *
- * Note: The API uses `quote` and `author` fields for backwards compatibility,
- * but the database schema uses `content` and `clientName`.
+ * The psypnos testimonials table has: id, quote, author, role, created_at, updated_at
+ * (NOT clientName, clientInitials, content, isApproved, order, rating)
+ *
+ * We use raw SQL queries to match the actual database structure.
  */
 
-import { z } from "zod";
+import { z } from 'zod';
 
-import prisma from "@/lib/db/prisma";
+import prisma from '@/lib/db/prisma';
 
-// Site slug for Psypnos (used for multi-tenancy)
-const SITE_SLUG = "psypnos";
+// ============================================
+// Raw Database Types (matching actual psypnos schema)
+// ============================================
+
+interface RawTestimonial {
+  id: string;
+  quote: string;
+  author: string;
+  role: string | null;
+  created_at: Date;
+  updated_at: Date;
+}
 
 // ============================================
 // Validation Schemas
 // ============================================
 
-const optionalRoleSchema = z.preprocess(
-  (value) => {
-    if (typeof value !== "string") {
-      return undefined;
-    }
-    const trimmed = value.trim();
-    return trimmed.length === 0 ? undefined : trimmed;
-  },
-  z
-    .string()
-    .max(120, "La fonction doit contenir au maximum 120 caractères")
-    .optional()
-);
+const optionalRoleSchema = z.preprocess(value => {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  return trimmed.length === 0 ? undefined : trimmed;
+}, z.string().max(120, 'La fonction doit contenir au maximum 120 caractères').optional());
 
 export const testimonialPayloadSchema = z.object({
   quote: z
     .string()
     .trim()
-    .min(1, "Le témoignage est obligatoire")
-    .max(800, "Le témoignage est trop long"),
-  author: z
-    .string()
-    .trim()
-    .min(1, "Le nom est obligatoire")
-    .max(120, "Le nom est trop long"),
+    .min(1, 'Le témoignage est obligatoire')
+    .max(800, 'Le témoignage est trop long'),
+  author: z.string().trim().min(1, 'Le nom est obligatoire').max(120, 'Le nom est trop long'),
   role: optionalRoleSchema,
 });
 
@@ -63,118 +67,88 @@ export interface TestimonialOutput {
 }
 
 // ============================================
-// Site Helper
+// Database Operations (using raw SQL for single-tenant psypnos schema)
 // ============================================
 
 /**
- * Get or create the Psypnos site for multi-tenancy
+ * Get all testimonials from database
+ * Note: psypnos testimonials table doesn't have isApproved or order columns
  */
-async function getSiteId(): Promise<string> {
-  let site = await prisma.site.findUnique({
-    where: { slug: SITE_SLUG },
-    select: { id: true },
-  });
+export async function getAllTestimonials(limit?: number): Promise<TestimonialOutput[]> {
+  try {
+    let testimonials: RawTestimonial[];
+    if (limit) {
+      testimonials = await prisma.$queryRaw<RawTestimonial[]>`
+        SELECT id, quote, author, role, created_at, updated_at
+        FROM testimonials
+        ORDER BY created_at DESC
+        LIMIT ${limit}
+      `;
+    } else {
+      testimonials = await prisma.$queryRaw<RawTestimonial[]>`
+        SELECT id, quote, author, role, created_at, updated_at
+        FROM testimonials
+        ORDER BY created_at DESC
+      `;
+    }
 
-  if (!site) {
-    // Create the site if it doesn't exist
-    site = await prisma.site.create({
-      data: {
-        slug: SITE_SLUG,
-        name: "Psypnos",
-        domain: "psypnos.fr",
-        isActive: true,
-      },
-      select: { id: true },
-    });
+    return testimonials.map(formatTestimonialOutput);
+  } catch (error) {
+    console.error('Error fetching testimonials:', error);
+    return [];
   }
-
-  return site.id;
-}
-
-// ============================================
-// Database Operations
-// ============================================
-
-/**
- * Get all testimonials from database (approved only for public)
- */
-export async function getAllTestimonials(
-  limit?: number
-): Promise<TestimonialOutput[]> {
-  const siteId = await getSiteId();
-
-  const testimonials = await prisma.testimonial.findMany({
-    where: {
-      siteId,
-      isApproved: true,
-    },
-    orderBy: [
-      { order: "asc" },
-      { createdAt: "desc" },
-    ],
-    take: limit,
-  });
-
-  return testimonials.map(formatTestimonialOutput);
 }
 
 /**
- * Get all testimonials (including unapproved) for admin
+ * Get all testimonials for admin (same as getAllTestimonials since psypnos has no isApproved)
  */
-export async function getAllTestimonialsAdmin(
-  limit?: number
-): Promise<TestimonialOutput[]> {
-  const siteId = await getSiteId();
-
-  const testimonials = await prisma.testimonial.findMany({
-    where: { siteId },
-    orderBy: [
-      { order: "asc" },
-      { createdAt: "desc" },
-    ],
-    take: limit,
-  });
-
-  return testimonials.map(formatTestimonialOutput);
+export async function getAllTestimonialsAdmin(limit?: number): Promise<TestimonialOutput[]> {
+  return getAllTestimonials(limit);
 }
 
 /**
  * Get testimonial by ID
  */
-export async function getTestimonialById(
-  id: string
-): Promise<TestimonialOutput | null> {
-  const siteId = await getSiteId();
+export async function getTestimonialById(id: string): Promise<TestimonialOutput | null> {
+  try {
+    const testimonials = await prisma.$queryRaw<RawTestimonial[]>`
+      SELECT id, quote, author, role, created_at, updated_at
+      FROM testimonials
+      WHERE id = ${id}
+    `;
 
-  const testimonial = await prisma.testimonial.findFirst({
-    where: { id, siteId },
-  });
-
-  return testimonial ? formatTestimonialOutput(testimonial) : null;
+    return testimonials.length > 0 ? formatTestimonialOutput(testimonials[0]!) : null;
+  } catch (error) {
+    console.error('Error fetching testimonial by ID:', error);
+    return null;
+  }
 }
 
 /**
  * Create a new testimonial
  */
-export async function createTestimonial(
-  data: TestimonialPayload
-): Promise<TestimonialOutput> {
-  const siteId = await getSiteId();
+export async function createTestimonial(data: TestimonialPayload): Promise<TestimonialOutput> {
   const normalized = normalizeTestimonialInput(data);
+  const now = new Date();
 
-  const testimonial = await prisma.testimonial.create({
-    data: {
-      siteId,
-      clientName: normalized.author,
-      content: normalized.quote,
-      // Store role in clientInitials field as a workaround
-      clientInitials: normalized.role || null,
-      isApproved: true,
-      order: 0,
-    },
-  });
+  try {
+    const result = await prisma.$queryRaw<RawTestimonial[]>`
+      INSERT INTO testimonials (quote, author, role, created_at, updated_at)
+      VALUES (
+        ${normalized.quote},
+        ${normalized.author},
+        ${normalized.role ?? null},
+        ${now},
+        ${now}
+      )
+      RETURNING id, quote, author, role, created_at, updated_at
+    `;
 
-  return formatTestimonialOutput(testimonial);
+    return formatTestimonialOutput(result[0]!);
+  } catch (error) {
+    console.error('Error creating testimonial:', error);
+    throw error;
+  }
 }
 
 /**
@@ -184,50 +158,47 @@ export async function updateTestimonial(
   id: string,
   data: TestimonialPayload
 ): Promise<TestimonialOutput | null> {
-  const siteId = await getSiteId();
   const normalized = normalizeTestimonialInput(data);
+  const now = new Date();
 
-  // First check if testimonial exists for this site
-  const existing = await prisma.testimonial.findFirst({
-    where: { id, siteId },
-  });
+  try {
+    // First check if testimonial exists
+    const existing = await getTestimonialById(id);
+    if (!existing) {
+      return null;
+    }
 
-  if (!existing) {
-    return null;
+    const result = await prisma.$queryRaw<RawTestimonial[]>`
+      UPDATE testimonials
+      SET
+        quote = ${normalized.quote},
+        author = ${normalized.author},
+        role = ${normalized.role ?? null},
+        updated_at = ${now}
+      WHERE id = ${id}
+      RETURNING id, quote, author, role, created_at, updated_at
+    `;
+
+    return formatTestimonialOutput(result[0]!);
+  } catch (error) {
+    console.error('Error updating testimonial:', error);
+    throw error;
   }
-
-  const testimonial = await prisma.testimonial.update({
-    where: { id },
-    data: {
-      clientName: normalized.author,
-      content: normalized.quote,
-      clientInitials: normalized.role || null,
-    },
-  });
-
-  return formatTestimonialOutput(testimonial);
 }
 
 /**
  * Delete a testimonial
  */
 export async function deleteTestimonial(id: string): Promise<boolean> {
-  const siteId = await getSiteId();
-
-  // First check if testimonial exists for this site
-  const existing = await prisma.testimonial.findFirst({
-    where: { id, siteId },
-  });
-
-  if (!existing) {
+  try {
+    const result = await prisma.$queryRaw<Array<{ id: string }>>`
+      DELETE FROM testimonials WHERE id = ${id} RETURNING id
+    `;
+    return result.length > 0;
+  } catch (error) {
+    console.error('Error deleting testimonial:', error);
     return false;
   }
-
-  await prisma.testimonial.delete({
-    where: { id },
-  });
-
-  return true;
 }
 
 // ============================================
@@ -237,10 +208,8 @@ export async function deleteTestimonial(id: string): Promise<boolean> {
 /**
  * Normalize input data
  */
-export function normalizeTestimonialInput(
-  data: TestimonialPayload
-): TestimonialAttributes {
-  const role = typeof data.role === "string" ? data.role : undefined;
+export function normalizeTestimonialInput(data: TestimonialPayload): TestimonialAttributes {
+  const role = typeof data.role === 'string' ? data.role : undefined;
   return {
     quote: data.quote.trim(),
     author: data.author.trim(),
@@ -250,25 +219,14 @@ export function normalizeTestimonialInput(
 
 /**
  * Format database record to API output
- * Maps database fields to API fields for backwards compatibility
  */
-function formatTestimonialOutput(testimonial: {
-  id: string;
-  clientName: string;
-  clientInitials: string | null;
-  content: string;
-  rating: number | null;
-  isApproved: boolean;
-  order: number;
-  createdAt: Date;
-  updatedAt: Date;
-}): TestimonialOutput {
+function formatTestimonialOutput(testimonial: RawTestimonial): TestimonialOutput {
   return {
     id: testimonial.id,
-    quote: testimonial.content,
-    author: testimonial.clientName,
-    ...(testimonial.clientInitials && { role: testimonial.clientInitials }),
-    createdAt: testimonial.createdAt.toISOString(),
-    updatedAt: testimonial.updatedAt.toISOString(),
+    quote: testimonial.quote,
+    author: testimonial.author,
+    ...(testimonial.role && { role: testimonial.role }),
+    createdAt: testimonial.created_at.toISOString(),
+    updatedAt: testimonial.updated_at.toISOString(),
   };
 }

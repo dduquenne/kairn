@@ -1,62 +1,35 @@
-/* eslint-disable no-console, import/no-named-as-default, import/no-unresolved */
-import { PostStatus } from '@prisma/client';
+/* eslint-disable no-console */
+/**
+ * Blog Library - PostgreSQL via Raw SQL
+ *
+ * IMPORTANT: The psypnos database uses a single-tenant schema with simple table names:
+ * - blog_posts (not BlogPost with siteId)
+ *
+ * We use raw SQL queries to match the actual database structure.
+ */
 import readingTime from 'reading-time';
 
 import prisma from '@/lib/db/prisma';
 
-/**
- * Blog Library - PostgreSQL via Prisma
- * Uses multi-tenant BlogPost model with siteId filtering
- */
-
 // ============================================
-// Site Configuration
+// Raw Database Types (matching actual psypnos schema)
 // ============================================
 
-const SITE_SLUG = 'psypnos';
-
-/**
- * Get the site ID for the current site
- */
-async function getSiteId(): Promise<string> {
-  const site = await prisma.site.findUnique({
-    where: { slug: SITE_SLUG },
-    select: { id: true },
-  });
-
-  if (!site) {
-    throw new Error(`Site "${SITE_SLUG}" not found in database`);
-  }
-
-  return site.id;
-}
-
-/**
- * Extract tag names from a BlogPost with included tags
- */
-function extractTagNames(tags: Array<{ tag: { name: string } }> | undefined): string[] {
-  return tags?.map(t => t.tag.name) || [];
-}
-
-/**
- * Get image URL for a blog post
- */
-export async function getBlogPostImageAsync(slug: string): Promise<string | null> {
-  try {
-    const post = await getPostBySlugAsync(slug);
-    return post?.image || null;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Get image URL for a blog post (sync version for backward compatibility)
- * @deprecated Use getBlogPostImageAsync instead
- */
-export function getBlogPostImage(_slug: string): string | null {
-  console.warn('getBlogPostImage is deprecated - use getBlogPostImageAsync');
-  return null;
+interface RawBlogPost {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  content: string;
+  author: string;
+  category: string;
+  tags: string[] | null;
+  image: string | null;
+  published: boolean;
+  featured: boolean;
+  date: Date;
+  created_at: Date;
+  updated_at: Date;
 }
 
 export interface FAQItem {
@@ -101,41 +74,36 @@ let postsCache: BlogPost[] | null = null;
 let postsCacheTimestamp = 0;
 const CACHE_TTL = 60000; // 1 minute
 
-// Type for BlogPost with included tags from Prisma
-type PrismaPostWithTags = {
-  id: string;
-  slug: string;
-  title: string;
-  excerpt: string | null;
-  content: string;
-  coverImage: string | null;
-  status: PostStatus;
-  publishedAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-  category: string | null;
-  imagePrompt: string | null;
-  seoIntent: string | null;
-  persona: string | null;
-  tones: string[];
-  faq: unknown;
-  jsonLd: unknown;
-  featured: boolean;
-  authorName: string | null;
-  tags: Array<{ tag: { name: string } }>;
-};
+/**
+ * Get image URL for a blog post
+ */
+export async function getBlogPostImageAsync(slug: string): Promise<string | null> {
+  try {
+    const post = await getPostBySlugAsync(slug);
+    return post?.image || null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Get image URL for a blog post (sync version for backward compatibility)
+ * @deprecated Use getBlogPostImageAsync instead
+ */
+export function getBlogPostImage(_slug: string): string | null {
+  console.warn('getBlogPostImage is deprecated - use getBlogPostImageAsync');
+  return null;
+}
 
 /**
  * Get all post slugs (async version - recommended)
  */
 export async function getAllPostSlugsAsync(): Promise<string[]> {
   try {
-    const siteId = await getSiteId();
-    const posts = await prisma.blogPost.findMany({
-      where: { siteId, status: PostStatus.PUBLISHED },
-      select: { slug: true },
-    });
-    return posts.map((post: (typeof posts)[number]) => post.slug);
+    const posts = await prisma.$queryRaw<Array<{ slug: string }>>`
+      SELECT slug FROM blog_posts WHERE published = true
+    `;
+    return posts.map(post => post.slug);
   } catch (error) {
     console.error('Error fetching post slugs:', error);
     return [];
@@ -159,19 +127,15 @@ export function getAllPostSlugs(): string[] {
  */
 export async function getPostBySlugAsync(slug: string): Promise<BlogPost | null> {
   try {
-    const siteId = await getSiteId();
-    const post = await prisma.blogPost.findFirst({
-      where: { siteId, slug },
-      include: {
-        tags: {
-          include: { tag: true },
-        },
-      },
-    });
+    const posts = await prisma.$queryRaw<RawBlogPost[]>`
+      SELECT id, slug, title, description, content, author, category, tags, image, published, featured, date, created_at, updated_at
+      FROM blog_posts
+      WHERE slug = ${slug}
+    `;
 
-    if (!post) return null;
+    if (posts.length === 0) return null;
 
-    return formatPrismaPostToBlogPost(post as PrismaPostWithTags);
+    return formatRawPostToBlogPost(posts[0]!);
   } catch (error) {
     console.error(`Error fetching post ${slug}:`, error);
     return null;
@@ -192,43 +156,38 @@ export function getPostBySlug(slug: string): BlogPost | null {
 }
 
 /**
- * Format Prisma BlogPost to lib BlogPost interface
+ * Format raw database post to BlogPost interface
  */
-function formatPrismaPostToBlogPost(post: PrismaPostWithTags): BlogPost {
+function formatRawPostToBlogPost(post: RawBlogPost): BlogPost {
   // Calculate reading time
   const stats = readingTime(post.content);
 
   // Extract excerpt
   const excerpt =
-    post.excerpt ||
+    post.description ||
     post.content
       .slice(0, 200)
       .replace(/[#*[\]]/g, '')
       .trim() + '...';
 
-  // Get tag names from relations
-  const tagNames = extractTagNames(post.tags);
-
-  // Get date from publishedAt or createdAt
-  const date = (post.publishedAt ?? post.createdAt)!;
+  // Format date
+  const dateStr =
+    post.date instanceof Date
+      ? (post.date.toISOString().split('T')[0] as string)
+      : String(post.date);
 
   return {
     slug: post.slug,
     title: post.title,
-    description: post.excerpt || excerpt,
-    date: date.toISOString().split('T')[0] as string,
-    author: post.authorName || 'PSYPNOS',
+    description: post.description || excerpt,
+    date: dateStr,
+    author: post.author || 'PSYPNOS',
     category: post.category || '',
-    tags: tagNames,
-    image: post.coverImage || undefined,
-    published: post.status === PostStatus.PUBLISHED,
+    tags: post.tags || [],
+    image: post.image || undefined,
+    published: post.published,
     featured: post.featured,
-    faq: (post.faq as FAQItem[] | null) || undefined,
-    jsonLd: (post.jsonLd as Record<string, unknown> | null) || undefined,
-    imagePrompt: post.imagePrompt || undefined,
-    seoIntent: post.seoIntent || undefined,
-    persona: post.persona || undefined,
-    tones: post.tones.length > 0 ? post.tones : undefined,
+    // Note: Extended fields (faq, jsonLd, imagePrompt, seoIntent, persona, tones) are not in the psypnos schema
     content: post.content,
     readingTime: stats.text,
     excerpt,
@@ -243,31 +202,30 @@ export async function getAllPostsAsync(includeUnpublished = false): Promise<Blog
   console.log(`[blog] getAllPostsAsync appelé (includeUnpublished: ${includeUnpublished})`);
 
   try {
-    const siteId = await getSiteId();
     const today = new Date();
     today.setHours(23, 59, 59, 999);
 
-    const posts = await prisma.blogPost.findMany({
-      where: {
-        siteId,
-        ...(includeUnpublished ? {} : { status: PostStatus.PUBLISHED }),
-        ...(includeUnpublished ? {} : { publishedAt: { lte: today } }),
-      },
-      orderBy: { publishedAt: 'desc' },
-      include: {
-        tags: {
-          include: { tag: true },
-        },
-      },
-    });
+    let posts: RawBlogPost[];
+    if (includeUnpublished) {
+      posts = await prisma.$queryRaw<RawBlogPost[]>`
+        SELECT id, slug, title, description, content, author, category, tags, image, published, featured, date, created_at, updated_at
+        FROM blog_posts
+        ORDER BY date DESC
+      `;
+    } else {
+      posts = await prisma.$queryRaw<RawBlogPost[]>`
+        SELECT id, slug, title, description, content, author, category, tags, image, published, featured, date, created_at, updated_at
+        FROM blog_posts
+        WHERE published = true AND date <= ${today}
+        ORDER BY date DESC
+      `;
+    }
 
     console.log(
       `[blog] ${posts.length} articles récupérés de la base de données en ${Date.now() - startTime}ms`
     );
 
-    const formattedPosts = posts.map(post =>
-      formatPrismaPostToBlogPost(post as PrismaPostWithTags)
-    );
+    const formattedPosts = posts.map(formatRawPostToBlogPost);
 
     // Update cache for sync functions
     postsCache = formattedPosts;
@@ -405,16 +363,10 @@ export function getPostsByTag(tag: string, includeUnpublished = false): BlogPost
  */
 export async function getAllCategoriesAsync(): Promise<string[]> {
   try {
-    const siteId = await getSiteId();
-    const posts = await prisma.blogPost.findMany({
-      where: { siteId, status: PostStatus.PUBLISHED },
-      distinct: ['category'],
-      select: { category: true },
-    });
-    return posts
-      .map((post: (typeof posts)[number]) => post.category)
-      .filter((c): c is string => c !== null)
-      .sort();
+    const result = await prisma.$queryRaw<Array<{ category: string }>>`
+      SELECT DISTINCT category FROM blog_posts WHERE published = true AND category IS NOT NULL
+    `;
+    return result.map(r => r.category).sort();
   } catch (error) {
     console.error('Error fetching categories:', error);
     return [];
@@ -436,19 +388,10 @@ export function getAllCategories(): string[] {
  */
 export async function getAllTagsAsync(): Promise<string[]> {
   try {
-    const siteId = await getSiteId();
-    const posts = await prisma.blogPost.findMany({
-      where: { siteId, status: PostStatus.PUBLISHED },
-      include: {
-        tags: {
-          include: { tag: true },
-        },
-      },
-    });
-    const allTags: string[] = posts.flatMap(post =>
-      post.tags.map((t: { tag: { name: string } }) => t.tag.name)
-    );
-    return Array.from(new Set(allTags)).sort();
+    const result = await prisma.$queryRaw<Array<{ tag: string }>>`
+      SELECT DISTINCT unnest(tags) as tag FROM blog_posts WHERE published = true AND tags IS NOT NULL
+    `;
+    return result.map(r => r.tag).sort();
   } catch (error) {
     console.error('Error fetching tags:', error);
     return [];
@@ -526,44 +469,36 @@ export function getRelatedPosts(slug: string, limit = 3): BlogPostSummary[] {
  */
 export async function searchPostsAsync(query: string): Promise<BlogPostSummary[]> {
   try {
-    const siteId = await getSiteId();
-    const posts = await prisma.blogPost.findMany({
-      where: {
-        siteId,
-        status: PostStatus.PUBLISHED,
-        OR: [
-          { title: { contains: query, mode: 'insensitive' } },
-          { excerpt: { contains: query, mode: 'insensitive' } },
-          { content: { contains: query, mode: 'insensitive' } },
-          { category: { contains: query, mode: 'insensitive' } },
-        ],
-      },
-      orderBy: { publishedAt: 'desc' },
-      include: {
-        tags: {
-          include: { tag: true },
-        },
-      },
-    });
+    const searchPattern = `%${query}%`;
+    const posts = await prisma.$queryRaw<RawBlogPost[]>`
+      SELECT id, slug, title, description, content, author, category, tags, image, published, featured, date, created_at, updated_at
+      FROM blog_posts
+      WHERE published = true
+        AND (
+          title ILIKE ${searchPattern}
+          OR description ILIKE ${searchPattern}
+          OR content ILIKE ${searchPattern}
+          OR category ILIKE ${searchPattern}
+        )
+      ORDER BY date DESC
+    `;
 
-    return posts
-      .map(post => formatPrismaPostToBlogPost(post as PrismaPostWithTags))
-      .map(
-        (post: BlogPost): BlogPostSummary => ({
-          slug: post.slug,
-          title: post.title,
-          description: post.description,
-          date: post.date,
-          author: post.author,
-          category: post.category,
-          tags: post.tags,
-          image: post.image,
-          published: post.published,
-          featured: post.featured,
-          readingTime: post.readingTime,
-          excerpt: post.excerpt,
-        })
-      );
+    return posts.map(formatRawPostToBlogPost).map(
+      (post: BlogPost): BlogPostSummary => ({
+        slug: post.slug,
+        title: post.title,
+        description: post.description,
+        date: post.date,
+        author: post.author,
+        category: post.category,
+        tags: post.tags,
+        image: post.image,
+        published: post.published,
+        featured: post.featured,
+        readingTime: post.readingTime,
+        excerpt: post.excerpt,
+      })
+    );
   } catch (error) {
     console.error('Error searching posts:', error);
     return [];

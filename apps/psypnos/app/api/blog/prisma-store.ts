@@ -1,35 +1,36 @@
 /* eslint-disable no-console */
 /**
- * Blog Posts Store - PostgreSQL via Prisma
- * Uses multi-tenant BlogPost model with siteId filtering
+ * Blog Posts Store - PostgreSQL via Raw SQL
+ *
+ * IMPORTANT: The psypnos database uses a single-tenant schema with simple table names:
+ * - blog_posts (not BlogPost with siteId)
+ *
+ * We use raw SQL queries to match the actual database structure.
  */
 
-import { PostStatus, Prisma } from '@prisma/client';
-import type { InputJsonValue } from '@prisma/client/runtime/library';
 import { z } from 'zod';
 
 import prisma from '@/lib/db/prisma';
 
 // ============================================
-// Site Configuration
+// Raw Database Types (matching actual psypnos schema)
 // ============================================
 
-const SITE_SLUG = 'psypnos';
-
-/**
- * Get the site ID for the current site
- */
-async function getSiteId(): Promise<string> {
-  const site = await prisma.site.findUnique({
-    where: { slug: SITE_SLUG },
-    select: { id: true },
-  });
-
-  if (!site) {
-    throw new Error(`Site "${SITE_SLUG}" not found in database`);
-  }
-
-  return site.id;
+interface RawBlogPost {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  content: string;
+  author: string;
+  category: string;
+  tags: string[] | null;
+  image: string | null;
+  published: boolean;
+  featured: boolean;
+  date: Date;
+  created_at: Date;
+  updated_at: Date;
 }
 
 // ============================================
@@ -117,61 +118,7 @@ export interface BlogPostSummary {
 }
 
 // ============================================
-// Tag Helpers
-// ============================================
-
-/**
- * Create a URL-friendly slug from a tag name
- */
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // Remove accents
-    .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with hyphens
-    .replace(/^-+|-+$/g, ''); // Trim hyphens from ends
-}
-
-/**
- * Get or create tags by names, returning tag IDs
- */
-async function getOrCreateTags(
-  tagNames: string[],
-  tx?: Prisma.TransactionClient
-): Promise<string[]> {
-  const client = tx || prisma;
-  const tagIds: string[] = [];
-
-  for (const name of tagNames) {
-    const slug = slugify(name);
-
-    // Try to find existing tag
-    let tag = await client.tag.findUnique({
-      where: { slug },
-    });
-
-    if (!tag) {
-      // Create new tag
-      tag = await client.tag.create({
-        data: { name, slug },
-      });
-    }
-
-    tagIds.push(tag.id);
-  }
-
-  return tagIds;
-}
-
-/**
- * Extract tag names from a BlogPost with included tags
- */
-function extractTagNames(tags: Array<{ tag: { name: string } }> | undefined): string[] {
-  return tags?.map(t => t.tag.name) || [];
-}
-
-// ============================================
-// Database Operations
+// Database Operations (using raw SQL for single-tenant psypnos schema)
 // ============================================
 
 /**
@@ -187,54 +134,64 @@ export async function getAllBlogPosts(
   } = {}
 ): Promise<BlogPostSummary[]> {
   const { includeUnpublished = false, limit, category, featured, featuredFirst = false } = options;
-  const siteId = await getSiteId();
 
-  const posts = await prisma.blogPost.findMany({
-    where: {
-      siteId,
-      ...(includeUnpublished ? {} : { status: PostStatus.PUBLISHED }),
-      ...(category ? { category } : {}),
-      ...(featured !== undefined ? { featured } : {}),
-    },
-    orderBy: featuredFirst
-      ? [{ featured: 'desc' }, { publishedAt: 'desc' }]
-      : { publishedAt: 'desc' },
-    take: limit,
-    include: {
-      tags: {
-        include: { tag: true },
-      },
-    },
-  });
+  try {
+    // Build dynamic query based on options
+    let query = `
+      SELECT id, slug, title, description, author, category, tags, image, published, featured, date, created_at, updated_at
+      FROM blog_posts
+      WHERE 1=1
+    `;
 
-  return posts.map(
-    (post): BlogPostSummary => ({
-      slug: post.slug,
-      title: post.title,
-      description: post.excerpt || undefined,
-      author: post.authorName || 'PSYPNOS',
-      category: post.category || '',
-      tags: extractTagNames(post.tags),
-      image: post.coverImage || undefined,
-      published: post.status === PostStatus.PUBLISHED,
-      featured: post.featured,
-      date: (post.publishedAt ?? post.createdAt)!.toISOString().split('T')[0] as string,
-    })
-  );
+    const conditions: string[] = [];
+    if (!includeUnpublished) {
+      conditions.push('published = true');
+    }
+    if (category) {
+      conditions.push(`category = '${category.replace(/'/g, "''")}'`);
+    }
+    if (featured !== undefined) {
+      conditions.push(`featured = ${featured}`);
+    }
+
+    if (conditions.length > 0) {
+      query += ' AND ' + conditions.join(' AND ');
+    }
+
+    // Order by
+    if (featuredFirst) {
+      query += ' ORDER BY featured DESC, date DESC';
+    } else {
+      query += ' ORDER BY date DESC';
+    }
+
+    // Limit
+    if (limit) {
+      query += ` LIMIT ${limit}`;
+    }
+
+    const posts = await prisma.$queryRawUnsafe<RawBlogPost[]>(query);
+
+    return posts.map(formatBlogPostSummary);
+  } catch (error) {
+    console.error('Error fetching blog posts:', error);
+    return [];
+  }
 }
 
 /**
  * Get all post slugs (for static generation)
  */
 export async function getAllPostSlugs(): Promise<string[]> {
-  const siteId = await getSiteId();
-
-  const posts = await prisma.blogPost.findMany({
-    where: { siteId, status: PostStatus.PUBLISHED },
-    select: { slug: true },
-  });
-
-  return posts.map(post => post.slug);
+  try {
+    const posts = await prisma.$queryRaw<Array<{ slug: string }>>`
+      SELECT slug FROM blog_posts WHERE published = true
+    `;
+    return posts.map(post => post.slug);
+  } catch (error) {
+    console.error('Error fetching post slugs:', error);
+    return [];
+  }
 }
 
 /**
@@ -244,123 +201,82 @@ export async function getBlogPostBySlug(
   slug: string,
   includeUnpublished = false
 ): Promise<BlogPostOutput | null> {
-  const siteId = await getSiteId();
+  try {
+    const posts = await prisma.$queryRaw<RawBlogPost[]>`
+      SELECT id, slug, title, description, content, author, category, tags, image, published, featured, date, created_at, updated_at
+      FROM blog_posts
+      WHERE slug = ${slug}
+    `;
 
-  const post = await prisma.blogPost.findFirst({
-    where: { siteId, slug },
-    include: {
-      tags: {
-        include: { tag: true },
-      },
-    },
-  });
+    if (posts.length === 0) return null;
 
-  if (!post) return null;
-  if (!includeUnpublished && post.status !== PostStatus.PUBLISHED) return null;
+    const post = posts[0]!;
+    if (!includeUnpublished && !post.published) return null;
 
-  return formatBlogPostOutput(post);
+    return formatBlogPostOutput(post);
+  } catch (error) {
+    console.error('Error fetching blog post by slug:', error);
+    return null;
+  }
 }
 
 /**
  * Check if slug exists
  */
 export async function slugExists(slug: string): Promise<boolean> {
-  const siteId = await getSiteId();
-
-  const post = await prisma.blogPost.findFirst({
-    where: { siteId, slug },
-    select: { slug: true },
-  });
-
-  return post !== null;
+  try {
+    const result = await prisma.$queryRaw<Array<{ count: bigint }>>`
+      SELECT COUNT(*) as count FROM blog_posts WHERE slug = ${slug}
+    `;
+    return Number(result[0]?.count ?? 0) > 0;
+  } catch (error) {
+    console.error('Error checking slug existence:', error);
+    return false;
+  }
 }
 
 /**
  * Create a new blog post
- * If jobId is provided, marks the job as used to prevent duplicate article creation
  */
 export async function createBlogPost(data: BlogPostPayload): Promise<BlogPostOutput> {
-  const siteId = await getSiteId();
-
-  // If jobId provided, check if job has already been used
-  if (data.jobId) {
-    const job = await prisma.blogGenerationJob.findUnique({
-      where: { id: data.jobId },
-      select: { usedAt: true, articleSlug: true },
-    });
-
-    if (job?.usedAt) {
-      throw new Error(
-        `Ce job a déjà été utilisé pour créer l'article "${job.articleSlug}". ` +
-          `Utilisez le bouton "Modifier" pour éditer l'article existant.`
-      );
-    }
-  }
-
   // Check if slug already exists
   const existing = await slugExists(data.slug);
   if (existing) {
     throw new Error('Un article avec ce slug existe déjà');
   }
 
-  // Use transaction to ensure atomicity: create post, tags, and mark job as used
-  const post = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-    // Get or create tags
-    const tagIds = data.tags && data.tags.length > 0 ? await getOrCreateTags(data.tags, tx) : [];
+  const now = new Date();
+  const postDate = data.date ? new Date(data.date) : now;
+  const tags = data.tags || [];
+  const published = data.published !== false;
+  const featured = data.featured === true;
 
-    // Create the blog post
-    const newPost = await tx.blogPost.create({
-      data: {
-        slug: data.slug,
-        title: data.title,
-        excerpt: data.description || null,
-        content: data.content,
-        coverImage: data.image || null,
-        status: data.published !== false ? PostStatus.PUBLISHED : PostStatus.DRAFT,
-        publishedAt: data.date ? new Date(data.date) : new Date(),
-        // Extended fields
-        category: data.category,
-        imagePrompt: data.imagePrompt || null,
-        seoIntent: data.seoIntent || null,
-        persona: data.persona || null,
-        tones: data.tones || [],
-        faq: data.faq ? (data.faq as InputJsonValue) : Prisma.DbNull,
-        jsonLd: data.jsonLd ? (data.jsonLd as InputJsonValue) : Prisma.DbNull,
-        featured: data.featured === true,
-        authorName: data.author,
-        // Multi-tenancy
-        siteId,
-        authorId: null,
-        // Tag relations
-        tags:
-          tagIds.length > 0
-            ? {
-                create: tagIds.map(tagId => ({ tagId })),
-              }
-            : undefined,
-      },
-      include: {
-        tags: {
-          include: { tag: true },
-        },
-      },
-    });
+  try {
+    const result = await prisma.$queryRaw<RawBlogPost[]>`
+      INSERT INTO blog_posts (slug, title, description, content, author, category, tags, image, published, featured, date, created_at, updated_at)
+      VALUES (
+        ${data.slug},
+        ${data.title},
+        ${data.description || null},
+        ${data.content},
+        ${data.author},
+        ${data.category},
+        ${tags}::text[],
+        ${data.image || null},
+        ${published},
+        ${featured},
+        ${postDate},
+        ${now},
+        ${now}
+      )
+      RETURNING id, slug, title, description, content, author, category, tags, image, published, featured, date, created_at, updated_at
+    `;
 
-    // If jobId provided, mark the job as used
-    if (data.jobId) {
-      await tx.blogGenerationJob.update({
-        where: { id: data.jobId },
-        data: {
-          usedAt: new Date(),
-          articleSlug: data.slug,
-        },
-      });
-    }
-
-    return newPost;
-  });
-
-  return formatBlogPostOutput(post);
+    return formatBlogPostOutput(result[0]!);
+  } catch (error) {
+    console.error('Error creating blog post:', error);
+    throw error;
+  }
 }
 
 /**
@@ -370,8 +286,6 @@ export async function updateBlogPost(
   slug: string,
   data: Partial<BlogPostPayload>
 ): Promise<BlogPostOutput | null> {
-  const siteId = await getSiteId();
-
   // If slug is being changed, check if new slug already exists
   if (data.slug && data.slug !== slug) {
     const existing = await slugExists(data.slug);
@@ -381,79 +295,56 @@ export async function updateBlogPost(
   }
 
   try {
-    // Find the post first
-    const existingPost = await prisma.blogPost.findFirst({
-      where: { siteId, slug },
-    });
+    // First check if the post exists
+    const existingPosts = await prisma.$queryRaw<RawBlogPost[]>`
+      SELECT id, slug, title, description, content, author, category, tags, image, published, featured, date, created_at, updated_at
+      FROM blog_posts
+      WHERE slug = ${slug}
+    `;
 
-    if (!existingPost) {
+    if (existingPosts.length === 0) {
       return null;
     }
 
-    // Use transaction for atomic update with tags
-    const post = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      // Build update data
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const updateData: Record<string, any> = {};
+    const existing = existingPosts[0]!;
+    const now = new Date();
 
-      if (data.slug !== undefined) updateData.slug = data.slug;
-      if (data.title !== undefined) updateData.title = data.title;
-      if (data.description !== undefined) updateData.excerpt = data.description || null;
-      if (data.content !== undefined) updateData.content = data.content;
-      if (data.author !== undefined) updateData.authorName = data.author;
-      if (data.category !== undefined) updateData.category = data.category;
-      if (data.image !== undefined) updateData.coverImage = data.image || null;
-      if (data.imagePrompt !== undefined) updateData.imagePrompt = data.imagePrompt || null;
-      if (data.seoIntent !== undefined) updateData.seoIntent = data.seoIntent || null;
-      if (data.persona !== undefined) updateData.persona = data.persona || null;
-      if (data.tones !== undefined) updateData.tones = data.tones;
-      if (data.faq !== undefined)
-        updateData.faq = data.faq ? (data.faq as InputJsonValue) : Prisma.DbNull;
-      if (data.jsonLd !== undefined)
-        updateData.jsonLd = data.jsonLd ? (data.jsonLd as InputJsonValue) : Prisma.DbNull;
-      if (data.published !== undefined)
-        updateData.status = data.published ? PostStatus.PUBLISHED : PostStatus.DRAFT;
-      if (data.featured !== undefined) updateData.featured = data.featured;
-      if (data.date !== undefined) updateData.publishedAt = new Date(data.date);
+    // Build the update with merged values
+    const newSlug = data.slug ?? existing.slug;
+    const newTitle = data.title ?? existing.title;
+    const newDescription =
+      data.description !== undefined ? data.description || null : existing.description;
+    const newContent = data.content ?? existing.content;
+    const newAuthor = data.author ?? existing.author;
+    const newCategory = data.category ?? existing.category;
+    const newTags = data.tags ?? existing.tags ?? [];
+    const newImage = data.image !== undefined ? data.image || null : existing.image;
+    const newPublished = data.published !== undefined ? data.published : existing.published;
+    const newFeatured = data.featured !== undefined ? data.featured : existing.featured;
+    const newDate = data.date ? new Date(data.date) : existing.date;
 
-      // Handle tags if provided
-      if (data.tags !== undefined) {
-        // Delete existing tag relations
-        await tx.blogPostTag.deleteMany({
-          where: { postId: existingPost.id },
-        });
+    const result = await prisma.$queryRaw<RawBlogPost[]>`
+      UPDATE blog_posts
+      SET
+        slug = ${newSlug},
+        title = ${newTitle},
+        description = ${newDescription},
+        content = ${newContent},
+        author = ${newAuthor},
+        category = ${newCategory},
+        tags = ${newTags}::text[],
+        image = ${newImage},
+        published = ${newPublished},
+        featured = ${newFeatured},
+        date = ${newDate},
+        updated_at = ${now}
+      WHERE slug = ${slug}
+      RETURNING id, slug, title, description, content, author, category, tags, image, published, featured, date, created_at, updated_at
+    `;
 
-        // Create new tag relations
-        if (data.tags.length > 0) {
-          const tagIds = await getOrCreateTags(data.tags, tx);
-          await tx.blogPostTag.createMany({
-            data: tagIds.map(tagId => ({
-              postId: existingPost.id,
-              tagId,
-            })),
-          });
-        }
-      }
-
-      // Update the post
-      const updatedPost = await tx.blogPost.update({
-        where: { id: existingPost.id },
-        data: updateData,
-        include: {
-          tags: {
-            include: { tag: true },
-          },
-        },
-      });
-
-      return updatedPost;
-    });
-
-    return formatBlogPostOutput(post);
+    return formatBlogPostOutput(result[0]!);
   } catch (error) {
-    if ((error as { code?: string }).code === 'P2025') {
-      return null; // Record not found
-    }
+    console.error('Error updating blog post:', error);
     throw error;
   }
 }
@@ -462,27 +353,14 @@ export async function updateBlogPost(
  * Delete a blog post
  */
 export async function deleteBlogPost(slug: string): Promise<boolean> {
-  const siteId = await getSiteId();
-
   try {
-    const post = await prisma.blogPost.findFirst({
-      where: { siteId, slug },
-    });
-
-    if (!post) {
-      return false;
-    }
-
-    await prisma.blogPost.delete({
-      where: { id: post.id },
-    });
-
-    return true;
+    const result = await prisma.$queryRaw<Array<{ id: string }>>`
+      DELETE FROM blog_posts WHERE slug = ${slug} RETURNING id
+    `;
+    return result.length > 0;
   } catch (error) {
-    if ((error as { code?: string }).code === 'P2025') {
-      return false; // Record not found
-    }
-    throw error;
+    console.error('Error deleting blog post:', error);
+    return false;
   }
 }
 
@@ -500,145 +378,110 @@ export async function getBlogPostsByCategory(
  * Search blog posts by query
  */
 export async function searchBlogPosts(query: string, limit = 10): Promise<BlogPostSummary[]> {
-  const siteId = await getSiteId();
+  try {
+    const searchPattern = `%${query}%`;
+    const posts = await prisma.$queryRaw<RawBlogPost[]>`
+      SELECT id, slug, title, description, author, category, tags, image, published, featured, date, created_at, updated_at
+      FROM blog_posts
+      WHERE published = true
+        AND (
+          title ILIKE ${searchPattern}
+          OR description ILIKE ${searchPattern}
+          OR content ILIKE ${searchPattern}
+        )
+      ORDER BY date DESC
+      LIMIT ${limit}
+    `;
 
-  const posts = await prisma.blogPost.findMany({
-    where: {
-      siteId,
-      status: PostStatus.PUBLISHED,
-      OR: [
-        { title: { contains: query, mode: 'insensitive' } },
-        { excerpt: { contains: query, mode: 'insensitive' } },
-        { content: { contains: query, mode: 'insensitive' } },
-      ],
-    },
-    orderBy: { publishedAt: 'desc' },
-    take: limit,
-    include: {
-      tags: {
-        include: { tag: true },
-      },
-    },
-  });
-
-  return posts.map(
-    (post): BlogPostSummary => ({
-      slug: post.slug,
-      title: post.title,
-      description: post.excerpt || undefined,
-      author: post.authorName || 'PSYPNOS',
-      category: post.category || '',
-      tags: extractTagNames(post.tags),
-      image: post.coverImage || undefined,
-      published: post.status === PostStatus.PUBLISHED,
-      featured: post.featured,
-      date: (post.publishedAt ?? post.createdAt)!.toISOString().split('T')[0] as string,
-    })
-  );
+    return posts.map(formatBlogPostSummary);
+  } catch (error) {
+    console.error('Error searching blog posts:', error);
+    return [];
+  }
 }
 
 /**
  * Get distinct categories
  */
 export async function getCategories(): Promise<string[]> {
-  const siteId = await getSiteId();
-
-  const posts = await prisma.blogPost.findMany({
-    where: { siteId, status: PostStatus.PUBLISHED },
-    distinct: ['category'],
-    select: { category: true },
-  });
-
-  return posts.map(post => post.category).filter((c): c is string => c !== null);
+  try {
+    const result = await prisma.$queryRaw<Array<{ category: string }>>`
+      SELECT DISTINCT category FROM blog_posts WHERE published = true AND category IS NOT NULL
+    `;
+    return result.map(r => r.category);
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    return [];
+  }
 }
 
 /**
  * Get distinct tags with counts
  */
 export async function getTagsWithCounts(): Promise<Array<{ tag: string; count: number }>> {
-  const siteId = await getSiteId();
-
-  const posts = await prisma.blogPost.findMany({
-    where: { siteId, status: PostStatus.PUBLISHED },
-    include: {
-      tags: {
-        include: { tag: true },
-      },
-    },
-  });
-
-  const tagCounts = new Map<string, number>();
-  for (const post of posts) {
-    for (const { tag } of post.tags) {
-      tagCounts.set(tag.name, (tagCounts.get(tag.name) || 0) + 1);
-    }
+  try {
+    const result = await prisma.$queryRaw<Array<{ tag: string; count: bigint }>>`
+      SELECT unnest(tags) as tag, COUNT(*) as count
+      FROM blog_posts
+      WHERE published = true AND tags IS NOT NULL
+      GROUP BY unnest(tags)
+      ORDER BY count DESC
+    `;
+    return result.map(r => ({ tag: r.tag, count: Number(r.count) }));
+  } catch (error) {
+    console.error('Error fetching tags with counts:', error);
+    return [];
   }
-
-  return Array.from(tagCounts.entries())
-    .map(([tag, count]) => ({ tag, count }))
-    .sort((a, b) => b.count - a.count);
 }
 
 // ============================================
 // Helper Functions
 // ============================================
 
-// Type for BlogPost with included tags
-type BlogPostWithTags = {
-  id: string;
-  slug: string;
-  title: string;
-  excerpt: string | null;
-  content: string;
-  coverImage: string | null;
-  status: PostStatus;
-  publishedAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-  category: string | null;
-  imagePrompt: string | null;
-  seoIntent: string | null;
-  persona: string | null;
-  tones: string[];
-  faq: unknown;
-  jsonLd: unknown;
-  featured: boolean;
-  authorName: string | null;
-  tags: Array<{ tag: { name: string } }>;
-};
-
 /**
- * Format database record to API output
+ * Format database record to API summary output
  */
-function formatBlogPostOutput(post: BlogPostWithTags): BlogPostOutput {
+function formatBlogPostSummary(post: RawBlogPost): BlogPostSummary {
   return {
     slug: post.slug,
     title: post.title,
-    ...(post.excerpt && { description: post.excerpt }),
-    content: post.content,
-    author: post.authorName || 'PSYPNOS',
+    description: post.description || undefined,
+    author: post.author || 'PSYPNOS',
     category: post.category || '',
-    tags: extractTagNames(post.tags),
-    ...(post.coverImage && { image: post.coverImage }),
-    ...(post.imagePrompt && { imagePrompt: post.imagePrompt }),
-    ...(post.seoIntent && { seoIntent: post.seoIntent }),
-    ...(post.persona && { persona: post.persona }),
-    tones: post.tones,
-    ...(post.faq != null
-      ? {
-          faq: post.faq as Array<{ question: string; answer: string; id?: string }>,
-        }
-      : {}),
-    ...(post.jsonLd != null
-      ? {
-          jsonLd: post.jsonLd as Record<string, unknown>,
-        }
-      : {}),
-    published: post.status === PostStatus.PUBLISHED,
+    tags: post.tags || [],
+    image: post.image || undefined,
+    published: post.published,
     featured: post.featured,
-    date: (post.publishedAt ?? post.createdAt)!.toISOString().split('T')[0] as string,
-    createdAt: post.createdAt.toISOString(),
-    updatedAt: post.updatedAt.toISOString(),
+    date:
+      post.date instanceof Date
+        ? (post.date.toISOString().split('T')[0] as string)
+        : String(post.date),
+  };
+}
+
+/**
+ * Format database record to full API output
+ */
+function formatBlogPostOutput(post: RawBlogPost): BlogPostOutput {
+  return {
+    slug: post.slug,
+    title: post.title,
+    ...(post.description && { description: post.description }),
+    content: post.content,
+    author: post.author || 'PSYPNOS',
+    category: post.category || '',
+    tags: post.tags || [],
+    ...(post.image && { image: post.image }),
+    // Note: Extended fields (imagePrompt, seoIntent, persona, tones, faq, jsonLd) are not in the psypnos schema
+    tones: [],
+    published: post.published,
+    featured: post.featured,
+    date:
+      post.date instanceof Date
+        ? (post.date.toISOString().split('T')[0] as string)
+        : String(post.date),
+    createdAt: post.created_at.toISOString(),
+    updatedAt: post.updated_at.toISOString(),
   };
 }
 
