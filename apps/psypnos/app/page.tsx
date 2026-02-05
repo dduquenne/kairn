@@ -33,13 +33,28 @@ import { TestimonialsSection } from './(pages)/sections/testimonials';
 import { TherapySections } from './(pages)/sections/therapy';
 
 export default async function HomePage() {
-  // Prefetch all data in parallel directly from database via Prisma
-  // This is more reliable than HTTP fetch as it avoids client-side network issues
-  const [seminars, blogPosts, testimonials] = await Promise.all([
-    getUpcomingSeminars(3),
-    getFeaturedBlogPosts(3),
-    getTestimonials(10),
-  ]);
+  console.log('[HomePage] Starting data fetch...');
+  console.log('[HomePage] VERCEL_URL:', process.env.VERCEL_URL);
+
+  // Prefetch all data in parallel
+  let seminars, blogPosts, testimonials;
+  try {
+    [seminars, blogPosts, testimonials] = await Promise.all([
+      getUpcomingSeminars(3),
+      getFeaturedBlogPosts(3),
+      getTestimonials(10),
+    ]);
+    console.log('[HomePage] Fetched data:', {
+      seminars: seminars?.length ?? 'undefined',
+      blogPosts: blogPosts?.length ?? 'undefined',
+      testimonials: testimonials?.length ?? 'undefined',
+    });
+  } catch (error) {
+    console.error('[HomePage] Error fetching data:', error);
+    seminars = [];
+    blogPosts = [];
+    testimonials = [];
+  }
 
   return (
     <div className="from-night via-night/95 to-night text-ivory min-h-screen bg-gradient-to-b">
