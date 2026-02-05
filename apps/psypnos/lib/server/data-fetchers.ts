@@ -70,8 +70,15 @@ export interface TestimonialData {
  */
 export async function getUpcomingSeminars(limit = 3): Promise<SeminarData[]> {
   noStore(); // Opt out of caching for fresh data
+
+  // eslint-disable-next-line no-console
+  console.log('[SSR] getUpcomingSeminars: Starting fetch, limit:', limit);
+
   try {
     const siteId = await getSiteId();
+    // eslint-disable-next-line no-console
+    console.log('[SSR] getUpcomingSeminars: Got siteId:', siteId);
+
     const now = new Date();
 
     // Query upcoming seminars
@@ -84,6 +91,9 @@ export async function getUpcomingSeminars(limit = 3): Promise<SeminarData[]> {
       take: limit,
     });
 
+    // eslint-disable-next-line no-console
+    console.log('[SSR] getUpcomingSeminars: Found upcoming:', seminars.length);
+
     // If no upcoming seminars, get most recent ones
     if (seminars.length === 0) {
       seminars = await prisma.seminar.findMany({
@@ -91,11 +101,18 @@ export async function getUpcomingSeminars(limit = 3): Promise<SeminarData[]> {
         orderBy: { startAt: 'desc' },
         take: limit,
       });
+      // eslint-disable-next-line no-console
+      console.log('[SSR] getUpcomingSeminars: Found recent:', seminars.length);
     }
 
-    return seminars.map(formatSeminar);
+    const result = seminars.map(formatSeminar);
+    // eslint-disable-next-line no-console
+    console.log('[SSR] getUpcomingSeminars: Returning', result.length, 'seminars');
+    return result;
   } catch (error) {
-    console.error('[SSR] Error fetching seminars:', error);
+    // eslint-disable-next-line no-console
+    console.error('[SSR] getUpcomingSeminars ERROR:', error);
+    // Return empty array to prevent page crash, but error is logged
     return [];
   }
 }
@@ -106,8 +123,14 @@ export async function getUpcomingSeminars(limit = 3): Promise<SeminarData[]> {
  */
 export async function getFeaturedBlogPosts(limit = 3): Promise<BlogPostData[]> {
   noStore(); // Opt out of caching for fresh data
+
+  // eslint-disable-next-line no-console
+  console.log('[SSR] getFeaturedBlogPosts: Starting fetch, limit:', limit);
+
   try {
     const siteId = await getSiteId();
+    // eslint-disable-next-line no-console
+    console.log('[SSR] getFeaturedBlogPosts: Got siteId:', siteId);
 
     // Query published posts, ordered by featured first then by date
     const posts = await prisma.blogPost.findMany({
@@ -124,9 +147,14 @@ export async function getFeaturedBlogPosts(limit = 3): Promise<BlogPostData[]> {
       take: limit,
     });
 
-    return posts.map(formatBlogPost);
+    // eslint-disable-next-line no-console
+    console.log('[SSR] getFeaturedBlogPosts: Found', posts.length, 'posts');
+
+    const result = posts.map(formatBlogPost);
+    return result;
   } catch (error) {
-    console.error('[SSR] Error fetching blog posts:', error);
+    // eslint-disable-next-line no-console
+    console.error('[SSR] getFeaturedBlogPosts ERROR:', error);
     return [];
   }
 }
@@ -137,8 +165,14 @@ export async function getFeaturedBlogPosts(limit = 3): Promise<BlogPostData[]> {
  */
 export async function getTestimonials(limit = 10): Promise<TestimonialData[]> {
   noStore(); // Opt out of caching for fresh data
+
+  // eslint-disable-next-line no-console
+  console.log('[SSR] getTestimonials: Starting fetch, limit:', limit);
+
   try {
     const siteId = await getSiteId();
+    // eslint-disable-next-line no-console
+    console.log('[SSR] getTestimonials: Got siteId:', siteId);
 
     // Query approved testimonials
     const testimonials = await prisma.testimonial.findMany({
@@ -150,9 +184,13 @@ export async function getTestimonials(limit = 10): Promise<TestimonialData[]> {
       take: limit,
     });
 
+    // eslint-disable-next-line no-console
+    console.log('[SSR] getTestimonials: Found', testimonials.length, 'testimonials');
+
     return testimonials.map(formatTestimonial);
   } catch (error) {
-    console.error('[SSR] Error fetching testimonials:', error);
+    // eslint-disable-next-line no-console
+    console.error('[SSR] getTestimonials ERROR:', error);
     return [];
   }
 }
