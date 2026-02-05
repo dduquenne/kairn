@@ -73,48 +73,43 @@ export async function getUpcomingSeminars(limit = 3): Promise<SeminarData[]> {
 
   // eslint-disable-next-line no-console
   console.log('[SSR] getUpcomingSeminars: Starting fetch, limit:', limit);
+  // eslint-disable-next-line no-console
+  console.log('[SSR] DATABASE_URL exists:', !!process.env.DATABASE_URL);
 
-  try {
-    const siteId = await getSiteId();
-    // eslint-disable-next-line no-console
-    console.log('[SSR] getUpcomingSeminars: Got siteId:', siteId);
+  const siteId = await getSiteId();
+  // eslint-disable-next-line no-console
+  console.log('[SSR] getUpcomingSeminars: Got siteId:', siteId);
 
-    const now = new Date();
+  const now = new Date();
 
-    // Query upcoming seminars
-    let seminars = await prisma.seminar.findMany({
-      where: {
-        siteId,
-        startAt: { gte: now },
-      },
-      orderBy: { startAt: 'asc' },
+  // Query upcoming seminars
+  let seminars = await prisma.seminar.findMany({
+    where: {
+      siteId,
+      startAt: { gte: now },
+    },
+    orderBy: { startAt: 'asc' },
+    take: limit,
+  });
+
+  // eslint-disable-next-line no-console
+  console.log('[SSR] getUpcomingSeminars: Found upcoming:', seminars.length);
+
+  // If no upcoming seminars, get most recent ones
+  if (seminars.length === 0) {
+    seminars = await prisma.seminar.findMany({
+      where: { siteId },
+      orderBy: { startAt: 'desc' },
       take: limit,
     });
-
     // eslint-disable-next-line no-console
-    console.log('[SSR] getUpcomingSeminars: Found upcoming:', seminars.length);
-
-    // If no upcoming seminars, get most recent ones
-    if (seminars.length === 0) {
-      seminars = await prisma.seminar.findMany({
-        where: { siteId },
-        orderBy: { startAt: 'desc' },
-        take: limit,
-      });
-      // eslint-disable-next-line no-console
-      console.log('[SSR] getUpcomingSeminars: Found recent:', seminars.length);
-    }
-
-    const result = seminars.map(formatSeminar);
-    // eslint-disable-next-line no-console
-    console.log('[SSR] getUpcomingSeminars: Returning', result.length, 'seminars');
-    return result;
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('[SSR] getUpcomingSeminars ERROR:', error);
-    // Return empty array to prevent page crash, but error is logged
-    return [];
+    console.log('[SSR] getUpcomingSeminars: Found recent:', seminars.length);
   }
+
+  const result = seminars.map(formatSeminar);
+  // eslint-disable-next-line no-console
+  console.log('[SSR] getUpcomingSeminars: Returning', result.length, 'seminars');
+  return result;
 }
 
 /**
@@ -127,36 +122,30 @@ export async function getFeaturedBlogPosts(limit = 3): Promise<BlogPostData[]> {
   // eslint-disable-next-line no-console
   console.log('[SSR] getFeaturedBlogPosts: Starting fetch, limit:', limit);
 
-  try {
-    const siteId = await getSiteId();
-    // eslint-disable-next-line no-console
-    console.log('[SSR] getFeaturedBlogPosts: Got siteId:', siteId);
+  const siteId = await getSiteId();
+  // eslint-disable-next-line no-console
+  console.log('[SSR] getFeaturedBlogPosts: Got siteId:', siteId);
 
-    // Query published posts, ordered by featured first then by date
-    const posts = await prisma.blogPost.findMany({
-      where: {
-        siteId,
-        status: 'PUBLISHED',
+  // Query published posts, ordered by featured first then by date
+  const posts = await prisma.blogPost.findMany({
+    where: {
+      siteId,
+      status: 'PUBLISHED',
+    },
+    include: {
+      tags: {
+        include: { tag: true },
       },
-      include: {
-        tags: {
-          include: { tag: true },
-        },
-      },
-      orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }],
-      take: limit,
-    });
+    },
+    orderBy: [{ featured: 'desc' }, { publishedAt: 'desc' }],
+    take: limit,
+  });
 
-    // eslint-disable-next-line no-console
-    console.log('[SSR] getFeaturedBlogPosts: Found', posts.length, 'posts');
+  // eslint-disable-next-line no-console
+  console.log('[SSR] getFeaturedBlogPosts: Found', posts.length, 'posts');
 
-    const result = posts.map(formatBlogPost);
-    return result;
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('[SSR] getFeaturedBlogPosts ERROR:', error);
-    return [];
-  }
+  const result = posts.map(formatBlogPost);
+  return result;
 }
 
 /**
@@ -169,30 +158,24 @@ export async function getTestimonials(limit = 10): Promise<TestimonialData[]> {
   // eslint-disable-next-line no-console
   console.log('[SSR] getTestimonials: Starting fetch, limit:', limit);
 
-  try {
-    const siteId = await getSiteId();
-    // eslint-disable-next-line no-console
-    console.log('[SSR] getTestimonials: Got siteId:', siteId);
+  const siteId = await getSiteId();
+  // eslint-disable-next-line no-console
+  console.log('[SSR] getTestimonials: Got siteId:', siteId);
 
-    // Query approved testimonials
-    const testimonials = await prisma.testimonial.findMany({
-      where: {
-        siteId,
-        isApproved: true,
-      },
-      orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
-      take: limit,
-    });
+  // Query approved testimonials
+  const testimonials = await prisma.testimonial.findMany({
+    where: {
+      siteId,
+      isApproved: true,
+    },
+    orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
+    take: limit,
+  });
 
-    // eslint-disable-next-line no-console
-    console.log('[SSR] getTestimonials: Found', testimonials.length, 'testimonials');
+  // eslint-disable-next-line no-console
+  console.log('[SSR] getTestimonials: Found', testimonials.length, 'testimonials');
 
-    return testimonials.map(formatTestimonial);
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('[SSR] getTestimonials ERROR:', error);
-    return [];
-  }
+  return testimonials.map(formatTestimonial);
 }
 
 // ============================================

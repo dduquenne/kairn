@@ -35,11 +35,28 @@ import { TherapySections } from './(pages)/sections/therapy';
 export default async function HomePage() {
   // Prefetch all data in parallel directly from database via Prisma
   // This is more reliable than HTTP fetch as it avoids client-side network issues
-  const [seminars, blogPosts, testimonials] = await Promise.all([
-    getUpcomingSeminars(3),
-    getFeaturedBlogPosts(3),
-    getTestimonials(10),
-  ]);
+  let seminars: Awaited<ReturnType<typeof getUpcomingSeminars>> = [];
+  let blogPosts: Awaited<ReturnType<typeof getFeaturedBlogPosts>> = [];
+  let testimonials: Awaited<ReturnType<typeof getTestimonials>> = [];
+  let ssrError: string | null = null;
+
+  try {
+    [seminars, blogPosts, testimonials] = await Promise.all([
+      getUpcomingSeminars(3),
+      getFeaturedBlogPosts(3),
+      getTestimonials(10),
+    ]);
+    // eslint-disable-next-line no-console
+    console.log('[HomePage SSR] Data fetched:', {
+      seminars: seminars.length,
+      blogPosts: blogPosts.length,
+      testimonials: testimonials.length,
+    });
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('[HomePage SSR] ERROR:', error);
+    ssrError = error instanceof Error ? error.message : String(error);
+  }
 
   return (
     <div className="from-night via-night/95 to-night text-ivory min-h-screen bg-gradient-to-b">
@@ -48,6 +65,13 @@ export default async function HomePage() {
 
       {/* Hero - loaded immediately (above the fold) */}
       <HeroSection />
+
+      {/* Debug: Show SSR error if any */}
+      {ssrError && (
+        <div className="m-4 rounded border border-red-500 bg-red-900/50 p-4 text-red-200">
+          <strong>SSR Error:</strong> {ssrError}
+        </div>
+      )}
 
       <main>
         {/* Sections statiques - rendu côté serveur */}
