@@ -9,7 +9,10 @@
  */
 
 // Force dynamic rendering to ensure database queries run at request time
+// (not during build when DATABASE_URL may not be available)
 export const dynamic = 'force-dynamic';
+export const revalidate = 0; // Disable ISR completely
+export const fetchCache = 'force-no-store';
 
 import { Footer } from '../components/Footer';
 import { NavigationMenu } from '../components/NavigationMenu';
