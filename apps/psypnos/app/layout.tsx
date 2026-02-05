@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 
-import { FloatingContactButton } from '@/components/FloatingContactButton';
+import { PsypnosFloatingContactButton } from '@/components/FloatingContactButtonWrapper';
 import { CustomizationProvider } from '@/lib/customization-context';
 import { ThemeProvider } from '@/lib/theme-context';
 import { ToastProvider } from '@/lib/toast-context';
@@ -481,7 +481,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ThemeProvider defaultTheme="dark">
             <ToastProvider position="top-right">
               {children}
-              <FloatingContactButton />
+              <PsypnosFloatingContactButton />
             </ToastProvider>
           </ThemeProvider>
         </CustomizationProvider>

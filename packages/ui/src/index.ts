@@ -136,5 +136,26 @@ export {
 // Typography Components
 export { PageTitle, type PageTitleProps } from './components/page-title';
 
+// Floating Contact Button
+export {
+  FloatingContactButton,
+  type FloatingContactButtonProps,
+  type FloatingContactButtonColors,
+  type FloatingContactButtonLabels,
+  type RequestTypeOption,
+  type CSRFHookResult,
+  type ToastHookResult,
+} from './components/floating-contact-button';
+
+// Contexts
+export {
+  ThemeProvider,
+  useTheme,
+  ThemeAware,
+  type ThemeMode,
+  type ThemeContextValue,
+  type ThemeProviderProps,
+} from './contexts';
+
 // Utils
 export { cn } from './utils/cn';
