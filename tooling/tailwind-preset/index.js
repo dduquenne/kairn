@@ -164,10 +164,151 @@ const preset = {
         landscape: '4 / 3',
         ultrawide: '21 / 9',
       },
+
+      // Ring offset colors for accessibility
+      ringOffsetColor: {
+        night: 'var(--color-background, #1a1a2e)',
+      },
     },
   },
 
-  plugins: [],
+  plugins: [
+    /**
+     * Accessibility Plugin - WCAG 2.1 AA Compliant Focus Styles
+     *
+     * Provides consistent, accessible focus indicators for all interactive elements.
+     * Uses focus-visible to only show focus rings for keyboard navigation.
+     */
+    function accessibilityPlugin({ addComponents, addUtilities }) {
+      // Base focus-visible utilities
+      const focusUtilities = {
+        // Primary focus ring (gold/primary color) - high visibility
+        '.focus-ring': {
+          '&:focus-visible': {
+            outline: 'none',
+            boxShadow: `0 0 0 2px var(--color-background, #1a1a2e), 0 0 0 4px var(--color-primary, #d4af37)`,
+          },
+        },
+
+        // Focus ring with offset for dark backgrounds
+        '.focus-ring-offset': {
+          '&:focus-visible': {
+            outline: 'none',
+            ringWidth: '2px',
+            ringColor: 'var(--color-primary, #d4af37)',
+            ringOffsetWidth: '2px',
+            ringOffsetColor: 'var(--color-background, #1a1a2e)',
+            boxShadow: `0 0 0 2px var(--color-background, #1a1a2e), 0 0 0 4px var(--color-primary, #d4af37)`,
+          },
+        },
+
+        // Focus ring for light backgrounds
+        '.focus-ring-light': {
+          '&:focus-visible': {
+            outline: 'none',
+            boxShadow: `0 0 0 2px #ffffff, 0 0 0 4px var(--color-primary, #d4af37)`,
+          },
+        },
+
+        // Focus ring with custom color via CSS variable
+        '.focus-ring-custom': {
+          '&:focus-visible': {
+            outline: 'none',
+            boxShadow: `0 0 0 2px var(--focus-offset-color, var(--color-background, #1a1a2e)), 0 0 0 4px var(--focus-ring-color, var(--color-primary, #d4af37))`,
+          },
+        },
+
+        // Inset focus ring for inputs/form elements
+        '.focus-ring-inset': {
+          '&:focus-visible': {
+            outline: 'none',
+            boxShadow: `inset 0 0 0 2px var(--color-primary, #d4af37)`,
+            borderColor: 'var(--color-primary, #d4af37)',
+          },
+        },
+
+        // High contrast focus for maximum visibility
+        '.focus-ring-high-contrast': {
+          '&:focus-visible': {
+            outline: '3px solid var(--color-primary, #d4af37)',
+            outlineOffset: '2px',
+          },
+        },
+
+        // Remove default focus styles when using custom ones
+        '.focus-none': {
+          '&:focus': {
+            outline: 'none',
+          },
+          '&:focus-visible': {
+            outline: 'none',
+          },
+        },
+      };
+
+      // Accessible skip link component
+      const skipLinkComponent = {
+        '.skip-link': {
+          position: 'absolute',
+          left: '-9999px',
+          top: 'auto',
+          width: '1px',
+          height: '1px',
+          overflow: 'hidden',
+          zIndex: '9999',
+
+          '&:focus, &:focus-visible': {
+            position: 'fixed',
+            top: '1rem',
+            left: '1rem',
+            width: 'auto',
+            height: 'auto',
+            overflow: 'visible',
+            padding: '1rem 1.5rem',
+            backgroundColor: 'var(--color-primary, #d4af37)',
+            color: 'var(--color-background, #1a1a2e)',
+            fontWeight: '600',
+            fontSize: '0.875rem',
+            borderRadius: '0.5rem',
+            textDecoration: 'none',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
+            outline: '2px solid transparent',
+            outlineOffset: '2px',
+          },
+        },
+      };
+
+      // Screen reader only utility (enhanced)
+      const srOnlyUtility = {
+        '.sr-only-focusable': {
+          position: 'absolute',
+          width: '1px',
+          height: '1px',
+          padding: '0',
+          margin: '-1px',
+          overflow: 'hidden',
+          clip: 'rect(0, 0, 0, 0)',
+          whiteSpace: 'nowrap',
+          border: '0',
+
+          '&:focus, &:focus-visible': {
+            position: 'static',
+            width: 'auto',
+            height: 'auto',
+            padding: 'inherit',
+            margin: '0',
+            overflow: 'visible',
+            clip: 'auto',
+            whiteSpace: 'normal',
+          },
+        },
+      };
+
+      addUtilities(focusUtilities);
+      addComponents(skipLinkComponent);
+      addUtilities(srOnlyUtility);
+    },
+  ],
 };
 
 // eslint-disable-next-line no-undef

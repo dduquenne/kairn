@@ -117,6 +117,9 @@ export {
   type CTAConfig,
 } from './components/navigation';
 
+// Accessibility Components
+export { SkipLinks, type SkipLinksProps, type SkipLink } from './components/skip-links';
+
 // SEO Components
 export {
   GeoPage,
