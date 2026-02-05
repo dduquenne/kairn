@@ -17,6 +17,7 @@
     "@anthropic-ai/sdk": "^0.71.2",
     "@kairn/admin": "workspace:*",
     "@kairn/ai": "workspace:*",
+    "@kairn/analytics": "workspace:*",
     "@kairn/api": "workspace:*",
     "@kairn/config": "workspace:*",
     "@kairn/core": "workspace:*",

@@ -197,13 +197,15 @@ export function StickyNavigation({
       href,
       children,
       className: linkClassName,
+      onClick,
       ...props
     }: {
       href: string;
       children: React.ReactNode;
       className?: string;
+      onClick?: () => void;
     }) => (
-      <a href={href} className={linkClassName} {...props}>
+      <a href={href} className={linkClassName} onClick={onClick} {...props}>
         {children}
       </a>
     ));

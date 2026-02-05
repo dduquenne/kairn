@@ -1,12 +1,13 @@
+'use client';
+
 /**
  * GeoPage wrapper for Psypnos
  *
  * This wrapper adapts the legacy GeoPage interface to use the shared
  * GeoPage component from @kairn/ui while maintaining backwards compatibility.
  */
-import Link from 'next/link';
-
 import { GeoPage as SharedGeoPage } from '@kairn/ui';
+import Link from 'next/link';
 
 import { Footer } from './Footer';
 import { NavigationMenu } from './NavigationMenu';
@@ -71,7 +72,11 @@ const serviceLinks: Record<GeoPageProps['service'], string> = {
 // Default pricing for Psypnos
 const defaultPricing = [
   { label: 'Séance standard', price: '70 €' },
-  { label: 'Tarif solidaire', price: '40-50 €', note: '* Tarif solidaire sur justificatif (étudiant, demandeur d\'emploi, etc.)' },
+  {
+    label: 'Tarif solidaire',
+    price: '40-50 €',
+    note: "* Tarif solidaire sur justificatif (étudiant, demandeur d'emploi, etc.)",
+  },
 ];
 
 // Default hours
@@ -94,10 +99,7 @@ function ResearchStatsSection({
 
       <div className="space-y-6">
         {researchStats.map((research, index) => (
-          <div
-            key={index}
-            className="border-ivory/10 border-b pb-6 last:border-b-0 last:pb-0"
-          >
+          <div key={index} className="border-ivory/10 border-b pb-6 last:border-b-0 last:pb-0">
             <div className="mb-2 flex items-start gap-3">
               <span className="text-gold mt-0.5 flex-shrink-0">
                 <svg
@@ -178,9 +180,7 @@ export function GeoPage({
   schemaData,
 }: GeoPageProps) {
   // Build extended main content with research stats if provided
-  const extendedMainContent = researchStats && researchStats.length > 0
-    ? mainContent
-    : mainContent;
+  const extendedMainContent = researchStats && researchStats.length > 0 ? mainContent : mainContent;
 
   return (
     <>
