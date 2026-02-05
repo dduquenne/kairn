@@ -75,11 +75,11 @@ export interface CategoryColors {
  * Default category colors
  */
 export const defaultCategoryColors: CategoryColors = {
-  bg: "bg-gold/10",
-  text: "text-gold",
-  border: "border-gold/20",
-  hover: "hover:border-gold/40",
-  gradient: "from-gold to-gold/50",
+  bg: 'bg-gold/10',
+  text: 'text-gold',
+  border: 'border-gold/20',
+  hover: 'hover:border-gold/40',
+  gradient: 'from-gold to-gold/50',
 };
 
 /**
@@ -90,18 +90,19 @@ export type GetCategoryColors = (category: string) => CategoryColors;
 /**
  * Blog list view mode
  */
-export type BlogViewMode = "grid" | "list";
+export type BlogViewMode = 'grid' | 'list';
 
 /**
  * Sort options for blog posts
  */
-export type BlogSortOption = "date-desc" | "date-asc" | "title";
+export type BlogSortOption = 'date-desc' | 'date-asc' | 'title';
 
 /**
  * Props for link components (to support different routing libraries)
+ * Note: href accepts string or URL object for compatibility with Next.js Link
  */
 export interface LinkProps {
-  href: string;
+  href: string | { pathname?: string; query?: Record<string, string | string[]>; hash?: string };
   children: React.ReactNode;
   className?: string;
   target?: string;
@@ -111,8 +112,10 @@ export interface LinkProps {
 
 /**
  * Link component type (for dependency injection)
+ * Compatible with Next.js Link and similar routing libraries
  */
-export type LinkComponent = React.ComponentType<LinkProps>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type LinkComponent = React.ComponentType<any>;
 
 /**
  * Image component props (to support different image libraries)

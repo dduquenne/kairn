@@ -84,6 +84,9 @@ importers:
       '@kairn/ai':
         specifier: workspace:*
         version: link:../../packages/ai
+      '@kairn/analytics':
+        specifier: workspace:*
+        version: link:../../packages/analytics
       '@kairn/api':
         specifier: workspace:*
         version: link:../../packages/api
