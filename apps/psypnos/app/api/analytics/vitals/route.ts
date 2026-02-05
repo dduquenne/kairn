@@ -4,9 +4,10 @@
  * Receives and stores Web Vitals metrics from the client.
  * Data is stored in the analytics JSON file for dashboard reporting.
  */
-import { NextResponse } from 'next/server';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
+
+import { NextResponse } from 'next/server';
 
 // Path to analytics data file
 const ANALYTICS_FILE = join(process.cwd(), 'public', 'data', 'analytics.json');
@@ -74,10 +75,7 @@ export async function POST(request: Request) {
 
     // Validate required fields
     if (!vitalsData.name || typeof vitalsData.value !== 'number') {
-      return NextResponse.json(
-        { error: 'Invalid Web Vitals data' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid Web Vitals data' }, { status: 400 });
     }
 
     // Load existing data
@@ -105,10 +103,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('[WebVitals API] Error processing request:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -125,12 +120,12 @@ export async function GET(request: Request) {
 
     // Filter by metric name if specified
     if (metric) {
-      vitals = vitals.filter((v) => v.name === metric);
+      vitals = vitals.filter(v => v.name === metric);
     }
 
     // Filter by timestamp if specified
     if (since > 0) {
-      vitals = vitals.filter((v) => v.timestamp >= since);
+      vitals = vitals.filter(v => v.timestamp >= since);
     }
 
     // Get latest entries
@@ -146,19 +141,19 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error('[WebVitals API] Error fetching metrics:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
 function calculateAggregates(vitals: WebVitalsData[]) {
   const metricNames = ['LCP', 'INP', 'CLS', 'FCP', 'TTFB'];
-  const aggregates: Record<string, { avg: number; p75: number; good: number; poor: number; count: number }> = {};
+  const aggregates: Record<
+    string,
+    { avg: number; p75: number; good: number; poor: number; count: number }
+  > = {};
 
   for (const name of metricNames) {
-    const values = vitals.filter((v) => v.name === name).map((v) => v.value);
+    const values = vitals.filter(v => v.name === name).map(v => v.value);
 
     if (values.length === 0) {
       aggregates[name] = { avg: 0, p75: 0, good: 0, poor: 0, count: 0 };
@@ -168,11 +163,11 @@ function calculateAggregates(vitals: WebVitalsData[]) {
     values.sort((a, b) => a - b);
     const avg = values.reduce((a, b) => a + b, 0) / values.length;
     const p75Index = Math.floor(values.length * 0.75);
-    const p75 = values[p75Index] || values[values.length - 1];
+    const p75 = values[p75Index] ?? values[values.length - 1] ?? 0;
 
-    const ratings = vitals.filter((v) => v.name === name);
-    const good = ratings.filter((v) => v.rating === 'good').length;
-    const poor = ratings.filter((v) => v.rating === 'poor').length;
+    const ratings = vitals.filter(v => v.name === name);
+    const good = ratings.filter(v => v.rating === 'good').length;
+    const poor = ratings.filter(v => v.rating === 'poor').length;
 
     aggregates[name] = {
       avg: Math.round(avg * 100) / 100,

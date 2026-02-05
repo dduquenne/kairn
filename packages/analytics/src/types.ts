@@ -13,15 +13,15 @@
  * Tracked event types
  */
 export type TrackingEventType =
-  | 'page_view'        // Page view
-  | 'page_exit'        // Page exit (with time spent)
-  | 'scroll_depth'     // Scroll depth
-  | 'section_view'     // Section view
-  | 'section_time'     // Time spent on section
-  | 'conversion'       // Conversion event
-  | 'custom_event'     // Custom event
-  | 'session_start'    // Session start
-  | 'session_end';     // Session end
+  | 'page_view' // Page view
+  | 'page_exit' // Page exit (with time spent)
+  | 'scroll_depth' // Scroll depth
+  | 'section_view' // Section view
+  | 'section_time' // Time spent on section
+  | 'conversion' // Conversion event
+  | 'custom_event' // Custom event
+  | 'session_start' // Session start
+  | 'session_end'; // Session end
 
 /**
  * Device types
@@ -39,6 +39,7 @@ export type ConversionType =
   | 'download'
   | 'fab_click'
   | 'quick_contact_form'
+  | 'performance_issue'
   | 'custom';
 
 // ============================================
@@ -97,7 +98,7 @@ export interface PageViewEvent extends BaseTrackingEvent {
  */
 export interface PageExitEvent extends BaseTrackingEvent {
   type: 'page_exit';
-  timeOnPage: number;      // ms
+  timeOnPage: number; // ms
   scrollDepthPercent: number;
   engagementScore: number; // 0-100 based on time + scroll
 }
@@ -168,10 +169,10 @@ export interface SessionStartEvent extends BaseTrackingEvent {
  */
 export interface SessionEndEvent extends BaseTrackingEvent {
   type: 'session_end';
-  duration: number;        // ms
+  duration: number; // ms
   pageViewCount: number;
   exitPage: string;
-  bounced: boolean;        // Single page view session
+  bounced: boolean; // Single page view session
 }
 
 /**
@@ -230,20 +231,20 @@ export interface TrackingResponse {
  */
 export interface TrackerConfig {
   // Batching
-  batchSize: number;           // Number of events before sending
-  batchInterval: number;       // Max interval between sends (ms)
+  batchSize: number; // Number of events before sending
+  batchInterval: number; // Max interval between sends (ms)
 
   // Session
-  sessionTimeout: number;      // Inactivity timeout (ms)
-  sessionStorageKey: string;   // localStorage key
+  sessionTimeout: number; // Inactivity timeout (ms)
+  sessionStorageKey: string; // localStorage key
 
   // Scroll tracking
-  scrollThresholds: number[];  // Scroll thresholds to track (%)
-  scrollDebounce: number;      // Scroll debounce (ms)
+  scrollThresholds: number[]; // Scroll thresholds to track (%)
+  scrollDebounce: number; // Scroll debounce (ms)
 
   // Section tracking
   sectionVisibilityThreshold: number; // % visibility to consider "viewed"
-  sectionTimeInterval: number;        // Section time tracking interval (ms)
+  sectionTimeInterval: number; // Section time tracking interval (ms)
 
   // API
   apiEndpoint: string;
@@ -252,8 +253,8 @@ export interface TrackerConfig {
   debug: boolean;
 
   // Exclusions
-  excludedPaths: string[];     // Paths to not track
-  excludedParams: string[];    // URL params to remove
+  excludedPaths: string[]; // Paths to not track
+  excludedParams: string[]; // URL params to remove
 
   // Admin cookie name (to exclude admin users from tracking)
   adminCookieName?: string;
@@ -323,9 +324,10 @@ export function isValidTrackingEvent(event: unknown): event is TrackingEvent {
 export function generateSessionId(): string {
   const timestamp = Date.now().toString(36);
   const randomPart = Math.random().toString(36).substring(2, 11);
-  const counterPart = typeof performance !== 'undefined'
-    ? (performance.now() * 1000).toString(36).substring(0, 4)
-    : Math.random().toString(36).substring(2, 6);
+  const counterPart =
+    typeof performance !== 'undefined'
+      ? (performance.now() * 1000).toString(36).substring(0, 4)
+      : Math.random().toString(36).substring(2, 6);
 
   return `ses_${timestamp}_${randomPart}_${counterPart}`;
 }
