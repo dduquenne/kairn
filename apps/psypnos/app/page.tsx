@@ -2,24 +2,20 @@
  * Page d'accueil de Psypnos - Server Component
  *
  * Cette page utilise le Server-Side Rendering pour précharger les données
- * directement depuis la base de données via Prisma, évitant les problèmes
- * de fetch côté client sur Vercel.
+ * via les API routes internes, évitant les problèmes de fetch côté client.
  *
  * Les sections avec données dynamiques reçoivent leurs données initiales
  * en props, permettant un rendu instantané.
  */
 
-// Force dynamic rendering to ensure database queries run at request time
-// (not during build when DATABASE_URL may not be available)
+// Force dynamic rendering to ensure API calls run at request time
 export const dynamic = 'force-dynamic';
+
+import { headers } from 'next/headers';
 
 import { Footer } from '../components/Footer';
 import { NavigationMenu } from '../components/NavigationMenu';
-import {
-  getUpcomingSeminars,
-  getFeaturedBlogPosts,
-  getTestimonials,
-} from '../lib/server/data-fetchers';
+import type { SeminarData, BlogPostData, TestimonialData } from '../lib/server/data-fetchers';
 
 import { ApproachSection } from './(pages)/sections/approach';
 import { BlogSection } from './(pages)/sections/blog';
@@ -32,31 +28,58 @@ import { SeminarsSection } from './(pages)/sections/seminars';
 import { TestimonialsSection } from './(pages)/sections/testimonials';
 import { TherapySections } from './(pages)/sections/therapy';
 
-export default async function HomePage() {
-  // Prefetch all data in parallel directly from database via Prisma
-  // This is more reliable than HTTP fetch as it avoids client-side network issues
-  let seminars: Awaited<ReturnType<typeof getUpcomingSeminars>> = [];
-  let blogPosts: Awaited<ReturnType<typeof getFeaturedBlogPosts>> = [];
-  let testimonials: Awaited<ReturnType<typeof getTestimonials>> = [];
-  let ssrError: string | null = null;
+/**
+ * Fetch data from internal API routes for SSR
+ * Using internal fetch ensures we go through the same code path as client requests
+ */
+async function fetchSSRData() {
+  // Get the host from headers for internal API calls
+  const headersList = await headers();
+  const host = headersList.get('host') || 'localhost:3000';
+  const protocol = host.includes('localhost') ? 'http' : 'https';
+  const baseUrl = `${protocol}://${host}`;
+
+  // eslint-disable-next-line no-console
+  console.log('[HomePage SSR] Fetching from:', baseUrl);
 
   try {
-    [seminars, blogPosts, testimonials] = await Promise.all([
-      getUpcomingSeminars(3),
-      getFeaturedBlogPosts(3),
-      getTestimonials(10),
+    const [seminarsRes, blogRes, testimonialsRes] = await Promise.all([
+      fetch(`${baseUrl}/api/seminars?upcoming=true&limit=3`, { cache: 'no-store' }),
+      fetch(`${baseUrl}/api/blog/posts?limit=3&featuredFirst=true`, { cache: 'no-store' }),
+      fetch(`${baseUrl}/api/testimonials?limit=10`, { cache: 'no-store' }),
     ]);
+
+    const seminars = seminarsRes.ok ? await seminarsRes.json() : [];
+    const blogPosts = blogRes.ok ? await blogRes.json() : [];
+    const testimonials = testimonialsRes.ok ? await testimonialsRes.json() : [];
+
     // eslint-disable-next-line no-console
     console.log('[HomePage SSR] Data fetched:', {
       seminars: seminars.length,
       blogPosts: blogPosts.length,
       testimonials: testimonials.length,
     });
+
+    return { seminars, blogPosts, testimonials, error: null };
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('[HomePage SSR] ERROR:', error);
-    ssrError = error instanceof Error ? error.message : String(error);
+    return {
+      seminars: [],
+      blogPosts: [],
+      testimonials: [],
+      error: error instanceof Error ? error.message : String(error),
+    };
   }
+}
+
+export default async function HomePage() {
+  const { seminars, blogPosts, testimonials, error: ssrError } = await fetchSSRData();
+
+  // Type assertions to match expected interfaces
+  const seminarsData = seminars as SeminarData[];
+  const blogPostsData = blogPosts as BlogPostData[];
+  const testimonialsData = testimonials as TestimonialData[];
 
   return (
     <div className="from-night via-night/95 to-night text-ivory min-h-screen bg-gradient-to-b">
@@ -81,10 +104,10 @@ export default async function HomePage() {
         <PricingSection />
         <TherapySections />
         <RespirationSection />
-        {/* Sections avec données préchargées depuis Prisma */}
-        <SeminarsSection initialData={seminars} />
-        <BlogSection initialData={blogPosts} />
-        <TestimonialsSection initialData={testimonials} />
+        {/* Sections avec données préchargées via API routes */}
+        <SeminarsSection initialData={seminarsData} />
+        <BlogSection initialData={blogPostsData} />
+        <TestimonialsSection initialData={testimonialsData} />
         <ContactSection />
       </main>
 
