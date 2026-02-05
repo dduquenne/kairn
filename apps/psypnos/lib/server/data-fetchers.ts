@@ -8,7 +8,6 @@
  */
 
 import { Decimal } from '@prisma/client/runtime/library';
-import { unstable_noStore as noStore } from 'next/cache';
 
 import prisma from '@/lib/db/prisma';
 import { getSiteId } from '@/lib/db/site';
@@ -69,12 +68,15 @@ export interface TestimonialData {
  * Uses Prisma models with multi-tenant siteId filtering
  */
 export async function getUpcomingSeminars(limit = 3): Promise<SeminarData[]> {
-  noStore(); // Opt out of caching for fresh data
-
   // eslint-disable-next-line no-console
   console.log('[SSR] getUpcomingSeminars: Starting fetch, limit:', limit);
-  // eslint-disable-next-line no-console
-  console.log('[SSR] DATABASE_URL exists:', !!process.env.DATABASE_URL);
+
+  // Skip during build if DATABASE_URL is not available
+  if (!process.env.DATABASE_URL) {
+    // eslint-disable-next-line no-console
+    console.log('[SSR] getUpcomingSeminars: DATABASE_URL not set, returning empty');
+    return [];
+  }
 
   const siteId = await getSiteId();
   // eslint-disable-next-line no-console
@@ -117,10 +119,15 @@ export async function getUpcomingSeminars(limit = 3): Promise<SeminarData[]> {
  * Uses Prisma models with multi-tenant siteId filtering
  */
 export async function getFeaturedBlogPosts(limit = 3): Promise<BlogPostData[]> {
-  noStore(); // Opt out of caching for fresh data
-
   // eslint-disable-next-line no-console
   console.log('[SSR] getFeaturedBlogPosts: Starting fetch, limit:', limit);
+
+  // Skip during build if DATABASE_URL is not available
+  if (!process.env.DATABASE_URL) {
+    // eslint-disable-next-line no-console
+    console.log('[SSR] getFeaturedBlogPosts: DATABASE_URL not set, returning empty');
+    return [];
+  }
 
   const siteId = await getSiteId();
   // eslint-disable-next-line no-console
@@ -153,10 +160,15 @@ export async function getFeaturedBlogPosts(limit = 3): Promise<BlogPostData[]> {
  * Uses Prisma models with multi-tenant siteId filtering
  */
 export async function getTestimonials(limit = 10): Promise<TestimonialData[]> {
-  noStore(); // Opt out of caching for fresh data
-
   // eslint-disable-next-line no-console
   console.log('[SSR] getTestimonials: Starting fetch, limit:', limit);
+
+  // Skip during build if DATABASE_URL is not available
+  if (!process.env.DATABASE_URL) {
+    // eslint-disable-next-line no-console
+    console.log('[SSR] getTestimonials: DATABASE_URL not set, returning empty');
+    return [];
+  }
 
   const siteId = await getSiteId();
   // eslint-disable-next-line no-console
