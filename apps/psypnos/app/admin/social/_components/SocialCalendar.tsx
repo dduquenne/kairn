@@ -277,17 +277,17 @@ function DayCell({
     <button
       onClick={() => onDateSelect(day.date)}
       className={`
-        min-h-[60px] sm:min-h-[100px] rounded-lg border p-1 sm:p-2 text-left transition-all
+        min-h-[60px] rounded-lg border p-1 text-left transition-all sm:min-h-[100px] sm:p-2
         ${day.isCurrentMonth ? 'border-gold/10 bg-night/20' : 'bg-night/5 border-transparent'}
         ${day.isToday ? 'border-gold/40 ring-gold/30 ring-1' : ''}
-        ${isSelectedDay ? 'border-gold ring-gold/50 ring-2 bg-gold/10' : ''}
+        ${isSelectedDay ? 'border-gold ring-gold/50 bg-gold/10 ring-2' : ''}
         ${day.posts.length > 0 ? 'hover:border-gold/30 cursor-pointer' : 'hover:bg-night/30 cursor-pointer'}
       `}
     >
       <div className="flex items-start justify-between">
         <span
           className={`
-            inline-flex h-5 w-5 sm:h-7 sm:w-7 items-center justify-center rounded-full text-xs sm:text-sm
+            inline-flex h-5 w-5 items-center justify-center rounded-full text-xs sm:h-7 sm:w-7 sm:text-sm
             ${day.isToday ? 'bg-gold text-night font-bold' : ''}
             ${day.isCurrentMonth ? 'text-ivory' : 'text-ivory/30'}
           `}
@@ -295,7 +295,9 @@ function DayCell({
           {day.date.getDate()}
         </span>
         {day.posts.length > 0 && (
-          <span className="text-gold/70 text-[10px] sm:text-xs font-medium">{day.posts.length}</span>
+          <span className="text-gold/70 text-[10px] font-medium sm:text-xs">
+            {day.posts.length}
+          </span>
         )}
       </div>
 
@@ -320,21 +322,19 @@ function DayCell({
 
       {/* Mobile: Show colored dots */}
       {day.posts.length > 0 && (
-        <div className="sm:hidden flex flex-wrap gap-0.5 mt-1 justify-center">
+        <div className="mt-1 flex flex-wrap justify-center gap-0.5 sm:hidden">
           {day.posts.slice(0, 4).map(post => {
             const statusConfig = getStatusConfig(post.status);
             const bgClass = statusConfig.color.split(' ')[0];
             return (
               <span
                 key={post.id}
-                className={`w-1.5 h-1.5 rounded-full ${bgClass}`}
+                className={`h-1.5 w-1.5 rounded-full ${bgClass}`}
                 style={{ borderLeft: `2px solid ${PLATFORM_COLORS[post.platform]}` }}
               />
             );
           })}
-          {day.posts.length > 4 && (
-            <span className="text-ivory/50 text-[8px]">+</span>
-          )}
+          {day.posts.length > 4 && <span className="text-ivory/50 text-[8px]">+</span>}
         </div>
       )}
     </button>
@@ -366,14 +366,16 @@ function WeekViewCell({
         <button
           onClick={() => onDateSelect(day.date)}
           className={`
-            mb-2 flex items-center gap-3 rounded-lg p-2 transition w-full text-left
+            mb-2 flex w-full items-center gap-3 rounded-lg p-2 text-left transition
             ${day.isToday ? 'bg-gold text-night font-bold' : 'text-ivory hover:bg-gold/10'}
           `}
         >
-          <div className={`
-            text-lg font-semibold min-w-[2rem] text-center
+          <div
+            className={`
+            min-w-[2rem] text-center text-lg font-semibold
             ${day.isToday ? '' : 'text-gold'}
-          `}>
+          `}
+          >
             {day.date.getDate()}
           </div>
           <div className={`text-sm ${day.isToday ? 'opacity-80' : 'text-ivory/70'}`}>
@@ -409,7 +411,7 @@ function WeekViewCell({
                     <span className="text-xs font-medium capitalize">
                       {post.platform.toLowerCase()}
                     </span>
-                    <span className="text-xs opacity-70 ml-auto">
+                    <span className="ml-auto text-xs opacity-70">
                       {time
                         ? new Date(time).toLocaleTimeString('fr-FR', {
                             hour: '2-digit',
@@ -524,10 +526,10 @@ function DayViewTimeline({
               ${hasContent ? 'min-h-[80px]' : 'min-h-[40px] sm:min-h-[60px]'}
             `}
           >
-            <div className="text-ivory/50 border-gold/10 w-12 sm:w-16 flex-shrink-0 border-r p-1 sm:p-2 text-xs sm:text-sm">
+            <div className="text-ivory/50 border-gold/10 w-12 flex-shrink-0 border-r p-1 text-xs sm:w-16 sm:p-2 sm:text-sm">
               {hour.toString().padStart(2, '0')}:00
             </div>
-            <div className="flex flex-1 flex-col sm:flex-row sm:flex-wrap gap-2 p-2">
+            <div className="flex flex-1 flex-col gap-2 p-2 sm:flex-row sm:flex-wrap">
               {hourPosts.map(post => {
                 const statusConfig = getStatusConfig(post.status);
 
@@ -536,22 +538,29 @@ function DayViewTimeline({
                     key={post.id}
                     onClick={() => onPostSelect(post)}
                     className={`
-                      w-full sm:min-w-[200px] sm:max-w-md sm:flex-1 rounded-lg border p-2 sm:p-3 text-left transition-all
+                      w-full rounded-lg border p-2 text-left transition-all sm:min-w-[200px] sm:max-w-md sm:flex-1 sm:p-3
                       ${statusConfig.color}
                       ${selectedPostId === post.id ? 'ring-gold ring-2' : ''}
                       active:scale-[0.98] sm:hover:scale-[1.02]
                     `}
                     style={{ borderLeft: `4px solid ${PLATFORM_COLORS[post.platform]}` }}
                   >
-                    <div className="mb-1 sm:mb-2 flex items-center gap-2">
-                      <SocialPlatformIcon platform={post.platform} className="h-4 w-4 sm:h-5 sm:w-5" />
-                      <span className="text-xs sm:text-sm font-medium capitalize">
+                    <div className="mb-1 flex items-center gap-2 sm:mb-2">
+                      <SocialPlatformIcon
+                        platform={post.platform}
+                        className="h-4 w-4 sm:h-5 sm:w-5"
+                      />
+                      <span className="text-xs font-medium capitalize sm:text-sm">
                         {post.platform.toLowerCase()}
                       </span>
-                      <span className="ml-auto text-[10px] sm:text-xs opacity-70">{statusConfig.label}</span>
+                      <span className="ml-auto text-[10px] opacity-70 sm:text-xs">
+                        {statusConfig.label}
+                      </span>
                     </div>
                     {post.blogTitle && (
-                      <p className="mb-1 text-[10px] sm:text-xs opacity-70 truncate">Article: {post.blogTitle}</p>
+                      <p className="mb-1 truncate text-[10px] opacity-70 sm:text-xs">
+                        Article: {post.blogTitle}
+                      </p>
                     )}
                     <p className="line-clamp-2 text-xs sm:text-sm">{post.content}</p>
                   </button>
@@ -595,7 +604,7 @@ function SelectedDayPosts({
       <div className="border-gold/10 flex items-center justify-between border-b p-3 sm:p-4">
         <div className="flex items-center gap-2">
           <CalendarIcon className="text-gold h-4 w-4 sm:h-5 sm:w-5" />
-          <h3 className="text-ivory text-sm sm:text-base font-medium">{formattedDate}</h3>
+          <h3 className="text-ivory text-sm font-medium sm:text-base">{formattedDate}</h3>
           <span className="text-gold/70 text-xs sm:text-sm">
             ({posts.length} post{posts.length > 1 ? 's' : ''})
           </span>
@@ -612,7 +621,7 @@ function SelectedDayPosts({
         {posts.length === 0 ? (
           <p className="text-ivory/50 py-4 text-center text-sm">Aucun post pour cette journée</p>
         ) : (
-          <div className="grid gap-2 sm:gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-3">
             {posts.map(post => {
               const statusConfig = getStatusConfig(post.status);
               const StatusIcon = statusConfig.icon;
@@ -635,9 +644,9 @@ function SelectedDayPosts({
                     <span className="text-xs font-medium capitalize">
                       {post.platform.toLowerCase()}
                     </span>
-                    <StatusIcon className="h-3 w-3 ml-auto" />
+                    <StatusIcon className="ml-auto h-3 w-3" />
                   </div>
-                  <div className="mb-1 flex items-center gap-2 text-[10px] sm:text-xs opacity-70">
+                  <div className="mb-1 flex items-center gap-2 text-[10px] opacity-70 sm:text-xs">
                     <Clock className="h-3 w-3" />
                     {time
                       ? new Date(time).toLocaleTimeString('fr-FR', {
@@ -648,7 +657,7 @@ function SelectedDayPosts({
                     <span className="ml-auto">{statusConfig.label}</span>
                   </div>
                   {post.blogTitle && (
-                    <p className="mb-1 text-[10px] sm:text-xs opacity-60 truncate">
+                    <p className="mb-1 truncate text-[10px] opacity-60 sm:text-xs">
                       {post.blogTitle}
                     </p>
                   )}
@@ -722,18 +731,21 @@ export function SocialCalendar({
     setSelectedDay(null);
   }, []);
 
-  const handleDateSelect = useCallback((date: Date) => {
-    if (view === 'month') {
-      // In month view, toggle the selected day to show posts below
-      setSelectedDay(prev => {
-        if (prev && prev.getTime() === date.getTime()) {
-          return null; // Deselect if clicking the same day
-        }
-        return date;
-      });
-    }
-    onDateSelect(date);
-  }, [view, onDateSelect]);
+  const handleDateSelect = useCallback(
+    (date: Date) => {
+      if (view === 'month') {
+        // In month view, toggle the selected day to show posts below
+        setSelectedDay(prev => {
+          if (prev && prev.getTime() === date.getTime()) {
+            return null; // Deselect if clicking the same day
+          }
+          return date;
+        });
+      }
+      onDateSelect(date);
+    },
+    [view, onDateSelect]
+  );
 
   const handleViewChange = useCallback((newView: CalendarView) => {
     setView(newView);
@@ -759,15 +771,15 @@ export function SocialCalendar({
   // Shorter title for mobile
   const getMobileTitle = () => {
     if (view === 'month') {
-      return `${MONTHS[month].substring(0, 3)}. ${year}`;
+      return `${(MONTHS[month] ?? '').substring(0, 3)}. ${year}`;
     } else if (view === 'week') {
       const weekStart = weekDays[0]?.date;
       const weekEnd = weekDays[6]?.date;
       if (weekStart && weekEnd) {
-        return `${weekStart.getDate()}-${weekEnd.getDate()} ${MONTHS[weekEnd.getMonth()].substring(0, 3)}.`;
+        return `${weekStart.getDate()}-${weekEnd.getDate()} ${(MONTHS[weekEnd.getMonth()] ?? '').substring(0, 3)}.`;
       }
     } else {
-      return `${currentDate.getDate()} ${MONTHS[month].substring(0, 3)}.`;
+      return `${currentDate.getDate()} ${(MONTHS[month] ?? '').substring(0, 3)}.`;
     }
     return '';
   };
@@ -791,14 +803,17 @@ export function SocialCalendar({
   };
 
   // Check if a day is the selected day
-  const isSelectedDay = useCallback((date: Date) => {
-    if (!selectedDay) return false;
-    return (
-      date.getDate() === selectedDay.getDate() &&
-      date.getMonth() === selectedDay.getMonth() &&
-      date.getFullYear() === selectedDay.getFullYear()
-    );
-  }, [selectedDay]);
+  const isSelectedDay = useCallback(
+    (date: Date) => {
+      if (!selectedDay) return false;
+      return (
+        date.getDate() === selectedDay.getDate() &&
+        date.getMonth() === selectedDay.getMonth() &&
+        date.getFullYear() === selectedDay.getFullYear()
+      );
+    },
+    [selectedDay]
+  );
 
   return (
     <div className="space-y-3 sm:space-y-4">
@@ -810,7 +825,7 @@ export function SocialCalendar({
           <div className="flex items-center gap-1 sm:gap-3">
             <button
               onClick={() => navigate('prev')}
-              className="text-ivory/60 hover:bg-gold/10 hover:text-ivory rounded-lg p-1.5 sm:p-2 transition"
+              className="text-ivory/60 hover:bg-gold/10 hover:text-ivory rounded-lg p-1.5 transition sm:p-2"
             >
               <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
@@ -820,12 +835,14 @@ export function SocialCalendar({
               {/* Mobile title */}
               <span className="text-ivory text-sm font-semibold sm:hidden">{getMobileTitle()}</span>
               {/* Desktop title */}
-              <span className="text-ivory text-lg font-semibold hidden sm:inline">{getTitle()}</span>
+              <span className="text-ivory hidden text-lg font-semibold sm:inline">
+                {getTitle()}
+              </span>
             </div>
 
             <button
               onClick={() => navigate('next')}
-              className="text-ivory/60 hover:bg-gold/10 hover:text-ivory rounded-lg p-1.5 sm:p-2 transition"
+              className="text-ivory/60 hover:bg-gold/10 hover:text-ivory rounded-lg p-1.5 transition sm:p-2"
             >
               <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
@@ -835,14 +852,14 @@ export function SocialCalendar({
           <div className="flex items-center gap-1 sm:gap-2">
             <button
               onClick={goToToday}
-              className="border-gold/20 bg-night/30 text-ivory/70 hover:border-gold/40 hover:text-ivory rounded-lg border px-2 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm transition"
+              className="border-gold/20 bg-night/30 text-ivory/70 hover:border-gold/40 hover:text-ivory rounded-lg border px-2 py-1 text-xs transition sm:px-3 sm:py-1.5 sm:text-sm"
             >
               <span className="hidden sm:inline">Aujourd&apos;hui</span>
               <span className="sm:hidden">Ajd</span>
             </button>
 
             {/* Desktop: Full view switcher */}
-            <div className="border-gold/20 bg-night/30 hidden sm:flex rounded-lg border p-1">
+            <div className="border-gold/20 bg-night/30 hidden rounded-lg border p-1 sm:flex">
               <button
                 onClick={() => handleViewChange('month')}
                 className={`flex items-center gap-1.5 rounded px-3 py-1.5 text-sm transition ${
@@ -873,7 +890,7 @@ export function SocialCalendar({
             </div>
 
             {/* Mobile: Compact icon-only view switcher */}
-            <div className="border-gold/20 bg-night/30 flex sm:hidden rounded-lg border p-0.5">
+            <div className="border-gold/20 bg-night/30 flex rounded-lg border p-0.5 sm:hidden">
               <button
                 onClick={() => handleViewChange('month')}
                 className={`rounded p-1.5 transition ${
@@ -907,22 +924,28 @@ export function SocialCalendar({
       </div>
 
       {/* Mini Stats - More compact on mobile */}
-      <div className="flex flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm">
+      <div className="flex flex-wrap gap-2 text-xs sm:gap-4 sm:text-sm">
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <span className="bg-ivory/40 h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full" />
+          <span className="bg-ivory/40 h-1.5 w-1.5 rounded-full sm:h-2 sm:w-2" />
           <span className="text-ivory/60">{stats.total}</span>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-green-400" />
-          <span className="text-ivory/60">{stats.published} <span className="hidden sm:inline">publiés</span></span>
+          <span className="h-1.5 w-1.5 rounded-full bg-green-400 sm:h-2 sm:w-2" />
+          <span className="text-ivory/60">
+            {stats.published} <span className="hidden sm:inline">publiés</span>
+          </span>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-blue-400" />
-          <span className="text-ivory/60">{stats.scheduled} <span className="hidden sm:inline">programmés</span></span>
+          <span className="h-1.5 w-1.5 rounded-full bg-blue-400 sm:h-2 sm:w-2" />
+          <span className="text-ivory/60">
+            {stats.scheduled} <span className="hidden sm:inline">programmés</span>
+          </span>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <span className="h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full bg-amber-400" />
-          <span className="text-ivory/60">{stats.draft} <span className="hidden sm:inline">brouillons</span></span>
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-400 sm:h-2 sm:w-2" />
+          <span className="text-ivory/60">
+            {stats.draft} <span className="hidden sm:inline">brouillons</span>
+          </span>
         </div>
       </div>
 
@@ -938,9 +961,12 @@ export function SocialCalendar({
               className="p-2 sm:p-4"
             >
               {/* Days header - Mobile: Single letter, Desktop: Abbreviated */}
-              <div className="mb-1 sm:mb-2 grid grid-cols-7 gap-0.5 sm:gap-1">
+              <div className="mb-1 grid grid-cols-7 gap-0.5 sm:mb-2 sm:gap-1">
                 {DAYS_OF_WEEK.map((day, index) => (
-                  <div key={day} className="text-ivory/60 py-1 sm:py-2 text-center text-[10px] sm:text-sm font-medium">
+                  <div
+                    key={day}
+                    className="text-ivory/60 py-1 text-center text-[10px] font-medium sm:py-2 sm:text-sm"
+                  >
                     <span className="sm:hidden">{DAYS_OF_WEEK_MOBILE[index]}</span>
                     <span className="hidden sm:inline">{day}</span>
                   </div>
@@ -982,7 +1008,7 @@ export function SocialCalendar({
                 ))}
               </div>
               {/* Mobile: Vertical list */}
-              <div className="sm:hidden max-h-[500px] overflow-y-auto">
+              <div className="max-h-[500px] overflow-y-auto sm:hidden">
                 {weekDays.map((day, index) => (
                   <WeekViewCell
                     key={index}
@@ -1003,7 +1029,7 @@ export function SocialCalendar({
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 20 }}
-              className="max-h-[400px] sm:max-h-[600px] overflow-y-auto"
+              className="max-h-[400px] overflow-y-auto sm:max-h-[600px]"
             >
               <DayViewTimeline
                 date={currentDate}
@@ -1030,22 +1056,22 @@ export function SocialCalendar({
       </AnimatePresence>
 
       {/* Legend - More compact on mobile */}
-      <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm">
+      <div className="flex flex-wrap items-center gap-2 text-xs sm:gap-4 sm:text-sm">
         <span className="text-ivory/50 hidden sm:inline">Légende :</span>
         <div className="flex items-center gap-1 sm:gap-1.5">
-          <span className="h-2 w-2 sm:h-3 sm:w-3 rounded-full bg-green-500/50" />
+          <span className="h-2 w-2 rounded-full bg-green-500/50 sm:h-3 sm:w-3" />
           <span className="text-ivory/70">Publié</span>
         </div>
         <div className="flex items-center gap-1 sm:gap-1.5">
-          <span className="h-2 w-2 sm:h-3 sm:w-3 rounded-full bg-blue-500/50" />
+          <span className="h-2 w-2 rounded-full bg-blue-500/50 sm:h-3 sm:w-3" />
           <span className="text-ivory/70">Programmé</span>
         </div>
         <div className="flex items-center gap-1 sm:gap-1.5">
-          <span className="h-2 w-2 sm:h-3 sm:w-3 rounded-full bg-amber-500/50" />
+          <span className="h-2 w-2 rounded-full bg-amber-500/50 sm:h-3 sm:w-3" />
           <span className="text-ivory/70">Brouillon</span>
         </div>
         <div className="flex items-center gap-1 sm:gap-1.5">
-          <span className="h-2 w-2 sm:h-3 sm:w-3 rounded-full bg-red-500/50" />
+          <span className="h-2 w-2 rounded-full bg-red-500/50 sm:h-3 sm:w-3" />
           <span className="text-ivory/70">Échec</span>
         </div>
       </div>
