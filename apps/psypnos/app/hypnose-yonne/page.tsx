@@ -142,9 +142,12 @@ const practicalInfo = {
 };
 
 const relatedLinks = [
+  { label: 'Toutes nos thérapies', href: '/therapies' },
+  { label: 'Thérapies dans l\'Yonne', href: '/yonne' },
   { label: 'Hypnose Auxerre', href: '/hypnose-auxerre' },
   { label: 'Hypnose Sens', href: '/hypnose-sens' },
   { label: 'Hypnose Joigny', href: '/hypnose-joigny' },
+  { label: 'Hypnose Migennes', href: '/hypnose-migennes' },
   { label: 'Psychothérapie Yonne', href: '/psychotherapie-yonne' },
 ];
 
