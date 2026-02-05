@@ -1,6 +1,5 @@
 /* eslint-disable no-console, import/no-named-as-default, import/no-unresolved */
 import { PostStatus } from '@prisma/client';
-// @ts-expect-error - reading-time module has no type declarations
 import readingTime from 'reading-time';
 
 import prisma from '@/lib/db/prisma';

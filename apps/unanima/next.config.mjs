@@ -74,11 +74,6 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
 
-  // Désactiver ESLint pendant le build (géré séparément)
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-
   // Configuration des images optimisée
   images: {
     // Formats modernes avec fallback
@@ -108,6 +103,8 @@ const nextConfig = {
   // Optimisation des packages
   experimental: {
     optimizePackageImports: ['@kairn/ui'],
+    // Enable system TLS certs for Turbopack to fetch Google Fonts
+    turbopackUseSystemTlsCerts: true,
   },
 
   // Headers de sécurité et cache

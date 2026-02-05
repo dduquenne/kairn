@@ -1,25 +1,9 @@
 import { ToastProvider } from '@kairn/ui';
 import type { Metadata, Viewport } from 'next';
-import { Inter, Playfair_Display } from 'next/font/google';
 
-import { siteConfig } from '@/config/site.config';
+import { siteConfig } from '../config/site.config';
 
 import './globals.css';
-
-// Fonts configuration
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-sans',
-  weight: ['300', '400', '500', '600', '700'],
-});
-
-const playfairDisplay = Playfair_Display({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-heading',
-  weight: ['400', '500', '600', '700'],
-});
 
 // Metadata
 export const metadata: Metadata = {
@@ -117,18 +101,18 @@ function generateStructuredData() {
   };
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang={siteConfig.locale}
-      className={`${inter.variable} ${playfairDisplay.variable}`}
-      suppressHydrationWarning
-    >
+    <html lang={siteConfig.locale} suppressHydrationWarning>
       <head>
+        {/* Preconnect to Google Fonts for faster font loading */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Load fonts via stylesheet (more reliable than next/font during build) */}
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -140,12 +124,12 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-screen bg-background font-sans antialiased">
+      <body className="bg-background min-h-screen font-sans antialiased">
         <ToastProvider position="top-right">
           {/* Skip to main content for accessibility */}
           <a
             href="#main-content"
-            className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-primary focus:text-white"
+            className="focus:bg-primary sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:text-white"
           >
             Aller au contenu principal
           </a>

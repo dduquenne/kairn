@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Page d'accueil de Psypnos
  *
