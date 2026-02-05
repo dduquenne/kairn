@@ -19,8 +19,7 @@ Kairn permet de créer et gérer facilement des sites web professionnels pour ps
 ```
 kairn/
 ├── apps/                       # Sites individuels
-│   ├── psypnos/               # Site psypnos.fr
-│   └── unanima/               # Site unanima.fr
+│   └── psypnos/               # Site psypnos.fr
 │
 ├── packages/                   # Packages partagés
 │   ├── @kairn/config          # Types et schémas de configuration
