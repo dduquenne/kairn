@@ -3,9 +3,11 @@
  *
  * Implements:
  * - Rate limiting for API routes
- * - CSP with nonces for inline scripts
- * - Security headers
- * - Request logging (in development)
+ * - Security headers (additional to those in next.config.mjs)
+ *
+ * Note: CSP is handled by next.config.mjs for consistent script handling.
+ * Using nonce-based CSP in middleware requires complex integration with
+ * Next.js script rendering that can cause JavaScript hydration failures.
  */
 
 import { NextResponse } from 'next/server';
@@ -74,37 +76,6 @@ function checkRateLimit(
 
   record.count++;
   return { allowed: true, remaining: config.maxRequests - record.count, resetAt: record.resetAt };
-}
-
-/**
- * Generate a cryptographically secure nonce
- */
-function generateNonce(): string {
-  const array = new Uint8Array(16);
-  crypto.getRandomValues(array);
-  return btoa(String.fromCharCode(...array));
-}
-
-/**
- * Build CSP header with nonce
- */
-function buildCSP(nonce: string): string {
-  const directives = [
-    "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://www.google.com https://www.gstatic.com`,
-    `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
-    "img-src 'self' data: https: blob:",
-    "font-src 'self' https://fonts.gstatic.com",
-    "connect-src 'self' https://api.resend.com https://*.supabase.co https://www.google-analytics.com",
-    "frame-src 'self' https://www.google.com",
-    "frame-ancestors 'none'",
-    "form-action 'self'",
-    "base-uri 'self'",
-    "object-src 'none'",
-    'upgrade-insecure-requests',
-  ];
-
-  return directives.join('; ');
 }
 
 /**
@@ -197,19 +168,13 @@ export function middleware(request: NextRequest) {
     return response;
   }
 
-  // Generate nonce for CSP
-  const nonce = generateNonce();
-
-  // Create response with security headers
+  // For HTML pages: Don't override CSP from next.config.mjs
+  // The nonce-based CSP requires proper integration with Next.js which is complex
+  // Security headers from next.config.mjs are sufficient for HTML pages
+  // Only add additional security headers here (CSP is already set in next.config.mjs)
   const response = NextResponse.next();
 
-  // Set CSP with nonce
-  response.headers.set('Content-Security-Policy', buildCSP(nonce));
-
-  // Pass nonce to the application via header
-  response.headers.set('x-nonce', nonce);
-
-  // Additional security headers
+  // Additional security headers (CSP is handled by next.config.mjs for consistency)
   response.headers.set('X-DNS-Prefetch-Control', 'on');
   response.headers.set('X-Frame-Options', 'SAMEORIGIN');
   response.headers.set('X-Content-Type-Options', 'nosniff');
