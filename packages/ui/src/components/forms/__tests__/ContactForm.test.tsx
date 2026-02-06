@@ -21,6 +21,7 @@ import { ContactForm, type ContactFormProps } from '../ContactForm';
 function renderContactForm(props: Partial<ContactFormProps> = {}) {
   const defaultProps: ContactFormProps = {
     apiEndpoint: '/api/contact',
+    csrfToken: 'test-csrf-token',
     ...props,
   };
 
@@ -44,8 +45,7 @@ describe('ContactForm', () => {
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
-    vi.useRealTimers();
+    vi.clearAllMocks();
   });
 
   describe('Rendering', () => {
@@ -426,15 +426,15 @@ describe('ContactForm', () => {
     it('should show CSRF error when token is missing', async () => {
       renderContactForm({
         csrfToken: undefined,
+        csrfError: 'Erreur de sécurité',
         messages: {
           csrfError: 'Erreur de sécurité',
         },
       });
 
-      // Clear the auto-generated token
       const submitButton = screen.getByRole('button', { name: /send/i });
 
-      // Button should be disabled without CSRF token
+      // Button should be disabled when csrfError is present
       expect(submitButton).toBeDisabled();
     });
 

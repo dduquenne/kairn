@@ -14,6 +14,7 @@ import {
 } from 'react';
 
 import { cn } from '../../utils/cn';
+
 import type {
   FloatingContactButtonProps,
   FloatingContactButtonColors,
@@ -156,7 +157,7 @@ export function FloatingContactButton({
   const labels = { ...DEFAULT_LABELS, ...customLabels };
 
   // Hide on specified paths
-  const shouldHide = hiddenPaths.some((path) => pathname?.startsWith(path));
+  const shouldHide = hiddenPaths.some(path => pathname?.startsWith(path));
   if (shouldHide) {
     return null;
   }
@@ -182,7 +183,9 @@ export function FloatingContactButton({
     setIsModalOpen(false);
   }, []);
 
-  const iconElement: ReactNode = icon ?? <Calendar className="h-5 w-5 transition-transform group-hover:scale-110 md:h-6 md:w-6" />;
+  const iconElement: ReactNode = icon ?? (
+    <Calendar className="h-5 w-5 transition-transform group-hover:scale-110 md:h-6 md:w-6" />
+  );
 
   return (
     <>
@@ -370,10 +373,10 @@ function ContactModal({
         const value =
           e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value;
 
-        setValues((prev) => ({ ...prev, [field]: value }));
+        setValues(prev => ({ ...prev, [field]: value }));
 
         if (errors[field as keyof FormValidationErrors]) {
-          setErrors((prev) => {
+          setErrors(prev => {
             const newErrors = { ...prev };
             delete newErrors[field as keyof FormValidationErrors];
             return newErrors;
@@ -385,11 +388,11 @@ function ContactModal({
 
   const handleBlur = useCallback(
     (field: keyof FormValues) => () => {
-      setTouched((prev) => ({ ...prev, [field]: true }));
+      setTouched(prev => ({ ...prev, [field]: true }));
 
       const fieldErrors = validateForm(values, labels);
       if (fieldErrors[field as keyof FormValidationErrors]) {
-        setErrors((prev) => ({
+        setErrors(prev => ({
           ...prev,
           [field]: fieldErrors[field as keyof FormValidationErrors],
         }));
@@ -530,7 +533,11 @@ function ContactModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className={cn('fixed inset-0 z-50 backdrop-blur-sm', colors.background, 'bg-opacity-80')}
+            className={cn(
+              'fixed inset-0 z-50 backdrop-blur-sm',
+              colors.background,
+              'bg-opacity-80'
+            )}
             onClick={onClose}
             aria-hidden="true"
           />
@@ -553,11 +560,13 @@ function ContactModal({
               )}
             >
               {/* Header */}
-              <div className={cn('flex items-center justify-between border-b px-6 py-4', colors.border)}>
-                <h2
-                  id="contact-modal-title"
-                  className={cn('text-xl font-semibold', colors.text)}
-                >
+              <div
+                className={cn(
+                  'flex items-center justify-between border-b px-6 py-4',
+                  colors.border
+                )}
+              >
+                <h2 id="contact-modal-title" className={cn('text-xl font-semibold', colors.text)}>
                   {labels.modalTitle}
                 </h2>
                 <button
@@ -595,7 +604,11 @@ function ContactModal({
                         aria-describedby={errors.firstName ? 'fab-firstName-error' : undefined}
                       />
                       {touched.firstName && errors.firstName && (
-                        <p id="fab-firstName-error" className={cn('mt-1 text-sm', colors.error)} role="alert">
+                        <p
+                          id="fab-firstName-error"
+                          className={cn('mt-1 text-sm', colors.error)}
+                          role="alert"
+                        >
                           {errors.firstName}
                         </p>
                       )}
@@ -616,7 +629,11 @@ function ContactModal({
                         aria-describedby={errors.lastName ? 'fab-lastName-error' : undefined}
                       />
                       {touched.lastName && errors.lastName && (
-                        <p id="fab-lastName-error" className={cn('mt-1 text-sm', colors.error)} role="alert">
+                        <p
+                          id="fab-lastName-error"
+                          className={cn('mt-1 text-sm', colors.error)}
+                          role="alert"
+                        >
                           {errors.lastName}
                         </p>
                       )}
@@ -640,7 +657,11 @@ function ContactModal({
                       aria-describedby={errors.email ? 'fab-email-error' : undefined}
                     />
                     {touched.email && errors.email && (
-                      <p id="fab-email-error" className={cn('mt-1 text-sm', colors.error)} role="alert">
+                      <p
+                        id="fab-email-error"
+                        className={cn('mt-1 text-sm', colors.error)}
+                        role="alert"
+                      >
                         {errors.email}
                       </p>
                     )}
@@ -649,7 +670,8 @@ function ContactModal({
                   {/* Phone */}
                   <div>
                     <label htmlFor="fab-phone" className={labelClass}>
-                      {labels.phone} <span className={colors.textMuted}>{labels.phoneOptional}</span>
+                      {labels.phone}{' '}
+                      <span className={colors.textMuted}>{labels.phoneOptional}</span>
                     </label>
                     <input
                       id="fab-phone"
@@ -663,7 +685,11 @@ function ContactModal({
                       aria-describedby={errors.phone ? 'fab-phone-error' : undefined}
                     />
                     {touched.phone && errors.phone && (
-                      <p id="fab-phone-error" className={cn('mt-1 text-sm', colors.error)} role="alert">
+                      <p
+                        id="fab-phone-error"
+                        className={cn('mt-1 text-sm', colors.error)}
+                        role="alert"
+                      >
                         {errors.phone}
                       </p>
                     )}
@@ -683,14 +709,18 @@ function ContactModal({
                       aria-invalid={touched.requestType && !!errors.requestType}
                       aria-describedby={errors.requestType ? 'fab-requestType-error' : undefined}
                     >
-                      {requestTypeOptions.map((option) => (
+                      {requestTypeOptions.map(option => (
                         <option key={option.value} value={option.value}>
                           {option.label}
                         </option>
                       ))}
                     </select>
                     {touched.requestType && errors.requestType && (
-                      <p id="fab-requestType-error" className={cn('mt-1 text-sm', colors.error)} role="alert">
+                      <p
+                        id="fab-requestType-error"
+                        className={cn('mt-1 text-sm', colors.error)}
+                        role="alert"
+                      >
                         {errors.requestType}
                       </p>
                     )}
@@ -712,7 +742,11 @@ function ContactModal({
                       aria-describedby={errors.message ? 'fab-message-error' : undefined}
                     />
                     {touched.message && errors.message && (
-                      <p id="fab-message-error" className={cn('mt-1 text-sm', colors.error)} role="alert">
+                      <p
+                        id="fab-message-error"
+                        className={cn('mt-1 text-sm', colors.error)}
+                        role="alert"
+                      >
                         {errors.message}
                       </p>
                     )}
@@ -742,14 +776,21 @@ function ContactModal({
                           href={privacyPolicyUrl}
                           target="_blank"
                           rel="noreferrer noopener"
-                          className={cn('underline underline-offset-4', colors.primary.replace('bg-', 'text-'))}
+                          className={cn(
+                            'underline underline-offset-4',
+                            colors.primary.replace('bg-', 'text-')
+                          )}
                         >
                           {labels.privacyPolicyLinkText}
                         </a>{' '}
                         <span className={colors.error}>{labels.required}</span>
                       </label>
                       {touched.consent && errors.consent && (
-                        <p id="fab-consent-error" className={cn('mt-1 text-sm', colors.error)} role="alert">
+                        <p
+                          id="fab-consent-error"
+                          className={cn('mt-1 text-sm', colors.error)}
+                          role="alert"
+                        >
                           {errors.consent}
                         </p>
                       )}
@@ -795,7 +836,7 @@ function ContactModal({
               <div className={cn('border-t px-6 py-4', colors.border)}>
                 <button
                   type="submit"
-                  onClick={(e) => {
+                  onClick={e => {
                     e.preventDefault();
                     const form = modalRef.current?.querySelector('form');
                     if (form) {

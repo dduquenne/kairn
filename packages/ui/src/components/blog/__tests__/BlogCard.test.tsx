@@ -56,7 +56,7 @@ describe('BlogCard', () => {
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('Rendering', () => {

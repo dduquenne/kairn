@@ -1,29 +1,22 @@
-"use client";
+'use client';
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type FormEvent,
-  type ReactNode,
-} from "react";
-import { z } from "zod";
+import { useCallback, useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
+import { z } from 'zod';
 
-import { cn } from "../../utils/cn";
+import { cn } from '../../utils/cn';
 
-import { FormField } from "./FormField";
-import { FormSection } from "./FormSection";
-import type { FormSubmissionStatus, FormMessages, FormColors } from "./types";
-import { useFormValidation } from "./useFormValidation";
+import { FormField } from './FormField';
+import { FormSection } from './FormSection';
+import type { FormSubmissionStatus, FormMessages, FormColors } from './types';
+import { useFormValidation } from './useFormValidation';
 
 /**
  * Default contact form schema
  */
 const defaultContactSchema = z.object({
-  name: z.string().trim().min(2, "Please enter your name."),
-  email: z.string().email("Please enter a valid email address."),
-  message: z.string().trim().min(10, "Please enter a message (at least 10 characters)."),
+  name: z.string().trim().min(2, 'Please enter your name.'),
+  email: z.string().email('Please enter a valid email address.'),
+  message: z.string().trim().min(10, 'Please enter a message (at least 10 characters).'),
   honeypot: z.string().optional(),
 });
 
@@ -96,15 +89,15 @@ export interface ContactFormProps {
  * ```
  */
 export function ContactForm({
-  apiEndpoint = "/api/contact",
+  apiEndpoint = '/api/contact',
   labels = {},
   placeholders = {},
   messages = {},
   colors: _colors = {},
-  submitText = "Send",
-  loadingText = "Sending...",
+  submitText = 'Send',
+  loadingText = 'Sending...',
   privacyPolicyUrl,
-  privacyPolicyText = "privacy policy",
+  privacyPolicyText = 'privacy policy',
   csrfToken: externalCsrfToken,
   csrfLoading: externalCsrfLoading,
   csrfError: externalCsrfError,
@@ -116,7 +109,7 @@ export function ContactForm({
   children,
   onConversion,
 }: ContactFormProps) {
-  const [status, setStatus] = useState<FormSubmissionStatus>("idle");
+  const [status, setStatus] = useState<FormSubmissionStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Use external CSRF or internal state
@@ -126,27 +119,20 @@ export function ContactForm({
   const csrfError = externalCsrfError ?? null;
 
   // Form validation
-  const {
-    values,
-    handleChange,
-    handleBlur,
-    hasError,
-    getError,
-    validate,
-    reset,
-  } = useFormValidation({
-    initialValues: {
-      name: "",
-      email: "",
-      message: "",
-      honeypot: "",
-    } as DefaultContactFormValues,
-    schema: defaultContactSchema,
-  });
+  const { values, handleChange, handleBlur, hasError, getError, validate, reset } =
+    useFormValidation({
+      initialValues: {
+        name: '',
+        email: '',
+        message: '',
+        honeypot: '',
+      } as DefaultContactFormValues,
+      schema: defaultContactSchema,
+    });
 
   // Generate internal CSRF token if not provided externally
   useEffect(() => {
-    if (!externalCsrfToken && typeof window !== "undefined") {
+    if (!externalCsrfToken && typeof window !== 'undefined') {
       // Generate a simple CSRF token
       const token = crypto.randomUUID();
       setInternalCsrfToken(token);
@@ -158,39 +144,39 @@ export function ContactForm({
     async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
 
-      if (status === "pending") return;
+      if (status === 'pending') return;
 
       // Validate CSRF
       if (!csrfToken) {
-        setErrorMessage(messages.csrfError ?? "Security error. Please refresh the page.");
-        setStatus("error");
+        setErrorMessage(messages.csrfError ?? 'Security error. Please refresh the page.');
+        setStatus('error');
         return;
       }
 
       // Validate form
       const validatedData = validate();
       if (!validatedData) {
-        setStatus("error");
+        setStatus('error');
         return;
       }
 
       // Check honeypot
-      if (validatedData.honeypot && validatedData.honeypot.trim() !== "") {
+      if (validatedData.honeypot && validatedData.honeypot.trim() !== '') {
         // Bot detected - fake success
         reset();
-        setStatus("success");
+        setStatus('success');
         return;
       }
 
-      setStatus("pending");
+      setStatus('pending');
       setErrorMessage(null);
 
       try {
         const response = await fetch(apiEndpoint, {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-Token": csrfToken,
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken,
           },
           body: JSON.stringify({
             name: validatedData.name,
@@ -198,26 +184,26 @@ export function ContactForm({
             message: validatedData.message,
             csrf_token: csrfToken,
             meta: {
-              honeypot: validatedData.honeypot?.trim() ?? "",
+              honeypot: validatedData.honeypot?.trim() ?? '',
               submitted_at: new Date().toISOString(),
-              source_page: typeof window !== "undefined" ? window.location.href : "",
+              source_page: typeof window !== 'undefined' ? window.location.href : '',
             },
           }),
         });
 
         if (!response.ok) {
           const body = await response.json().catch(() => null);
-          const message = body?.message ?? messages.error ?? "An error occurred. Please try again.";
+          const message = body?.message ?? messages.error ?? 'An error occurred. Please try again.';
           throw new Error(message);
         }
 
         // Track conversion
         if (onConversion) {
-          await onConversion("contact_form", "form_submission_success");
+          await onConversion('contact_form', 'form_submission_success');
         }
 
         reset();
-        setStatus("success");
+        setStatus('success');
 
         // Refresh CSRF token
         if (refreshCsrfToken) {
@@ -232,9 +218,9 @@ export function ContactForm({
         const message =
           error instanceof Error
             ? error.message
-            : messages.error ?? "An error occurred. Please try again.";
+            : (messages.error ?? 'An error occurred. Please try again.');
         setErrorMessage(message);
-        setStatus("error");
+        setStatus('error');
 
         if (onError && error instanceof Error) {
           onError(error);
@@ -258,10 +244,10 @@ export function ContactForm({
   // Field IDs
   const fieldIds = useMemo(
     () => ({
-      name: "contact-name",
-      email: "contact-email",
-      message: "contact-message",
-      honeypot: "contact-company",
+      name: 'contact-name',
+      email: 'contact-email',
+      message: 'contact-message',
+      honeypot: 'contact-company',
     }),
     []
   );
@@ -269,20 +255,21 @@ export function ContactForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className={cn("grid gap-6", className)}
+      className={cn('grid gap-6', className)}
       noValidate
+      aria-label="Contact form"
     >
       <FormSection columns={2}>
         <FormField
           name="name"
           id={fieldIds.name}
-          label={labels.name ?? "Name"}
+          label={labels.name ?? 'Name'}
           type="text"
           value={values.name}
-          onChange={handleChange("name")}
-          onBlur={handleBlur("name")}
-          error={getError("name")}
-          touched={hasError("name")}
+          onChange={handleChange('name')}
+          onBlur={handleBlur('name')}
+          error={getError('name')}
+          touched={hasError('name')}
           placeholder={placeholders.name}
           autoComplete="name"
           required
@@ -290,13 +277,13 @@ export function ContactForm({
         <FormField
           name="email"
           id={fieldIds.email}
-          label={labels.email ?? "Email"}
+          label={labels.email ?? 'Email'}
           type="email"
           value={values.email}
-          onChange={handleChange("email")}
-          onBlur={handleBlur("email")}
-          error={getError("email")}
-          touched={hasError("email")}
+          onChange={handleChange('email')}
+          onBlur={handleBlur('email')}
+          error={getError('email')}
+          touched={hasError('email')}
           placeholder={placeholders.email}
           autoComplete="email"
           required
@@ -306,13 +293,13 @@ export function ContactForm({
       <FormField
         name="message"
         id={fieldIds.message}
-        label={labels.message ?? "Message"}
+        label={labels.message ?? 'Message'}
         type="textarea"
         value={values.message}
-        onChange={handleChange("message")}
-        onBlur={handleBlur("message")}
-        error={getError("message")}
-        touched={hasError("message")}
+        onChange={handleChange('message')}
+        onBlur={handleBlur('message')}
+        error={getError('message')}
+        touched={hasError('message')}
         placeholder={placeholders.message}
         rows={4}
         required
@@ -324,8 +311,8 @@ export function ContactForm({
         id={fieldIds.honeypot}
         label="Company"
         type="text"
-        value={values.honeypot ?? ""}
-        onChange={handleChange("honeypot")}
+        value={values.honeypot ?? ''}
+        onChange={handleChange('honeypot')}
         hidden
       />
 
@@ -335,7 +322,7 @@ export function ContactForm({
       {/* CSRF Error */}
       {csrfError && (
         <div
-          className="rounded-2xl border border-feedback-error/40 bg-feedback-error/10 p-4 text-feedback-error-foreground"
+          className="border-feedback-error/40 bg-feedback-error/10 text-feedback-error-foreground rounded-2xl border p-4"
           role="alert"
         >
           {messages.csrfError ?? `Security error: ${csrfError}. Please refresh the page.`}
@@ -343,29 +330,29 @@ export function ContactForm({
       )}
 
       {/* Status messages */}
-      {status === "pending" && (
+      {status === 'pending' && (
         <div
-          className="rounded-2xl border border-feedback-info/40 bg-feedback-info/10 p-4 text-feedback-info-foreground"
+          className="border-feedback-info/40 bg-feedback-info/10 text-feedback-info-foreground rounded-2xl border p-4"
           role="status"
           aria-live="polite"
         >
-          {messages.loading ?? "Sending... Please wait."}
+          {messages.loading ?? 'Sending... Please wait.'}
         </div>
       )}
 
-      {status === "success" && (
+      {status === 'success' && (
         <div
-          className="rounded-2xl border border-feedback-success/40 bg-feedback-success/10 p-4 text-feedback-success-foreground"
+          className="border-feedback-success/40 bg-feedback-success/10 text-feedback-success-foreground rounded-2xl border p-4"
           role="status"
           aria-live="polite"
         >
-          {messages.success ?? "Thank you! Your message has been sent successfully."}
+          {messages.success ?? 'Thank you! Your message has been sent successfully.'}
         </div>
       )}
 
-      {status === "error" && errorMessage && (
+      {status === 'error' && errorMessage && (
         <div
-          className="rounded-2xl border border-feedback-error/40 bg-feedback-error/10 p-4 text-feedback-error-foreground"
+          className="border-feedback-error/40 bg-feedback-error/10 text-feedback-error-foreground rounded-2xl border p-4"
           role="alert"
         >
           {errorMessage}
@@ -375,8 +362,8 @@ export function ContactForm({
       {/* Footer with privacy policy and submit button */}
       <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
         {privacyPolicyUrl && (
-          <p className="text-xs text-ivory/60">
-            By submitting this form, you agree to our{" "}
+          <p className="text-ivory/60 text-xs">
+            By submitting this form, you agree to our{' '}
             <a
               href={privacyPolicyUrl}
               target="_blank"
@@ -392,19 +379,18 @@ export function ContactForm({
         {submitButton ?? (
           <button
             type="submit"
-            disabled={status === "pending" || csrfLoading || !csrfToken || !!csrfError}
+            disabled={status === 'pending' || csrfLoading || !csrfToken || !!csrfError}
             className={cn(
-              "inline-flex items-center justify-center rounded-full px-6 py-3 text-base font-semibold transition",
-              "bg-gold text-night hover:bg-gold/90",
-              "focus:outline-none focus:ring-2 focus:ring-gold/60 focus:ring-offset-2 focus:ring-offset-night",
-              "disabled:cursor-not-allowed disabled:opacity-50"
+              'inline-flex items-center justify-center rounded-full px-6 py-3 text-base font-semibold transition',
+              'bg-gold text-night hover:bg-gold/90',
+              'focus:ring-gold/60 focus:ring-offset-night focus:outline-none focus:ring-2 focus:ring-offset-2',
+              'disabled:cursor-not-allowed disabled:opacity-50'
             )}
           >
-            {status === "pending" ? loadingText : submitText}
+            {status === 'pending' ? loadingText : submitText}
           </button>
         )}
       </div>
     </form>
   );
 }
-
