@@ -6,6 +6,8 @@
  *
  * Les sections avec données dynamiques reçoivent leurs données initiales
  * en props, permettant un rendu instantané.
+ *
+ * @version 2.0.0 - SSR data loading fixed
  */
 
 // Force dynamic rendering to ensure database queries run at request time
