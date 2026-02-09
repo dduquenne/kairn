@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
@@ -41,11 +42,28 @@ export function BlogSection({ initialData }: BlogSectionProps) {
   const [blogPosts, setBlogPosts] = useState<BlogPostData[]>(initialData ?? []);
   const [loading, setLoading] = useState(!initialData);
   const [hasMounted, setHasMounted] = useState(false);
+  const [imageExists, setImageExists] = useState<Record<string, boolean>>({});
 
   // Track mounting to avoid hydration mismatch
   useEffect(() => {
     setHasMounted(true);
   }, []);
+
+  // Check which blog post images exist (client-side only)
+  useEffect(() => {
+    if (!hasMounted || blogPosts.length === 0) return;
+
+    blogPosts.forEach(post => {
+      const src = post.image || `/images/blog/${post.slug}.webp`;
+      fetch(src, { method: 'HEAD' })
+        .then(res => {
+          setImageExists(prev => ({ ...prev, [post.slug]: res.ok }));
+        })
+        .catch(() => {
+          setImageExists(prev => ({ ...prev, [post.slug]: false }));
+        });
+    });
+  }, [hasMounted, blogPosts]);
 
   // Only fetch if no initialData provided
   useEffect(() => {
@@ -145,8 +163,23 @@ export function BlogSection({ initialData }: BlogSectionProps) {
 
                 <Link
                   href={`/blog/${post.slug}`}
-                  className="focus:ring-gold focus:ring-offset-night flex h-full flex-col p-6 pl-8 focus:outline-none focus:ring-2 focus:ring-offset-2"
+                  className="focus:ring-gold focus:ring-offset-night flex h-full flex-col focus:outline-none focus:ring-2 focus:ring-offset-2"
                 >
+                  {/* Vignette */}
+                  {hasMounted && imageExists[post.slug] && (
+                    <div className="relative h-48 overflow-hidden bg-night/80">
+                      <Image
+                        src={post.image || `/images/blog/${post.slug}.webp`}
+                        alt={post.title}
+                        fill
+                        unoptimized
+                        className="object-cover transition-transform group-hover:scale-105"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      />
+                    </div>
+                  )}
+
+                  <div className="flex flex-1 flex-col p-6 pl-8">
                   {/* Badge catégorie */}
                   <div className="mb-3">
                     <span
@@ -215,6 +248,7 @@ export function BlogSection({ initialData }: BlogSectionProps) {
                         d="M14 5l7 7m0 0l-7 7m7-7H3"
                       />
                     </svg>
+                  </div>
                   </div>
 
                   {/* Barre de progression au hover */}
