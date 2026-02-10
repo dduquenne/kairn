@@ -28,6 +28,7 @@ export const RATE_LIMITS: Record<string, RateLimitConfig> = {
   appointment: { maxAttempts: 5, windowMs: 60 * 1000 }, // 5 demandes/minute
   registration: { maxAttempts: 3, windowMs: 60 * 1000 }, // 3 inscriptions/minute
   assistant: { maxAttempts: 10, windowMs: 60 * 60 * 1000 }, // 10 requêtes/heure
+  chat: { maxAttempts: 20, windowMs: 60 * 60 * 1000 }, // 20 messages/heure
   improveText: { maxAttempts: 20, windowMs: 60 * 60 * 1000 }, // 20 requêtes/heure
   analytics: { maxAttempts: 100, windowMs: 60 * 1000 }, // 100 requêtes/minute
 };
