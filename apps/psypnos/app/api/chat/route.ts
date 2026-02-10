@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Type incompatibilities to fix
 import crypto from 'crypto';
 
 import Anthropic from '@anthropic-ai/sdk';
@@ -9,10 +6,17 @@ import { z } from 'zod';
 
 import { prisma } from '@/lib/db/prisma';
 
-import { PSYPNOS_STYLE_SYSTEM_PROMPT } from '../common/psypnos-system-prompt';
 import { recordAttempt, getClientIP } from '../common/rate-limiter';
 
-const anthropic = new Anthropic();
+// Validate API key at module load
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+
+function getAnthropicClient(): Anthropic {
+  if (!ANTHROPIC_API_KEY) {
+    throw new Error('ANTHROPIC_API_KEY is not configured');
+  }
+  return new Anthropic({ apiKey: ANTHROPIC_API_KEY });
+}
 
 const chatRequestSchema = z.object({
   message: z.string().min(1).max(1000),
@@ -26,18 +30,19 @@ const chatRequestSchema = z.object({
     .optional(),
 });
 
-// Chatbot-specific context layered on top of the shared Psypnos writing style
-const CHATBOT_CONTEXT = `
-## RÔLE : ASSISTANT VIRTUEL PSYPNOS
+// Chatbot-specific system prompt — focused on conversational tone, not article writing
+const SYSTEM_PROMPT = `Tu es l'assistant virtuel de Psypnos, un cabinet d'hypnothérapie et de sophrologie dirigé par David Duquenne, praticien certifié. Tu incarnes la voix de Psypnos dans un format conversationnel.
 
-Tu es l'assistant virtuel de Psypnos, un cabinet d'hypnothérapie et de sophrologie dirigé par David Duquenne, praticien certifié. Tu incarnes la voix de Psypnos dans un format conversationnel.
+## TON ET STYLE
+
+Adopte un ton calme, posé, rassurant — comme une voix intérieure qui guide sans brusquer. Sois empathique, bienveillant, encourageant et non-jugeant. Utilise le vouvoiement comme un accompagnement thérapeutique respectueux. Intègre naturellement le vocabulaire transpersonnel quand c'est pertinent (présence, conscience, transformation intérieure, écoute de soi…). Privilégie les tournures qui invitent à l'introspection : « Avez-vous remarqué… ? », « Peut-être cela vous est-il déjà arrivé… »
 
 ## INFORMATIONS SUR LE CABINET
 
 - **Nom** : Psypnos - Cabinet d'Hypnose et de Sophrologie
 - **Praticien** : David Duquenne
 - **Spécialités** : Hypnothérapie, Sophrologie, Gestion du stress, Arrêt du tabac, Perte de poids, Confiance en soi, Troubles du sommeil
-- **Localisation** : France (séances en présentiel et en visioconférence)
+- **Localisation** : Saint-Julien-du-Sault, Yonne (89) — séances en présentiel et en visioconférence
 
 ## SERVICES PROPOSÉS
 
@@ -52,7 +57,7 @@ Tu es l'assistant virtuel de Psypnos, un cabinet d'hypnothérapie et de sophrolo
 - Tarifs : Les tarifs sont consultables sur le site ou sur demande
 - Prise de RDV : Via le formulaire de contact ou par téléphone
 
-## RÈGLES DE RÉPONSE (CHATBOT)
+## RÈGLES DE RÉPONSE
 
 1. Réponds UNIQUEMENT aux questions concernant les services du cabinet, l'hypnothérapie, la sophrologie, le bien-être intérieur, ou la prise de rendez-vous.
 2. Pour toute question médicale spécifique, recommande de consulter un médecin.
@@ -60,15 +65,6 @@ Tu es l'assistant virtuel de Psypnos, un cabinet d'hypnothérapie et de sophrolo
 4. Propose de prendre rendez-vous quand c'est pertinent.
 5. Réponds en français.
 6. Garde tes réponses concises : 2-3 paragraphes maximum, adaptés au format conversationnel.
-
-## ADAPTATION DU STYLE PSYPNOS AU FORMAT CHAT
-
-- Applique le même ton apaisant, bienveillant, humaniste et encourageant que dans les articles Psypnos.
-- Utilise le vouvoiement comme un accompagnement thérapeutique respectueux.
-- Intègre naturellement le vocabulaire transpersonnel quand c'est pertinent (présence, conscience, transformation intérieure, écoute de soi…).
-- Garde la même profondeur et la même chaleur que les articles, mais dans un format plus court et conversationnel.
-- Privilégie les tournures qui invitent à l'introspection : « Avez-vous remarqué… ? », « Peut-être cela vous est-il déjà arrivé… »
-- N'utilise PAS les éléments propres aux articles longs (H2/H3, listes à puces longues, citations avec auteur, callouts, séparateurs ---). Le format est celui d'une conversation fluide.
 
 ## FORMAT DE RÉPONSE
 
@@ -84,55 +80,120 @@ IMPORTANT : À la fin de ta réponse, si une action est pertinente, ajoute sur u
 [ACTION:blog] si tu recommandes de lire un article du blog
 `;
 
-const SYSTEM_PROMPT = `${PSYPNOS_STYLE_SYSTEM_PROMPT}\n\n${CHATBOT_CONTEXT}`;
+const FALLBACK_ERROR_MESSAGE =
+  'Désolé, je rencontre des difficultés techniques. Vous pouvez nous contacter directement via le formulaire de contact.';
+
+/**
+ * Sanitize message history for Anthropic API:
+ * - Only keep 'user' and 'assistant' roles
+ * - Ensure messages alternate correctly
+ * - If alternation is broken (e.g. after a failed API call), fix it
+ */
+function sanitizeMessageHistory(
+  messages: { role: string; content: string }[]
+): Anthropic.Messages.MessageParam[] {
+  // Filter to only user/assistant roles
+  const filtered = messages.filter(m => m.role === 'user' || m.role === 'assistant');
+
+  if (filtered.length === 0) return [];
+
+  const sanitized: Anthropic.Messages.MessageParam[] = [];
+
+  for (const msg of filtered) {
+    const lastRole = sanitized.length > 0 ? sanitized[sanitized.length - 1]!.role : null;
+
+    if (lastRole === msg.role) {
+      // Two consecutive messages with same role — replace the last one to maintain alternation
+      sanitized[sanitized.length - 1] = {
+        role: msg.role as 'user' | 'assistant',
+        content: msg.content,
+      };
+    } else {
+      sanitized.push({ role: msg.role as 'user' | 'assistant', content: msg.content });
+    }
+  }
+
+  // Anthropic requires the first message to be 'user'
+  if (sanitized.length > 0 && sanitized[0]!.role === 'assistant') {
+    sanitized.shift();
+  }
+
+  return sanitized;
+}
 
 /**
  * POST /api/chat
  * Handle chat messages with Claude
  */
 export async function POST(request: Request) {
+  // Check API key availability early
+  if (!ANTHROPIC_API_KEY) {
+    console.error('[Chat] ANTHROPIC_API_KEY is not configured');
+    return NextResponse.json(
+      {
+        error: 'service_unavailable',
+        message: FALLBACK_ERROR_MESSAGE,
+        suggestedActions: [{ type: 'contact', label: 'Nous contacter', url: '/contact' }],
+      },
+      { status: 503 }
+    );
+  }
+
   // Rate limiting
   const clientIP = getClientIP(request);
   const rateLimitResult = recordAttempt('chat', clientIP);
 
   if (rateLimitResult.limited) {
+    const retryAfter = Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000);
     return NextResponse.json(
       {
+        error: 'rate_limited',
         message: 'Vous avez envoyé trop de messages. Veuillez patienter quelques instants.',
-        retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000),
+        retryAfter,
       },
       { status: 429 }
     );
   }
 
+  // Parse and validate request
+  let body: unknown;
   try {
-    const body = await request.json();
-    const parsed = chatRequestSchema.safeParse(body);
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      { error: 'invalid_json', message: 'Requête invalide' },
+      { status: 400 }
+    );
+  }
 
-    if (!parsed.success) {
-      return NextResponse.json({ error: 'Message invalide' }, { status: 400 });
-    }
+  const parsed = chatRequestSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: 'validation_error', message: 'Message invalide' },
+      { status: 400 }
+    );
+  }
 
-    const { message, conversationId: existingConversationId, sessionId, context } = parsed.data;
+  const { message, conversationId: existingConversationId, sessionId, context } = parsed.data;
 
-    // Get or create conversation
-    let conversation;
-    let conversationId = existingConversationId;
+  // Get or create conversation
+  let conversation;
+  let conversationId = existingConversationId;
 
+  try {
     if (conversationId) {
       conversation = await prisma.chatConversation.findUnique({
         where: { id: conversationId },
         include: {
           messages: {
             orderBy: { createdAt: 'asc' },
-            take: 10, // Last 10 messages for context
+            take: 10,
           },
         },
       });
     }
 
     if (!conversation) {
-      // Create new conversation
       const ipHash = crypto.createHash('sha256').update(clientIP).digest('hex').slice(0, 16);
       conversation = await prisma.chatConversation.create({
         data: {
@@ -144,8 +205,20 @@ export async function POST(request: Request) {
       });
       conversationId = conversation.id;
     }
+  } catch (dbError) {
+    console.error('[Chat] Database error (conversation):', dbError);
+    return NextResponse.json(
+      {
+        error: 'database_error',
+        message: FALLBACK_ERROR_MESSAGE,
+        suggestedActions: [{ type: 'contact', label: 'Nous contacter', url: '/contact' }],
+      },
+      { status: 500 }
+    );
+  }
 
-    // Store user message
+  // Store user message
+  try {
     await prisma.chatMessage.create({
       data: {
         conversationId: conversation.id,
@@ -153,20 +226,33 @@ export async function POST(request: Request) {
         content: message,
       },
     });
+  } catch (dbError) {
+    console.error('[Chat] Database error (store user message):', dbError);
+    return NextResponse.json(
+      {
+        error: 'database_error',
+        message: FALLBACK_ERROR_MESSAGE,
+        conversationId,
+        suggestedActions: [{ type: 'contact', label: 'Nous contacter', url: '/contact' }],
+      },
+      { status: 500 }
+    );
+  }
 
-    // Build message history for Claude
-    const messageHistory: Anthropic.Messages.MessageParam[] = conversation.messages.map(msg => ({
-      role: msg.role as 'user' | 'assistant',
-      content: msg.content,
-    }));
+  // Build and sanitize message history for Claude
+  const rawHistory = [
+    ...conversation.messages.map(msg => ({ role: msg.role, content: msg.content })),
+    { role: 'user', content: message },
+  ];
+  const messageHistory = sanitizeMessageHistory(rawHistory);
 
-    // Add current message
-    messageHistory.push({
-      role: 'user',
-      content: message,
-    });
+  // Call Claude API
+  let responseText: string;
+  let tokensUsed: number | undefined;
+  let processingTime: number;
 
-    // Call Claude
+  try {
+    const anthropic = getAnthropicClient();
     const startTime = Date.now();
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-5-20250929',
@@ -175,81 +261,110 @@ export async function POST(request: Request) {
       system: SYSTEM_PROMPT,
       messages: messageHistory,
     });
+    processingTime = Date.now() - startTime;
 
-    const processingTime = Date.now() - startTime;
-
-    // Extract response text
     const assistantContent = response.content[0];
-    let responseText = assistantContent.type === 'text' ? assistantContent.text : '';
+    responseText = assistantContent?.type === 'text' ? assistantContent.text : '';
+    tokensUsed = response.usage
+      ? response.usage.input_tokens + response.usage.output_tokens
+      : undefined;
+  } catch (apiError) {
+    console.error('[Chat] Anthropic API error:', apiError);
+    processingTime = 0;
 
-    // Parse suggested actions from response
-    const suggestedActions: { type: string; label: string; url?: string }[] = [];
-    const actionMatches = responseText.matchAll(/\[ACTION:(\w+)\]/g);
-
-    for (const match of actionMatches) {
-      const actionType = match[1];
-      switch (actionType) {
-        case 'appointment':
-          suggestedActions.push({
-            type: 'appointment',
-            label: 'Prendre rendez-vous',
-            url: '/contact',
-          });
-          break;
-        case 'contact':
-          suggestedActions.push({
-            type: 'contact',
-            label: 'Nous contacter',
-            url: '/contact',
-          });
-          break;
-        case 'blog':
-          suggestedActions.push({
-            type: 'link',
-            label: 'Voir nos articles',
-            url: '/blog',
-          });
-          break;
-      }
+    // CRITICAL FIX: Store a fallback assistant message in DB to maintain message alternation.
+    // Without this, the next request would have two consecutive 'user' messages,
+    // which permanently breaks the conversation.
+    responseText = FALLBACK_ERROR_MESSAGE;
+    try {
+      await prisma.chatMessage.create({
+        data: {
+          conversationId: conversation.id,
+          role: 'assistant',
+          content: responseText,
+          processingTime: 0,
+        },
+      });
+      await prisma.chatConversation.update({
+        where: { id: conversation.id },
+        data: { messageCount: { increment: 2 } },
+      });
+    } catch (dbError) {
+      console.error('[Chat] Failed to store fallback assistant message:', dbError);
     }
 
-    // Remove action tags from response
-    responseText = responseText.replace(/\[ACTION:\w+\]/g, '').trim();
+    return NextResponse.json(
+      {
+        error: 'ai_error',
+        message: responseText,
+        conversationId,
+        suggestedActions: [{ type: 'contact', label: 'Nous contacter', url: '/contact' }],
+      },
+      { status: 502 }
+    );
+  }
 
-    // Store assistant message
+  // Parse suggested actions from response
+  const suggestedActions: { type: string; label: string; url?: string }[] = [];
+  const actionMatches = responseText.matchAll(/\[ACTION:(\w+)\]/g);
+
+  for (const match of actionMatches) {
+    const actionType = match[1];
+    switch (actionType) {
+      case 'appointment':
+        suggestedActions.push({
+          type: 'appointment',
+          label: 'Prendre rendez-vous',
+          url: '/contact',
+        });
+        break;
+      case 'contact':
+        suggestedActions.push({
+          type: 'contact',
+          label: 'Nous contacter',
+          url: '/contact',
+        });
+        break;
+      case 'blog':
+        suggestedActions.push({
+          type: 'link',
+          label: 'Voir nos articles',
+          url: '/blog',
+        });
+        break;
+    }
+  }
+
+  // Remove action tags from response
+  responseText = responseText.replace(/\[ACTION:\w+\]/g, '').trim();
+
+  // Store assistant message and update conversation
+  try {
     await prisma.chatMessage.create({
       data: {
         conversationId: conversation.id,
         role: 'assistant',
         content: responseText,
-        tokensUsed: response.usage?.input_tokens + response.usage?.output_tokens,
+        tokensUsed,
         processingTime,
         suggestedActions: suggestedActions.length > 0 ? suggestedActions : undefined,
       },
     });
 
-    // Update conversation
     await prisma.chatConversation.update({
       where: { id: conversation.id },
       data: {
         messageCount: { increment: 2 },
-        updatedAt: new Date(),
       },
     });
-
-    return NextResponse.json({
-      message: responseText,
-      conversationId,
-      suggestedActions,
-    });
-  } catch (error) {
-    console.error('Chat error:', error);
-
-    // Return a friendly error message
-    return NextResponse.json({
-      message:
-        'Désolé, je rencontre des difficultés techniques. Vous pouvez nous contacter directement via le formulaire de contact.',
-      suggestedActions: [{ type: 'contact', label: 'Nous contacter', url: '/contact' }],
-    });
+  } catch (dbError) {
+    // Non-fatal: response was generated successfully, just DB storage failed
+    console.error('[Chat] Database error (store assistant message):', dbError);
   }
+
+  return NextResponse.json({
+    message: responseText,
+    conversationId,
+    suggestedActions,
+  });
 }

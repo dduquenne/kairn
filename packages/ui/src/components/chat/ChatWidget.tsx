@@ -158,32 +158,45 @@ export function ChatWidget({
           }),
         });
 
-        if (!response.ok) {
-          throw new Error('Failed to send message');
-        }
-
         const data = await response.json();
 
-        // Update conversation ID
+        // Update conversation ID from any response (success or error)
         if (data.conversationId) {
           setConversationId(data.conversationId);
         }
 
-        const assistantMessage: ChatMessage = {
-          id: `assistant-${Date.now()}`,
-          role: 'assistant',
-          content: data.message,
-          timestamp: new Date(),
-          suggestedActions: data.suggestedActions,
-        };
+        // Handle error responses that still contain a displayable message
+        if (!response.ok) {
+          const errorMessage: ChatMessage = {
+            id: `error-${Date.now()}`,
+            role: 'assistant',
+            content:
+              data.message ||
+              'Désolé, une erreur est survenue. Veuillez réessayer ou nous contacter directement.',
+            timestamp: new Date(),
+            suggestedActions: data.suggestedActions || [
+              { type: 'contact', label: 'Nous contacter', url: contactUrl },
+            ],
+          };
+          setMessages(prev => [...prev, errorMessage]);
+        } else {
+          const assistantMessage: ChatMessage = {
+            id: `assistant-${Date.now()}`,
+            role: 'assistant',
+            content: data.message,
+            timestamp: new Date(),
+            suggestedActions: data.suggestedActions,
+          };
 
-        setMessages(prev => [...prev, assistantMessage]);
+          setMessages(prev => [...prev, assistantMessage]);
 
-        // Show feedback after a few exchanges
-        if (messages.length >= 4 && !showFeedback) {
-          setShowFeedback(true);
+          // Show feedback after a few exchanges
+          if (messages.length >= 4 && !showFeedback) {
+            setShowFeedback(true);
+          }
         }
       } catch (error) {
+        // Network error — fetch itself failed (offline, DNS, etc.)
         console.error('Chat error:', error);
         setMessages(prev => [
           ...prev,
@@ -191,7 +204,7 @@ export function ChatWidget({
             id: `error-${Date.now()}`,
             role: 'assistant',
             content:
-              'Désolé, une erreur est survenue. Veuillez réessayer ou nous contacter directement.',
+              'Désolé, une erreur de connexion est survenue. Vérifiez votre connexion internet et réessayez.',
             timestamp: new Date(),
             suggestedActions: [{ type: 'contact', label: 'Nous contacter', url: contactUrl }],
           },
