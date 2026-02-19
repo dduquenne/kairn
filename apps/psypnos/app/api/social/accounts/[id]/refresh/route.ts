@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * API pour rafraîchir le token d'un compte social
  *
@@ -43,7 +40,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     if (account.platform === 'FACEBOOK' || account.platform === 'INSTAGRAM') {
       return NextResponse.json({
         success: true,
-        message: 'Les tokens de page Facebook/Instagram n\'expirent pas',
+        message: "Les tokens de page Facebook/Instagram n'expirent pas",
         needsRefresh: false,
       });
     }

@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * Spécifications des plateformes pour la génération de contenu
  *
@@ -66,7 +63,7 @@ export const PLATFORM_GENERATION_SPECS: Record<SocialPlatform, PlatformGeneratio
       'Accroche émotionnelle ou question',
       'Contexte bref (1-2 phrases)',
       'Bénéfice ou insight clé',
-      'Appel à l\'action direct avec lien',
+      "Appel à l'action direct avec lien",
       '1-2 hashtags discrets',
     ],
 
@@ -83,8 +80,8 @@ export const PLATFORM_GENERATION_SPECS: Record<SocialPlatform, PlatformGeneratio
     tips: [
       'Commencer par une question ou une émotion',
       'Utiliser le "vous" pour créer de la proximité',
-      'Inclure le lien vers l\'article',
-      'Les posts avec images génèrent plus d\'engagement',
+      "Inclure le lien vers l'article",
+      "Les posts avec images génèrent plus d'engagement",
       'Horaires optimaux : 9h-10h et 13h-14h en semaine',
     ],
 
@@ -114,14 +111,14 @@ Dans ce nouvel article, je vous partage 3 clés pour transformer votre relation 
     maxLength: 400,
 
     tone: 'professionnel et expert',
-    style: 'informatif avec une touche personnelle, positionnement d\'expert',
+    style: "informatif avec une touche personnelle, positionnement d'expert",
 
     structure: [
       'Hook percutant (première ligne visible)',
       'Saut de ligne',
       'Développement en paragraphes courts (2-3 lignes max)',
       'Liste à puces si pertinent (3-5 points)',
-      'Question d\'engagement',
+      "Question d'engagement",
       '---',
       '3-5 hashtags professionnels',
       '[Lien en premier commentaire]',
@@ -148,7 +145,7 @@ Dans ce nouvel article, je vous partage 3 clés pour transformer votre relation 
 
     avoid: [
       'Textes en bloc sans aération',
-      'Trop d\'émojis',
+      "Trop d'émojis",
       'Ton trop décontracté',
       'Lien direct dans le post (réduit la portée)',
     ],
@@ -189,7 +186,7 @@ Quel signal vous parle le plus ?
       'Première ligne captivante (visible avant "...plus")',
       'Saut de ligne',
       'Corps du texte avec sauts de ligne fréquents',
-      'Appel à l\'action (sauvegarder, commenter)',
+      "Appel à l'action (sauvegarder, commenter)",
       '"Lien en bio" si pertinent',
       '.',
       '.',
@@ -221,7 +218,7 @@ Quel signal vous parle le plus ?
       'Texte en bloc sans aération',
       'Mettre des liens (ils ne sont pas cliquables)',
       'Trop de hashtags non pertinents',
-      'Oublier l\'appel à l\'action',
+      "Oublier l'appel à l'action",
     ],
 
     exampleStructure: `Le silence de la méditation vous effraie ? C'est normal. ✨
@@ -254,11 +251,7 @@ Un voyage intérieur actif et guidé.
     tone: 'concis et percutant',
     style: 'direct, informatif, parfois provocateur',
 
-    structure: [
-      'Message principal concis',
-      'Lien vers l\'article',
-      '1-2 hashtags',
-    ],
+    structure: ['Message principal concis', "Lien vers l'article", '1-2 hashtags'],
 
     minHashtags: 0,
     optimalHashtags: 2,
@@ -273,13 +266,10 @@ Un voyage intérieur actif et guidé.
     tips: [
       'Aller droit au but',
       'Utiliser des threads pour développer',
-      'Les visuels augmentent l\'engagement',
+      "Les visuels augmentent l'engagement",
     ],
 
-    avoid: [
-      'Dépasser 280 caractères',
-      'Trop de hashtags',
-    ],
+    avoid: ['Dépasser 280 caractères', 'Trop de hashtags'],
 
     exampleStructure: `L'hypnose ericksonienne n'est pas ce que vous croyez.
 
@@ -329,12 +319,12 @@ Découvrez comment dans ce nouvel article 👇
       'Finir sur une note ouverte ou suspendue',
       'Le silence et les pauses sont des forces',
       'Phrases courtes. Rythme haché. Respiration.',
-      'L\'imperfection est plus authentique que le poli',
+      "L'imperfection est plus authentique que le poli",
     ],
 
     avoid: [
       'Posts trop longs (garder sous 200 caractères)',
-      'Appels à l\'action explicites (découvrez, cliquez, lien en bio)',
+      "Appels à l'action explicites (découvrez, cliquez, lien en bio)",
       'Hashtags (0-1 max, et seulement si vraiment pertinent)',
       'Ton corporate, marketing ou promotionnel',
       'Listes à puces ou formatage élaboré',
@@ -365,35 +355,40 @@ export const CONTENT_TONES: Record<ContentTone, ToneSpec> = {
     name: 'Informatif',
     description: 'Factuel et éducatif, partage de connaissances',
     keywords: ['savoir', 'comprendre', 'découvrir', 'apprendre'],
-    promptInstructions: 'Adopte un ton informatif et éducatif. Partage des connaissances de manière claire et accessible. Utilise des faits et des explications.',
+    promptInstructions:
+      'Adopte un ton informatif et éducatif. Partage des connaissances de manière claire et accessible. Utilise des faits et des explications.',
   },
   inspirant: {
     id: 'inspirant',
     name: 'Inspirant',
-    description: 'Motivant et encourageant, suscite l\'espoir',
+    description: "Motivant et encourageant, suscite l'espoir",
     keywords: ['possible', 'transformer', 'grandir', 'potentiel'],
-    promptInstructions: 'Adopte un ton inspirant et motivant. Suscite l\'espoir et l\'envie de changement. Utilise des formulations positives et encourageantes.',
+    promptInstructions:
+      "Adopte un ton inspirant et motivant. Suscite l'espoir et l'envie de changement. Utilise des formulations positives et encourageantes.",
   },
   promotionnel: {
     id: 'promotionnel',
     name: 'Promotionnel',
     description: 'Met en avant les services et bénéfices',
     keywords: ['découvrir', 'bénéficier', 'profiter', 'rdv'],
-    promptInstructions: 'Adopte un ton promotionnel mais subtil. Met en avant les bénéfices sans être trop commercial. Inclus un appel à l\'action clair.',
+    promptInstructions:
+      "Adopte un ton promotionnel mais subtil. Met en avant les bénéfices sans être trop commercial. Inclus un appel à l'action clair.",
   },
   educatif: {
     id: 'educatif',
     name: 'Éducatif',
     description: 'Pédagogique, vulgarisation de concepts',
     keywords: ['expliquer', 'définir', 'illustrer', 'démontrer'],
-    promptInstructions: 'Adopte un ton pédagogique. Vulgarise les concepts sans les simplifier à l\'excès. Utilise des exemples concrets.',
+    promptInstructions:
+      "Adopte un ton pédagogique. Vulgarise les concepts sans les simplifier à l'excès. Utilise des exemples concrets.",
   },
   personnel: {
     id: 'personnel',
     name: 'Personnel',
-    description: 'Partage d\'expérience, témoignage',
-    keywords: ['j\'ai', 'mon expérience', 'je remarque', 'personnellement'],
-    promptInstructions: 'Adopte un ton personnel et authentique. Partage depuis ton expérience de praticien. Crée une connexion humaine.',
+    description: "Partage d'expérience, témoignage",
+    keywords: ["j'ai", 'mon expérience', 'je remarque', 'personnellement'],
+    promptInstructions:
+      'Adopte un ton personnel et authentique. Partage depuis ton expérience de praticien. Crée une connexion humaine.',
   },
 };
 
@@ -415,34 +410,39 @@ export const CONTENT_ANGLES: Record<ContentAngle, AngleSpec> = {
     name: 'Bénéfices',
     description: 'Focus sur les avantages et résultats',
     focusPoints: ['résultats', 'transformation', 'amélioration', 'gain'],
-    promptInstructions: 'Concentre-toi sur les bénéfices concrets pour le lecteur. Qu\'est-ce qu\'il va gagner ? Comment sa vie peut s\'améliorer ?',
+    promptInstructions:
+      "Concentre-toi sur les bénéfices concrets pour le lecteur. Qu'est-ce qu'il va gagner ? Comment sa vie peut s'améliorer ?",
   },
   probleme: {
     id: 'probleme',
     name: 'Problème',
     description: 'Identification du problème et solution',
     focusPoints: ['difficulté', 'défi', 'obstacle', 'solution'],
-    promptInstructions: 'Commence par identifier un problème ou une difficulté commune. Montre que tu comprends, puis présente la solution apportée par l\'article.',
+    promptInstructions:
+      "Commence par identifier un problème ou une difficulté commune. Montre que tu comprends, puis présente la solution apportée par l'article.",
   },
   histoire: {
     id: 'histoire',
     name: 'Histoire',
     description: 'Approche narrative et storytelling',
     focusPoints: ['récit', 'parcours', 'transformation', 'témoignage'],
-    promptInstructions: 'Utilise une approche narrative. Raconte une histoire ou un parcours. Engage émotionnellement le lecteur.',
+    promptInstructions:
+      'Utilise une approche narrative. Raconte une histoire ou un parcours. Engage émotionnellement le lecteur.',
   },
   expert: {
     id: 'expert',
     name: 'Expert',
     description: 'Point de vue professionnel et expertise',
     focusPoints: ['expertise', 'expérience', 'observation', 'conseil'],
-    promptInstructions: 'Positionne-toi en expert du domaine. Partage des insights professionnels. Apporte de la valeur par ton expertise.',
+    promptInstructions:
+      'Positionne-toi en expert du domaine. Partage des insights professionnels. Apporte de la valeur par ton expertise.',
   },
   pratique: {
     id: 'pratique',
     name: 'Pratique',
     description: 'Conseils concrets et applicables',
     focusPoints: ['conseils', 'astuces', 'étapes', 'méthode'],
-    promptInstructions: 'Donne des conseils pratiques et applicables immédiatement. Liste des actions concrètes. Sois utile et actionnable.',
+    promptInstructions:
+      'Donne des conseils pratiques et applicables immédiatement. Liste des actions concrètes. Sois utile et actionnable.',
   },
 };

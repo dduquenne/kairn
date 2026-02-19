@@ -17,6 +17,7 @@
 6. [Anomalies détectées](#6-anomalies-détectées)
 7. [Variables d'environnement requises](#7-variables-denvironnement-requises)
 8. [Scripts de migration disponibles](#8-scripts-de-migration-disponibles)
+9. [Phase 4 — Infrastructure réseaux sociaux](#12-phase-4--infrastructure-réseaux-sociaux)
 
 ---
 
@@ -906,9 +907,141 @@ Le script `migrate-blogpostextended-to-blogpost.ts` avait un site ID hardcodé (
 
 ---
 
+## 12. Phase 4 — Infrastructure réseaux sociaux
+
+### 12.1 Problème identifié
+
+L'ensemble de l'infrastructure réseaux sociaux (41 fichiers) était désactivé par des directives `@ts-nocheck` empêchant toute vérification TypeScript. L'analyse a révélé que la cause racine était un **décalage majeur entre le schéma Prisma et le code applicatif** : 15+ champs manquants, renommés ou mal typés.
+
+### 12.2 Corrections du schéma Prisma (`packages/db/prisma/schema.prisma`)
+
+#### Modèle `SocialAccount` (5 corrections)
+
+| Champ Prisma (avant)               | Champ applicatif (attendu)        | Action     |
+| ---------------------------------- | --------------------------------- | ---------- |
+| `platformId`                       | `accountId`                       | Renommé    |
+| `tokenExpiresAt`                   | `tokenExpiry`                     | Renommé    |
+| _(absent)_                         | `scope String[]`                  | Ajouté     |
+| _(absent)_                         | `lastUsed DateTime?`              | Ajouté     |
+| `@@unique([platform, platformId])` | `@@unique([platform, accountId])` | Mis à jour |
+
+#### Enum `SocialPostStatus` (1 correction)
+
+| Valeur manquante | Action |
+| ---------------- | ------ |
+| `CANCELLED`      | Ajouté |
+
+#### Modèle `SocialPost` (7 corrections)
+
+| Champ Prisma (avant) | Champ applicatif (attendu) | Action  |
+| -------------------- | -------------------------- | ------- |
+| _(absent)_           | `hashtags String[]`        | Ajouté  |
+| _(absent)_           | `linkUrl String?`          | Ajouté  |
+| `externalUrl`        | `platformUrl`              | Renommé |
+| _(absent)_           | `generatedBy String?`      | Ajouté  |
+| _(absent)_           | `aiPrompt String?`         | Ajouté  |
+| _(absent)_           | `aiModel String?`          | Ajouté  |
+| _(absent)_           | `metadata Json?`           | Ajouté  |
+
+#### Modèle `SocialPostAnalytics` (1 correction)
+
+| Champ Prisma (avant) | Champ applicatif (attendu) | Action  |
+| -------------------- | -------------------------- | ------- |
+| `lastSyncAt`         | `fetchedAt`                | Renommé |
+
+#### Modèles ajoutés (2 nouveaux)
+
+| Modèle                | Champs principaux                                                              |
+| --------------------- | ------------------------------------------------------------------------------ |
+| `SocialTemplate`      | `name`, `platform`, `promptTemplate`, `defaultTone`, `defaultHashtags`, etc.   |
+| `SocialGenerationLog` | `blogSlug`, `platform`, `inputContent`, `promptUsed`, `generatedContent`, etc. |
+
+**Validation** : `prisma validate` → schéma valide, `prisma generate` → client régénéré sans erreur.
+
+### 12.3 Configuration Vercel Cron (`apps/psypnos/vercel.json`)
+
+10 cron jobs ajoutés pour l'automatisation des réseaux sociaux :
+
+| Chemin API                         | Fréquence      | Description                     |
+| ---------------------------------- | -------------- | ------------------------------- |
+| `/api/cron/social-publish`         | `*/5 * * * *`  | Publication automatique (5 min) |
+| `/api/cron/fetch-social-analytics` | `0 */4 * * *`  | Récupération analytics (4h)     |
+| `/api/cron/refresh-tokens`         | `0 * * * *`    | Rafraîchissement tokens (1h)    |
+| `/api/cron/daily-report`           | `0 8 * * *`    | Rapport quotidien (8h)          |
+| `/api/cron/weekly-report`          | `0 9 * * 1`    | Rapport hebdomadaire (lundi 9h) |
+| `/api/cron/process-reports`        | `45 * * * *`   | Traitement des rapports         |
+| `/api/cron/cleanup-data`           | `0 3 * * *`    | Nettoyage données (3h)          |
+| `/api/cron/cleanup-jobs`           | `0 4 * * *`    | Nettoyage jobs (4h)             |
+| `/api/cron/aggregate`              | `30 * * * *`   | Agrégation des données          |
+| `/api/cron/check-alerts`           | `*/15 * * * *` | Vérification alertes (15 min)   |
+
+### 12.4 Suppression des `@ts-nocheck` (41 fichiers)
+
+| Répertoire                     | Fichiers nettoyés |
+| ------------------------------ | ----------------- |
+| `apps/psypnos/lib/social/`     | 21                |
+| `apps/psypnos/app/api/social/` | 17                |
+| `apps/psypnos/app/api/cron/`   | 3                 |
+| **Total**                      | **41**            |
+
+### 12.5 Corrections TypeScript (40 erreurs corrigées)
+
+| Catégorie                                  | Occurrences | Correction                                       |
+| ------------------------------------------ | ----------- | ------------------------------------------------ |
+| `metadata` null vs undefined               | 3           | Cast `as Record<string, unknown> \| undefined`   |
+| Accès tableau possiblement undefined       | 6           | Guard `if (!page)` + non-null assertion `!`      |
+| `expiresIn` possiblement undefined         | 4           | Valeurs par défaut (`\|\| 3600`, `\|\| 5184000`) |
+| `scope` type string vs string[]            | 2           | `Array.isArray()` + fallback `.split(' ')`       |
+| `getAnalytics` méthode optionnelle         | 2           | Guard null avant appel                           |
+| Propriétés AnalyticsResult                 | 10          | Accès via `result.data?.property \|\| 0`         |
+| `platforms[0]` possiblement undefined      | 2           | Non-null assertion (longueur vérifiée en amont)  |
+| `retryableErrors` absent de RetryConfig    | 2           | Tableau local avec patterns d'erreurs            |
+| Sélection format/prompt possiblement undef | 9           | Non-null assertions + valeurs de fallback        |
+
+**Fichiers modifiés** (11) :
+
+- `app/api/cron/social-publish/route.ts`
+- `app/api/social/auth/callback/route.ts`
+- `app/api/social/posts/[id]/publish/route.ts`
+- `lib/social/analytics.ts`
+- `lib/social/generation.ts`
+- `lib/social/oauth/refresh.ts`
+- `lib/social/prompts/facebook-specs.ts`
+- `lib/social/prompts/instagram-specs.ts`
+- `lib/social/prompts/linkedin-specs.ts`
+- `lib/social/prompts/threads-specs.ts`
+- `app/api/social/generate-seminar/route.ts`
+
+### 12.6 Vérification de compilation
+
+```
+Résultat final : 0 erreur dans les fichiers sociaux
+(4 erreurs pré-existantes dans les fichiers de test auth-flow.test.ts / blog-flow.test.ts — hors périmètre)
+```
+
+### 12.7 Architecture OAuth vérifiée
+
+| Plateforme | Flow OAuth        | Expiration token   | Stratégie de refresh             |
+| ---------- | ----------------- | ------------------ | -------------------------------- |
+| Facebook   | OAuth 2.0         | Page Token: jamais | Aucun refresh nécessaire         |
+| Instagram  | Via Facebook      | Page Token: jamais | Aucun refresh nécessaire         |
+| LinkedIn   | OpenID Connect    | 60 jours           | Refresh token automatique (cron) |
+| Threads    | OAuth 2.0 (Graph) | 60 jours           | Long-lived token exchange        |
+| Twitter/X  | OAuth 2.0 + PKCE  | 2 heures           | Refresh token automatique        |
+
+### 12.8 Chiffrement des tokens
+
+- Algorithme : **AES-256-GCM**
+- Format stocké : `{IV}:{AUTH_TAG}:{CIPHERTEXT}`
+- Variable requise : `SOCIAL_ENCRYPTION_KEY` (32 octets hex)
+
+---
+
 ## Conclusion
 
-L'audit, la vérification de compatibilité des URLs et la migration des données confirment une **compatibilité totale et une migration sans erreur** :
+L'audit, la vérification de compatibilité des URLs, la migration des données et la mise en place de l'infrastructure réseaux sociaux confirment une **compatibilité totale et une migration sans erreur** :
+
+**Phases 1-3 (Audit, URLs, Données) :**
 
 - **25/25** pages statiques publiques vérifiées
 - **62/62** slugs d'articles publiés compatibles (aucun doublon, aucun caractère spécial)
@@ -921,6 +1054,15 @@ L'audit, la vérification de compatibilité des URLs et la migration des donnée
 - **5/5** témoignages migrés
 - **Idempotence confirmée** : aucun doublon lors des ré-exécutions
 
+**Phase 4 (Infrastructure réseaux sociaux) :**
+
+- **15+** corrections de schéma Prisma (champs renommés, ajoutés, 2 modèles créés)
+- **10** cron jobs configurés dans `vercel.json`
+- **41/41** fichiers sociaux débarrassés de `@ts-nocheck`
+- **40/40** erreurs TypeScript corrigées
+- **0** erreur de compilation dans les fichiers sociaux
+- **5/5** plateformes OAuth vérifiées (Facebook, Instagram, LinkedIn, Threads, Twitter/X)
+
 **Corrections appliquées** :
 
 1. Image renommée : `comprendre-psychotherapie-spiritualite-ame.webp` → `comprendre-psychotherapie-spiritualite.webp`
@@ -928,8 +1070,14 @@ L'audit, la vérification de compatibilité des URLs et la migration des donnée
 3. `og:image` et `twitter:card` ajoutés aux métadonnées des articles de blog
 4. Normalisation de casse du slug ajoutée à la route `/blog/[slug]`
 5. Script `migrate-blogpostextended-to-blogpost.ts` corrigé (lookup dynamique du site ID)
+6. Schéma Prisma corrigé pour correspondre au code applicatif social (15+ corrections)
+7. Configuration Vercel cron ajoutée (10 jobs)
+8. `@ts-nocheck` supprimé de 41 fichiers sociaux
+9. 40 erreurs TypeScript strictes corrigées dans 11 fichiers
 
 **Actions manuelles restantes** :
 
 1. Générer l'image de couverture pour `traverser-aider-crise-existentiel`
 2. Ajouter des tags à `comprendre-psychotherapie-en-visio` via l'admin
+3. Configurer les variables d'environnement sur Vercel (Phase 5)
+4. Migrer le DNS de GANDI vers Vercel (Phase 6)

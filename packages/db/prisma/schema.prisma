@@ -963,32 +963,36 @@ enum SocialPlatform {
 
 /// Social media account connection
 model SocialAccount {
-  id            String         @id @default(cuid())
+  id           String         @id @default(cuid())
   /// Platform identifier
-  platform      SocialPlatform
+  platform     SocialPlatform
   /// Platform-specific account ID
-  platformId    String
+  accountId    String
   /// Display name
-  accountName   String
+  accountName  String
   /// Profile image URL
-  profileImage  String?
-  /// OAuth access token (encrypted)
-  accessToken   String
+  profileImage String?
+  /// OAuth access token (encrypted with AES-256-GCM)
+  accessToken  String
   /// OAuth refresh token (encrypted)
-  refreshToken  String?
+  refreshToken String?
   /// Token expiration timestamp
-  tokenExpiresAt DateTime?
+  tokenExpiry  DateTime?
+  /// OAuth scopes granted
+  scope        String[]       @default([])
   /// Platform-specific metadata as JSON
-  metadata      Json?
+  metadata     Json?
   /// Whether account is active
-  isActive      Boolean        @default(true)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  isActive     Boolean        @default(true)
+  /// Last time this account was used for publishing
+  lastUsed     DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 
   // Relations
   posts SocialPost[]
 
-  @@unique([platform, platformId])
+  @@unique([platform, accountId])
   @@index([platform])
   @@index([isActive])
 }
@@ -1000,6 +1004,7 @@ enum SocialPostStatus {
   PUBLISHING
   PUBLISHED
   FAILED
+  CANCELLED
 }
 
 /// Social media post
@@ -1015,6 +1020,10 @@ model SocialPost {
   blogSlug       String?
   /// Media URLs as JSON array
   mediaUrls      Json?
+  /// Hashtags as string array
+  hashtags       String[]         @default([])
+  /// Link URL to include in post
+  linkUrl        String?
   /// Post status
   status         SocialPostStatus @default(DRAFT)
   /// Scheduled publication time
@@ -1023,12 +1032,20 @@ model SocialPost {
   publishedAt    DateTime?
   /// Platform-specific post ID after publishing
   externalPostId String?
-  /// External post URL
-  externalUrl    String?
+  /// Direct URL to view published post on platform
+  platformUrl    String?
   /// Error message if failed
   errorMessage   String?
   /// Retry count for failed posts
   retryCount     Int              @default(0)
+  /// Content generation source (ai or manual)
+  generatedBy    String?
+  /// AI prompt used for generation
+  aiPrompt       String?
+  /// AI model used for generation
+  aiModel        String?
+  /// Platform-specific metadata as JSON
+  metadata       Json?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 
@@ -1066,12 +1083,64 @@ model SocialPostAnalytics {
   clicks      Int        @default(0)
   /// Raw API response data
   rawData     Json?
-  /// Last sync timestamp
-  lastSyncAt  DateTime   @default(now())
+  /// Last analytics fetch timestamp
+  fetchedAt   DateTime   @default(now())
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
-  @@index([lastSyncAt])
+  @@index([fetchedAt])
+}
+
+/// Social content generation template
+model SocialTemplate {
+  id              String         @id @default(cuid())
+  /// Template name
+  name            String
+  /// Target platform
+  platform        SocialPlatform
+  /// Template description
+  description     String?
+  /// Prompt template with placeholders
+  promptTemplate  String
+  /// Default content tone
+  defaultTone     String?
+  /// Default hashtags
+  defaultHashtags String[]       @default([])
+  /// Whether this is the default template for its platform
+  isDefault       Boolean        @default(false)
+  /// Number of times this template was used
+  usageCount      Int            @default(0)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([platform])
+  @@index([isDefault])
+}
+
+/// AI content generation log
+model SocialGenerationLog {
+  id               String         @id @default(cuid())
+  /// Associated blog post slug
+  blogSlug         String
+  /// Target platform
+  platform         SocialPlatform
+  /// Input content used for generation
+  inputContent     String
+  /// Prompt sent to AI
+  promptUsed       String
+  /// Generated content
+  generatedContent String
+  /// Number of tokens used
+  tokensUsed       Int?
+  /// Whether the generated content was accepted by the user
+  wasAccepted      Boolean        @default(false)
+  /// Whether the generated content was modified before use
+  wasModified      Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+
+  @@index([blogSlug])
+  @@index([platform])
+  @@index([createdAt])
 }
 
 // =============================================================================

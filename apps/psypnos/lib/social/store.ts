@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - SocialPost model not available in Kairn schema
 /**
  * Store pour les opérations CRUD sur les données des réseaux sociaux
  *

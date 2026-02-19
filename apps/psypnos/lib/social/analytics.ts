@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - SocialPost model not available in Kairn schema
 /**
  * Service d'analytics pour les réseaux sociaux
  *
@@ -140,8 +137,7 @@ export async function getDashboardStats(
     totalLikes: analyticsAgg._sum.likes || 0,
     totalComments: analyticsAgg._sum.comments || 0,
     totalShares: analyticsAgg._sum.shares || 0,
-    averageEngagementRate:
-      totalImpressions > 0 ? (totalEngagements / totalImpressions) * 100 : 0,
+    averageEngagementRate: totalImpressions > 0 ? (totalEngagements / totalImpressions) * 100 : 0,
   };
 }
 
@@ -253,7 +249,7 @@ export async function getTopPerformingPosts(
     take: limit,
   });
 
-  return posts.map((post: typeof posts[number]) => {
+  return posts.map((post: (typeof posts)[number]) => {
     const impressions = post.analytics?.impressions || 0;
     const engagements = post.analytics?.engagements || 0;
 
@@ -312,7 +308,7 @@ export async function getTrendData(
   // Initialiser tous les jours de la période
   const currentDate = new Date(start);
   while (currentDate <= end) {
-    const dateKey = currentDate.toISOString().split('T')[0];
+    const dateKey = currentDate.toISOString().split('T')[0]!;
     dataByDate.set(dateKey, {
       date: dateKey,
       impressions: 0,
@@ -326,7 +322,7 @@ export async function getTrendData(
   for (const post of posts) {
     if (!post.publishedAt) continue;
 
-    const dateKey = post.publishedAt.toISOString().split('T')[0];
+    const dateKey = post.publishedAt.toISOString().split('T')[0]!;
     const existing = dataByDate.get(dateKey);
 
     if (existing) {
@@ -368,7 +364,7 @@ export async function getRecentPosts(limit = 20): Promise<RecentPost[]> {
     take: limit,
   });
 
-  return posts.map((post: typeof posts[number]) => ({
+  return posts.map((post: (typeof posts)[number]) => ({
     id: post.id,
     platform: post.platform as SocialPlatform,
     content: post.content,
@@ -389,9 +385,7 @@ export async function getRecentPosts(limit = 20): Promise<RecentPost[]> {
 /**
  * Rafraîchit les analytics d'un post depuis l'API de la plateforme
  */
-export async function refreshPostAnalytics(
-  postId: string
-): Promise<SocialPostAnalytics | null> {
+export async function refreshPostAnalytics(postId: string): Promise<SocialPostAnalytics | null> {
   const post = await prisma.socialPost.findUnique({
     where: { id: postId },
     include: { account: true },
@@ -413,10 +407,15 @@ export async function refreshPostAnalytics(
     const client = getSocialClient(post.platform as SocialPlatform);
 
     // Récupérer les analytics depuis l'API
+    if (!client.getAnalytics) {
+      console.error(`[Analytics] getAnalytics not supported for platform: ${post.platform}`);
+      return null;
+    }
+
     const result = await client.getAnalytics({
       externalPostId: post.externalPostId,
       accessToken: account.accessToken,
-      accountMetadata: account.metadata,
+      accountMetadata: account.metadata as Record<string, unknown> | undefined,
     });
 
     if (!result.success) {
@@ -426,15 +425,15 @@ export async function refreshPostAnalytics(
 
     // Mettre à jour les analytics en base
     const analytics = await updatePostAnalytics(postId, {
-      impressions: result.impressions,
-      reach: result.reach,
-      engagements: result.engagements,
-      likes: result.likes,
-      comments: result.comments,
-      shares: result.shares,
-      saves: result.saves,
-      clicks: result.clicks,
-      rawData: result.rawData,
+      impressions: result.data?.impressions || 0,
+      reach: result.data?.reach || 0,
+      engagements: result.data?.engagements || 0,
+      likes: result.data?.likes || 0,
+      comments: result.data?.comments || 0,
+      shares: result.data?.shares || 0,
+      saves: result.data?.saves || 0,
+      clicks: result.data?.clicks || 0,
+      rawData: result.data as Record<string, unknown> | undefined,
     });
 
     return analytics;
@@ -477,7 +476,7 @@ export async function refreshRecentAnalytics(
     }
 
     // Petit délai pour éviter le rate limiting
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 500));
   }
 
   return { refreshed, failed };

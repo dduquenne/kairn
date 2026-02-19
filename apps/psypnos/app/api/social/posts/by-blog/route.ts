@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - SocialPost model not available in Kairn schema
 /**
  * API pour récupérer les posts sociaux liés à des articles de blog
  *
@@ -45,7 +42,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Paramètre slugs requis' }, { status: 400 });
     }
 
-    const slugs = slugsParam.split(',').map((s) => s.trim()).filter(Boolean);
+    const slugs = slugsParam
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
 
     if (slugs.length === 0) {
       return NextResponse.json({ statuses: {} });
@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
     const statusMap: Record<string, BlogSocialStatus> = {};
 
     for (const slug of slugs) {
-      const slugPosts = posts.filter((p) => p.blogSlug === slug);
+      const slugPosts = posts.filter(p => p.blogSlug === slug);
       const platforms = new Set<SocialPlatform>();
       let publishedCount = 0;
       let scheduledCount = 0;

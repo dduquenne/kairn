@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * Route d'initiation OAuth LinkedIn
  *
@@ -32,10 +29,7 @@ export async function GET(request: NextRequest) {
     // Vérifier la configuration LinkedIn
     const config = linkedin.checkLinkedInConfig();
     if (!config.valid) {
-      return NextResponse.json(
-        { error: config.error },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: config.error }, { status: 500 });
     }
 
     // Générer un state token unique pour CSRF protection
@@ -50,7 +44,11 @@ export async function GET(request: NextRequest) {
       userId: user.sub,
     });
 
-    cookieStore.set('social_oauth_state', stateData, getOAuthStateCookieOptions(STATE_EXPIRY_MS / 1000));
+    cookieStore.set(
+      'social_oauth_state',
+      stateData,
+      getOAuthStateCookieOptions(STATE_EXPIRY_MS / 1000)
+    );
 
     // Construire l'URL de redirection
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin;
@@ -63,9 +61,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(authUrl);
   } catch (error) {
     console.error('[LinkedIn OAuth] Erreur initiation:', error);
-    return NextResponse.json(
-      { error: 'Erreur lors de l\'initiation OAuth' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Erreur lors de l'initiation OAuth" }, { status: 500 });
   }
 }

@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * Facebook OAuth 2.0 Implementation
  *
@@ -37,21 +34,21 @@ const GRAPH_API_BASE = `https://graph.facebook.com/${GRAPH_API_VERSION}`;
  */
 export const FACEBOOK_SCOPES = [
   // Permissions Facebook Pages
-  'pages_manage_posts',        // Publier sur les pages
-  'pages_read_engagement',     // Lire les statistiques des pages
-  'pages_show_list',           // Voir la liste des pages
+  'pages_manage_posts', // Publier sur les pages
+  'pages_read_engagement', // Lire les statistiques des pages
+  'pages_show_list', // Voir la liste des pages
   // Permissions Instagram Business
-  'instagram_basic',           // Accès de base au compte Instagram
+  'instagram_basic', // Accès de base au compte Instagram
   'instagram_content_publish', // Publier sur Instagram
   'instagram_manage_insights', // Lire les statistiques Instagram
-  'business_management',       // Gestion des assets business
+  'business_management', // Gestion des assets business
 ];
 
 /**
  * Scopes additionnels (optionnels)
  */
 export const FACEBOOK_ADVANCED_SCOPES = [
-  'pages_read_user_content',   // Lire le contenu des pages
+  'pages_read_user_content', // Lire le contenu des pages
 ];
 
 // ===========================================
@@ -172,7 +169,7 @@ export async function exchangeCodeForToken(
   if (!response.ok) {
     const error = await response.json();
     throw new Error(
-      `Erreur Facebook OAuth: ${error.error?.message || 'Échec de l\'échange de token'}`
+      `Erreur Facebook OAuth: ${error.error?.message || "Échec de l'échange de token"}`
     );
   }
 
@@ -207,7 +204,7 @@ export async function exchangeForLongLivedToken(
   if (!response.ok) {
     const error = await response.json();
     throw new Error(
-      `Erreur échange token long terme: ${error.error?.message || 'Échec de l\'échange'}`
+      `Erreur échange token long terme: ${error.error?.message || "Échec de l'échange"}`
     );
   }
 
@@ -223,7 +220,9 @@ export async function exchangeForLongLivedToken(
  * Récupère les informations de l'utilisateur Facebook
  */
 export async function getFacebookUser(accessToken: string): Promise<FacebookUser> {
-  const response = await fetch(`${GRAPH_API_BASE}/me?fields=id,name,email&access_token=${accessToken}`);
+  const response = await fetch(
+    `${GRAPH_API_BASE}/me?fields=id,name,email&access_token=${accessToken}`
+  );
 
   if (!response.ok) {
     const error = await response.json();
@@ -245,14 +244,12 @@ export async function getFacebookPages(accessToken: string): Promise<FacebookPag
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(
-      `Erreur récupération pages: ${error.error?.message || 'Échec de la requête'}`
-    );
+    throw new Error(`Erreur récupération pages: ${error.error?.message || 'Échec de la requête'}`);
   }
 
   const data: FacebookPagesResponse = await response.json();
 
-  return data.data.map((page) => ({
+  return data.data.map(page => ({
     pageId: page.id,
     pageName: page.name,
     pageAccessToken: page.access_token,
@@ -326,14 +323,11 @@ export async function debugToken(accessToken: string): Promise<{
  * Rafraîchit un Page Access Token (les page tokens n'expirent pas si le user token est long-lived)
  * Pour les tokens utilisateur, on doit ré-authentifier
  */
-export async function refreshPageToken(
-  userAccessToken: string,
-  pageId: string
-): Promise<string> {
+export async function refreshPageToken(userAccessToken: string, pageId: string): Promise<string> {
   // Les Page Access Tokens générés à partir d'un long-lived user token n'expirent jamais
   // On récupère simplement le nouveau token de la page
   const pages = await getFacebookPages(userAccessToken);
-  const page = pages.find((p) => p.pageId === pageId);
+  const page = pages.find(p => p.pageId === pageId);
 
   if (!page) {
     throw new Error(`Page ${pageId} non trouvée ou accès révoqué`);

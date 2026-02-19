@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Prisma/type incompatibilities to fix
 /**
  * Service de rafraîchissement automatique des tokens OAuth
  *
@@ -124,7 +121,7 @@ async function refreshLinkedInToken(account: SocialAccountFull): Promise<Refresh
 
     const newTokens = await linkedin.refreshAccessToken(decryptedRefreshToken);
 
-    const newExpiry = linkedin.calculateTokenExpiry(newTokens.expiresIn);
+    const newExpiry = linkedin.calculateTokenExpiry(newTokens.expiresIn || 3600);
 
     // Mettre à jour en base
     await prisma.socialAccount.update({
@@ -172,7 +169,7 @@ export async function refreshAccountToken(account: SocialAccountFull): Promise<R
         accountId: account.id,
         platform: account.platform,
         success: true,
-        message: 'Les tokens de page n\'expirent pas',
+        message: "Les tokens de page n'expirent pas",
       };
 
     default:
@@ -215,9 +212,7 @@ export async function refreshAllExpiringTokens(): Promise<RefreshBatchResult> {
         if (result.success) {
           refreshed++;
           success = true;
-          console.log(
-            `[TokenRefresh] ${account.platform}/${account.accountName}: Token rafraîchi`
-          );
+          console.log(`[TokenRefresh] ${account.platform}/${account.accountName}: Token rafraîchi`);
           break;
         } else {
           lastError = result.message;
@@ -228,7 +223,7 @@ export async function refreshAllExpiringTokens(): Promise<RefreshBatchResult> {
 
       // Attendre avant la prochaine tentative
       if (attempt < MAX_REFRESH_ATTEMPTS) {
-        await new Promise((resolve) => setTimeout(resolve, 1000 * attempt));
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
       }
     }
 

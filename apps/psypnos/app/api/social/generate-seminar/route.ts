@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * API de génération de contenu pour les réseaux sociaux pour les séminaires
  *
@@ -79,9 +76,7 @@ let anthropicClient: Anthropic | null = null;
 function getAnthropicClient(): Anthropic {
   if (!anthropicClient) {
     if (!ANTHROPIC_API_KEY) {
-      throw new Error(
-        '[SeminarSocialGeneration] ANTHROPIC_API_KEY non configurée.'
-      );
+      throw new Error('[SeminarSocialGeneration] ANTHROPIC_API_KEY non configurée.');
     }
     anthropicClient = new Anthropic({
       apiKey: ANTHROPIC_API_KEY,
@@ -126,14 +121,26 @@ function validateRequestBody(body: unknown): {
     return { valid: false, error: 'platforms doit être un tableau non vide' };
   }
 
-  const validPlatforms: SocialPlatform[] = ['FACEBOOK', 'LINKEDIN', 'INSTAGRAM', 'TWITTER', 'THREADS'];
+  const validPlatforms: SocialPlatform[] = [
+    'FACEBOOK',
+    'LINKEDIN',
+    'INSTAGRAM',
+    'TWITTER',
+    'THREADS',
+  ];
   for (const p of b.platforms) {
     if (!validPlatforms.includes(p as SocialPlatform)) {
       return { valid: false, error: `Plateforme invalide: ${p}` };
     }
   }
 
-  const validTones: ContentTone[] = ['informatif', 'inspirant', 'promotionnel', 'educatif', 'personnel'];
+  const validTones: ContentTone[] = [
+    'informatif',
+    'inspirant',
+    'promotionnel',
+    'educatif',
+    'personnel',
+  ];
   if (!b.tone || !validTones.includes(b.tone as ContentTone)) {
     return { valid: false, error: 'tone invalide ou manquant' };
   }
@@ -145,40 +152,70 @@ function validateRequestBody(body: unknown): {
 
   // Valider les formats optionnels
   const validInstagramFormats: SeminarInstagramFormat[] = [
-    'compte_rebours', 'apercu_experience', 'temoignage_passe',
-    'question_reflexive', 'liste_benefices', 'coulisses'
+    'compte_rebours',
+    'apercu_experience',
+    'temoignage_passe',
+    'question_reflexive',
+    'liste_benefices',
+    'coulisses',
   ];
   const validLinkedinFormats: SeminarLinkedInFormat[] = [
-    'annonce_expert', 'probleme_solution', 'observation_terrain',
-    'invitation_reflexion', 'programme_detaille', 'derniere_chance'
+    'annonce_expert',
+    'probleme_solution',
+    'observation_terrain',
+    'invitation_reflexion',
+    'programme_detaille',
+    'derniere_chance',
   ];
   const validFacebookFormats: SeminarFacebookFormat[] = [
-    'invitation_chaleureuse', 'histoire_transformation', 'question_engagement',
-    'details_pratiques', 'derniers_jours', 'partage_vision'
+    'invitation_chaleureuse',
+    'histoire_transformation',
+    'question_engagement',
+    'details_pratiques',
+    'derniers_jours',
+    'partage_vision',
   ];
   const validThreadsFormats: SeminarThreadsFormat[] = [
-    'pensee_spontanee', 'micro_confession', 'question_ouverte',
-    'fragment_anticipation', 'rappel_humain'
+    'pensee_spontanee',
+    'micro_confession',
+    'question_ouverte',
+    'fragment_anticipation',
+    'rappel_humain',
   ];
   const validUrgencyLevels: SeminarUrgencyLevel[] = [1, 2, 3, 4, 5];
 
   // Validation optionnelle des formats
-  if (b.instagramFormat && !validInstagramFormats.includes(b.instagramFormat as SeminarInstagramFormat)) {
+  if (
+    b.instagramFormat &&
+    !validInstagramFormats.includes(b.instagramFormat as SeminarInstagramFormat)
+  ) {
     return { valid: false, error: `Format Instagram invalide: ${b.instagramFormat}` };
   }
-  if (b.linkedinFormat && !validLinkedinFormats.includes(b.linkedinFormat as SeminarLinkedInFormat)) {
+  if (
+    b.linkedinFormat &&
+    !validLinkedinFormats.includes(b.linkedinFormat as SeminarLinkedInFormat)
+  ) {
     return { valid: false, error: `Format LinkedIn invalide: ${b.linkedinFormat}` };
   }
-  if (b.facebookFormat && !validFacebookFormats.includes(b.facebookFormat as SeminarFacebookFormat)) {
+  if (
+    b.facebookFormat &&
+    !validFacebookFormats.includes(b.facebookFormat as SeminarFacebookFormat)
+  ) {
     return { valid: false, error: `Format Facebook invalide: ${b.facebookFormat}` };
   }
   if (b.threadsFormat && !validThreadsFormats.includes(b.threadsFormat as SeminarThreadsFormat)) {
     return { valid: false, error: `Format Threads invalide: ${b.threadsFormat}` };
   }
-  if (b.urgencyLevel !== undefined && !validUrgencyLevels.includes(b.urgencyLevel as SeminarUrgencyLevel)) {
+  if (
+    b.urgencyLevel !== undefined &&
+    !validUrgencyLevels.includes(b.urgencyLevel as SeminarUrgencyLevel)
+  ) {
     return { valid: false, error: `Niveau d'urgence invalide: ${b.urgencyLevel}` };
   }
-  if (b.placesRemaining !== undefined && (typeof b.placesRemaining !== 'number' || b.placesRemaining < 0)) {
+  if (
+    b.placesRemaining !== undefined &&
+    (typeof b.placesRemaining !== 'number' || b.placesRemaining < 0)
+  ) {
     return { valid: false, error: 'placesRemaining doit être un nombre positif' };
   }
 
@@ -251,14 +288,14 @@ async function generateForPlatform(
 
     const responseText = response.content
       .filter((block): block is Anthropic.TextBlock => block.type === 'text')
-      .map((block) => block.text)
+      .map(block => block.text)
       .join('');
 
     const parsed = parseGenerationResponse(responseText);
 
     if (!parsed) {
       console.error(`[SeminarSocialGen] Failed to parse response for ${platform}:`, responseText);
-      return { success: false, error: 'Échec de l\'analyse de la réponse' };
+      return { success: false, error: "Échec de l'analyse de la réponse" };
     }
 
     const tokensUsed = (response.usage?.input_tokens || 0) + (response.usage?.output_tokens || 0);
@@ -301,7 +338,7 @@ async function generateForMultiplePlatforms(
 
   // Pour une seule plateforme, utiliser la génération simple
   if (platforms.length === 1) {
-    const result = await generateForPlatform(seminar, platforms[0], options);
+    const result = await generateForPlatform(seminar, platforms[0]!, options);
     return {
       success: result.success,
       generations: result.content ? [result.content] : [],
@@ -331,7 +368,7 @@ async function generateForMultiplePlatforms(
 
     const responseText = response.content
       .filter((block): block is Anthropic.TextBlock => block.type === 'text')
-      .map((block) => block.text)
+      .map(block => block.text)
       .join('');
 
     const parsed = parseMultiPlatformResponse(responseText);
@@ -344,7 +381,7 @@ async function generateForMultiplePlatforms(
     const tokensUsed = (response.usage?.input_tokens || 0) + (response.usage?.output_tokens || 0);
     const tokensPerPlatform = Math.floor(tokensUsed / platforms.length);
 
-    const generations: GeneratedContent[] = parsed.map((gen) => ({
+    const generations: GeneratedContent[] = parsed.map(gen => ({
       platform: gen.platform,
       content: gen.content,
       hashtags: gen.hashtags,
@@ -433,13 +470,10 @@ export async function POST(request: NextRequest) {
 
     // Récupérer le séminaire
     const seminars = await getStore();
-    const seminar = seminars.find((s) => s.id === seminarId);
+    const seminar = seminars.find(s => s.id === seminarId);
 
     if (!seminar) {
-      return NextResponse.json(
-        { error: `Séminaire non trouvé: ${seminarId}` },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: `Séminaire non trouvé: ${seminarId}` }, { status: 404 });
     }
 
     const seminarInput = toSeminarInput(seminar);

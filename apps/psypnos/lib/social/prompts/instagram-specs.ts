@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * Spécifications avancées pour la génération de posts Instagram
  *
@@ -98,7 +95,7 @@ C'est peut-être le moment d'écouter ces signaux.
 #burnout #fatigue #bienetre #ecouter`,
     bestFor: ['Conseils pratiques', 'Symptômes/signaux', 'Listes de bénéfices'],
     tips: [
-      'Le chiffre dans le titre attire l\'attention',
+      "Le chiffre dans le titre attire l'attention",
       'Chaque point doit être concis (1 ligne idéalement)',
       'Utiliser les émojis numérotés pour la lisibilité',
     ],
@@ -109,11 +106,11 @@ C'est peut-être le moment d'écouter ces signaux.
     name: 'Micro-storytelling',
     description: 'Petite histoire personnelle avec une leçon ou un apprentissage',
     structure: [
-      'Début de l\'histoire (situation initiale)',
+      "Début de l'histoire (situation initiale)",
       'Saut de ligne',
       'Développement (le problème ou le défi)',
       'Le tournant',
-      'La leçon ou l\'apprentissage',
+      "La leçon ou l'apprentissage",
       'Saut de ligne',
       'Connexion avec le lecteur',
       'CTA',
@@ -139,7 +136,7 @@ Et vous, avez-vous déjà été surpris par quelque chose que vous pensiez conna
 #hypnose #transformation #developpementpersonnel`,
     bestFor: ['Témoignages', 'Parcours du praticien', 'Transformations clients (anonymisées)'],
     tips: [
-      'Commencer in medias res (au milieu de l\'action)',
+      "Commencer in medias res (au milieu de l'action)",
       'Être vulnérable et authentique',
       'La leçon doit être universelle',
     ],
@@ -148,7 +145,7 @@ Et vous, avez-vous déjà été surpris par quelque chose que vous pensiez conna
   question_rhethorique: {
     id: 'question_rhethorique',
     name: 'Question rhétorique',
-    description: 'Question provocante ou inattendue suivie d\'une réponse qui surprend',
+    description: "Question provocante ou inattendue suivie d'une réponse qui surprend",
     structure: [
       'Question provocante ou contre-intuitive',
       'Saut de ligne',
@@ -178,7 +175,7 @@ Comment vous sentez-vous quand je dis ça ?
 .
 .
 #anxiete #gestiondustress #sante`,
-    bestFor: ['Sujets controversés', 'Changement de perspective', 'Déconstruction d\'idées reçues'],
+    bestFor: ['Sujets controversés', 'Changement de perspective', "Déconstruction d'idées reçues"],
     tips: [
       'La question doit créer une dissonance cognitive',
       'La réponse doit être vraiment surprenante',
@@ -189,7 +186,7 @@ Comment vous sentez-vous quand je dis ça ?
   citation_reflexion: {
     id: 'citation_reflexion',
     name: 'Citation + Réflexion',
-    description: 'Citation inspirante suivie d\'une réflexion personnelle',
+    description: "Citation inspirante suivie d'une réflexion personnelle",
     structure: [
       'Citation entre guillemets',
       'Attribution (auteur)',
@@ -222,14 +219,14 @@ Quelle est la réaction automatique que vous aimeriez changer ?
     tips: [
       'Choisir des citations peu connues si possible',
       'La réflexion doit apporter un angle personnel',
-      'Relier la citation au domaine d\'expertise',
+      "Relier la citation au domaine d'expertise",
     ],
   },
 
   mythe_realite: {
     id: 'mythe_realite',
     name: 'Mythe vs Réalité',
-    description: 'Déconstruction d\'une idée reçue avec explication de la réalité',
+    description: "Déconstruction d'une idée reçue avec explication de la réalité",
     structure: [
       'Introduction du mythe ("On vous a dit que...")',
       'Saut de ligne',
@@ -289,7 +286,7 @@ export const INSTAGRAM_HOOK_PATTERNS: HookPattern[] = [
     name: 'Pattern "Arrêt"',
     pattern: 'Stop. [affirmation contre-intuitive ou révélation]',
     examples: [
-      'Stop. L\'hypnose n\'est pas ce que vous croyez.',
+      "Stop. L'hypnose n'est pas ce que vous croyez.",
       'Stop. Votre anxiété essaie de vous dire quelque chose.',
       'Stop. Vous n\'avez pas besoin de "tout contrôler".',
     ],
@@ -300,8 +297,8 @@ export const INSTAGRAM_HOOK_PATTERNS: HookPattern[] = [
     name: 'Pattern "Confession"',
     pattern: 'Je vais être honnête avec vous... [révélation personnelle]',
     examples: [
-      'Je vais être honnête avec vous : je n\'y croyais pas non plus.',
-      'Je vais être honnête : ce n\'est pas toujours facile.',
+      "Je vais être honnête avec vous : je n'y croyais pas non plus.",
+      "Je vais être honnête : ce n'est pas toujours facile.",
       'Je vais être honnête avec vous : le changement prend du temps.',
     ],
     bestFor: ['personnel', 'inspirant'],
@@ -320,11 +317,11 @@ export const INSTAGRAM_HOOK_PATTERNS: HookPattern[] = [
   {
     id: 'contraste',
     name: 'Pattern "Contraste"',
-    pattern: 'Ce n\'est pas [A], c\'est [B].',
+    pattern: "Ce n'est pas [A], c'est [B].",
     examples: [
-      'Ce n\'est pas de la faiblesse, c\'est du courage.',
-      'Ce n\'est pas perdre le contrôle, c\'est le retrouver.',
-      'Ce n\'est pas fuir ses émotions, c\'est les accueillir.',
+      "Ce n'est pas de la faiblesse, c'est du courage.",
+      "Ce n'est pas perdre le contrôle, c'est le retrouver.",
+      "Ce n'est pas fuir ses émotions, c'est les accueillir.",
     ],
     bestFor: ['inspirant', 'educatif'],
   },
@@ -345,7 +342,7 @@ export const INSTAGRAM_HOOK_PATTERNS: HookPattern[] = [
     pattern: 'Ce que personne ne vous dit sur [sujet]...',
     examples: [
       'Ce que personne ne vous dit sur la méditation...',
-      'Ce que personne ne vous dit sur l\'hypnose...',
+      "Ce que personne ne vous dit sur l'hypnose...",
       'Ce que personne ne vous dit sur la gestion du stress...',
     ],
     bestFor: ['informatif', 'educatif'],
@@ -356,7 +353,7 @@ export const INSTAGRAM_HOOK_PATTERNS: HookPattern[] = [
     pattern: 'Et si [perspective inattendue] ?',
     examples: [
       'Et si votre anxiété était un messager ?',
-      'Et si le problème n\'était pas vous ?',
+      "Et si le problème n'était pas vous ?",
       'Et si lâcher prise était la vraie force ?',
     ],
     bestFor: ['inspirant', 'personnel'],
@@ -364,11 +361,11 @@ export const INSTAGRAM_HOOK_PATTERNS: HookPattern[] = [
   {
     id: 'verite_inconfortable',
     name: 'Pattern "Vérité inconfortable"',
-    pattern: 'La vérité que vous n\'avez pas envie d\'entendre : [vérité]',
+    pattern: "La vérité que vous n'avez pas envie d'entendre : [vérité]",
     examples: [
-      'La vérité que vous n\'avez pas envie d\'entendre : personne ne viendra vous sauver.',
-      'La vérité que vous n\'avez pas envie d\'entendre : le changement demande du travail.',
-      'La vérité que vous n\'avez pas envie d\'entendre : vous méritez de prendre soin de vous.',
+      "La vérité que vous n'avez pas envie d'entendre : personne ne viendra vous sauver.",
+      "La vérité que vous n'avez pas envie d'entendre : le changement demande du travail.",
+      "La vérité que vous n'avez pas envie d'entendre : vous méritez de prendre soin de vous.",
     ],
     bestFor: ['personnel', 'inspirant'],
   },
@@ -390,7 +387,7 @@ export const INSTAGRAM_CTA_TEMPLATES: CTATemplate[] = [
     category: 'engagement',
     templates: [
       '→ Dites-moi en commentaire : [question ouverte]',
-      '→ Taguez quelqu\'un qui a besoin de lire ça',
+      "→ Taguez quelqu'un qui a besoin de lire ça",
       '→ Double-tap si ça résonne avec vous',
       '→ Lequel de ces points vous parle le plus ?',
       '→ Partagez votre expérience en commentaire',
@@ -411,9 +408,9 @@ export const INSTAGRAM_CTA_TEMPLATES: CTATemplate[] = [
     id: 'partage',
     category: 'partage',
     templates: [
-      '→ Partagez en story si vous êtes d\'accord',
-      '→ Envoyez à quelqu\'un qui en a besoin',
-      '→ Partagez avec quelqu\'un qui traverse ça',
+      "→ Partagez en story si vous êtes d'accord",
+      "→ Envoyez à quelqu'un qui en a besoin",
+      "→ Partagez avec quelqu'un qui traverse ça",
       '→ Story si ça vous parle',
     ],
   },
@@ -421,9 +418,9 @@ export const INSTAGRAM_CTA_TEMPLATES: CTATemplate[] = [
     id: 'discussion',
     category: 'discussion',
     templates: [
-      '→ D\'accord ou pas d\'accord ? Dites-moi',
-      '→ Qu\'en pensez-vous ?',
-      '→ Votre avis m\'intéresse',
+      "→ D'accord ou pas d'accord ? Dites-moi",
+      "→ Qu'en pensez-vous ?",
+      "→ Votre avis m'intéresse",
       '→ Ça vous parle ?',
       '→ Vous vous reconnaissez ?',
     ],
@@ -432,7 +429,7 @@ export const INSTAGRAM_CTA_TEMPLATES: CTATemplate[] = [
     id: 'action',
     category: 'action',
     templates: [
-      '→ Testez dès aujourd\'hui',
+      "→ Testez dès aujourd'hui",
       '→ Essayez et dites-moi',
       '→ Commencez par [action simple]',
       '→ Lien en bio pour aller plus loin',
@@ -455,9 +452,9 @@ export interface EmojiStrategy {
 export const INSTAGRAM_EMOJI_STRATEGY: EmojiStrategy[] = [
   {
     category: 'ouverture',
-    description: 'Émojis pour attirer l\'attention en début de post',
+    description: "Émojis pour attirer l'attention en début de post",
     emojis: ['✨', '🔥', '⚡', '💫', '🌟', '✴️'],
-    usage: 'Un seul en fin de première ligne pour attirer l\'œil',
+    usage: "Un seul en fin de première ligne pour attirer l'œil",
   },
   {
     category: 'structure',
@@ -493,8 +490,10 @@ export const INSTAGRAM_EMOJI_STRATEGY: EmojiStrategy[] = [
 
 // Émojis à éviter
 export const INSTAGRAM_EMOJIS_TO_AVOID = [
-  '😂', '🤣', // Trop familiers pour un praticien
-  '👍', '👎', // Trop génériques
+  '😂',
+  '🤣', // Trop familiers pour un praticien
+  '👍',
+  '👎', // Trop génériques
   '🙏', // Suremployé
   '💪', // Peut sembler "coach fitness"
   '🎯', // Trop corporate
@@ -521,7 +520,7 @@ export const AUTHENTICITY_LEVELS: Record<AuthenticityLevel, AuthenticitySpec> = 
     characteristics: [
       'Utilise "on" ou formulations impersonnelles',
       'Focus sur les faits et la pédagogie',
-      'Peu d\'éléments personnels',
+      "Peu d'éléments personnels",
     ],
     exampleOpening: 'La respiration holotropique est une technique qui...',
   },
@@ -534,7 +533,7 @@ export const AUTHENTICITY_LEVELS: Record<AuthenticityLevel, AuthenticitySpec> = 
       'Partage parfois son point de vue',
       'Reste centré sur le lecteur',
     ],
-    exampleOpening: 'Ce que j\'observe souvent en consultation, c\'est que...',
+    exampleOpening: "Ce que j'observe souvent en consultation, c'est que...",
   },
   3: {
     level: 3,
@@ -545,23 +544,23 @@ export const AUTHENTICITY_LEVELS: Record<AuthenticityLevel, AuthenticitySpec> = 
       'Partage des observations de sa pratique',
       'Montre sa personnalité',
     ],
-    exampleOpening: 'Après 15 ans d\'accompagnement, une chose m\'a toujours frappé...',
+    exampleOpening: "Après 15 ans d'accompagnement, une chose m'a toujours frappé...",
   },
   4: {
     level: 4,
     name: 'Authentique',
-    description: 'Ton personnel, partage d\'expériences, vulnérabilité modérée',
+    description: "Ton personnel, partage d'expériences, vulnérabilité modérée",
     characteristics: [
       'Utilise souvent "je"',
       'Partage ses apprentissages personnels',
       'Montre ses questionnements',
     ],
-    exampleOpening: 'Je vais être honnête avec vous : je n\'ai pas toujours cru à ça...',
+    exampleOpening: "Je vais être honnête avec vous : je n'ai pas toujours cru à ça...",
   },
   5: {
     level: 5,
     name: 'Vulnérable',
-    description: 'Très personnel, partage de doutes et d\'échecs, connexion émotionnelle forte',
+    description: "Très personnel, partage de doutes et d'échecs, connexion émotionnelle forte",
     characteristics: [
       'Partage ses propres difficultés',
       'Montre sa vulnérabilité',
@@ -629,13 +628,7 @@ export const INSTAGRAM_HASHTAG_DATABASE: HashtagCategory[] = [
     name: 'Géographique (local)',
     tier: 'niche',
     estimatedPosts: '<100K',
-    hashtags: [
-      'yonne',
-      'bourgogne',
-      'sens89',
-      'auxerre',
-      'saintjuliendusault',
-    ],
+    hashtags: ['yonne', 'bourgogne', 'sens89', 'auxerre', 'saintjuliendusault'],
   },
 
   // Hashtags moyens (1M-5M posts) - Visibilité équilibrée
@@ -644,26 +637,14 @@ export const INSTAGRAM_HASHTAG_DATABASE: HashtagCategory[] = [
     name: 'Bien-être (medium)',
     tier: 'medium',
     estimatedPosts: '1M-5M',
-    hashtags: [
-      'bienetre',
-      'mieuxetre',
-      'equilibre',
-      'prendresoindesoi',
-      'santenaturelle',
-    ],
+    hashtags: ['bienetre', 'mieuxetre', 'equilibre', 'prendresoindesoi', 'santenaturelle'],
   },
   {
     id: 'mental_medium',
     name: 'Santé mentale (medium)',
     tier: 'medium',
     estimatedPosts: '1M-5M',
-    hashtags: [
-      'santementale',
-      'gestiondustress',
-      'anxiete',
-      'gestiondesemotions',
-      'apaisement',
-    ],
+    hashtags: ['santementale', 'gestiondustress', 'anxiete', 'gestiondesemotions', 'apaisement'],
   },
   {
     id: 'devperso_medium',
@@ -685,26 +666,14 @@ export const INSTAGRAM_HASHTAG_DATABASE: HashtagCategory[] = [
     name: 'Lifestyle (large)',
     tier: 'large',
     estimatedPosts: '5M+',
-    hashtags: [
-      'meditation',
-      'mindfulness',
-      'zen',
-      'relaxation',
-      'inspiration',
-    ],
+    hashtags: ['meditation', 'mindfulness', 'zen', 'relaxation', 'inspiration'],
   },
   {
     id: 'france_large',
     name: 'France (large)',
     tier: 'large',
     estimatedPosts: '5M+',
-    hashtags: [
-      'france',
-      'french',
-      'paris',
-      'vie',
-      'bonheur',
-    ],
+    hashtags: ['france', 'french', 'paris', 'vie', 'bonheur'],
   },
 ];
 
@@ -720,36 +689,36 @@ export function suggestInstagramFormat(
   angle: ContentAngle
 ): InstagramPostFormat {
   const suggestions: Record<string, InstagramPostFormat[]> = {
-    'informatif_benefices': ['liste_visuelle', 'hook_reveal'],
-    'informatif_probleme': ['mythe_realite', 'hook_reveal'],
-    'informatif_histoire': ['micro_storytelling'],
-    'informatif_expert': ['liste_visuelle', 'mythe_realite'],
-    'informatif_pratique': ['liste_visuelle'],
-    'inspirant_benefices': ['citation_reflexion', 'question_rhethorique'],
-    'inspirant_probleme': ['question_rhethorique', 'hook_reveal'],
-    'inspirant_histoire': ['micro_storytelling', 'citation_reflexion'],
-    'inspirant_expert': ['citation_reflexion'],
-    'inspirant_pratique': ['liste_visuelle', 'hook_reveal'],
-    'personnel_benefices': ['micro_storytelling'],
-    'personnel_probleme': ['micro_storytelling', 'question_rhethorique'],
-    'personnel_histoire': ['micro_storytelling'],
-    'personnel_expert': ['micro_storytelling', 'citation_reflexion'],
-    'personnel_pratique': ['micro_storytelling', 'liste_visuelle'],
-    'educatif_benefices': ['liste_visuelle', 'mythe_realite'],
-    'educatif_probleme': ['mythe_realite', 'hook_reveal'],
-    'educatif_histoire': ['micro_storytelling'],
-    'educatif_expert': ['mythe_realite', 'liste_visuelle'],
-    'educatif_pratique': ['liste_visuelle'],
-    'promotionnel_benefices': ['liste_visuelle', 'hook_reveal'],
-    'promotionnel_probleme': ['hook_reveal', 'question_rhethorique'],
-    'promotionnel_histoire': ['micro_storytelling'],
-    'promotionnel_expert': ['citation_reflexion'],
-    'promotionnel_pratique': ['liste_visuelle'],
+    informatif_benefices: ['liste_visuelle', 'hook_reveal'],
+    informatif_probleme: ['mythe_realite', 'hook_reveal'],
+    informatif_histoire: ['micro_storytelling'],
+    informatif_expert: ['liste_visuelle', 'mythe_realite'],
+    informatif_pratique: ['liste_visuelle'],
+    inspirant_benefices: ['citation_reflexion', 'question_rhethorique'],
+    inspirant_probleme: ['question_rhethorique', 'hook_reveal'],
+    inspirant_histoire: ['micro_storytelling', 'citation_reflexion'],
+    inspirant_expert: ['citation_reflexion'],
+    inspirant_pratique: ['liste_visuelle', 'hook_reveal'],
+    personnel_benefices: ['micro_storytelling'],
+    personnel_probleme: ['micro_storytelling', 'question_rhethorique'],
+    personnel_histoire: ['micro_storytelling'],
+    personnel_expert: ['micro_storytelling', 'citation_reflexion'],
+    personnel_pratique: ['micro_storytelling', 'liste_visuelle'],
+    educatif_benefices: ['liste_visuelle', 'mythe_realite'],
+    educatif_probleme: ['mythe_realite', 'hook_reveal'],
+    educatif_histoire: ['micro_storytelling'],
+    educatif_expert: ['mythe_realite', 'liste_visuelle'],
+    educatif_pratique: ['liste_visuelle'],
+    promotionnel_benefices: ['liste_visuelle', 'hook_reveal'],
+    promotionnel_probleme: ['hook_reveal', 'question_rhethorique'],
+    promotionnel_histoire: ['micro_storytelling'],
+    promotionnel_expert: ['citation_reflexion'],
+    promotionnel_pratique: ['liste_visuelle'],
   };
 
   const key = `${tone}_${angle}`;
   const options = suggestions[key] || ['hook_reveal'];
-  return options[0];
+  return options[0]!;
 }
 
 /**
@@ -762,10 +731,7 @@ export function getHookPatternsForTone(tone: ContentTone): HookPattern[] {
 /**
  * Génère un ensemble de hashtags équilibré (stratégie 3 tiers)
  */
-export function generateBalancedHashtags(
-  theme: string,
-  count: number = 10
-): string[] {
+export function generateBalancedHashtags(theme: string, count: number = 10): string[] {
   const result: string[] = [];
 
   // Déterminer les catégories pertinentes selon le thème
@@ -780,7 +746,7 @@ export function generateBalancedHashtags(
   };
 
   const themeLower = theme.toLowerCase();
-  let categoryIds = themeKeywords.default;
+  let categoryIds = themeKeywords.default!;
   for (const [keyword, ids] of Object.entries(themeKeywords)) {
     if (themeLower.includes(keyword)) {
       categoryIds = ids;
@@ -803,8 +769,12 @@ export function generateBalancedHashtags(
   for (const categoryId of categoryIds) {
     const category = INSTAGRAM_HASHTAG_DATABASE.find(c => c.id === categoryId);
     if (category) {
-      const toAdd = category.tier === 'niche' ? nicheCount :
-                    category.tier === 'medium' ? mediumCount : largeCount;
+      const toAdd =
+        category.tier === 'niche'
+          ? nicheCount
+          : category.tier === 'medium'
+            ? mediumCount
+            : largeCount;
       result.push(...category.hashtags.slice(0, toAdd));
     }
   }
@@ -820,7 +790,9 @@ export function getRandomCTA(category: CTATemplate['category']): string {
   const ctaGroup = INSTAGRAM_CTA_TEMPLATES.find(c => c.category === category);
   if (!ctaGroup) return '→ Lien en bio pour en savoir plus';
   const templates = ctaGroup.templates;
-  return templates[Math.floor(Math.random() * templates.length)];
+  return (
+    templates[Math.floor(Math.random() * templates.length)] || '→ Lien en bio pour en savoir plus'
+  );
 }
 
 /**

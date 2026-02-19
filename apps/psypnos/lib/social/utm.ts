@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * Utilitaires pour les paramètres UTM de tracking
  *
@@ -63,9 +60,10 @@ export function buildUrlWithUtm(baseUrl: string, params: UtmParams): string {
     const url = new URL(baseUrl);
 
     // Source (obligatoire)
-    const source = typeof params.source === 'string' && params.source in PLATFORM_SOURCE_MAP
-      ? PLATFORM_SOURCE_MAP[params.source as SocialPlatform]
-      : params.source.toLowerCase();
+    const source =
+      typeof params.source === 'string' && params.source in PLATFORM_SOURCE_MAP
+        ? PLATFORM_SOURCE_MAP[params.source as SocialPlatform]
+        : params.source.toLowerCase();
     url.searchParams.set('utm_source', source);
 
     // Medium (défaut: social)

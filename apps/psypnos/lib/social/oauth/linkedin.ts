@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * LinkedIn OAuth 2.0 Implementation
  *
@@ -39,9 +36,9 @@ const LINKEDIN_AUTH_BASE = 'https://www.linkedin.com/oauth/v2';
  * Les deux produits doivent être activés sur l'application LinkedIn Developer
  */
 export const LINKEDIN_SCOPES = [
-  'openid',            // Identification OpenID Connect
-  'profile',           // Informations de base du profil (nom, photo)
-  'w_member_social',   // Poster au nom du membre
+  'openid', // Identification OpenID Connect
+  'profile', // Informations de base du profil (nom, photo)
+  'w_member_social', // Poster au nom du membre
   // 'email',          // Optionnel - adresse email
   // Scopes organisation (nécessitent Marketing Developer Platform)
   // 'r_organization_social',
@@ -173,7 +170,7 @@ export async function exchangeCodeForToken(
   if (!response.ok) {
     const error = await response.json();
     throw new Error(
-      `Erreur LinkedIn OAuth: ${error.error_description || error.error || 'Échec de l\'échange de token'}`
+      `Erreur LinkedIn OAuth: ${error.error_description || error.error || "Échec de l'échange de token"}`
     );
   }
 
@@ -191,9 +188,7 @@ export async function exchangeCodeForToken(
 /**
  * Rafraîchit un access token LinkedIn
  */
-export async function refreshAccessToken(
-  refreshToken: string
-): Promise<{
+export async function refreshAccessToken(refreshToken: string): Promise<{
   accessToken: string;
   expiresIn: number;
   refreshToken?: string;
@@ -268,11 +263,14 @@ export async function getUserInfo(accessToken: string): Promise<LinkedInUserInfo
  * Récupère le profil LinkedIn complet (méthode alternative)
  */
 export async function getProfile(accessToken: string): Promise<LinkedInProfile> {
-  const response = await fetch(`${LINKEDIN_API_BASE}/me?projection=(id,localizedFirstName,localizedLastName,profilePicture(displayImage~:playableStreams))`, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+  const response = await fetch(
+    `${LINKEDIN_API_BASE}/me?projection=(id,localizedFirstName,localizedLastName,profilePicture(displayImage~:playableStreams))`,
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
 
   if (!response.ok) {
     const error = await response.json();

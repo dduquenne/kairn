@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * Twitter/X OAuth 2.0 Implementation avec PKCE
  *
@@ -33,19 +30,16 @@ const TWITTER_API_BASE = 'https://api.twitter.com/2';
  * Scopes demandés pour Twitter
  */
 export const TWITTER_SCOPES = [
-  'tweet.read',     // Lire les tweets
-  'tweet.write',    // Publier des tweets
-  'users.read',     // Lire les infos utilisateur
+  'tweet.read', // Lire les tweets
+  'tweet.write', // Publier des tweets
+  'users.read', // Lire les infos utilisateur
   'offline.access', // Refresh token
 ];
 
 /**
  * Scopes minimaux (juste publication)
  */
-export const TWITTER_MINIMAL_SCOPES = [
-  'tweet.write',
-  'users.read',
-];
+export const TWITTER_MINIMAL_SCOPES = ['tweet.write', 'users.read'];
 
 // ===========================================
 // Types
@@ -178,7 +172,9 @@ export async function exchangeCodeForToken(
   }
 
   // Twitter utilise Basic Auth pour l'échange de token
-  const credentials = Buffer.from(`${TWITTER_CLIENT_ID}:${TWITTER_CLIENT_SECRET}`).toString('base64');
+  const credentials = Buffer.from(`${TWITTER_CLIENT_ID}:${TWITTER_CLIENT_SECRET}`).toString(
+    'base64'
+  );
 
   const params = new URLSearchParams({
     grant_type: 'authorization_code',
@@ -198,7 +194,7 @@ export async function exchangeCodeForToken(
 
   if (!response.ok) {
     const errorText = await response.text();
-    let errorMessage = 'Échec de l\'échange de token';
+    let errorMessage = "Échec de l'échange de token";
     try {
       const errorJson = JSON.parse(errorText);
       errorMessage = errorJson.error_description || errorJson.error || errorMessage;
@@ -221,9 +217,7 @@ export async function exchangeCodeForToken(
 /**
  * Rafraîchit un access token Twitter
  */
-export async function refreshAccessToken(
-  refreshToken: string
-): Promise<{
+export async function refreshAccessToken(refreshToken: string): Promise<{
   accessToken: string;
   refreshToken?: string;
   expiresIn: number;
@@ -233,7 +227,9 @@ export async function refreshAccessToken(
     throw new Error(config.error);
   }
 
-  const credentials = Buffer.from(`${TWITTER_CLIENT_ID}:${TWITTER_CLIENT_SECRET}`).toString('base64');
+  const credentials = Buffer.from(`${TWITTER_CLIENT_ID}:${TWITTER_CLIENT_SECRET}`).toString(
+    'base64'
+  );
 
   const params = new URLSearchParams({
     grant_type: 'refresh_token',

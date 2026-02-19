@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * Spécifications avancées pour la génération de posts Facebook
  *
@@ -35,14 +32,15 @@ export const FACEBOOK_FORMATS: Record<FacebookPostFormat, FacebookFormatSpec> = 
   confession: {
     id: 'confession',
     name: 'Confession / Réalisation',
-    description: 'Partage d\'un apprentissage personnel ou d\'une prise de conscience professionnelle',
+    description:
+      "Partage d'un apprentissage personnel ou d'une prise de conscience professionnelle",
     structure: [
       'Accroche personnelle ("Je dois vous avouer...", "Il m\'a fallu du temps pour comprendre...")',
       'Contexte bref (1-2 phrases)',
-      'La réalisation ou l\'apprentissage',
+      "La réalisation ou l'apprentissage",
       'Comment cela a changé votre approche',
-      'Question d\'engagement pour le lecteur',
-      'Lien vers l\'article',
+      "Question d'engagement pour le lecteur",
+      "Lien vers l'article",
       '1-2 hashtags discrets',
     ],
     example: `Je dois vous avouer quelque chose...
@@ -77,9 +75,9 @@ Et vous, avez-vous déjà essayé l'hypnose ? Qu'en avez-vous pensé ?
       'Question contre-intuitive ou provocante',
       'Pause (saut de ligne)',
       'Développement qui intrigue (2-3 phrases)',
-      'Promesse de réponse dans l\'article',
+      "Promesse de réponse dans l'article",
       'Lien',
-      'Question d\'engagement',
+      "Question d'engagement",
     ],
     example: `Et si votre anxiété essayait de vous aider ?
 
@@ -110,9 +108,9 @@ Dans cet article, je vous partage comment changer votre relation à l'anxiété.
       'Début in medias res ("Hier, une patiente m\'a dit...")',
       'La situation ou le dialogue',
       'Le tournant',
-      'La leçon ou l\'insight',
+      "La leçon ou l'insight",
       'Connexion avec le lecteur',
-      'Lien vers l\'article pour aller plus loin',
+      "Lien vers l'article pour aller plus loin",
     ],
     example: `Hier, une patiente m'a dit : "J'ai tout essayé, rien ne marche."
 
@@ -129,7 +127,7 @@ Vous aussi, vous attendez parfois la solution "parfaite" ?
 👉 L'article qui pourrait vous aider : [LIEN]`,
     bestFor: ['Articles "Traverser"', 'Témoignages anonymisés', 'Insights de pratique'],
     tips: [
-      'L\'anecdote doit être courte (3-5 phrases)',
+      "L'anecdote doit être courte (3-5 phrases)",
       'Anonymiser complètement (pas de détails identifiants)',
       'La leçon doit être universelle et applicable',
     ],
@@ -144,8 +142,8 @@ Vous aussi, vous attendez parfois la solution "parfaite" ?
       'Accroche avec chiffre et angle négatif/inversé',
       'Liste de 3-5 points avec brève explication',
       'Transition vers la solution',
-      'Lien vers l\'article',
-      'Question d\'engagement',
+      "Lien vers l'article",
+      "Question d'engagement",
     ],
     example: `3 choses que je ne dis plus jamais à mes patients :
 
@@ -172,14 +170,14 @@ Et vous, quelle phrase vous a déjà blessé venant d'un "professionnel" ?`,
   observation_cabinet: {
     id: 'observation_cabinet',
     name: 'Observation de cabinet',
-    description: 'Partage d\'un pattern observé chez les patients',
+    description: "Partage d'un pattern observé chez les patients",
     structure: [
       'Accroche "Ce que j\'observe..." ou "En 15 ans de pratique..."',
       'Le pattern ou la tendance observée',
-      'Pourquoi c\'est important',
+      "Pourquoi c'est important",
       'Ce que ça implique',
-      'Lien vers l\'article qui approfondit',
-      'Question pour valider avec l\'audience',
+      "Lien vers l'article qui approfondit",
+      "Question pour valider avec l'audience",
     ],
     example: `Ce que j'observe souvent en cabinet :
 
@@ -196,8 +194,8 @@ C'est d'apprendre à la réguler.
 Vous vous reconnaissez dans cette description ?`,
     bestFor: ['Articles "Comprendre"', 'Insights cliniques', 'Positionnement expert'],
     tips: [
-      'Montrer l\'expertise sans être condescendant',
-      'Valider l\'expérience du lecteur',
+      "Montrer l'expertise sans être condescendant",
+      "Valider l'expérience du lecteur",
       'Proposer un reframe positif',
     ],
     optimalLength: { min: 60, max: 110 },
@@ -212,7 +210,7 @@ Vous vous reconnaissez dans cette description ?`,
       'Le processus (sans détails cliniques)',
       'Le "après" (ressenti, pas résultats)',
       'Ce que ça nous apprend',
-      'Invitation à découvrir l\'approche',
+      "Invitation à découvrir l'approche",
       'Lien',
     ],
     example: `Avant : "Je me sens submergé(e) en permanence"
@@ -227,7 +225,11 @@ Elle ouvre un espace. Un espace où autre chose devient possible.
 Si vous êtes curieux de découvrir comment, j'en parle dans cet article.
 
 👉 [LIEN]`,
-    bestFor: ['Articles "Cheminer"', 'Présentation des approches', 'Témoignages transformationnels'],
+    bestFor: [
+      'Articles "Cheminer"',
+      'Présentation des approches',
+      'Témoignages transformationnels',
+    ],
     tips: [
       'Ne jamais promettre de résultats spécifiques',
       'Focus sur le vécu émotionnel, pas les symptômes',
@@ -255,19 +257,19 @@ export const FACEBOOK_HOOK_PATTERNS: FacebookHookPattern[] = [
     name: 'Pattern "Confession"',
     pattern: 'Je dois vous avouer quelque chose...',
     examples: [
-      'Je dois vous avouer quelque chose : j\'ai longtemps douté de l\'hypnose.',
+      "Je dois vous avouer quelque chose : j'ai longtemps douté de l'hypnose.",
       'Je dois être honnête avec vous...',
-      'Il m\'a fallu des années pour comprendre ça...',
+      "Il m'a fallu des années pour comprendre ça...",
     ],
     bestFor: ['personnel', 'inspirant'],
   },
   {
     id: 'observation',
     name: 'Pattern "Observation"',
-    pattern: 'Ce que j\'observe en cabinet depuis X ans...',
+    pattern: "Ce que j'observe en cabinet depuis X ans...",
     examples: [
-      'Ce que j\'observe en cabinet depuis 15 ans m\'a surpris.',
-      'En 15 ans de pratique, une chose m\'a toujours frappé...',
+      "Ce que j'observe en cabinet depuis 15 ans m'a surpris.",
+      "En 15 ans de pratique, une chose m'a toujours frappé...",
       'Ce que je remarque souvent chez mes patients...',
     ],
     bestFor: ['informatif', 'educatif'],
@@ -278,7 +280,7 @@ export const FACEBOOK_HOOK_PATTERNS: FacebookHookPattern[] = [
     pattern: 'Et si [croyance inverse] ?',
     examples: [
       'Et si votre anxiété essayait de vous aider ?',
-      'Et si le problème n\'était pas le stress, mais comment vous le combattez ?',
+      "Et si le problème n'était pas le stress, mais comment vous le combattez ?",
       'Et si lâcher prise était la vraie force ?',
     ],
     bestFor: ['inspirant', 'educatif'],
@@ -297,9 +299,9 @@ export const FACEBOOK_HOOK_PATTERNS: FacebookHookPattern[] = [
   {
     id: 'moment_declic',
     name: 'Pattern "Moment déclic"',
-    pattern: 'Ce moment où l\'on réalise que...',
+    pattern: "Ce moment où l'on réalise que...",
     examples: [
-      'Ce moment où l\'on réalise que tout ce qu\'on croyait savoir est faux.',
+      "Ce moment où l'on réalise que tout ce qu'on croyait savoir est faux.",
       'Il y a des moments qui changent tout.',
       'Parfois, une seule phrase suffit à tout bouleverser.',
     ],
@@ -308,9 +310,9 @@ export const FACEBOOK_HOOK_PATTERNS: FacebookHookPattern[] = [
   {
     id: 'erreur_commune',
     name: 'Pattern "Erreur commune"',
-    pattern: 'L\'erreur que font 90% des personnes avec...',
+    pattern: "L'erreur que font 90% des personnes avec...",
     examples: [
-      'L\'erreur que font la plupart des gens avec leur anxiété.',
+      "L'erreur que font la plupart des gens avec leur anxiété.",
       'Ce que presque tout le monde fait mal avec le stress.',
       'Le piège dans lequel tombent 9 personnes sur 10.',
     ],
@@ -321,9 +323,9 @@ export const FACEBOOK_HOOK_PATTERNS: FacebookHookPattern[] = [
     name: 'Pattern "Hier"',
     pattern: 'Hier, [événement de cabinet]...',
     examples: [
-      'Hier, une patiente m\'a dit quelque chose de bouleversant.',
-      'Cette semaine, un patient m\'a posé LA question.',
-      'Récemment, quelqu\'un m\'a demandé...',
+      "Hier, une patiente m'a dit quelque chose de bouleversant.",
+      "Cette semaine, un patient m'a posé LA question.",
+      "Récemment, quelqu'un m'a demandé...",
     ],
     bestFor: ['personnel', 'inspirant'],
   },
@@ -333,7 +335,7 @@ export const FACEBOOK_HOOK_PATTERNS: FacebookHookPattern[] = [
     pattern: 'La vérité que personne ne veut entendre sur...',
     examples: [
       'La vérité que personne ne veut entendre sur le bien-être.',
-      'Ce que les gens ne veulent pas savoir sur l\'hypnose.',
+      "Ce que les gens ne veulent pas savoir sur l'hypnose.",
       'La réalité derrière le "tout va bien".',
     ],
     bestFor: ['educatif', 'informatif'],
@@ -355,12 +357,12 @@ export const FACEBOOK_CTA_TEMPLATES: FacebookCTATemplate[] = [
     id: 'commentaire',
     category: 'commentaire',
     templates: [
-      'Et vous, qu\'en pensez-vous ?',
+      "Et vous, qu'en pensez-vous ?",
       'Ça vous parle ? Dites-le moi en commentaire 👇',
       'Vous vous reconnaissez dans cette description ?',
       'Partagez votre expérience en commentaire',
-      'Quelqu\'un d\'autre vit ça ?',
-      'D\'accord ou pas d\'accord ?',
+      "Quelqu'un d'autre vit ça ?",
+      "D'accord ou pas d'accord ?",
       'Quelle est votre expérience avec ça ?',
     ],
   },
@@ -368,35 +370,32 @@ export const FACEBOOK_CTA_TEMPLATES: FacebookCTATemplate[] = [
     id: 'partage',
     category: 'partage',
     templates: [
-      'Partagez si ça peut aider quelqu\'un autour de vous',
-      'N\'hésitez pas à partager avec quelqu\'un qui en a besoin',
-      'Partagez à quelqu\'un qui a besoin de lire ça aujourd\'hui',
+      "Partagez si ça peut aider quelqu'un autour de vous",
+      "N'hésitez pas à partager avec quelqu'un qui en a besoin",
+      "Partagez à quelqu'un qui a besoin de lire ça aujourd'hui",
     ],
   },
   {
     id: 'reaction',
     category: 'reaction',
-    templates: [
-      'Un ❤️ si ça vous parle',
-      'Dites-moi avec un emoji comment vous vous sentez',
-    ],
+    templates: ['Un ❤️ si ça vous parle', 'Dites-moi avec un emoji comment vous vous sentez'],
   },
   {
     id: 'lien',
     category: 'lien',
     templates: [
-      '👉 Découvrez l\'article complet ici : [LIEN]',
+      "👉 Découvrez l'article complet ici : [LIEN]",
       '👉 Pour aller plus loin : [LIEN]',
-      '👉 L\'article qui en parle : [LIEN]',
-      '👉 J\'en parle plus en détail ici : [LIEN]',
-      '👉 Lire l\'article : [LIEN]',
+      "👉 L'article qui en parle : [LIEN]",
+      "👉 J'en parle plus en détail ici : [LIEN]",
+      "👉 Lire l'article : [LIEN]",
     ],
   },
   {
     id: 'tag',
     category: 'tag',
     templates: [
-      'Taguez quelqu\'un qui a besoin de lire ça',
+      "Taguez quelqu'un qui a besoin de lire ça",
       'Identifiez une personne à qui ça pourrait parler',
     ],
   },
@@ -428,7 +427,7 @@ export const FACEBOOK_EMOJI_STRATEGY: FacebookEmojiStrategy[] = [
   },
   {
     category: 'accroche',
-    description: 'Pour attirer l\'attention modérément',
+    description: "Pour attirer l'attention modérément",
     emojis: ['✨', '💫', '🌟'],
     usage: 'Un seul, en fin de phrase clé (pas en accroche)',
   },
@@ -446,7 +445,8 @@ export const FACEBOOK_EMOJIS_TO_AVOID = [
   '🚀', // Trop startup/coach
   '💪', // Trop fitness
   '🎯', // Trop corporate
-  '😂', '🤣', // Inappropriés pour un praticien
+  '😂',
+  '🤣', // Inappropriés pour un praticien
   '🙏', // Suremployé
   '💯', // Trop familier
 ];
@@ -474,19 +474,21 @@ export const FACEBOOK_TONE_LEVELS: Record<FacebookToneLevel, FacebookToneSpec> =
       'Ton bienveillant sans être personnel',
       'Focus sur la valeur éducative',
     ],
-    exampleOpening: 'L\'hypnose ericksonienne est souvent mal comprise. Voici ce qu\'il faut vraiment savoir...',
+    exampleOpening:
+      "L'hypnose ericksonienne est souvent mal comprise. Voici ce qu'il faut vraiment savoir...",
   },
   2: {
     level: 2,
     name: 'Personnel-authentique',
-    description: 'Partage d\'expériences et observations de pratique',
+    description: "Partage d'expériences et observations de pratique",
     characteristics: [
       'Utilise "je" régulièrement',
       'Partage des observations de cabinet',
       'Montre sa personnalité professionnelle',
       'Crée une connexion avec le lecteur',
     ],
-    exampleOpening: 'Ce que j\'observe souvent en cabinet, c\'est que les personnes anxieuses sont loin d\'être faibles...',
+    exampleOpening:
+      "Ce que j'observe souvent en cabinet, c'est que les personnes anxieuses sont loin d'être faibles...",
   },
   3: {
     level: 3,
@@ -494,23 +496,25 @@ export const FACEBOOK_TONE_LEVELS: Record<FacebookToneLevel, FacebookToneSpec> =
     description: 'Comme une confidence à un ami proche',
     characteristics: [
       'Vulnérabilité contrôlée',
-      'Partage de doutes ou d\'apprentissages personnels',
+      "Partage de doutes ou d'apprentissages personnels",
       'Ton très proche et chaleureux',
       'Connexion émotionnelle forte',
     ],
-    exampleOpening: 'Je dois être honnête avec vous : pendant longtemps, je n\'y croyais pas moi-même...',
+    exampleOpening:
+      "Je dois être honnête avec vous : pendant longtemps, je n'y croyais pas moi-même...",
   },
   4: {
     level: 4,
     name: 'Expert-accessible',
-    description: 'Positionnement d\'expertise avec proximité',
+    description: "Positionnement d'expertise avec proximité",
     characteristics: [
-      'Partage d\'insights professionnels',
-      'Références à l\'expérience clinique',
+      "Partage d'insights professionnels",
+      "Références à l'expérience clinique",
       'Pédagogie et vulgarisation',
       'Autorité bienveillante',
     ],
-    exampleOpening: 'Après 15 ans d\'accompagnement, une chose m\'a toujours frappé dans ma pratique...',
+    exampleOpening:
+      "Après 15 ans d'accompagnement, une chose m'a toujours frappé dans ma pratique...",
   },
 };
 
@@ -535,23 +539,13 @@ export const FACEBOOK_HASHTAG_DATABASE: FacebookHashtagCategory[] = [
   {
     id: 'pratiques',
     name: 'Pratiques spécifiques',
-    hashtags: [
-      'hypnoseericksonienne',
-      'respirationholotropique',
-      'therapiebreve',
-    ],
+    hashtags: ['hypnoseericksonienne', 'respirationholotropique', 'therapiebreve'],
     priority: 'secondary',
   },
   {
     id: 'themes',
     name: 'Thématiques',
-    hashtags: [
-      'gestiondustress',
-      'anxiete',
-      'developpementpersonnel',
-      'santementale',
-      'mieuxetre',
-    ],
+    hashtags: ['gestiondustress', 'anxiete', 'developpementpersonnel', 'santementale', 'mieuxetre'],
     priority: 'secondary',
   },
   {
@@ -569,50 +563,47 @@ export const FACEBOOK_HASHTAG_DATABASE: FacebookHashtagCategory[] = [
 /**
  * Sélectionne un format Facebook approprié selon le ton et l'angle
  */
-export function suggestFacebookFormat(
-  tone: ContentTone,
-  angle: ContentAngle
-): FacebookPostFormat {
+export function suggestFacebookFormat(tone: ContentTone, angle: ContentAngle): FacebookPostFormat {
   const suggestions: Record<string, FacebookPostFormat[]> = {
     // Informatif
-    'informatif_benefices': ['observation_cabinet', 'liste_inversee'],
-    'informatif_probleme': ['question_provocante', 'liste_inversee'],
-    'informatif_histoire': ['micro_histoire', 'observation_cabinet'],
-    'informatif_expert': ['observation_cabinet', 'liste_inversee'],
-    'informatif_pratique': ['liste_inversee', 'observation_cabinet'],
+    informatif_benefices: ['observation_cabinet', 'liste_inversee'],
+    informatif_probleme: ['question_provocante', 'liste_inversee'],
+    informatif_histoire: ['micro_histoire', 'observation_cabinet'],
+    informatif_expert: ['observation_cabinet', 'liste_inversee'],
+    informatif_pratique: ['liste_inversee', 'observation_cabinet'],
 
     // Inspirant
-    'inspirant_benefices': ['avant_apres', 'confession'],
-    'inspirant_probleme': ['question_provocante', 'confession'],
-    'inspirant_histoire': ['micro_histoire', 'confession'],
-    'inspirant_expert': ['observation_cabinet', 'confession'],
-    'inspirant_pratique': ['avant_apres', 'observation_cabinet'],
+    inspirant_benefices: ['avant_apres', 'confession'],
+    inspirant_probleme: ['question_provocante', 'confession'],
+    inspirant_histoire: ['micro_histoire', 'confession'],
+    inspirant_expert: ['observation_cabinet', 'confession'],
+    inspirant_pratique: ['avant_apres', 'observation_cabinet'],
 
     // Personnel
-    'personnel_benefices': ['confession', 'micro_histoire'],
-    'personnel_probleme': ['confession', 'question_provocante'],
-    'personnel_histoire': ['micro_histoire', 'confession'],
-    'personnel_expert': ['confession', 'observation_cabinet'],
-    'personnel_pratique': ['micro_histoire', 'confession'],
+    personnel_benefices: ['confession', 'micro_histoire'],
+    personnel_probleme: ['confession', 'question_provocante'],
+    personnel_histoire: ['micro_histoire', 'confession'],
+    personnel_expert: ['confession', 'observation_cabinet'],
+    personnel_pratique: ['micro_histoire', 'confession'],
 
     // Éducatif
-    'educatif_benefices': ['liste_inversee', 'observation_cabinet'],
-    'educatif_probleme': ['question_provocante', 'liste_inversee'],
-    'educatif_histoire': ['micro_histoire', 'observation_cabinet'],
-    'educatif_expert': ['observation_cabinet', 'liste_inversee'],
-    'educatif_pratique': ['liste_inversee', 'observation_cabinet'],
+    educatif_benefices: ['liste_inversee', 'observation_cabinet'],
+    educatif_probleme: ['question_provocante', 'liste_inversee'],
+    educatif_histoire: ['micro_histoire', 'observation_cabinet'],
+    educatif_expert: ['observation_cabinet', 'liste_inversee'],
+    educatif_pratique: ['liste_inversee', 'observation_cabinet'],
 
     // Promotionnel
-    'promotionnel_benefices': ['avant_apres', 'observation_cabinet'],
-    'promotionnel_probleme': ['question_provocante', 'avant_apres'],
-    'promotionnel_histoire': ['micro_histoire', 'avant_apres'],
-    'promotionnel_expert': ['observation_cabinet', 'avant_apres'],
-    'promotionnel_pratique': ['avant_apres', 'liste_inversee'],
+    promotionnel_benefices: ['avant_apres', 'observation_cabinet'],
+    promotionnel_probleme: ['question_provocante', 'avant_apres'],
+    promotionnel_histoire: ['micro_histoire', 'avant_apres'],
+    promotionnel_expert: ['observation_cabinet', 'avant_apres'],
+    promotionnel_pratique: ['avant_apres', 'liste_inversee'],
   };
 
   const key = `${tone}_${angle}`;
   const options = suggestions[key] || ['observation_cabinet'];
-  return options[0];
+  return options[0]!;
 }
 
 /**
@@ -625,10 +616,7 @@ export function getFacebookHookPatternsForTone(tone: ContentTone): FacebookHookP
 /**
  * Génère des hashtags Facebook adaptés (2-3 max)
  */
-export function generateFacebookHashtags(
-  theme: string,
-  count: number = 2
-): string[] {
+export function generateFacebookHashtags(theme: string, count: number = 2): string[] {
   const result: string[] = [];
 
   // Toujours inclure un hashtag core
@@ -641,7 +629,7 @@ export function generateFacebookHashtags(
     } else if (themeLower.includes('stress') || themeLower.includes('anxiété')) {
       result.push('bienetre');
     } else {
-      result.push(coreCategory.hashtags[0]);
+      result.push(coreCategory.hashtags[0] || 'psychotherapie');
     }
   }
 
@@ -678,9 +666,12 @@ export function generateFacebookHashtags(
  */
 export function getRandomFacebookCTA(category: FacebookCTATemplate['category']): string {
   const ctaGroup = FACEBOOK_CTA_TEMPLATES.find(c => c.category === category);
-  if (!ctaGroup) return '👉 Découvrez l\'article complet ici : [LIEN]';
+  if (!ctaGroup) return "👉 Découvrez l'article complet ici : [LIEN]";
   const templates = ctaGroup.templates;
-  return templates[Math.floor(Math.random() * templates.length)];
+  return (
+    templates[Math.floor(Math.random() * templates.length)] ||
+    "👉 Découvrez l'article complet ici : [LIEN]"
+  );
 }
 
 /**
@@ -688,10 +679,10 @@ export function getRandomFacebookCTA(category: FacebookCTATemplate['category']):
  */
 export function suggestFacebookToneLevel(articleCategory: string): FacebookToneLevel {
   const categoryMap: Record<string, FacebookToneLevel> = {
-    'comprendre': 1, // Informatif-chaleureux
-    'traverser': 3, // Confidentiel-intime (sujets émotionnels)
-    'découvrir': 2, // Personnel-authentique
-    'cheminer': 2, // Personnel-authentique
+    comprendre: 1, // Informatif-chaleureux
+    traverser: 3, // Confidentiel-intime (sujets émotionnels)
+    découvrir: 2, // Personnel-authentique
+    cheminer: 2, // Personnel-authentique
   };
 
   const categoryLower = articleCategory.toLowerCase();

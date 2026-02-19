@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * Instagram Business OAuth Implementation
  *
@@ -39,7 +36,7 @@ const GRAPH_API_BASE = `https://graph.facebook.com/${GRAPH_API_VERSION}`;
 /**
  * Scopes spécifiques pour Instagram (sous-ensemble des scopes Facebook)
  */
-export const INSTAGRAM_SCOPES = FACEBOOK_SCOPES.filter((scope) =>
+export const INSTAGRAM_SCOPES = FACEBOOK_SCOPES.filter(scope =>
   [
     'instagram_basic',
     'instagram_content_publish',
@@ -114,10 +111,7 @@ export async function getInstagramAccounts(
   for (const page of pages) {
     if (page.instagramAccount) {
       try {
-        const igDetails = await getInstagramAccount(
-          page.pageAccessToken,
-          page.instagramAccount.id
-        );
+        const igDetails = await getInstagramAccount(page.pageAccessToken, page.instagramAccount.id);
 
         instagramAccounts.push({
           id: igDetails.id,
@@ -250,7 +244,7 @@ export async function getPageTokenForInstagram(
   linkedPageId: string
 ): Promise<string | null> {
   const pages = await getFacebookPages(userAccessToken);
-  const page = pages.find((p) => p.pageId === linkedPageId);
+  const page = pages.find(p => p.pageId === linkedPageId);
 
   return page?.pageAccessToken || null;
 }
@@ -294,10 +288,7 @@ export async function validateInstagramToken(
  * des Page Access Tokens dérivés d'un Long-Lived User Token.
  * Cette fonction vérifie et renouvelle si nécessaire.
  */
-export async function ensureValidToken(
-  userAccessToken: string,
-  pageId: string
-): Promise<string> {
+export async function ensureValidToken(userAccessToken: string, pageId: string): Promise<string> {
   // Récupérer un nouveau Page Access Token
   const pageToken = await getPageTokenForInstagram(userAccessToken, pageId);
 

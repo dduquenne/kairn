@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - SocialPost model not available in Kairn schema
 /**
  * Cron Fetch Social Analytics API Route
  *
@@ -18,16 +15,16 @@
  * Security: QStash signature or CRON_SECRET
  */
 
-import { verifyCronAuth } from "@kairn/core/scheduler";
-import { NextRequest, NextResponse } from "next/server";
+import { verifyCronAuth } from '@kairn/core/scheduler';
+import { NextRequest, NextResponse } from 'next/server';
 
-import { prisma } from "@/lib/db/prisma";
-import { refreshPostAnalytics } from "@/lib/social/analytics";
+import { prisma } from '@/lib/db/prisma';
+import { refreshPostAnalytics } from '@/lib/social/analytics';
 
 // Configuration
 const RECENT_HOURS = 48; // Posts des dernières 48h
-const POPULAR_DAYS = 7;  // Posts populaires des 7 derniers jours
-const DELAY_MS = 500;    // Délai entre les appels API
+const POPULAR_DAYS = 7; // Posts populaires des 7 derniers jours
+const DELAY_MS = 500; // Délai entre les appels API
 
 interface RefreshResult {
   postId: string;
@@ -42,7 +39,7 @@ export async function GET(request: NextRequest) {
   // Verify authentication (QStash signature or CRON_SECRET)
   const authResult = await verifyCronAuth(request);
   if (!authResult.valid) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const startTime = Date.now();
@@ -56,7 +53,7 @@ export async function GET(request: NextRequest) {
 
     const recentPosts = await prisma.socialPost.findMany({
       where: {
-        status: "PUBLISHED",
+        status: 'PUBLISHED',
         publishedAt: {
           gte: recentCutoff,
         },
@@ -71,7 +68,7 @@ export async function GET(request: NextRequest) {
         publishedAt: true,
       },
       orderBy: {
-        publishedAt: "desc",
+        publishedAt: 'desc',
       },
     });
 
@@ -82,7 +79,7 @@ export async function GET(request: NextRequest) {
 
     const popularPosts = await prisma.socialPost.findMany({
       where: {
-        status: "PUBLISHED",
+        status: 'PUBLISHED',
         publishedAt: {
           gte: popularCutoff,
           lt: recentCutoff,
@@ -104,24 +101,24 @@ export async function GET(request: NextRequest) {
       },
       orderBy: {
         analytics: {
-          engagements: "desc",
+          engagements: 'desc',
         },
       },
       take: 20, // Limiter aux 20 plus engageants
     });
 
-    console.log(`[Cron:fetch-social-analytics] ${popularPosts.length} posts populaires à rafraîchir`);
+    console.log(
+      `[Cron:fetch-social-analytics] ${popularPosts.length} posts populaires à rafraîchir`
+    );
 
     // 3. Combiner et dédupliquer
     const allPosts = [...recentPosts, ...popularPosts];
-    const uniquePosts = Array.from(
-      new Map(allPosts.map((p) => [p.id, p])).values()
-    );
+    const uniquePosts = Array.from(new Map(allPosts.map(p => [p.id, p])).values());
 
     if (uniquePosts.length === 0) {
       return NextResponse.json({
         success: true,
-        message: "Aucun post à rafraîchir",
+        message: 'Aucun post à rafraîchir',
         processed: 0,
         results: {
           refreshed: 0,
@@ -152,7 +149,7 @@ export async function GET(request: NextRequest) {
             postId: post.id,
             platform: post.platform,
             success: false,
-            error: "Impossible de récupérer les analytics",
+            error: 'Impossible de récupérer les analytics',
           });
         }
       } catch (error) {
@@ -161,25 +158,27 @@ export async function GET(request: NextRequest) {
           postId: post.id,
           platform: post.platform,
           success: false,
-          error: error instanceof Error ? error.message : "Erreur inconnue",
+          error: error instanceof Error ? error.message : 'Erreur inconnue',
         });
       }
 
       // Délai pour éviter le rate limiting
-      await new Promise((resolve) => setTimeout(resolve, DELAY_MS));
+      await new Promise(resolve => setTimeout(resolve, DELAY_MS));
     }
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
 
     // Log summary
-    console.log(`[Cron:fetch-social-analytics] Terminé: ${refreshed} rafraîchis, ${failed} échoués en ${duration}s`);
+    console.log(
+      `[Cron:fetch-social-analytics] Terminé: ${refreshed} rafraîchis, ${failed} échoués en ${duration}s`
+    );
 
     // Calculer les totaux d'impressions et engagements
     const totalImpressions = results
-      .filter((r) => r.success)
+      .filter(r => r.success)
       .reduce((sum, r) => sum + (r.impressions || 0), 0);
     const totalEngagements = results
-      .filter((r) => r.success)
+      .filter(r => r.success)
       .reduce((sum, r) => sum + (r.engagements || 0), 0);
 
     return NextResponse.json({
@@ -197,11 +196,11 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("[Cron:fetch-social-analytics] Erreur:", error);
+    console.error('[Cron:fetch-social-analytics] Erreur:', error);
     return NextResponse.json(
       {
-        error: "Analytics fetch failed",
-        message: error instanceof Error ? error.message : "Unknown error",
+        error: 'Analytics fetch failed',
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -215,7 +214,7 @@ export async function POST(request: NextRequest) {
   // Verify authentication (QStash signature or CRON_SECRET)
   const authResult = await verifyCronAuth(request);
   if (!authResult.valid) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
@@ -233,7 +232,7 @@ export async function POST(request: NextRequest) {
       if (analytics) {
         return NextResponse.json({
           success: true,
-          message: "Analytics rafraîchis",
+          message: 'Analytics rafraîchis',
           postId,
           analytics: {
             impressions: analytics.impressions,
@@ -246,7 +245,7 @@ export async function POST(request: NextRequest) {
         });
       } else {
         return NextResponse.json(
-          { error: "Impossible de rafraîchir les analytics pour ce post" },
+          { error: 'Impossible de rafraîchir les analytics pour ce post' },
           { status: 400 }
         );
       }
@@ -257,7 +256,7 @@ export async function POST(request: NextRequest) {
     const cutoff = new Date(Date.now() - hours * 60 * 60 * 1000);
 
     const whereClause: Record<string, unknown> = {
-      status: "PUBLISHED",
+      status: 'PUBLISHED',
       publishedAt: { gte: cutoff },
       externalPostId: { not: null },
     };
@@ -281,7 +280,7 @@ export async function POST(request: NextRequest) {
       } else {
         failed++;
       }
-      await new Promise((resolve) => setTimeout(resolve, DELAY_MS));
+      await new Promise(resolve => setTimeout(resolve, DELAY_MS));
     }
 
     return NextResponse.json({
@@ -290,14 +289,14 @@ export async function POST(request: NextRequest) {
       refreshed,
       failed,
       hoursBack: hours,
-      platform: platform || "all",
+      platform: platform || 'all',
     });
   } catch (error) {
-    console.error("[Cron:fetch-social-analytics] Erreur:", error);
+    console.error('[Cron:fetch-social-analytics] Erreur:', error);
     return NextResponse.json(
       {
-        error: "Analytics fetch failed",
-        message: error instanceof Error ? error.message : "Unknown error",
+        error: 'Analytics fetch failed',
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

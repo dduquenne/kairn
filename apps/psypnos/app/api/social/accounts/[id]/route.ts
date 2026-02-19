@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * API REST pour un compte social spécifique
  *
@@ -15,11 +12,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { withAdminAuth } from '@/app/api/auth/middleware';
 import { validateAccountToken } from '@/lib/social/oauth/refresh';
-import {
-  getSocialAccountById,
-  updateSocialAccount,
-  deleteSocialAccount,
-} from '@/lib/social/store';
+import { getSocialAccountById, updateSocialAccount, deleteSocialAccount } from '@/lib/social/store';
 import type { UpdateSocialAccountInput } from '@/lib/social/types';
 
 interface RouteParams {
@@ -90,10 +83,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     if (Object.keys(updateData).length === 0) {
-      return NextResponse.json(
-        { error: 'Aucun champ valide à mettre à jour' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Aucun champ valide à mettre à jour' }, { status: 400 });
     }
 
     const updatedAccount = await updateSocialAccount(id, updateData);
@@ -104,10 +94,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     });
   } catch (error) {
     console.error('[Social Account API] Erreur PATCH:', error);
-    return NextResponse.json(
-      { error: 'Erreur lors de la mise à jour du compte' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Erreur lors de la mise à jour du compte' }, { status: 500 });
   }
 }
 
@@ -136,9 +123,6 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     });
   } catch (error) {
     console.error('[Social Account API] Erreur DELETE:', error);
-    return NextResponse.json(
-      { error: 'Erreur lors de la suppression du compte' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Erreur lors de la suppression du compte' }, { status: 500 });
   }
 }

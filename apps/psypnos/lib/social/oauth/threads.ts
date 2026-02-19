@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * Threads OAuth 2.0 Implementation
  *
@@ -31,19 +28,16 @@ const THREADS_AUTH_BASE = 'https://threads.net';
  * Scopes demandés pour Threads
  */
 export const THREADS_SCOPES = [
-  'threads_basic',           // Accès de base au profil
+  'threads_basic', // Accès de base au profil
   'threads_content_publish', // Publier du contenu
   'threads_manage_insights', // Lire les statistiques
-  'threads_manage_replies',  // Gérer les réponses
+  'threads_manage_replies', // Gérer les réponses
 ];
 
 /**
  * Scopes minimaux (juste publication)
  */
-export const THREADS_MINIMAL_SCOPES = [
-  'threads_basic',
-  'threads_content_publish',
-];
+export const THREADS_MINIMAL_SCOPES = ['threads_basic', 'threads_content_publish'];
 
 // ===========================================
 // Types
@@ -145,7 +139,7 @@ export async function exchangeCodeForToken(
   if (!response.ok) {
     const error = await response.json();
     throw new Error(
-      `Erreur Threads OAuth: ${error.error_message || error.error?.message || 'Échec de l\'échange de token'}`
+      `Erreur Threads OAuth: ${error.error_message || error.error?.message || "Échec de l'échange de token"}`
     );
   }
 
@@ -179,7 +173,7 @@ export async function exchangeForLongLivedToken(
   if (!response.ok) {
     const error = await response.json();
     throw new Error(
-      `Erreur échange token long terme Threads: ${error.error_message || error.error?.message || 'Échec de l\'échange'}`
+      `Erreur échange token long terme Threads: ${error.error_message || error.error?.message || "Échec de l'échange"}`
     );
   }
 

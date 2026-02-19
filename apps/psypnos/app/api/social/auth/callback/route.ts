@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * Route de callback OAuth
  *
@@ -60,7 +57,12 @@ export async function GET(request: NextRequest) {
 
     // Vérifier les paramètres requis
     if (!code || !state) {
-      console.error('[OAuth Callback] ÉCHEC: Paramètres manquants - code:', !!code, 'state:', !!state);
+      console.error(
+        '[OAuth Callback] ÉCHEC: Paramètres manquants - code:',
+        !!code,
+        'state:',
+        !!state
+      );
       return NextResponse.redirect(errorRedirect('Paramètres manquants'));
     }
 
@@ -115,9 +117,12 @@ export async function GET(request: NextRequest) {
     cookieStore.delete('social_oauth_state');
 
     // Vérifier l'authentification admin
-    console.log('[OAuth Callback] Vérification de l\'authentification admin...');
+    console.log("[OAuth Callback] Vérification de l'authentification admin...");
     const payload = await verifyAdminToken();
-    console.log('[OAuth Callback] Payload admin:', payload ? { sub: payload.sub, role: payload.role } : 'null');
+    console.log(
+      '[OAuth Callback] Payload admin:',
+      payload ? { sub: payload.sub, role: payload.role } : 'null'
+    );
 
     if (!payload || payload.role !== 'admin') {
       console.error('[OAuth Callback] ÉCHEC: Non authentifié ou pas admin');
@@ -178,9 +183,11 @@ export async function GET(request: NextRequest) {
       console.log(`[OAuth Callback] ✓ Compte ${platform} mis à jour: ${accountInput.accountName}`);
     } else {
       // Créer un nouveau compte
-      console.log('[OAuth Callback] Création d\'un nouveau compte...');
+      console.log("[OAuth Callback] Création d'un nouveau compte...");
       await createSocialAccount(accountInput);
-      console.log(`[OAuth Callback] ✓ Nouveau compte ${platform} créé: ${accountInput.accountName}`);
+      console.log(
+        `[OAuth Callback] ✓ Nouveau compte ${platform} créé: ${accountInput.accountName}`
+      );
     }
 
     // Rediriger vers la page de gestion avec succès
@@ -209,18 +216,19 @@ async function handleFacebookCallback(
   const { accessToken: shortToken } = await facebook.exchangeCodeForToken(code, redirectUri);
 
   // Échanger contre un token long terme (60 jours)
-  const { accessToken: longToken, expiresIn } = await facebook.exchangeForLongLivedToken(shortToken);
+  const { accessToken: longToken, expiresIn } =
+    await facebook.exchangeForLongLivedToken(shortToken);
 
   // Récupérer les pages Facebook
   const pages = await facebook.getFacebookPages(longToken);
 
   if (pages.length === 0) {
-    throw new Error('Aucune page Facebook trouvée. Vous devez être administrateur d\'une page.');
+    throw new Error("Aucune page Facebook trouvée. Vous devez être administrateur d'une page.");
   }
 
   // Pour Instagram, on cherche une page avec un compte Instagram lié
   if (targetPlatform === 'instagram') {
-    const pageWithInstagram = pages.find((p) => p.instagramAccount);
+    const pageWithInstagram = pages.find(p => p.instagramAccount);
 
     if (!pageWithInstagram || !pageWithInstagram.instagramAccount) {
       throw new Error(
@@ -255,6 +263,10 @@ async function handleFacebookCallback(
   // Pour Facebook, on prend la première page
   const page = pages[0];
 
+  if (!page) {
+    throw new Error('Aucune page Facebook trouvée.');
+  }
+
   return {
     platform: 'FACEBOOK' as SocialPlatform,
     accountId: page.pageId,
@@ -288,8 +300,8 @@ async function handleLinkedInCallback(
     accountName: accountInfo.fullName,
     accessToken: tokenData.accessToken,
     refreshToken: tokenData.refreshToken,
-    tokenExpiry: linkedin.calculateTokenExpiry(tokenData.expiresIn),
-    scope: tokenData.scope.split(' '),
+    tokenExpiry: linkedin.calculateTokenExpiry(tokenData.expiresIn || 3600),
+    scope: Array.isArray(tokenData.scope) ? tokenData.scope : tokenData.scope?.split(' ') || [],
     metadata: {
       personId: accountInfo.personId,
       profileUrl: `https://www.linkedin.com/in/${accountInfo.personId}`,
@@ -319,7 +331,7 @@ async function handleThreadsCallback(
     accountId: user.id,
     accountName: `@${user.username}`,
     accessToken: longToken,
-    tokenExpiry: threads.calculateTokenExpiry(expiresIn),
+    tokenExpiry: threads.calculateTokenExpiry(expiresIn || 5184000),
     scope: threads.THREADS_SCOPES,
     metadata: {
       threadsUserId: user.id,
@@ -349,8 +361,8 @@ async function handleTwitterCallback(
     accountName: `@${user.username}`,
     accessToken: tokenData.accessToken,
     refreshToken: tokenData.refreshToken,
-    tokenExpiry: twitter.calculateTokenExpiry(tokenData.expiresIn),
-    scope: tokenData.scope.split(' '),
+    tokenExpiry: twitter.calculateTokenExpiry(tokenData.expiresIn || 7200),
+    scope: Array.isArray(tokenData.scope) ? tokenData.scope : tokenData.scope?.split(' ') || [],
     metadata: {
       profileUrl: `https://twitter.com/${user.username}`,
       avatarUrl: user.profile_image_url,

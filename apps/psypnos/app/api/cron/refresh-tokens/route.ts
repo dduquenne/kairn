@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * Cron Refresh Tokens API Route
  *
@@ -17,14 +14,11 @@
  * Security: QStash signature or CRON_SECRET
  */
 
-import { verifyCronAuth } from "@kairn/core/scheduler";
-import { NextRequest, NextResponse } from "next/server";
+import { verifyCronAuth } from '@kairn/core/scheduler';
+import { NextRequest, NextResponse } from 'next/server';
 
-import { prisma } from "@/lib/db/prisma";
-import {
-  refreshAllExpiringTokens,
-  getAccountsNeedingRefresh,
-} from "@/lib/social/oauth/refresh";
+import { prisma } from '@/lib/db/prisma';
+import { refreshAllExpiringTokens, getAccountsNeedingRefresh } from '@/lib/social/oauth/refresh';
 
 /**
  * Envoie une notification pour les comptes nécessitant une reconnexion
@@ -38,32 +32,32 @@ async function notifyAccountsNeedingReconnection(
   const resendApiKey = process.env.RESEND_API_KEY;
 
   if (!adminEmail || !resendApiKey) {
-    console.warn("[Cron:refresh-tokens] Impossible d'envoyer la notification - ADMIN_EMAIL ou RESEND_API_KEY manquant");
+    console.warn(
+      "[Cron:refresh-tokens] Impossible d'envoyer la notification - ADMIN_EMAIL ou RESEND_API_KEY manquant"
+    );
     return;
   }
 
   try {
-    const accountsList = failedAccounts
-      .map((a) => `- ${a.platform}: ${a.message}`)
-      .join("\n");
+    const accountsList = failedAccounts.map(a => `- ${a.platform}: ${a.message}`).join('\n');
 
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${resendApiKey}`,
       },
       body: JSON.stringify({
-        from: process.env.ALERT_EMAIL_FROM || "Psypnos <notifications@psypnos.fr>",
+        from: process.env.ALERT_EMAIL_FROM || 'Psypnos <notifications@psypnos.fr>',
         to: [adminEmail],
-        subject: "⚠️ Psypnos - Comptes sociaux nécessitant reconnexion",
+        subject: '⚠️ Psypnos - Comptes sociaux nécessitant reconnexion',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
             <h2 style="color: #e74c3c;">🔐 Reconnexion nécessaire</h2>
             <p>Les comptes suivants ont besoin d'être reconnectés car leurs tokens n'ont pas pu être rafraîchis automatiquement:</p>
             <pre style="background: #f5f5f5; padding: 15px; border-radius: 5px;">${accountsList}</pre>
             <p style="margin-top: 20px;">
-              <a href="${process.env.NEXT_PUBLIC_APP_URL || "https://psypnos.fr"}/admin/social/accounts"
+              <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://psypnos.fr'}/admin/social/accounts"
                  style="background: #3498db; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
                 Gérer les comptes
               </a>
@@ -77,10 +71,10 @@ async function notifyAccountsNeedingReconnection(
     });
 
     if (!response.ok) {
-      console.error("[Cron:refresh-tokens] Erreur envoi email:", await response.text());
+      console.error('[Cron:refresh-tokens] Erreur envoi email:', await response.text());
     }
   } catch (error) {
-    console.error("[Cron:refresh-tokens] Erreur notification:", error);
+    console.error('[Cron:refresh-tokens] Erreur notification:', error);
   }
 }
 
@@ -88,7 +82,7 @@ export async function GET(request: NextRequest) {
   // Verify authentication (QStash signature or CRON_SECRET)
   const authResult = await verifyCronAuth(request);
   if (!authResult.valid) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const startTime = Date.now();
@@ -101,7 +95,7 @@ export async function GET(request: NextRequest) {
     if (accountsNeedingRefresh.length === 0) {
       return NextResponse.json({
         success: true,
-        message: "Aucun token à rafraîchir",
+        message: 'Aucun token à rafraîchir',
         processed: 0,
         results: {
           total: 0,
@@ -117,8 +111,8 @@ export async function GET(request: NextRequest) {
 
     // 3. Identifier les comptes en échec qui nécessitent une reconnexion
     const failedAccounts = result.results
-      .filter((r) => !r.success && r.platform !== "FACEBOOK" && r.platform !== "INSTAGRAM")
-      .map((r) => ({
+      .filter(r => !r.success && r.platform !== 'FACEBOOK' && r.platform !== 'INSTAGRAM')
+      .map(r => ({
         accountId: r.accountId,
         platform: r.platform,
         message: r.message,
@@ -133,7 +127,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Rafraîchissement des tokens terminé",
+      message: 'Rafraîchissement des tokens terminé',
       duration: `${duration}s`,
       processed: result.total,
       results: {
@@ -145,11 +139,11 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("[Cron:refresh-tokens] Erreur:", error);
+    console.error('[Cron:refresh-tokens] Erreur:', error);
     return NextResponse.json(
       {
-        error: "Token refresh failed",
-        message: error instanceof Error ? error.message : "Unknown error",
+        error: 'Token refresh failed',
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

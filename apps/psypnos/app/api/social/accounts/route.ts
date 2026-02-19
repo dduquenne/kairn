@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * API REST pour la gestion des comptes sociaux
  *
@@ -13,10 +10,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { withAdminAuth } from '@/app/api/auth/middleware';
-import {
-  getAllSocialAccounts,
-  getActiveAccountsByPlatform,
-} from '@/lib/social/store';
+import { getAllSocialAccounts, getActiveAccountsByPlatform } from '@/lib/social/store';
 import type { SocialPlatform } from '@/lib/social/types';
 
 /**
@@ -45,23 +39,23 @@ export async function GET(request: NextRequest) {
 
       // Filtrer manuellement si nécessaire
       if (platform) {
-        accounts = accounts.filter((a) => a.platform === platform);
+        accounts = accounts.filter(a => a.platform === platform);
       }
       if (activeOnly) {
-        accounts = accounts.filter((a) => a.isActive);
+        accounts = accounts.filter(a => a.isActive);
       }
     }
 
     // Calculer des statistiques
     const stats = {
       total: accounts.length,
-      active: accounts.filter((a) => a.isActive).length,
+      active: accounts.filter(a => a.isActive).length,
       byPlatform: {
-        FACEBOOK: accounts.filter((a) => a.platform === 'FACEBOOK').length,
-        LINKEDIN: accounts.filter((a) => a.platform === 'LINKEDIN').length,
-        INSTAGRAM: accounts.filter((a) => a.platform === 'INSTAGRAM').length,
+        FACEBOOK: accounts.filter(a => a.platform === 'FACEBOOK').length,
+        LINKEDIN: accounts.filter(a => a.platform === 'LINKEDIN').length,
+        INSTAGRAM: accounts.filter(a => a.platform === 'INSTAGRAM').length,
       },
-      expiringSoon: accounts.filter((a) => {
+      expiringSoon: accounts.filter(a => {
         if (!a.tokenExpiry) return false;
         const sevenDaysFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
         return a.tokenExpiry < sevenDaysFromNow;
