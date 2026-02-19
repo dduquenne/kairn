@@ -25,8 +25,8 @@ config({ path: path.join(process.cwd(), '.env.local') });
 
 const prisma = new PrismaClient();
 
-// Psypnos site ID (from database)
-const PSYPNOS_SITE_ID = 'cmkpjzwu00000zc986w1kta2y';
+// Psypnos site slug - site ID is looked up dynamically
+const PSYPNOS_SITE_SLUG = 'psypnos';
 
 /**
  * Create a URL-friendly slug from a tag name
@@ -72,16 +72,18 @@ async function main() {
   console.log('║  MIGRATION: BlogPostExtended → BlogPost                    ║');
   console.log('╚════════════════════════════════════════════════════════════╝\n');
 
-  // Verify site exists
+  // Verify site exists (lookup by slug)
   const site = await prisma.site.findUnique({
-    where: { id: PSYPNOS_SITE_ID },
+    where: { slug: PSYPNOS_SITE_SLUG },
   });
 
   if (!site) {
-    console.error(`❌ Site not found: ${PSYPNOS_SITE_ID}`);
+    console.error(`❌ Site not found with slug: ${PSYPNOS_SITE_SLUG}`);
     process.exit(1);
   }
-  console.log(`✅ Site found: ${site.name} (${site.slug})\n`);
+
+  const PSYPNOS_SITE_ID = site.id;
+  console.log(`✅ Site found: ${site.name} (${site.slug}) — ID: ${PSYPNOS_SITE_ID}\n`);
 
   // Check existing BlogPost articles
   const existingPosts = await prisma.blogPost.findMany({
