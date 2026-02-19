@@ -1,0 +1,673 @@
+# Audit de migration Psypnos — VPS GANDI vers Vercel (kairn)
+
+**Date de l'audit** : 19 février 2026
+**Repository source** : `psypnos` (VPS GANDI, Supabase `ukbbkoadbgifnxbcuxbr`)
+**Repository destination** : `kairn` (monorepo, app `@kairn/psypnos`, Vercel CDG1)
+**Domaine** : `psypnos.fr`
+
+---
+
+## Table des matières
+
+1. [Cartographie des URLs](#1-cartographie-des-urls)
+2. [Inventaire des contenus](#2-inventaire-des-contenus)
+3. [Inventaire des processus automatisés](#3-inventaire-des-processus-automatisés)
+4. [Inventaire des assets](#4-inventaire-des-assets)
+5. [Vérification de compatibilité des URLs](#5-vérification-de-compatibilité-des-urls)
+6. [Anomalies détectées](#6-anomalies-détectées)
+7. [Variables d'environnement requises](#7-variables-denvironnement-requises)
+8. [Scripts de migration disponibles](#8-scripts-de-migration-disponibles)
+
+---
+
+## 1. Cartographie des URLs
+
+### 1.1 Pages statiques publiques (28 pages)
+
+| URL | Fichier | Priorité sitemap |
+|-----|---------|-----------------|
+| `/` | `app/page.tsx` | 1.0 |
+| `/psychotherapie` | `app/psychotherapie/page.tsx` | 0.9 |
+| `/hypnose` | `app/hypnose/page.tsx` | 0.9 |
+| `/respiration-holotropique` | `app/respiration-holotropique/page.tsx` | 0.9 |
+| `/therapies` | `app/therapies/page.tsx` | 0.9 |
+| `/yonne` | `app/yonne/page.tsx` | 0.9 |
+| `/blog` | `app/blog/page.tsx` | 0.9 |
+| `/a-propos` | `app/a-propos/page.tsx` | 0.8 |
+| `/contact` | `app/contact/page.tsx` | 0.8 |
+| `/demande-rendez-vous` | `app/demande-rendez-vous/page.tsx` | 0.8 |
+| `/inscription-seminaire` | `app/inscription-seminaire/page.tsx` | 0.8 |
+| `/psychotherapie-yonne` | `app/psychotherapie-yonne/page.tsx` | 0.8 |
+| `/psychotherapie-auxerre` | `app/psychotherapie-auxerre/page.tsx` | 0.8 |
+| `/psychotherapie-sens` | `app/psychotherapie-sens/page.tsx` | 0.8 |
+| `/psychotherapie-joigny` | `app/psychotherapie-joigny/page.tsx` | 0.8 |
+| `/psychotherapie-migennes` | `app/psychotherapie-migennes/page.tsx` | 0.8 |
+| `/hypnose-yonne` | `app/hypnose-yonne/page.tsx` | 0.8 |
+| `/hypnose-auxerre` | `app/hypnose-auxerre/page.tsx` | 0.8 |
+| `/hypnose-sens` | `app/hypnose-sens/page.tsx` | 0.8 |
+| `/hypnose-joigny` | `app/hypnose-joigny/page.tsx` | 0.8 |
+| `/hypnose-migennes` | `app/hypnose-migennes/page.tsx` | 0.8 |
+| `/respiration-holotropique-bourgogne` | `app/respiration-holotropique-bourgogne/page.tsx` | 0.8 |
+| `/respiration-holotropique-yonne` | `app/respiration-holotropique-yonne/page.tsx` | 0.8 |
+| `/politique-de-confidentialite` | `app/politique-de-confidentialite/page.tsx` | 0.3 |
+| `/conditions-utilisation` | `app/conditions-utilisation/page.tsx` | 0.3 |
+| `/login` | `app/login/page.tsx` | — |
+| `/offline` | `app/offline/page.tsx` | — |
+| `/maintenance` | `app/maintenance/page.tsx` | — |
+
+### 1.2 Pages dynamiques
+
+| Pattern | Fichier | Rendu |
+|---------|---------|-------|
+| `/blog/[slug]` | `app/blog/[slug]/page.tsx` | `force-dynamic` |
+
+Génère **62 URLs** correspondant aux articles publiés (voir section 2.1).
+
+### 1.3 Redirections 301 permanentes (next.config.mjs)
+
+| Source | Destination |
+|--------|-------------|
+| `/psychotherapeute-yonne` | `/psychotherapie-yonne` |
+| `/psychotherapeute-auxerre` | `/psychotherapie-auxerre` |
+| `/psychotherapeute-sens` | `/psychotherapie-sens` |
+| `/psychotherapeute-joigny` | `/psychotherapie-joigny` |
+| `/psychotherapeute-migennes` | `/psychotherapie-migennes` |
+
+### 1.4 Pages admin protégées (17 pages)
+
+| URL | Fichier |
+|-----|---------|
+| `/admin` | `app/admin/page.tsx` |
+| `/admin/analytics` | `app/admin/analytics/page.tsx` |
+| `/admin/analytics/mobile` | `app/admin/analytics/mobile/page.tsx` |
+| `/admin/analytics/mobile/dashboard` | `app/admin/analytics/mobile/dashboard/page.tsx` |
+| `/admin/analytics/mobile/blog` | `app/admin/analytics/mobile/blog/page.tsx` |
+| `/admin/analytics/mobile/alerts` | `app/admin/analytics/mobile/alerts/page.tsx` |
+| `/admin/analytics/mobile/settings` | `app/admin/analytics/mobile/settings/page.tsx` |
+| `/admin/blog` | `app/admin/blog/page.tsx` |
+| `/admin/blog/new` | `app/admin/blog/new/page.tsx` |
+| `/admin/blog/analytics` | `app/admin/blog/analytics/page.tsx` |
+| `/admin/blog/edit/[slug]` | `app/admin/blog/edit/[slug]/page.tsx` |
+| `/admin/blog/jobs` | `app/admin/blog/jobs/page.tsx` |
+| `/admin/configuration` | `app/admin/configuration/page.tsx` |
+| `/admin/customization` | `app/admin/customization/page.tsx` |
+| `/admin/deployment` | `app/admin/deployment/page.tsx` |
+| `/admin/settings` | `app/admin/settings/page.tsx` |
+| `/admin/social` | `app/admin/social/page.tsx` |
+| `/admin/social/accounts` | `app/admin/social/accounts/page.tsx` |
+| `/admin/social/calendar` | `app/admin/social/calendar/page.tsx` |
+| `/admin/social/posts` | `app/admin/social/posts/page.tsx` |
+| `/admin/social/posts/new` | `app/admin/social/posts/new/page.tsx` |
+| `/admin/users` | `app/admin/users/page.tsx` |
+| `/admin/testimonials` | `app/admin/testimonials/page.tsx` |
+| `/admin/seminars` | `app/admin/seminars/page.tsx` |
+
+### 1.5 Routes API (résumé par catégorie)
+
+| Catégorie | Nombre de routes | Préfixe |
+|-----------|-----------------|---------|
+| Analytics | 30 | `/api/analytics/` |
+| Blog | 18 | `/api/blog/` |
+| Social | 17 | `/api/social/` |
+| Admin Deployment | 12 | `/api/admin/deployment/` |
+| Admin Users | 4 | `/api/admin/users/` |
+| Cron Jobs | 10 | `/api/cron/` |
+| Push Notifications | 3 | `/api/push/` |
+| Auth | 3 | `/api/auth/` |
+| Testimonials | 2 | `/api/testimonials/` |
+| Seminars | 3 | `/api/seminars/` |
+| Contact/RDV | 4 | `/api/contact/`, `/api/appointment-request/`, `/api/quick-contact/`, `/api/registrations/` |
+| Chat/AI | 3 | `/api/chat/`, `/api/assistant/` |
+| Experiments | 2 | `/api/experiments/` |
+| Prefill | 3 | `/api/prefill/` |
+| Debug | 3 | `/api/debug/` |
+| Utilities | 3 | `/api/health`, `/api/csrf-token`, `/api/version` |
+| **Total** | **~120** | |
+
+### 1.6 Résumé des URLs
+
+| Type | Nombre |
+|------|--------|
+| Pages statiques publiques | 28 |
+| Pages dynamiques blog | 62 |
+| Redirections 301 | 5 |
+| Pages admin | 24 |
+| Routes API | ~120 |
+| **Total URLs servies** | **~239** |
+
+---
+
+## 2. Inventaire des contenus
+
+### 2.1 Articles de blog
+
+**Source** : `data/psypnos-blog-export.json` (1.1 Mo)
+**Total** : 98 articles
+**Publiés** : 62
+**Brouillons** : 36
+
+#### Structure de chaque article (20 champs)
+
+| Champ | Type | Description |
+|-------|------|-------------|
+| `id` | string | Identifiant unique |
+| `slug` | string | URL-safe, unique, pattern `{catégorie}-{sujet}` |
+| `title` | string | Titre complet en français |
+| `description` | string | Résumé/extrait |
+| `content` | string | Contenu Markdown complet |
+| `author` | string | Nom de l'auteur |
+| `category` | string | Une des 4 catégories |
+| `tags` | string (JSON) | Tableau de tags sérialisé |
+| `image` | string | Chemin de l'image de couverture |
+| `image_prompt` | string | Prompt de génération d'image IA |
+| `seo_intent` | string | Mot-clé cible SEO |
+| `persona` | string | Profil lecteur cible |
+| `tones` | string | Ton éditorial |
+| `faq` | string (JSON) | Questions/réponses structurées |
+| `json_ld` | string (JSON) | Données structurées schema.org |
+| `published` | boolean | Statut de publication |
+| `featured` | boolean | Mis en avant sur la homepage |
+| `date` | string (ISO) | Date de publication |
+| `created_at` | string (ISO) | Date de création |
+| `updated_at` | string (ISO) | Date de dernière modification |
+
+#### Répartition par catégorie
+
+| Catégorie | Publiés | Brouillons | Total |
+|-----------|---------|------------|-------|
+| Comprendre | 24 | 24 | 48 |
+| Traverser | 21 | 6 | 27 |
+| Découvrir | 11 | 6 | 17 |
+| Cheminer | 6 | 0 | 6 |
+| **Total** | **62** | **36** | **98** |
+
+#### Liste complète des 62 articles publiés (par date de publication)
+
+| Slug | Catégorie | Date |
+|------|-----------|------|
+| `comprendre-pourquoi-psychotherapie` | Comprendre | 2025-01-01 |
+| `comprendre-psychotherapie-transpersonnelle` | Comprendre | 2025-01-12 |
+| `comprendre-hypnose-ericksonienne` | Comprendre | 2025-01-16 |
+| `decouvrir-respiration-holotropique` | Découvrir | 2025-01-25 |
+| `comprendre-fonctionnement-psychotherapie` | Comprendre | 2025-01-28 |
+| `comprendre-psychotherapie-psychanalyse-coaching` | Comprendre | 2025-02-09 |
+| `traverser-anxiete-angoisse-stress` | Traverser | 2025-02-13 |
+| `comprendre-signaux-burn-out` | Comprendre | 2025-02-22 |
+| `traverser-un-deuil` | Traverser | 2025-03-04 |
+| `comprendre-deuil-traspersonnel` | Comprendre | 2025-03-16 |
+| `comprendre-crise-de-vie` | Comprendre | 2025-03-20 |
+| `cheminer-apres-psychotherapie` | Cheminer | 2025-03-22 |
+| `traverser-oser-commencer-psychotherapie` | Traverser | 2025-03-25 |
+| `traverser-choisir-psychotherapeute` | Traverser | 2025-03-26 |
+| `comprendre-corps-emotions` | Comprendre | 2025-04-06 |
+| `comprendre-blessures-attachement` | Comprendre | 2025-04-09 |
+| `comprendre-traumatismes-psychiques` | Comprendre | 2025-04-19 |
+| `traverser-accueillir-emotions` | Traverser | 2025-04-24 |
+| `comprendre-mecanismes-defense` | Comprendre | 2025-04-30 |
+| `decouvrir-etats-modifies-conscience` | Découvrir | 2025-05-11 |
+| `decouvrir-enfant-interieur` | Découvrir | 2025-05-15 |
+| `decouvrir-auto-hypnose-debutants` | Découvrir | 2025-05-24 |
+| `traverser-arreter-fumer-hypnose` | Traverser | 2025-05-27 |
+| `traverser-hypnose-douleur-chronique` | Traverser | 2025-06-01 |
+| `comprendre-manque-estime-soi` | Comprendre | 2025-06-05 |
+| `traverser-anxiete-nocturne` | Traverser | 2025-06-14 |
+| `comprendre-stress-travail` | Comprendre | 2025-06-17 |
+| `decouvrir-respiration-holotropique-deuil` | Découvrir | 2025-06-28 |
+| `comprendre-psychotherapie-spiritualite` | Comprendre | 2025-07-03 |
+| `decouvrir-seance-respiration-holotropique` | Découvrir | 2025-07-13 |
+| `decouvrir-hypnose-gestion-emotions` | Découvrir | 2025-07-15 |
+| `comprendre-therapie-individuelle-couple` | Comprendre | 2025-07-26 |
+| `traverser-accompagner-proche` | Traverser | 2025-07-31 |
+| `decouvrir-preparer-seminaire-respiration-holotropique` | Découvrir | 2025-08-10 |
+| `comprendre-resistances-therapie` | Comprendre | 2025-08-13 |
+| `traverser-guerir-honte` | Traverser | 2025-08-23 |
+| `decouvrir-corps-psychotherapie` | Découvrir | 2025-08-28 |
+| `comprendre-crises-existentielles` | Comprendre | 2025-09-07 |
+| `traverser-auto-hypnose-quotidien` | Traverser | 2025-09-09 |
+| `traverser-sortir-relation-toxique` | Traverser | 2025-09-17 |
+| `traverser-reconnaitre-relation-saine` | Traverser | 2025-09-25 |
+| `traverser-dire-non` | Traverser | 2025-10-05 |
+| `decouvrir-hypnose-therapeutique` | Découvrir | 2025-10-10 |
+| `comprendre-approche-psychotherapie-transpersonnelle` | Comprendre | 2025-10-18 |
+| `traverser-dependance-affective` | Traverser | 2025-10-23 |
+| `comprendre-psychotherapie-en-visio` | Comprendre | 2025-11-02 |
+| `comprendre-obstacles-psychotherapie` | Comprendre | 2025-11-04 |
+| `traverser-hypnose-addictions` | Traverser | 2025-11-15 |
+| `traverser-crise-cinquantaine` | Traverser | 2025-11-20 |
+| `traverser-parler-therapie` | Traverser | 2025-11-30 |
+| `cheminer-etapes-guerison` | Cheminer | 2025-12-04 |
+| `cheminer-rythme-psychotherapie` | Cheminer | 2025-12-11 |
+| `cheminer-trouver-amour` | Cheminer | 2025-12-17 |
+| `traverser-developper-auto-compassion` | Traverser | 2025-12-25 |
+| `cheminer-integrer-experience-transformatrice` | Cheminer | 2026-01-01 |
+| `comprendre-besoin-controle` | Comprendre | 2026-01-08 |
+| `comprendre-hypersensibilite-transformer-force` | Comprendre | 2026-01-15 |
+| `comprendre-peur-reussir-surmonter` | Comprendre | 2026-01-22 |
+| `traverser-sortir-mode-survie` | Traverser | 2026-01-29 |
+| `cheminer-transformation-interieure-processus-2` | Cheminer | 2026-02-05 |
+| `decouvrir-hypnose-vs-meditation` | Découvrir | 2026-02-12 |
+| `traverser-aider-crise-existentiel` | Traverser | 2026-02-19 |
+
+#### Qualité des slugs
+
+- Aucun doublon
+- Aucun caractère accentué ou spécial
+- Tous en minuscules avec tirets
+- Convention respectée : `{catégorie}-{sujet}`
+
+#### Tags
+
+- **709 tags uniques** répartis sur les 98 articles
+- Tags en français, sans accents dans les clés
+
+#### Contenus Markdown
+
+- Aucune URL codée en dur vers l'ancien Supabase (`ukbbkoadbgifnxbcuxbr`)
+- Aucun lien absolu vers `psypnos.fr` dans le contenu des articles
+- Seules URLs trouvées : `https://example.com` et `https://google.com` (exemples génériques)
+
+### 2.2 Séminaires
+
+**Source** : `data/seminars.json`
+**Total** : 4 séminaires
+
+| ID (UUID) | Titre | Date | Capacité | Prix | Acompte |
+|-----------|-------|------|----------|------|---------|
+| `f9f7b4d1-...` | Retrouver l'Essentiel | 17-18 jan 2026 | 18 | 250 € | 125 € |
+| `b2d81762-...` | Se reconnecter à la Vie | 21 mar 2026 | 18 | 120 € | 60 € |
+| `75fa3d5e-...` | Respirer la Lumière | 30-31 mai 2026 | 18 | 250 € | 125 € |
+| `1d1e8ed8-...` | Accueillir le Changement | 22 nov 2025 | 18 | 120 € | 60 € |
+
+- Tous au même lieu : Moulin d'en bas, Bourgogne
+- Animés par David Duquenne et Nathalie Duquenne (sauf 1 avec Camille Tissier)
+- Pas de pages individuelles — une seule page `/inscription-seminaire`
+- 1 séminaire passé (nov 2025), 1 passé (jan 2026), 2 à venir
+
+### 2.3 Témoignages
+
+**Source** : `data/testimonials.json`
+**Total** : 5 témoignages
+
+| Auteur | Extrait |
+|--------|---------|
+| Paule | « Des actions concrètes, sous la conduite d'une très grande bienveillance de David. » |
+| Ariana | « J'ai avancé d'un pas de géant dans l'alignement de mon projet. » |
+| Luc | « Intime, connecté, et du travail sur soi. de la clarté en résulte :-) » |
+| Lijou | « J'ai pu trouver des moyens plus simples pour concrétiser mes objectifs... » |
+| Aurélia | « L'approche de David vous amène doucement mais sûrement au cœur du sujet... » |
+
+- Tous créés le 18 novembre 2025
+- Structure : `{ id, quote, author, createdAt, updatedAt }`
+
+### 2.4 Utilisateurs
+
+**Source** : `data/users.json`
+**Total** : 1 utilisateur
+
+- Email : `david@psypnos.fr`
+- Rôle : `admin`
+- Hash bcrypt (compatible avec le nouveau système)
+- Container nommé `items` (pas `users`)
+
+### 2.5 Analytics
+
+**Source** : `data/analytics.json`
+**Statut** : Vide (structure définie, aucune donnée collectée)
+
+```json
+{ "pageVisits": [], "sectionTimes": [], "conversionEvents": [] }
+```
+
+---
+
+## 3. Inventaire des processus automatisés
+
+### 3.1 Cron jobs (10 tâches via QStash)
+
+| Job | Route | Fréquence | Fonction |
+|-----|-------|-----------|----------|
+| social-publish | `/api/cron/social-publish` | `*/5 * * * *` (5 min) | Publication des posts sociaux programmés |
+| fetch-social-analytics | `/api/cron/fetch-social-analytics` | `0 */4 * * *` (4h) | Récupération des stats de posts sociaux |
+| refresh-tokens | `/api/cron/refresh-tokens` | `0 * * * *` (1h) | Rafraîchissement des tokens OAuth expirés |
+| daily-report | `/api/cron/daily-report` | `0 8 * * *` (8h) | Envoi du rapport analytique quotidien |
+| weekly-report | `/api/cron/weekly-report` | `0 9 * * 1` (lun 9h) | Envoi du rapport analytique hebdomadaire |
+| process-reports | `/api/cron/process-reports` | `45 * * * *` | Traitement unifié de tous les rapports planifiés |
+| cleanup-data | `/api/cron/cleanup-data` | `0 3 * * *` (3h) | Purge des données analytiques anciennes |
+| cleanup-jobs | `/api/cron/cleanup-jobs` | `0 4 * * *` (4h) | Nettoyage des jobs orphelins |
+| aggregate | `/api/cron/aggregate` | `30 * * * *` | Agrégation des données et détection d'anomalies |
+| check-alerts | `/api/cron/check-alerts` | `*/15 * * * *` (15 min) | Évaluation et notification des alertes |
+
+### 3.2 Publication sociale — Plateformes et tokens
+
+| Plateforme | Durée du token | Rafraîchissement | API utilisée |
+|------------|---------------|------------------|-------------|
+| Facebook | Indéfini | Non requis | Graph API (page tokens) |
+| Instagram | Indéfini | Non requis | Graph API (via Facebook) |
+| LinkedIn | 60 jours | Oui (refresh token) | LinkedIn API |
+| Twitter/X | 2 heures | Oui (refresh token) | Twitter API v2 |
+| Threads | 60 jours | Oui | Threads API |
+
+- Tokens chiffrés AES-256 avec `SOCIAL_ENCRYPTION_KEY`
+- Détection d'expiration : 7 jours avant
+- Max 3 tentatives de refresh avec retry
+- Alerte email admin si refresh échoue
+
+### 3.3 Flux de publication sociale
+
+1. Un post est créé (manuellement ou par IA) avec statut `SCHEDULED` et `scheduledAt`
+2. Le cron `social-publish` (toutes les 5 min) détecte les posts dont `scheduledAt ≤ maintenant`
+3. Publication séquentielle vers chaque plateforme connectée (1s entre chaque)
+4. Statut : `SCHEDULED` → `PUBLISHING` → `PUBLISHED` ou `FAILED`
+5. Max 3 retries avec backoff exponentiel
+6. Email d'alerte à l'admin en cas d'échec final
+
+### 3.4 Notifications push
+
+- Web Push API avec clés VAPID
+- Batch de 100 souscriptions
+- Topics : `all`, `blog`, `seminar`, `offer`, `system`
+- TTL : 24 heures
+- Désactivation automatique après 5 échecs
+
+### 3.5 Webhook de déploiement
+
+- `/api/admin/deployment/webhook` : reçoit les mises à jour de statut de déploiement
+- Authentification par `X-Deploy-Token`
+- Suivi des phases : `in_progress`, `success`, `failed`, `rolled_back`
+
+---
+
+## 4. Inventaire des assets
+
+### 4.1 Images
+
+| Type | Format | Nombre | Emplacement |
+|------|--------|--------|-------------|
+| Images de couverture blog | WebP | 62 | `/public/images/blog/` |
+| Propositions d'images blog (temp) | WebP | 29 | `/public/images/blog/temp/` |
+| Images séminaires | WebP | 4 | `/public/images/seminars/` |
+| Images services/hero | WebP | 7 | `/public/images/` |
+| Icônes services | SVG | 12 | `/public/images/icons/` |
+| Éléments décoratifs | SVG | 2 | `/public/images/decor/`, `/public/images/patterns/` |
+
+**Images hero principales** :
+- `David_Duquenne.webp` (145 Ko) — Photo profil
+- `Moulin_d_en_Bas.webp` (145 Ko) — Lieu des séminaires
+- `a-propos.webp` (659 Ko)
+- `hypnose.webp` (380 Ko)
+- `psychonaute.webp` (97 Ko)
+- `psychotherapie.webp` (236 Ko)
+- `respiration-holotropique.webp` (605 Ko)
+
+### 4.2 Favicons et PWA
+
+| Fichier | Taille | Usage |
+|---------|--------|-------|
+| `apple-touch-icon.png` | 8.8 Ko | iOS home screen (180×180) |
+| `favicon-16x16.png` | 626 o | Petit favicon |
+| `favicon-32x32.png` | 1.4 Ko | Favicon standard |
+| `icon-192x192.png` | 9.5 Ko | PWA manifest |
+| `icon-512x512.png` | 58 Ko | PWA manifest |
+| `favicon.svg` | 452 o | Favicon vectoriel |
+| `manifest.webmanifest` | 2.0 Ko | Web App Manifest |
+| `sw.js` | 15 Ko | Service Worker |
+| `offline.html` | 8.1 Ko | Page offline |
+
+### 4.3 Polices
+
+- **Inter** (300-700) — Corps de texte, via Google Fonts CDN
+- **Playfair Display** (400-700) — Titres, via Google Fonts CDN
+- Aucune police locale stockée
+
+### 4.4 Stockage Supabase
+
+| Bucket | Usage |
+|--------|-------|
+| `blog-images` | Images de couverture des articles |
+| `seminar-images` | Images des séminaires |
+
+- Stratégie hybride : Supabase si configuré, fallback local (`/public/images/`)
+- Format cible : WebP, qualité 90%
+
+### 4.5 Configuration Next.js Image
+
+- Formats : AVIF (prioritaire), WebP
+- Domaines distants autorisés : `*.supabase.co`, `images.unsplash.com`
+- Cache : 7 jours (604 800 s)
+- Device sizes : 640, 750, 828, 1080, 1200, 1920, 2048 px
+
+### 4.6 Références à l'ancien Supabase
+
+L'identifiant de l'ancien projet Supabase (`ukbbkoadbgifnxbcuxbr`) est encore référencé dans :
+- `.mcp.json`
+- `scripts/MIGRATION-BLOG.md`
+- `scripts/migrate-blog-from-json.ts`
+- `scripts/migrate-blog-from-psypnos.ts`
+- `scripts/migrate-blog-standalone.ts`
+
+Ces références sont dans les scripts de migration uniquement (pas dans le code applicatif).
+
+---
+
+## 5. Vérification de compatibilité des URLs
+
+### 5.1 Pattern d'URL des articles
+
+| Aspect | Ancien site | Nouveau site | Statut |
+|--------|-------------|-------------|--------|
+| Base | `/blog/[slug]` | `/blog/[slug]` | Identique |
+| Domaine | `psypnos.fr` | `psypnos.fr` | Identique |
+| Convention slug | `{catégorie}-{sujet}` | `{catégorie}-{sujet}` | Identique |
+| Rendu | Dynamic (Supabase) | `force-dynamic` (Prisma) | Compatible |
+
+### 5.2 Vérification slug par slug
+
+Les 62 slugs publiés dans l'export JSON utilisent exclusivement :
+- Lettres minuscules (a-z)
+- Chiffres (0-9)
+- Tirets (-)
+
+Aucun slug ne contient de caractères accentués, d'espaces, de majuscules ou de caractères spéciaux.
+
+**Résultat** : Aucun doublon, tous les slugs sont URL-safe et compatibles.
+
+### 5.3 Correspondance slug ↔ image de couverture
+
+Sur 62 articles publiés avec 62 images dans `/images/blog/` :
+
+| Statut | Nombre | Détail |
+|--------|--------|--------|
+| Slug avec image correspondante | 60 | Correspondance exacte `{slug}.webp` |
+| Slug SANS image correspondante | 2 | Voir anomalies ci-dessous |
+
+### 5.4 Pages de services et géolocalisées
+
+Toutes les pages statiques de l'ancien site existent dans le nouveau avec les mêmes chemins. Aucune incompatibilité détectée.
+
+### 5.5 Séminaires
+
+Le pattern est identique : page unique `/inscription-seminaire`, pas d'URL individuelle par séminaire. Compatible.
+
+### 5.6 Pages légales
+
+`/politique-de-confidentialite` et `/conditions-utilisation` existent dans les deux versions. Compatible.
+
+---
+
+## 6. Anomalies détectées
+
+### 6.1 Images manquantes (CRITIQUE)
+
+| Article publié (slug) | Image attendue | Problème |
+|----------------------|----------------|----------|
+| `comprendre-psychotherapie-spiritualite` | `comprendre-psychotherapie-spiritualite.webp` | Image nommée `comprendre-psychotherapie-spiritualite-ame.webp` (suffixe `-ame` en trop) |
+| `traverser-aider-crise-existentiel` | `traverser-aider-crise-existentiel.webp` | Aucune image trouvée |
+
+**Action requise** :
+1. Renommer `comprendre-psychotherapie-spiritualite-ame.webp` → `comprendre-psychotherapie-spiritualite.webp`
+2. Créer ou générer une image pour `traverser-aider-crise-existentiel`
+
+### 6.2 Image en doublon
+
+- `Comprendre-hypnose-ericksonnienne.webp` (majuscule initiale)
+- `comprendre-hypnose-ericksonienne.webp` (minuscule, correct)
+
+**Action requise** : Supprimer le fichier avec majuscule.
+
+### 6.3 Manifest PWA — Référence d'image incorrecte
+
+Le fichier `manifest.webmanifest` référence `/images/David_Duquenne.png` mais le fichier réel est en `.webp`.
+
+**Action requise** : Corriger la référence en `.webp`.
+
+### 6.4 Séminaire passé
+
+Le séminaire « Accueillir le Changement » (22 nov 2025) et « Retrouver l'Essentiel » (17-18 jan 2026) sont déjà passés.
+
+**Action suggérée** : Archiver ou supprimer les séminaires expirés après migration.
+
+### 6.5 Container incohérent dans users.json
+
+Le fichier `users.json` utilise le container `items` au lieu de `users` (contrairement à `seminars` et `testimonials`). À vérifier pour la compatibilité avec le script de migration.
+
+### 6.6 Article de test
+
+L'article `test-markdown-complet` (brouillon, daté 2093) est un article de test. Ne doit pas être migré en production.
+
+---
+
+## 7. Variables d'environnement requises
+
+### 7.1 Infrastructure
+
+| Variable | Description | Catégorie |
+|----------|-------------|-----------|
+| `DATABASE_URL` | URL PostgreSQL de la base kairn | Base de données |
+| `NODE_ENV` | `production` | Environnement |
+| `NEXT_PUBLIC_APP_URL` | `https://psypnos.fr` | Environnement |
+
+### 7.2 Authentification
+
+| Variable | Description |
+|----------|-------------|
+| `JWT_SECRET` | Secret JWT principal |
+| `JWT_ACCESS_SECRET` | Secret token d'accès |
+| `JWT_REFRESH_SECRET` | Secret token de rafraîchissement |
+| `JWT_PASSWORD_RESET_SECRET` | Secret réinitialisation mot de passe |
+
+### 7.3 Services externes
+
+| Variable | Service | Usage |
+|----------|---------|-------|
+| `RESEND_API_KEY` | Resend | Envoi d'emails |
+| `EMAIL_FROM_ADDRESS` | Resend | Adresse expéditeur |
+| `EMAIL_FROM_NAME` | Resend | Nom expéditeur |
+| `SUPABASE_URL` | Supabase | Stockage fichiers |
+| `SUPABASE_ANON_KEY` | Supabase | Clé publique |
+| `SUPABASE_SERVICE_KEY` | Supabase | Clé service (privée) |
+| `OPENAI_API_KEY` | OpenAI | Génération IA |
+| `ANTHROPIC_API_KEY` | Anthropic | Génération IA |
+| `RECAPTCHA_SITE_KEY` | Google | Protection bot (publique) |
+| `RECAPTCHA_SECRET_KEY` | Google | Protection bot (privée) |
+
+### 7.4 Réseaux sociaux
+
+| Variable | Plateforme |
+|----------|------------|
+| `SOCIAL_ENCRYPTION_KEY` | Chiffrement AES-256 des tokens (hex 64 chars) |
+| `FACEBOOK_APP_ID` | Facebook |
+| `FACEBOOK_APP_SECRET` | Facebook |
+| `LINKEDIN_CLIENT_ID` | LinkedIn |
+| `LINKEDIN_CLIENT_SECRET` | LinkedIn |
+| `TWITTER_API_KEY` | Twitter/X |
+| `TWITTER_API_SECRET` | Twitter/X |
+| `TWITTER_BEARER_TOKEN` | Twitter/X |
+| `THREADS_APP_ID` | Threads |
+| `THREADS_APP_SECRET` | Threads |
+
+### 7.5 Planification (QStash)
+
+| Variable | Description |
+|----------|-------------|
+| `QSTASH_TOKEN` | Token API Upstash QStash |
+| `QSTASH_CURRENT_SIGNING_KEY` | Clé de signature courante |
+| `QSTASH_NEXT_SIGNING_KEY` | Prochaine clé (rotation) |
+| `CRON_SECRET` | Secret de fallback pour développement |
+
+### 7.6 Notifications push
+
+| Variable | Description |
+|----------|-------------|
+| `VAPID_PUBLIC_KEY` | Clé publique Web Push |
+| `VAPID_PRIVATE_KEY` | Clé privée Web Push |
+| `VAPID_SUBJECT` | Subject mailto: pour Web Push |
+| `PUSH_ADMIN_TOKEN` | Token admin push |
+
+---
+
+## 8. Scripts de migration disponibles
+
+### 8.1 Blog
+
+| Script | Source | Dépendance | Recommandé |
+|--------|--------|-----------|------------|
+| `migrate-blog-standalone.ts` | PostgreSQL PSYPNOS direct | `pg` uniquement | Oui (principal) |
+| `migrate-blog-from-json.ts` | `psypnos-blog-export.json` | Prisma | Oui (fallback) |
+| `migrate-blog-from-psypnos.ts` | PostgreSQL ou Supabase API | Prisma | Alternatif |
+| `migrate-blogpostextended-to-blogpost.ts` | Table intermédiaire | Prisma | Phase 2 |
+
+**Comportement des scripts** :
+- Idempotents (déduplication par slug)
+- Non destructifs (source jamais modifiée)
+- Conversion d'images en WebP qualité 90%
+- Détection des URLs codées en dur
+- Validation UTF-8
+- Batch de 10 articles
+- Vérification post-migration
+
+**Mapping des champs** :
+
+| Export JSON | BlogPostExtended | BlogPost (multi-tenant) |
+|-------------|-----------------|------------------------|
+| `slug` | `slug` (tel quel) | `slug` (tel quel) |
+| `description` | `description` | `excerpt` |
+| `image` | `image` | `coverImage` |
+| `published` (bool) | `published` | `status` (PUBLISHED/DRAFT) |
+| `date` | `date` | `publishedAt` |
+| `author` | `author` | `authorName` |
+| `tags` (JSON string) | `tags` (string[]) | Relations `BlogPostTag` |
+
+### 8.2 Séminaires et témoignages
+
+| Script | Source |
+|--------|--------|
+| `migrate-seminars-to-db.ts` | `data/seminars.json` |
+| `migrate-testimonials-to-db.ts` | `data/testimonials.json` |
+
+### 8.3 Politiques de rétention (cleanup-data)
+
+| Modèle | Rétention |
+|--------|-----------|
+| PageVisit | 90 jours |
+| BlogAnalytics | 90 jours |
+| BlogCtaClick | 90 jours |
+| BlogFaqClick | 90 jours |
+| BotVisit | 30 jours |
+| SectionTime | 60 jours |
+| AlertHistory | 60 jours |
+| VisitorGeolocation | 60 jours |
+| CustomEvent | 60 jours |
+| ConversionEvent | 90 jours |
+
+---
+
+## Conclusion
+
+L'audit révèle une **bonne compatibilité globale** entre l'ancien et le nouveau site. Les URLs des articles de blog et des services sont strictement identiques dans les deux versions. Les 62 slugs publiés sont préservés sans modification.
+
+**3 anomalies bloquantes à corriger avant migration** :
+1. Image manquante pour `traverser-aider-crise-existentiel`
+2. Image mal nommée pour `comprendre-psychotherapie-spiritualite` (suffixe `-ame`)
+3. Image en doublon avec casse différente pour `comprendre-hypnose-ericksonienne`
+
+**Recommandation** : Corriger ces 3 anomalies, puis procéder à la migration en suivant la stratégie en 8 phases décrite dans le plan de migration.
