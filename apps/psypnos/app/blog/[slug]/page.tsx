@@ -1,6 +1,6 @@
 import { Clock } from 'lucide-react';
 import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 
 import { NavigationMenu } from '../../../components/NavigationMenu';
 import {
@@ -34,7 +34,8 @@ interface PageProps {
 
 // Génération des métadonnées SEO pour chaque article
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = rawSlug.toLowerCase();
   const post = await getPostBySlugAsync(slug);
 
   if (!post) {
@@ -42,6 +43,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: 'Article non trouvé',
     };
   }
+
+  const imageUrl = post.image || `/images/blog/${slug}.webp`;
 
   return {
     title: post.title,
@@ -56,6 +59,20 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       authors: [post.author],
       tags: [post.category, ...post.tags],
       url: `https://psypnos.fr/blog/${slug}`,
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: post.title,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.title,
+      description: post.description,
+      images: [imageUrl],
     },
     alternates: {
       canonical: `https://psypnos.fr/blog/${slug}`,
@@ -74,7 +91,14 @@ export async function generateStaticParams() {
 
 export default async function BlogPostPage({ params }: PageProps) {
   const { slug } = await params;
-  const post = await getPostBySlugAsync(slug);
+
+  // Normaliser la casse : rediriger les URLs avec majuscules vers leur version minuscule
+  const normalizedSlug = slug.toLowerCase();
+  if (slug !== normalizedSlug) {
+    redirect(`/blog/${normalizedSlug}`);
+  }
+
+  const post = await getPostBySlugAsync(normalizedSlug);
 
   if (!post || !post.published) {
     notFound();

@@ -661,13 +661,175 @@ L'article `test-markdown-complet` (brouillon, daté 2093) est un article de test
 
 ---
 
+---
+
+## 9. Phase 2 — Vérification de compatibilité des URLs (exécutée le 19/02/2026)
+
+### 9.1 Vérification des routes blog `/blog/[slug]`
+
+**Route handler** : `app/blog/[slug]/page.tsx`
+
+| Aspect | Résultat | Détail |
+|--------|----------|--------|
+| Requête Prisma | `findUnique` sur clé composite `(slug, siteId)` | Exact match, case-sensitive |
+| Filtre publication | `status === 'PUBLISHED'` ET `publishedAt <= today` | 2 filtres appliqués |
+| Isolation multi-tenant | Filtrage par `siteId` (psypnos) | OK |
+| Slug préservé | Aucune transformation entre URL et requête | OK |
+| 404 handling | `notFound()` si post absent, non publié ou date future | OK |
+| `generateStaticParams` | Génère uniquement les articles publiés et non futurs | OK |
+
+**Chaîne de résolution** :
+```
+URL /blog/{slug} → params.slug → getPostBySlugAsync(slug) → prisma.blogPost.findUnique({slug, siteId}) → rendu ou 404
+```
+
+### 9.2 Vérification des 25 pages statiques publiques
+
+| URL | Fichier trouvé | Statut |
+|-----|---------------|--------|
+| `/` | `app/page.tsx` | OK |
+| `/psychotherapie` | `app/psychotherapie/page.tsx` | OK |
+| `/hypnose` | `app/hypnose/page.tsx` | OK |
+| `/respiration-holotropique` | `app/respiration-holotropique/page.tsx` | OK |
+| `/therapies` | `app/therapies/page.tsx` | OK |
+| `/yonne` | `app/yonne/page.tsx` | OK |
+| `/blog` | `app/blog/page.tsx` | OK |
+| `/a-propos` | `app/a-propos/page.tsx` | OK |
+| `/contact` | `app/contact/page.tsx` | OK |
+| `/demande-rendez-vous` | `app/demande-rendez-vous/page.tsx` | OK |
+| `/inscription-seminaire` | `app/inscription-seminaire/page.tsx` | OK |
+| `/psychotherapie-yonne` | `app/psychotherapie-yonne/page.tsx` | OK |
+| `/psychotherapie-auxerre` | `app/psychotherapie-auxerre/page.tsx` | OK |
+| `/psychotherapie-sens` | `app/psychotherapie-sens/page.tsx` | OK |
+| `/psychotherapie-joigny` | `app/psychotherapie-joigny/page.tsx` | OK |
+| `/psychotherapie-migennes` | `app/psychotherapie-migennes/page.tsx` | OK |
+| `/hypnose-yonne` | `app/hypnose-yonne/page.tsx` | OK |
+| `/hypnose-auxerre` | `app/hypnose-auxerre/page.tsx` | OK |
+| `/hypnose-sens` | `app/hypnose-sens/page.tsx` | OK |
+| `/hypnose-joigny` | `app/hypnose-joigny/page.tsx` | OK |
+| `/hypnose-migennes` | `app/hypnose-migennes/page.tsx` | OK |
+| `/respiration-holotropique-bourgogne` | `app/respiration-holotropique-bourgogne/page.tsx` | OK |
+| `/respiration-holotropique-yonne` | `app/respiration-holotropique-yonne/page.tsx` | OK |
+| `/politique-de-confidentialite` | `app/politique-de-confidentialite/page.tsx` | OK |
+| `/conditions-utilisation` | `app/conditions-utilisation/page.tsx` | OK |
+
+**Résultat** : 25/25 pages statiques confirmées.
+
+### 9.3 Vérification des redirections
+
+**Redirections existantes (next.config.mjs)** : 5 redirections 301 `psychotherapeute-*` → `psychotherapie-*`. Toutes confirmées.
+
+**Middleware** : Pas de réécriture d'URL. Uniquement rate limiting et headers de sécurité.
+
+**Vercel config** : Pas de redirections définies.
+
+**Redirections client-side (admin)** : Non pertinentes pour le SEO.
+
+### 9.4 Vérification du sitemap
+
+**Fichier** : `app/sitemap.ts`
+
+| Catégorie | URLs dans le sitemap | URLs dans l'App Router | Concordance |
+|-----------|---------------------|----------------------|-------------|
+| Pages principales | 11 | 11 | OK |
+| Pages géolocalisées psycho | 5 | 5 | OK |
+| Pages géolocalisées hypnose | 5 | 5 | OK |
+| Pages géolocalisées respiration | 2 | 2 | OK |
+| Pages légales | 2 | 2 | OK |
+| Blog posts (dynamiques) | 62 (filtrés published + date) | 62 | OK |
+| **Total** | **87** | **87** | **OK** |
+
+**Exclusions correctes** : `/admin/*`, `/api/*`, `/login`, `/maintenance`, `/offline` ne sont pas dans le sitemap.
+
+**robots.txt** : Pointe vers `https://psypnos.fr/sitemap.xml`, bloque `/admin/`, `/api/`, `/login`, `/_next/`. Correct.
+
+### 9.5 Vérification des métadonnées SEO
+
+#### Métadonnées d'un article de blog (avant correction)
+
+| Tag | Valeur | Statut |
+|-----|--------|--------|
+| `<title>` | `{post.title} \| Psypnos` | OK |
+| `<meta name="description">` | `{post.description}` | OK |
+| `<meta name="keywords">` | `[catégorie, ...tags]` | OK |
+| `<meta name="author">` | `{post.author}` | OK |
+| `<link rel="canonical">` | `https://psypnos.fr/blog/{slug}` | OK |
+| `og:type` | `article` | OK |
+| `og:title` | `{post.title}` | OK |
+| `og:description` | `{post.description}` | OK |
+| `og:url` | `https://psypnos.fr/blog/{slug}` | OK |
+| `og:published_time` | `{post.date}` | OK |
+| `og:authors` | `[post.author]` | OK |
+| `og:tags` | `[catégorie, ...tags]` | OK |
+| **`og:image`** | **MANQUANT** | **CORRIGE** |
+| **`twitter:card`** | **Générique (site-level)** | **CORRIGE** |
+| **`twitter:title`** | **Générique** | **CORRIGE** |
+| **`twitter:image`** | **Générique** | **CORRIGE** |
+| JSON-LD `Article` | headline, description, author, publisher, mainEntityOfPage, keywords | OK |
+
+### 9.6 Corrections appliquées
+
+#### 9.6.1 Images corrigées
+
+| Action | Fichier | Statut |
+|--------|---------|--------|
+| Renommer | `comprendre-psychotherapie-spiritualite-ame.webp` → `comprendre-psychotherapie-spiritualite.webp` | FAIT |
+| Supprimer | `Comprendre-hypnose-ericksonnienne.webp` (doublon majuscule) | FAIT |
+| Créer | `traverser-aider-crise-existentiel.webp` | A FAIRE (action manuelle requise) |
+
+#### 9.6.2 Métadonnées OG/Twitter ajoutées (`app/blog/[slug]/page.tsx`)
+
+Ajout dans `generateMetadata()` :
+- `openGraph.images` : image de couverture de l'article (`post.image` ou fallback `/images/blog/{slug}.webp`), dimensions 1200x630
+- `twitter.card` : `summary_large_image`
+- `twitter.title` : titre de l'article
+- `twitter.description` : description de l'article
+- `twitter.images` : image de couverture de l'article
+
+**Impact** : Les previews des liens partagés sur les réseaux sociaux afficheront désormais l'image, le titre et la description spécifiques à chaque article.
+
+#### 9.6.3 Normalisation de casse du slug (`app/blog/[slug]/page.tsx`)
+
+Ajout d'une normalisation dans la route et dans `generateMetadata()` :
+- Si le slug contient des majuscules (ex: `/blog/Comprendre-Hypnose`), redirection automatique vers la version minuscule (`/blog/comprendre-hypnose`)
+- `generateMetadata()` normalise également le slug en minuscules avant la requête Prisma
+
+**Impact** : Prévient les 404 causés par des URLs avec majuscules accidentelles et garantit une URL canonique unique.
+
+---
+
+## 10. Actions restantes avant migration
+
+### 10.1 Actions bloquantes
+
+| Action | Priorité | Responsable |
+|--------|----------|-------------|
+| Générer l'image `traverser-aider-crise-existentiel.webp` | CRITIQUE | Manuel (admin) |
+
+### 10.2 Actions recommandées
+
+| Action | Priorité | Détail |
+|--------|----------|--------|
+| Corriger le manifest PWA | Moyenne | Remplacer `/images/David_Duquenne.png` par `.webp` |
+| Archiver les séminaires passés | Faible | 2 séminaires expirés dans `seminars.json` |
+| Exclure `test-markdown-complet` de la migration | Faible | Article de test daté 2093 |
+
+---
+
 ## Conclusion
 
-L'audit révèle une **bonne compatibilité globale** entre l'ancien et le nouveau site. Les URLs des articles de blog et des services sont strictement identiques dans les deux versions. Les 62 slugs publiés sont préservés sans modification.
+L'audit et la vérification de compatibilité des URLs confirment une **compatibilité totale** entre l'ancien et le nouveau site :
 
-**3 anomalies bloquantes à corriger avant migration** :
-1. Image manquante pour `traverser-aider-crise-existentiel`
-2. Image mal nommée pour `comprendre-psychotherapie-spiritualite` (suffixe `-ame`)
-3. Image en doublon avec casse différente pour `comprendre-hypnose-ericksonienne`
+- **25/25** pages statiques publiques vérifiées
+- **62/62** slugs d'articles publiés compatibles (aucun doublon, aucun caractère spécial)
+- **87/87** URLs du sitemap concordantes avec les routes de l'App Router
+- **5/5** redirections 301 en place
+- **0** URL cassée détectée
 
-**Recommandation** : Corriger ces 3 anomalies, puis procéder à la migration en suivant la stratégie en 8 phases décrite dans le plan de migration.
+**Corrections appliquées** :
+1. Image renommée : `comprendre-psychotherapie-spiritualite-ame.webp` → `comprendre-psychotherapie-spiritualite.webp`
+2. Image en doublon supprimée : `Comprendre-hypnose-ericksonnienne.webp`
+3. `og:image` et `twitter:card` ajoutés aux métadonnées des articles de blog
+4. Normalisation de casse du slug ajoutée à la route `/blog/[slug]`
+
+**1 action manuelle restante** : Générer l'image de couverture pour `traverser-aider-crise-existentiel`.
