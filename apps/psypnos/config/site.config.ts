@@ -167,10 +167,6 @@ ses patients avec bienveillance et professionnalisme dans leur cheminement perso
       openaiApiKey: process.env.OPENAI_API_KEY,
       anthropicApiKey: process.env.ANTHROPIC_API_KEY,
     },
-    recaptcha: {
-      siteKey: process.env.RECAPTCHA_SITE_KEY || '',
-      secretKey: process.env.RECAPTCHA_SECRET_KEY || '',
-    },
   },
 
   // Thème visuel (référence theme.config.ts pour les détails)

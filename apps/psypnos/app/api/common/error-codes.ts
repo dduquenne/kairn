@@ -32,8 +32,6 @@ export enum ErrorCode {
   SERVICE_UNAVAILABLE = "SERVICE_UNAVAILABLE",
   EMAIL_SERVICE_ERROR = "EMAIL_SERVICE_ERROR",
 
-  // Validation service errors
-  RECAPTCHA_FAILED = "RECAPTCHA_FAILED",
 }
 
 export interface ApiError {
@@ -107,10 +105,6 @@ export const ErrorMessages: Record<ErrorCode, { message: string; statusCode: num
   [ErrorCode.EMAIL_SERVICE_ERROR]: {
     message: "Erreur lors de l'envoi de l'email. Veuillez réessayer",
     statusCode: 500,
-  },
-  [ErrorCode.RECAPTCHA_FAILED]: {
-    message: "Vérification reCAPTCHA échouée",
-    statusCode: 400,
   },
 };
 

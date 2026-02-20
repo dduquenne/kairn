@@ -43,15 +43,3 @@ body {
   border-radius: 50%;
   overflow: hidden;
 }
-
-/* reCAPTCHA v3 badge - Reduced size */
-.grecaptcha-badge {
-  transform: scale(0.7);
-  transform-origin: bottom right;
-  opacity: 0.85;
-}
-
-/* Optional: Further reduce size to 50% */
-.grecaptcha-badge iframe {
-  max-width: 140px !important;
-}

@@ -10,7 +10,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
-import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
 import seminarsData from '../../data/seminars.json';
 import { trackConversionEvent } from '../../hooks/useAnalytics';
@@ -64,7 +63,7 @@ export default function SeminarRegistrationForm() {
     validate,
   } = useFormState();
 
-  const { executeRecaptcha } = useGoogleReCaptcha();
+  const [honeypot, setHoneypot] = useState('');
   const { csrfToken, isLoading: csrfLoading, error: csrfError, refreshToken } = useCSRF();
 
   // Séminaires depuis le JSON - defer date filtering to client-side only
@@ -94,7 +93,7 @@ export default function SeminarRegistrationForm() {
   );
 
   const submitRegistration = useCallback(
-    async ({ formData, token }: { formData: SeminarRegistrationData; token: string }) => {
+    async ({ formData }: { formData: SeminarRegistrationData }) => {
       if (!csrfToken) {
         throw new Error('Token CSRF manquant');
       }
@@ -105,12 +104,16 @@ export default function SeminarRegistrationForm() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-ReCaptcha-Token': token,
             'X-CSRF-Token': csrfToken,
           },
           body: JSON.stringify({
             ...formData,
             csrf_token: csrfToken,
+            meta: {
+              honeypot: honeypot.trim(),
+              submitted_at: new Date().toISOString(),
+              source_page: typeof window !== 'undefined' ? window.location.href : '',
+            },
           }),
         });
 
@@ -137,7 +140,7 @@ export default function SeminarRegistrationForm() {
         setIsMutationPending(false);
       }
     },
-    [resetForm, csrfToken, refreshToken]
+    [resetForm, csrfToken, refreshToken, honeypot]
   );
 
   const handleSubmit = useCallback(
@@ -154,29 +157,25 @@ export default function SeminarRegistrationForm() {
       const validation = validate();
       if (!validation.data) return;
 
-      if (!executeRecaptcha) {
-        setGeneralError(
-          'Le service de sécurité est temporairement indisponible, merci de réessayer bientôt.'
-        );
-        return;
-      }
-
-      const token = await executeRecaptcha('seminar_registration');
-      if (!token) {
-        setGeneralError("Nous n'avons pas pu vérifier votre inscription. Merci de réessayer.");
+      // Honeypot check: if the hidden field is filled, silently fake success
+      if (honeypot.trim() !== '') {
+        setShowSuccess(true);
+        setGeneralError(null);
+        resetForm();
+        setHoneypot('');
         return;
       }
 
       setIsSubmitting(true);
       try {
-        await submitRegistration({ formData: validation.data, token });
+        await submitRegistration({ formData: validation.data });
       } catch (error) {
         console.error('registration-error', error);
       } finally {
         setIsSubmitting(false);
       }
     },
-    [executeRecaptcha, validate, submitRegistration, csrfToken, setAllFieldsTouched]
+    [validate, submitRegistration, csrfToken, setAllFieldsTouched, honeypot, resetForm]
   );
 
   const isProcessing = isSubmitting || isMutationPending;
@@ -531,6 +530,20 @@ export default function SeminarRegistrationForm() {
             </div>
           </motion.label>
         </section>
+
+        {/* Honeypot - hidden from real users */}
+        <div className="sr-only" aria-hidden="true">
+          <label htmlFor="company">Votre société</label>
+          <input
+            id="company"
+            name="company"
+            type="text"
+            value={honeypot}
+            onChange={(e) => setHoneypot(e.target.value)}
+            tabIndex={-1}
+            autoComplete="off"
+          />
+        </div>
 
         {/* Error Messages */}
         {csrfError && !showSuccess && (

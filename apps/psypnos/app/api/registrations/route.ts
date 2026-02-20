@@ -49,23 +49,12 @@ const registrationSchema = z.object({
   consent_RGPD: z.boolean().refine((value) => value === true)
 });
 
-const MIN_RECAPTCHA_SCORE = 0.5;
-
 type SeminarRegistrationPayload = z.infer<typeof registrationSchema>;
 
 type EmailContent = {
   subject: string;
   text: string;
   html: string;
-};
-
-type RecaptchaVerificationResponse = {
-  success: boolean;
-  score?: number;
-  action?: string;
-  challenge_ts?: string;
-  hostname?: string;
-  "error-codes"?: string[];
 };
 
 const formatBoolean = (value: boolean) => (value ? "Oui" : "Non");
@@ -363,45 +352,6 @@ const sendEmailThroughResend = async (content: EmailContent, to: string, replyTo
   }
 };
 
-const verifyRecaptchaToken = async (token: string) => {
-  const secret = process.env.RECAPTCHA_SECRET_KEY ?? process.env.RECAPTCHA_SERVER_SECRET;
-
-  if (!secret) {
-    // SECURITY: Fail closed - reject requests if reCAPTCHA is not configured
-    // This prevents attackers from bypassing protection by removing the secret
-    console.error("SECURITY: La clé secrète reCAPTCHA est absente. Rejet de la requête.");
-    return false;
-  }
-
-  try {
-    const response = await fetch("https://www.google.com/recaptcha/api/siteverify", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
-      },
-      body: new URLSearchParams({ secret, response: token })
-    });
-
-    if (!response.ok) {
-      return false;
-    }
-
-    const result = (await response.json()) as RecaptchaVerificationResponse;
-    if (!result.success) {
-      return false;
-    }
-
-    if (typeof result.score === "number" && result.score < MIN_RECAPTCHA_SCORE) {
-      return false;
-    }
-
-    return true;
-  } catch (error) {
-    console.error("recaptcha-verification-error", error);
-    return false;
-  }
-};
-
 export async function POST(request: Request) {
   // Valider le token CSRF
   const csrfError = await validateCSRFMiddleware(request);
@@ -409,27 +359,15 @@ export async function POST(request: Request) {
     return csrfError;
   }
 
-  const recaptchaToken =
-    (request.headers.get("x-recaptcha-token") ?? request.headers.get("X-ReCaptcha-Token") ?? "").trim();
-
-  if (!recaptchaToken) {
-    return NextResponse.json(
-      { message: "Le jeton reCAPTCHA est manquant." },
-      { status: 400 }
-    );
-  }
-
-  const isHuman = await verifyRecaptchaToken(recaptchaToken);
-  if (!isHuman) {
-    return NextResponse.json(
-      { message: "La vérification de sécurité a échoué." },
-      { status: 400 }
-    );
-  }
-
   let payload: SeminarRegistrationPayload;
   try {
     const body = await request.json();
+
+    // Honeypot check: if the hidden field is filled, return fake success silently
+    const honeypot = typeof body?.meta?.honeypot === "string" ? body.meta.honeypot.trim() : "";
+    if (honeypot !== "") {
+      return NextResponse.json({ success: true });
+    }
     const parsed = registrationSchema.safeParse(body);
 
     if (!parsed.success) {
