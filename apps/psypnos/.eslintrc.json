@@ -1,5 +1,6 @@
 {
   "extends": ["@kairn/eslint-config"],
+  "ignorePatterns": ["public/"],
   "settings": {
     "import/resolver": {
       "typescript": {
@@ -18,5 +19,11 @@
     "no-irregular-whitespace": "warn",
     "no-useless-escape": "warn",
     "no-case-declarations": "warn"
-  }
+  },
+  "overrides": [
+    {
+      "files": ["*.js"],
+      "env": { "node": true }
+    }
+  ]
 }

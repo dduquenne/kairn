@@ -8,8 +8,7 @@
  * - Accessibility
  */
 
-import { render, screen, act } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, act, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import { TestimonialsCarousel, type TestimonialsCarouselProps } from '../TestimonialsCarousel';
@@ -42,8 +41,6 @@ function renderCarousel(props: Partial<TestimonialsCarouselProps> = {}) {
 }
 
 describe('TestimonialsCarousel', () => {
-  const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
@@ -66,7 +63,7 @@ describe('TestimonialsCarousel', () => {
       renderCarousel({ testimonials });
 
       testimonials.forEach(t => {
-        expect(screen.getByText(t.quote)).toBeInTheDocument();
+        expect(screen.getByText(new RegExp(t.quote))).toBeInTheDocument();
       });
     });
 
@@ -117,16 +114,17 @@ describe('TestimonialsCarousel', () => {
       expect(dots).toHaveLength(0);
     });
 
-    it('should navigate to specific slide when dot is clicked', async () => {
+    it('should navigate to specific slide when dot is clicked', () => {
       renderCarousel({ autoplayInterval: 0 }); // Disable autoplay
 
       const dots = screen.getAllByRole('button', { name: /go to testimonial/i });
       expect(dots.length).toBeGreaterThan(2);
 
       // Click on third dot (index 2)
-      const thirdDot = dots[2];
-      expect(thirdDot).toBeDefined();
-      await user.click(thirdDot);
+      const thirdDot = dots[2]!;
+      act(() => {
+        fireEvent.click(thirdDot);
+      });
 
       // The third dot should now be active (wider)
       expect(thirdDot).toHaveAttribute('aria-current', 'true');
@@ -166,48 +164,59 @@ describe('TestimonialsCarousel', () => {
       expect(screen.queryByRole('button', { name: /next/i })).not.toBeInTheDocument();
     });
 
-    it('should go to next slide when next arrow is clicked', async () => {
+    it('should go to next slide when next arrow is clicked', () => {
       renderCarousel({ showArrows: true, autoplayInterval: 0 });
 
       const nextButton = screen.getByRole('button', { name: /next/i });
-      await user.click(nextButton);
+      act(() => {
+        fireEvent.click(nextButton);
+      });
 
       const dots = screen.getAllByRole('button', { name: /go to testimonial/i });
       expect(dots[1]).toHaveAttribute('aria-current', 'true');
     });
 
-    it('should go to previous slide when previous arrow is clicked', async () => {
+    it('should go to previous slide when previous arrow is clicked', () => {
       renderCarousel({ showArrows: true, autoplayInterval: 0 });
 
       const prevButton = screen.getByRole('button', { name: /previous/i });
-      await user.click(prevButton);
+      act(() => {
+        fireEvent.click(prevButton);
+      });
 
       // Should wrap to last slide
       const dots = screen.getAllByRole('button', { name: /go to testimonial/i });
       expect(dots[2]).toHaveAttribute('aria-current', 'true');
     });
 
-    it('should wrap around from last to first slide', async () => {
+    it('should wrap around from last to first slide', () => {
       renderCarousel({ showArrows: true, autoplayInterval: 0 });
 
       const nextButton = screen.getByRole('button', { name: /next/i });
 
-      // Go to slide 2
-      await user.click(nextButton);
-      // Go to slide 3
-      await user.click(nextButton);
-      // Go back to slide 1 (wrap)
-      await user.click(nextButton);
+      // Each click must be in its own act() so React commits the state
+      // between clicks (handleNext depends on currentIndex via closure)
+      act(() => {
+        fireEvent.click(nextButton);
+      }); // Go to slide 2
+      act(() => {
+        fireEvent.click(nextButton);
+      }); // Go to slide 3
+      act(() => {
+        fireEvent.click(nextButton);
+      }); // Go back to slide 1 (wrap)
 
       const dots = screen.getAllByRole('button', { name: /go to testimonial/i });
       expect(dots[0]).toHaveAttribute('aria-current', 'true');
     });
 
-    it('should wrap around from first to last slide', async () => {
+    it('should wrap around from first to last slide', () => {
       renderCarousel({ showArrows: true, autoplayInterval: 0 });
 
       const prevButton = screen.getByRole('button', { name: /previous/i });
-      await user.click(prevButton);
+      act(() => {
+        fireEvent.click(prevButton);
+      });
 
       const dots = screen.getAllByRole('button', { name: /go to testimonial/i });
       expect(dots[2]).toHaveAttribute('aria-current', 'true');
@@ -315,7 +324,7 @@ describe('TestimonialsCarousel', () => {
 
       renderCarousel({ testimonials });
 
-      expect(screen.getByText('Amazing service, highly recommend!')).toBeInTheDocument();
+      expect(screen.getByText(/Amazing service, highly recommend!/)).toBeInTheDocument();
     });
 
     it('should display author name', () => {
