@@ -443,7 +443,7 @@ describe('Auth Flow Integration', () => {
         password: 'securePassword123!',
       });
 
-      const token = Array.from(mockTokenStore.keys())[0];
+      const token = Array.from(mockTokenStore.keys())[0]!;
       const payload = verifyToken(token);
 
       expect(payload).not.toBeNull();

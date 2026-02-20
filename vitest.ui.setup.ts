@@ -4,6 +4,7 @@
  * Configures jsdom environment and common mocks for React component testing
  */
 
+import { cleanup } from '@testing-library/react';
 import { beforeAll, afterAll, afterEach, vi } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 
@@ -61,6 +62,7 @@ beforeAll(() => {
 
 // Clean up after each test
 afterEach(() => {
+  cleanup();
   vi.clearAllMocks();
   vi.clearAllTimers();
 });

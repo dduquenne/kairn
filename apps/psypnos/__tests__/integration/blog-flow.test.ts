@@ -607,7 +607,7 @@ describe('Blog Flow Integration', () => {
 
       expect(result.success).toBe(true);
       expect(result.data?.length).toBe(1);
-      expect(result.data?.[0].category).toBe('Hypnose');
+      expect(result.data?.[0]?.category).toBe('Hypnose');
     });
 
     it('should filter featured posts', async () => {
@@ -615,7 +615,7 @@ describe('Blog Flow Integration', () => {
 
       expect(result.success).toBe(true);
       expect(result.data?.length).toBe(1);
-      expect(result.data?.[0].featured).toBe(true);
+      expect(result.data?.[0]?.featured).toBe(true);
     });
 
     it('should limit results', async () => {
@@ -893,7 +893,7 @@ describe('Blog Flow Integration', () => {
 
       expect(result.success).toBe(true);
       expect(result.data?.length).toBe(1);
-      expect(result.data?.[0].slug).toBe('feature-candidate');
+      expect(result.data?.[0]?.slug).toBe('feature-candidate');
     });
   });
 
