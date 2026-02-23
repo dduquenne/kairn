@@ -418,7 +418,7 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
 
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Mode simulation
+  // Mode simulation - use refs to avoid recreating fetchData on every toggle
   let simulationContext: ReturnType<typeof useSimulation> | null = null;
   try {
     simulationContext = useSimulation();
@@ -429,10 +429,16 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
   const isSimulationMode = simulationContext?.isSimulationMode ?? false;
   const generateSimulatedData = simulationContext?.generateSimulatedData;
 
+  // Store simulation values in refs so fetchData doesn't depend on them directly
+  const isSimulationModeRef = useRef(isSimulationMode);
+  const generateSimulatedDataRef = useRef(generateSimulatedData);
+  isSimulationModeRef.current = isSimulationMode;
+  generateSimulatedDataRef.current = generateSimulatedData;
+
   const fetchData = useCallback(async () => {
     // Mode simulation: utiliser les données générées côté client
-    if (isSimulationMode && generateSimulatedData) {
-      const simulatedData = generateSimulatedData(period, customStartDate, customEndDate);
+    if (isSimulationModeRef.current && generateSimulatedDataRef.current) {
+      const simulatedData = generateSimulatedDataRef.current(period, customStartDate, customEndDate);
       setData(simulatedData as AnalyticsData);
       setLastUpdated(new Date());
       setError(null);
@@ -816,15 +822,38 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       console.error('Error fetching analytics:', err);
       setError(err instanceof Error ? err.message : 'Erreur inconnue');
     }
-  }, [period, customStartDate, customEndDate, isSimulationMode, generateSimulatedData]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [period, customStartDate, customEndDate]);
 
-  // Initial load
+  // Keep a ref to fetchData so the auto-refresh interval doesn't need to
+  // be recreated every time fetchData changes
+  const fetchDataRef = useRef(fetchData);
+  fetchDataRef.current = fetchData;
+
+  // Trigger re-fetch when simulation mode changes
   useEffect(() => {
-    setIsLoading(true);
-    fetchData().finally(() => setIsLoading(false));
+    // Skip the initial render (handled by the load effect below)
+    if (data === null) return;
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSimulationMode]);
+
+  // Initial load and subsequent period changes
+  useEffect(() => {
+    // Only show the full loading skeleton on the very first load.
+    // On subsequent fetches (period change, etc.), keep showing the
+    // previous data and use isRefreshing for a subtle indicator.
+    if (data === null) {
+      setIsLoading(true);
+      fetchData().finally(() => setIsLoading(false));
+    } else {
+      setIsRefreshing(true);
+      fetchData().finally(() => setIsRefreshing(false));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchData]);
 
-  // Auto refresh for realtime mode
+  // Auto refresh for realtime mode — uses a ref so the interval is stable
   useEffect(() => {
     if (refreshIntervalRef.current) {
       clearInterval(refreshIntervalRef.current);
@@ -833,7 +862,7 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
 
     if (autoRefresh || period === 'realtime') {
       refreshIntervalRef.current = setInterval(() => {
-        fetchData();
+        fetchDataRef.current();
       }, refreshInterval);
     }
 
@@ -842,14 +871,14 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
         clearInterval(refreshIntervalRef.current);
       }
     };
-  }, [autoRefresh, period, refreshInterval, fetchData]);
+  }, [autoRefresh, period, refreshInterval]);
 
-  // Manual refresh function
+  // Manual refresh function — uses ref so callback identity is stable
   const refresh = useCallback(async () => {
     setIsRefreshing(true);
-    await fetchData();
+    await fetchDataRef.current();
     setIsRefreshing(false);
-  }, [fetchData]);
+  }, []);
 
   // Lazy-load insights (Claude API call — 3-15s latency)
   // Called on demand when the user opens the InsightsDrawer

@@ -44,23 +44,31 @@ export function useRealTimeAnalytics(options: UseRealTimeAnalyticsOptions = {}) 
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [consecutiveErrors, setConsecutiveErrors] = useState(0);
 
-  // Refs for stable references
+  // Refs for stable references — avoid putting state values in useCallback deps
   const onUpdateRef = useRef(onUpdate);
   onUpdateRef.current = onUpdate;
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isMountedRef = useRef(true);
+  const consecutiveErrorsRef = useRef(0);
 
-  // Calculate effective polling interval with backoff on errors
+  // Keep ref in sync with state (ref is read inside callbacks for current value)
+  useEffect(() => {
+    consecutiveErrorsRef.current = consecutiveErrors;
+  }, [consecutiveErrors]);
+
+  // Calculate effective polling interval with backoff on errors.
+  // Reads error count from ref so the callback identity stays stable.
   const getEffectiveInterval = useCallback(() => {
-    if (consecutiveErrors === 0) {
+    const errors = consecutiveErrorsRef.current;
+    if (errors === 0) {
       return Math.max(POLLING_CONFIG.minInterval, Math.min(pollingInterval, POLLING_CONFIG.maxInterval));
     }
     // Exponential backoff on errors
-    const backoffInterval = POLLING_CONFIG.retryDelay * Math.pow(2, consecutiveErrors - 1);
+    const backoffInterval = POLLING_CONFIG.retryDelay * Math.pow(2, errors - 1);
     return Math.min(backoffInterval, POLLING_CONFIG.maxInterval);
-  }, [consecutiveErrors, pollingInterval]);
+  }, [pollingInterval]);
 
-  // Fetch real-time data
+  // Fetch real-time data — stable callback that reads error count from ref
   const fetchRealTimeData = useCallback(async () => {
     if (!isMountedRef.current) return;
 
@@ -103,50 +111,62 @@ export function useRealTimeAnalytics(options: UseRealTimeAnalyticsOptions = {}) 
       if (!isMountedRef.current) return;
 
       const errorMessage = error instanceof Error ? error.message : 'Erreur de connexion';
-      console.error('❌ Polling error:', errorMessage);
+      console.error('[Polling] error:', errorMessage);
 
-      setConsecutiveErrors(prev => prev + 1);
+      const currentErrors = consecutiveErrorsRef.current + 1;
+      setConsecutiveErrors(currentErrors);
 
       // Only mark as disconnected after multiple consecutive errors
-      if (consecutiveErrors >= POLLING_CONFIG.maxRetries) {
+      if (currentErrors >= POLLING_CONFIG.maxRetries) {
         setIsConnected(false);
         setConnectionError('Connexion instable. Nouvelle tentative...');
       } else {
         // Keep connected status during temporary errors
-        setConnectionError(`Erreur temporaire (${consecutiveErrors + 1}/${POLLING_CONFIG.maxRetries})`);
+        setConnectionError(`Erreur temporaire (${currentErrors}/${POLLING_CONFIG.maxRetries})`);
+      }
+
+      // Adjust polling interval for next tick (exponential backoff)
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        const backoffInterval = getEffectiveInterval();
+        pollingIntervalRef.current = setInterval(() => {
+          fetchRealTimeDataRef.current();
+        }, backoffInterval);
       }
     }
-  }, [consecutiveErrors]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getEffectiveInterval]);
 
-  // Start/stop polling
+  // Keep a ref so the interval callback always calls the latest version
+  const fetchRealTimeDataRef = useRef(fetchRealTimeData);
+  fetchRealTimeDataRef.current = fetchRealTimeData;
+
+  // Start/stop polling — depends only on `enabled` and `pollingInterval`
   useEffect(() => {
     isMountedRef.current = true;
 
     if (!enabled) {
       setIsConnected(false);
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
       return;
     }
 
     // Initial fetch
-    fetchRealTimeData();
+    fetchRealTimeDataRef.current();
 
     // Set up polling interval
-    const startPolling = () => {
-      const interval = getEffectiveInterval();
+    const interval = getEffectiveInterval();
 
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
-      }
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+    }
 
-      pollingIntervalRef.current = setInterval(() => {
-        fetchRealTimeData();
-      }, interval);
-
-      return interval;
-    };
-
-    const initialInterval = startPolling();
-    console.log(`📊 Real-time polling started (interval: ${initialInterval}ms)`);
+    pollingIntervalRef.current = setInterval(() => {
+      fetchRealTimeDataRef.current();
+    }, interval);
 
     // Cleanup
     return () => {
@@ -155,35 +175,20 @@ export function useRealTimeAnalytics(options: UseRealTimeAnalyticsOptions = {}) 
         clearInterval(pollingIntervalRef.current);
         pollingIntervalRef.current = null;
       }
-      console.log('📊 Real-time polling stopped');
     };
-  }, [enabled, fetchRealTimeData, getEffectiveInterval]);
+  }, [enabled, pollingInterval, getEffectiveInterval]);
 
-  // Update polling interval when error state changes
-  useEffect(() => {
-    if (!enabled || !pollingIntervalRef.current) return;
-
-    const newInterval = getEffectiveInterval();
-
-    // Clear and restart with new interval
-    clearInterval(pollingIntervalRef.current);
-    pollingIntervalRef.current = setInterval(() => {
-      fetchRealTimeData();
-    }, newInterval);
-
-  }, [consecutiveErrors, enabled, fetchRealTimeData, getEffectiveInterval]);
-
-  // Manual refresh function
+  // Manual refresh function — stable identity thanks to ref
   const refresh = useCallback(() => {
-    fetchRealTimeData();
-  }, [fetchRealTimeData]);
+    fetchRealTimeDataRef.current();
+  }, []);
 
   // Reconnect function (reset error state and fetch)
   const reconnect = useCallback(() => {
     setConsecutiveErrors(0);
     setConnectionError(null);
-    fetchRealTimeData();
-  }, [fetchRealTimeData]);
+    fetchRealTimeDataRef.current();
+  }, []);
 
   return {
     isConnected,

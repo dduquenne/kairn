@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
 
 import type { PeriodType } from '../PeriodSelector';
 import {
@@ -1989,15 +1989,21 @@ export function SimulationProvider({ children }: SimulationProviderProps) {
     setIsSimulationMode(value);
   }, []);
 
+  // Memoize context value to prevent unnecessary re-renders of consumers.
+  // toggleSimulationMode and setSimulationMode are stable (useCallback with []),
+  // and generateSimulatedData is a module-scope function reference.
+  const contextValue = useMemo(
+    () => ({
+      isSimulationMode,
+      toggleSimulationMode,
+      setSimulationMode,
+      generateSimulatedData,
+    }),
+    [isSimulationMode, toggleSimulationMode, setSimulationMode]
+  );
+
   return (
-    <SimulationContext.Provider
-      value={{
-        isSimulationMode,
-        toggleSimulationMode,
-        setSimulationMode,
-        generateSimulatedData,
-      }}
-    >
+    <SimulationContext.Provider value={contextValue}>
       {children}
     </SimulationContext.Provider>
   );
