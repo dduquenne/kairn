@@ -4,7 +4,7 @@
  */
 
 import type OpenAI from 'openai';
-import type { ChatCompletionMessageParam } from 'openai/resources/chat/completions';
+import type { ChatCompletion, ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 
 import {
   AIProvider,
@@ -94,7 +94,7 @@ export class OpenAIProvider implements AIProvider {
         client.chat.completions.create({
           model: this.defaultTextModel,
           messages,
-          max_tokens: maxTokens,
+          max_completion_tokens: maxTokens,
           ...(options.temperature !== undefined && { temperature: options.temperature }),
           ...(options.stopSequences && { stop: options.stopSequences }),
         }),
@@ -140,7 +140,7 @@ export class OpenAIProvider implements AIProvider {
         client.chat.completions.create({
           model: this.defaultTextModel,
           messages: chatMessages,
-          max_tokens: maxTokens,
+          max_completion_tokens: maxTokens,
           ...(options.temperature !== undefined && { temperature: options.temperature }),
           ...(options.stopSequences && { stop: options.stopSequences }),
         }),
@@ -195,10 +195,7 @@ export class OpenAIProvider implements AIProvider {
     }
   }
 
-  private parseTextResponse(
-    response: OpenAI.Chat.Completions.ChatCompletion,
-    startTime: number
-  ): TextGenerationResult {
+  private parseTextResponse(response: ChatCompletion, startTime: number): TextGenerationResult {
     const choice = response.choices[0];
     const content = choice?.message?.content || '';
 

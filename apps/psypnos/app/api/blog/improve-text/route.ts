@@ -1,13 +1,10 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
-import Anthropic from "@anthropic-ai/sdk";
-import { NextResponse } from "next/server";
-import { z } from "zod";
+import Anthropic from '@anthropic-ai/sdk';
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
 
-import { validateCSRFMiddleware } from "../../common/csrf-middleware";
-import { PSYPNOS_STYLE_SYSTEM_PROMPT } from "../../common/psypnos-system-prompt";
-import { recordAttempt, getClientIP } from "../../common/rate-limiter";
+import { validateCSRFMiddleware } from '../../common/csrf-middleware';
+import { PSYPNOS_STYLE_SYSTEM_PROMPT } from '../../common/psypnos-system-prompt';
+import { recordAttempt, getClientIP } from '../../common/rate-limiter';
 
 const improveTextSchema = z.object({
   selectedText: z.string().trim().min(1).max(10000),
@@ -15,9 +12,12 @@ const improveTextSchema = z.object({
   usePsypnosStyle: z.boolean().optional().default(true),
   meta: z
     .object({
-      honeypot: z.string().optional().transform((value) => value?.trim() ?? ""),
+      honeypot: z
+        .string()
+        .optional()
+        .transform(value => value?.trim() ?? ''),
     })
-    .default({ honeypot: "" }),
+    .default({ honeypot: '' }),
 });
 
 type ImproveTextPayload = z.infer<typeof improveTextSchema>;
@@ -25,18 +25,18 @@ type ImproveTextPayload = z.infer<typeof improveTextSchema>;
 export async function POST(request: Request) {
   // PROTECTION : Rate limiting - 20 requêtes par heure par IP (API coûteuse)
   const clientIP = getClientIP(request);
-  const rateLimitResult = recordAttempt("improveText", clientIP);
+  const rateLimitResult = recordAttempt('improveText', clientIP);
 
   if (rateLimitResult.limited) {
     return NextResponse.json(
       {
-        message: "Trop de requêtes. Veuillez réessayer plus tard.",
+        message: 'Trop de requêtes. Veuillez réessayer plus tard.',
         retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000),
       },
       {
         status: 429,
         headers: {
-          "Retry-After": String(Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)),
+          'Retry-After': String(Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)),
         },
       }
     );
@@ -56,17 +56,17 @@ export async function POST(request: Request) {
 
     if (!parsed.success) {
       // SÉCURITÉ : Messages d'erreur génériques
-      return NextResponse.json({ message: "Données invalides." }, { status: 400 });
+      return NextResponse.json({ message: 'Données invalides.' }, { status: 400 });
     }
 
     payload = parsed.data;
   } catch (error) {
-    return NextResponse.json({ message: "Données invalides." }, { status: 400 });
+    return NextResponse.json({ message: 'Données invalides.' }, { status: 400 });
   }
 
   // Protection anti-spam (honeypot)
   if (payload.meta.honeypot) {
-    return NextResponse.json({ success: true, message: "Texte amélioré" });
+    return NextResponse.json({ success: true, message: 'Texte amélioré' });
   }
 
   // Récupérer la clé API Anthropic
@@ -74,10 +74,7 @@ export async function POST(request: Request) {
 
   if (!apiKey) {
     console.error("ANTHROPIC_API_KEY n'est pas configurée");
-    return NextResponse.json(
-      { message: "Le service n'est pas configuré." },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Le service n'est pas configuré." }, { status: 500 });
   }
 
   try {
@@ -124,23 +121,23 @@ Améliore ce texte en suivant ces instructions. Conserve le même format et assu
 Retourne uniquement le texte amélioré, sans balises additionnelles, sans préambule, sans explication.`;
 
     const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-5-20250929",
+      model: 'claude-sonnet-4-5-20250929',
       max_tokens: 8000,
       temperature: 0.7,
       ...(payload.usePsypnosStyle && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
       messages: [
         {
-          role: "user",
+          role: 'user',
           content: prompt,
         },
       ],
     });
 
-    const improvedText =
-      message.content[0].type === "text" ? message.content[0].text : "";
+    const firstBlock = message.content[0];
+    const improvedText = firstBlock?.type === 'text' ? firstBlock.text : '';
 
     if (!improvedText) {
-      throw new Error("Aucun contenu dans la réponse de Claude");
+      throw new Error('Aucun contenu dans la réponse de Claude');
     }
 
     return NextResponse.json({
@@ -151,8 +148,7 @@ Retourne uniquement le texte amélioré, sans balises additionnelles, sans préa
     console.error("Erreur lors de l'amélioration du texte:", error);
     return NextResponse.json(
       {
-        message:
-          "Une erreur est survenue lors de l'amélioration. Veuillez réessayer.",
+        message: "Une erreur est survenue lors de l'amélioration. Veuillez réessayer.",
       },
       { status: 500 }
     );

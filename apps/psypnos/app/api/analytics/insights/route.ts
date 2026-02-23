@@ -1,23 +1,20 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
-import Anthropic from "@anthropic-ai/sdk";
-import { NextRequest } from "next/server";
+import Anthropic from '@anthropic-ai/sdk';
+import { NextRequest } from 'next/server';
 
 import {
   getAnalyticsSummary,
   getAnalyticsSummaryWithComparison,
   getTrafficSources,
-} from "../store-index";
+} from '../store-index';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 interface Insight {
-  type: "positive" | "negative" | "neutral" | "warning";
+  type: 'positive' | 'negative' | 'neutral' | 'warning';
   title: string;
   description: string;
   action: string;
-  priority: "high" | "medium" | "low";
+  priority: 'high' | 'medium' | 'low';
   metric?: string;
   value?: string | number;
 }
@@ -41,6 +38,36 @@ interface TrafficSource {
   conversionRate: number;
 }
 
+interface AnalyticsSummary {
+  totalVisits: number;
+  uniqueSessions: number;
+  averageTimeOnSite: number;
+  conversionRate: number;
+  topSections: TopSection[];
+  conversionByType: Record<string, ConversionData>;
+}
+
+interface AnalyticsComparison {
+  current: {
+    totalVisits: number;
+    uniqueSessions: number;
+    averageTimeOnSite: number;
+    conversionRate: number;
+  };
+  previous: {
+    totalVisits: number;
+    uniqueSessions: number;
+    averageTimeOnSite: number;
+    conversionRate: number;
+  };
+  comparison: {
+    totalVisitsChange: number;
+    uniqueSessionsChange: number;
+    averageTimeOnSiteChange: number;
+    conversionRateChange: number;
+  };
+}
+
 /**
  * Generate AI-powered insights from analytics data using Claude
  * Analyzes trends, anomalies, and provides actionable recommendations
@@ -48,13 +75,17 @@ interface TrafficSource {
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const timeRange = (searchParams.get("timeRange") || "week") as "day" | "week" | "month" | "year";
+    const timeRange = (searchParams.get('timeRange') || 'week') as
+      | 'day'
+      | 'week'
+      | 'month'
+      | 'year';
 
     // Fetch analytics data
     const [summary, comparison, trafficSources] = await Promise.all([
-      getAnalyticsSummary(),
-      getAnalyticsSummaryWithComparison(timeRange),
-      getTrafficSources(),
+      getAnalyticsSummary() as Promise<AnalyticsSummary>,
+      getAnalyticsSummaryWithComparison(timeRange) as Promise<AnalyticsComparison>,
+      getTrafficSources() as Promise<TrafficSource[]>,
     ]);
 
     // Prepare prompt for Claude
@@ -73,15 +104,30 @@ export async function GET(request: NextRequest) {
 - Taux de conversion: ${comparison.comparison.conversionRateChange >= 0 ? '+' : ''}${comparison.comparison.conversionRateChange.toFixed(2)}% (points)
 
 **Top 3 sections les plus visitées:**
-${(summary.topSections as TopSection[]).slice(0, 3).map((s: TopSection, i: number) => `${i+1}. ${s.section}: ${s.visits} visites (${Math.round(s.avgTime / 1000)}s en moyenne)`).join('\n')}
+${summary.topSections
+  .slice(0, 3)
+  .map(
+    (s, i) =>
+      `${i + 1}. ${s.section}: ${s.visits} visites (${Math.round(s.avgTime / 1000)}s en moyenne)`
+  )
+  .join('\n')}
 
 **Conversions par type:**
-${Object.entries(summary.conversionByType as Record<string, ConversionData>).map(([type, data]: [string, ConversionData]) =>
-  `- ${type}: ${data.completed} complétées sur ${data.clicks} clics (${data.rate.toFixed(1)}%)`
-).join('\n')}
+${Object.entries(summary.conversionByType)
+  .map(
+    ([type, data]) =>
+      `- ${type}: ${data.completed} complétées sur ${data.clicks} clics (${data.rate.toFixed(1)}%)`
+  )
+  .join('\n')}
 
 **Top 3 sources de trafic:**
-${(trafficSources as TrafficSource[]).slice(0, 3).map((s: TrafficSource, i: number) => `${i+1}. ${s.source} (${s.medium}): ${s.visits} visites, conversion ${s.conversionRate.toFixed(1)}%`).join('\n')}
+${trafficSources
+  .slice(0, 3)
+  .map(
+    (s, i) =>
+      `${i + 1}. ${s.source} (${s.medium}): ${s.visits} visites, conversion ${s.conversionRate.toFixed(1)}%`
+  )
+  .join('\n')}
 
 **Instructions:**
 1. Identifie les patterns intéressants ou préoccupants
@@ -110,21 +156,20 @@ Réponds UNIQUEMENT avec un JSON valide dans ce format exact (pas de markdown, p
     });
 
     const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: 'claude-sonnet-4-5-20250929',
       max_tokens: 2048,
       temperature: 0.7,
       messages: [
         {
-          role: "user",
+          role: 'user',
           content: prompt,
         },
       ],
     });
 
     // Parse response
-    const responseText = message.content[0].type === "text"
-      ? message.content[0].text
-      : "";
+    const firstBlock = message.content[0];
+    const responseText = firstBlock?.type === 'text' ? firstBlock.text : '';
 
     let insights: Insight[] = [];
 
@@ -132,7 +177,7 @@ Réponds UNIQUEMENT avec un JSON valide dans ce format exact (pas de markdown, p
       const parsed = JSON.parse(responseText);
       insights = parsed.insights || [];
     } catch (parseError) {
-      console.error("Failed to parse Claude response:", responseText);
+      console.error('Failed to parse Claude response:', responseText);
 
       // Fallback: Generate basic insights from data
       insights = generateFallbackInsights(summary, comparison);
@@ -142,23 +187,23 @@ Réponds UNIQUEMENT avec un JSON valide dans ce format exact (pas de markdown, p
       {
         insights,
         generatedAt: new Date().toISOString(),
-        model: "claude-sonnet-4-20250514",
+        model: 'claude-sonnet-4-5-20250929',
       },
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error generating insights:", error);
+    console.error('Error generating insights:', error);
 
     // Return fallback insights on error
-    const summary = await getAnalyticsSummary();
-    const comparison = await getAnalyticsSummaryWithComparison("week");
+    const summary = (await getAnalyticsSummary()) as AnalyticsSummary;
+    const comparison = (await getAnalyticsSummaryWithComparison('week')) as AnalyticsComparison;
 
     return Response.json(
       {
         insights: generateFallbackInsights(summary, comparison),
         generatedAt: new Date().toISOString(),
-        model: "fallback",
-        error: "AI insights unavailable, showing basic analysis",
+        model: 'fallback',
+        error: 'AI insights unavailable, showing basic analysis',
       },
       { status: 200 }
     );
@@ -169,30 +214,32 @@ Réponds UNIQUEMENT avec un JSON valide dans ce format exact (pas de markdown, p
  * Generate fallback insights when AI is unavailable
  */
 function generateFallbackInsights(
-  summary: any,
-  comparison: any
+  summary: AnalyticsSummary,
+  comparison: AnalyticsComparison
 ): Insight[] {
   const insights: Insight[] = [];
 
   // Traffic trend
   if (comparison.comparison.totalVisitsChange > 10) {
     insights.push({
-      type: "positive",
-      title: "📈 Forte croissance du trafic",
+      type: 'positive',
+      title: '📈 Forte croissance du trafic',
       description: `Le trafic a augmenté de ${comparison.comparison.totalVisitsChange.toFixed(1)}% par rapport à la période précédente. Cette croissance indique une bonne visibilité du site.`,
-      action: "Continuez vos efforts actuels de marketing et identifiez les canaux qui performent le mieux pour les renforcer.",
-      priority: "high",
-      metric: "Visites",
+      action:
+        'Continuez vos efforts actuels de marketing et identifiez les canaux qui performent le mieux pour les renforcer.',
+      priority: 'high',
+      metric: 'Visites',
       value: `+${comparison.comparison.totalVisitsChange.toFixed(1)}%`,
     });
   } else if (comparison.comparison.totalVisitsChange < -10) {
     insights.push({
-      type: "warning",
-      title: "⚠️ Baisse du trafic",
+      type: 'warning',
+      title: '⚠️ Baisse du trafic',
       description: `Le trafic a diminué de ${Math.abs(comparison.comparison.totalVisitsChange).toFixed(1)}%. Il est important d'identifier rapidement les causes.`,
-      action: "Vérifiez vos campagnes marketing, le référencement SEO, et analysez si des changements techniques ont pu impacter la visibilité.",
-      priority: "high",
-      metric: "Visites",
+      action:
+        'Vérifiez vos campagnes marketing, le référencement SEO, et analysez si des changements techniques ont pu impacter la visibilité.',
+      priority: 'high',
+      metric: 'Visites',
       value: `${comparison.comparison.totalVisitsChange.toFixed(1)}%`,
     });
   }
@@ -200,22 +247,24 @@ function generateFallbackInsights(
   // Conversion rate
   if (summary.conversionRate < 2) {
     insights.push({
-      type: "warning",
-      title: "🎯 Taux de conversion à optimiser",
+      type: 'warning',
+      title: '🎯 Taux de conversion à optimiser',
       description: `Le taux de conversion actuel de ${summary.conversionRate.toFixed(1)}% est inférieur à la moyenne du secteur (3-5%). Il y a une opportunité d'amélioration.`,
-      action: "Simplifiez les formulaires de contact, ajoutez des témoignages visibles, et testez différents appels à l'action (CTA) plus persuasifs.",
-      priority: "high",
-      metric: "Taux de conversion",
+      action:
+        "Simplifiez les formulaires de contact, ajoutez des témoignages visibles, et testez différents appels à l'action (CTA) plus persuasifs.",
+      priority: 'high',
+      metric: 'Taux de conversion',
       value: `${summary.conversionRate.toFixed(1)}%`,
     });
   } else if (summary.conversionRate > 5) {
     insights.push({
-      type: "positive",
-      title: "✨ Excellent taux de conversion",
+      type: 'positive',
+      title: '✨ Excellent taux de conversion',
       description: `Votre taux de conversion de ${summary.conversionRate.toFixed(1)}% est supérieur à la moyenne du secteur. Vos visiteurs sont bien qualifiés.`,
-      action: "Documentez ce qui fonctionne bien (CTA, parcours utilisateur, contenu) pour reproduire ces succès sur d'autres pages.",
-      priority: "medium",
-      metric: "Taux de conversion",
+      action:
+        "Documentez ce qui fonctionne bien (CTA, parcours utilisateur, contenu) pour reproduire ces succès sur d'autres pages.",
+      priority: 'medium',
+      metric: 'Taux de conversion',
       value: `${summary.conversionRate.toFixed(1)}%`,
     });
   }
@@ -224,30 +273,30 @@ function generateFallbackInsights(
   const avgTimeMinutes = Math.round(summary.averageTimeOnSite / 60000);
   if (avgTimeMinutes < 2) {
     insights.push({
-      type: "negative",
+      type: 'negative',
       title: "⏱️ Temps d'engagement faible",
       description: `Les visiteurs passent en moyenne seulement ${avgTimeMinutes} minute(s) sur le site. Cela suggère un manque d'engagement avec le contenu.`,
-      action: "Améliorez la qualité et la pertinence du contenu, ajoutez des vidéos explicatives, et optimisez la navigation pour encourager l'exploration.",
-      priority: "medium",
-      metric: "Temps moyen",
+      action:
+        "Améliorez la qualité et la pertinence du contenu, ajoutez des vidéos explicatives, et optimisez la navigation pour encourager l'exploration.",
+      priority: 'medium',
+      metric: 'Temps moyen',
       value: `${avgTimeMinutes} min`,
     });
   } else if (avgTimeMinutes > 4) {
     insights.push({
-      type: "positive",
-      title: "📚 Fort engagement des visiteurs",
+      type: 'positive',
+      title: '📚 Fort engagement des visiteurs',
       description: `Les visiteurs passent en moyenne ${avgTimeMinutes} minutes sur le site, ce qui indique un fort intérêt pour votre contenu.`,
-      action: "Capitalisez sur cet engagement en ajoutant des CTA stratégiques dans le contenu le plus consulté pour convertir ces visiteurs engagés.",
-      priority: "low",
-      metric: "Temps moyen",
+      action:
+        'Capitalisez sur cet engagement en ajoutant des CTA stratégiques dans le contenu le plus consulté pour convertir ces visiteurs engagés.',
+      priority: 'low',
+      metric: 'Temps moyen',
       value: `${avgTimeMinutes} min`,
     });
   }
 
   // Conversion funnel
-  const conversionTypes = Object.entries(summary.conversionByType) as Array<
-    [string, { clicks: number; completed: number; rate: number }]
-  >;
+  const conversionTypes = Object.entries(summary.conversionByType);
   if (conversionTypes.length > 0) {
     const worstFunnel = conversionTypes.reduce((worst, current) =>
       current[1].rate < worst[1].rate ? current : worst
@@ -255,11 +304,12 @@ function generateFallbackInsights(
 
     if (worstFunnel && worstFunnel[1].rate < 30) {
       insights.push({
-        type: "warning",
+        type: 'warning',
         title: "🔄 Abandon dans l'entonnoir",
         description: `Le tunnel "${worstFunnel[0]}" a un taux de complétion de seulement ${worstFunnel[1].rate.toFixed(1)}%. Beaucoup de visiteurs abandonnent avant la fin.`,
-        action: "Simplifiez le parcours, réduisez le nombre d'étapes, et ajoutez des indicateurs de progression pour rassurer les utilisateurs.",
-        priority: "high",
+        action:
+          "Simplifiez le parcours, réduisez le nombre d'étapes, et ajoutez des indicateurs de progression pour rassurer les utilisateurs.",
+        priority: 'high',
         metric: worstFunnel[0],
         value: `${worstFunnel[1].rate.toFixed(1)}%`,
       });

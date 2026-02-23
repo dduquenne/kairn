@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * API pour générer un prompt image basé sur le contenu de l'article
  * Utilise Claude avec les mêmes directives que la génération d'article
@@ -8,17 +5,17 @@
  * PROTÉGÉ: Requiert une authentification admin
  */
 
-import Anthropic from "@anthropic-ai/sdk";
-import { NextRequest, NextResponse } from "next/server";
+import Anthropic from '@anthropic-ai/sdk';
+import { NextRequest, NextResponse } from 'next/server';
 
-import { withRetryAndTimeout } from "@/app/api/common/ai-utils";
+import { withRetryAndTimeout } from '@/app/api/common/ai-utils';
 import {
   PSYPNOS_IMAGE_GENERATION_PROMPT,
   enrichImagePromptWithThematics,
   validatePromptForMandatoryElements,
-} from "@/app/api/common/psypnos-image-prompt-generator";
+} from '@/app/api/common/psypnos-image-prompt-generator';
 
-import { withAdminAuth } from "../../auth/middleware";
+import { withAdminAuth } from '../../auth/middleware';
 
 // Configuration timeout et retry
 // Délais augmentés pour mieux gérer les erreurs 529 (overloaded) de l'API Anthropic
@@ -30,7 +27,9 @@ const RETRY_OPTIONS = {
   maxDelayMs: 32000, // Maximum 32 secondes entre les tentatives
   onRetry: (attempt: number, error: unknown, delayMs: number) => {
     const errorMsg = error instanceof Error ? error.message : String(error);
-    console.log(`⏳ Retry ${attempt}/5 pour generate-prompt après erreur: ${errorMsg.slice(0, 100)}. Prochaine tentative dans ${delayMs/1000}s`);
+    console.log(
+      `⏳ Retry ${attempt}/5 pour generate-prompt après erreur: ${errorMsg.slice(0, 100)}. Prochaine tentative dans ${delayMs / 1000}s`
+    );
   },
 };
 const MAX_VALIDATION_ATTEMPTS = 3; // Nombre max de tentatives de correction
@@ -44,22 +43,14 @@ export async function POST(request: NextRequest) {
 
   if (!apiKey) {
     return NextResponse.json(
-      { success: false, error: "Clé API Anthropic non configurée" },
+      { success: false, error: 'Clé API Anthropic non configurée' },
       { status: 500 }
     );
   }
 
   try {
     const body = await request.json();
-    const {
-      title,
-      content,
-      category,
-      tags,
-      seoIntent,
-      persona,
-      tones,
-    } = body;
+    const { title, content, category, tags, seoIntent, persona, tones } = body;
 
     // Validation des paramètres
     if (!title?.trim() || !content?.trim()) {
@@ -99,11 +90,11 @@ export async function POST(request: NextRequest) {
       respiration: ['respiration', 'souffle', 'holotropique'],
       therapie: ['thérapie', 'thérapeute'],
       accompagnement: ['accompagnement'],
-      autonomie: ['autonomie', 'autonome', 'indépendance']
+      autonomie: ['autonomie', 'autonome', 'indépendance'],
     };
 
-    const matchedTheme = Object.entries(themeKeywords).find(
-      ([, keywords]) => keywords.some(keyword => titleLower.includes(keyword))
+    const matchedTheme = Object.entries(themeKeywords).find(([, keywords]) =>
+      keywords.some(keyword => titleLower.includes(keyword))
     )?.[0];
 
     // Créer le prompt pour Claude avec directives renforcées et orientation cible
@@ -116,11 +107,11 @@ export async function POST(request: NextRequest) {
 ## ARTICLE À ANALYSER
 
 **Titre** : ${title}
-**Catégorie** : ${category || "Non spécifiée"}
-${tags && tags.length > 0 ? `**Tags** : ${tags.join(", ")}` : ""}
-${seoIntent ? `**Intention SEO** : ${seoIntent}` : ""}
-${persona ? `**Persona Lecteur** : ${persona}` : ""}
-${tones && tones.length > 0 ? `**Tons** : ${tones.join(", ")}` : ""}
+**Catégorie** : ${category || 'Non spécifiée'}
+${tags && tags.length > 0 ? `**Tags** : ${tags.join(', ')}` : ''}
+${seoIntent ? `**Intention SEO** : ${seoIntent}` : ''}
+${persona ? `**Persona Lecteur** : ${persona}` : ''}
+${tones && tones.length > 0 ? `**Tons** : ${tones.join(', ')}` : ''}
 
 **Contenu de l'article (premiers 2000 caractères)** :
 ${content.substring(0, 2000)}...
@@ -173,28 +164,29 @@ Génère un prompt image ACCUEILLANT et CHALEUREUX qui est **CLAIREMENT REPRÉSE
 
     // Appel API avec retry et timeout
     const message = await withRetryAndTimeout(
-      () => anthropic.messages.create({
-        model: "claude-sonnet-4-5-20250929",
-        max_tokens: 1000,
-        system: PSYPNOS_IMAGE_GENERATION_PROMPT,
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-      }),
+      () =>
+        anthropic.messages.create({
+          model: 'claude-sonnet-4-5-20250929',
+          max_tokens: 1000,
+          system: PSYPNOS_IMAGE_GENERATION_PROMPT,
+          messages: [
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+        }),
       API_TIMEOUT_MS,
       RETRY_OPTIONS
     );
 
     // Extraire le texte généré
-    const generatedPrompt =
-      message.content[0].type === "text" ? message.content[0].text : "";
+    const firstBlock = message.content[0];
+    const generatedPrompt = firstBlock?.type === 'text' ? firstBlock.text : '';
 
     if (!generatedPrompt?.trim()) {
       return NextResponse.json(
-        { success: false, error: "Impossible de générer le prompt image" },
+        { success: false, error: 'Impossible de générer le prompt image' },
         { status: 500 }
       );
     }
@@ -208,7 +200,10 @@ Génère un prompt image ACCUEILLANT et CHALEUREUX qui est **CLAIREMENT REPRÉSE
 
     // Boucle de correction avec vraies tentatives multiples
     while (!validation.isValid && validationAttempts < MAX_VALIDATION_ATTEMPTS) {
-      console.log(`🔄 Tentative de correction ${validationAttempts}/${MAX_VALIDATION_ATTEMPTS - 1}: éléments manquants:`, validation.missingElements);
+      console.log(
+        `🔄 Tentative de correction ${validationAttempts}/${MAX_VALIDATION_ATTEMPTS - 1}: éléments manquants:`,
+        validation.missingElements
+      );
 
       const correctionPrompt = `Le prompt image généré manque les éléments suivants : ${validation.missingElements.join(', ')}.
 
@@ -229,25 +224,25 @@ IMPORTANT: L'image doit transmettre CHALEUR, ACCUEIL et ESPOIR pour des personne
       try {
         // Appel de correction avec retry et timeout
         const correctionMessage = await withRetryAndTimeout(
-          () => anthropic.messages.create({
-            model: "claude-sonnet-4-5-20250929",
-            max_tokens: 1000,
-            system: PSYPNOS_IMAGE_GENERATION_PROMPT,
-            messages: [
-              {
-                role: "user",
-                content: correctionPrompt,
-              },
-            ],
-          }),
+          () =>
+            anthropic.messages.create({
+              model: 'claude-sonnet-4-5-20250929',
+              max_tokens: 1000,
+              system: PSYPNOS_IMAGE_GENERATION_PROMPT,
+              messages: [
+                {
+                  role: 'user',
+                  content: correctionPrompt,
+                },
+              ],
+            }),
           API_TIMEOUT_MS,
           RETRY_OPTIONS
         );
 
+        const correctionBlock = correctionMessage.content[0];
         const correctedPrompt =
-          correctionMessage.content[0].type === "text"
-            ? correctionMessage.content[0].text
-            : currentPrompt;
+          correctionBlock?.type === 'text' ? correctionBlock.text : currentPrompt;
 
         // Enrichir et valider le nouveau prompt avec la catégorie
         currentPrompt = enrichImagePromptWithThematics(correctedPrompt, title, category);
@@ -258,7 +253,10 @@ IMPORTANT: L'image doit transmettre CHALEUR, ACCUEIL et ESPOIR pour des personne
           console.log(`✅ Prompt validé après ${validationAttempts} tentative(s)`);
         }
       } catch (correctionError) {
-        console.error(`Erreur lors de la correction (tentative ${validationAttempts}):`, correctionError);
+        console.error(
+          `Erreur lors de la correction (tentative ${validationAttempts}):`,
+          correctionError
+        );
         validationAttempts++;
         // Continuer avec le prompt actuel même si la correction échoue
       }
@@ -275,8 +273,7 @@ IMPORTANT: L'image doit transmettre CHALEUR, ACCUEIL et ESPOIR pour des personne
       validation: {
         isValid: finalValidation.isValid,
         missingElements: finalValidation.missingElements,
-        suggestedCorrections:
-          !finalValidation.isValid ? finalValidation.suggestedCorrections : [],
+        suggestedCorrections: !finalValidation.isValid ? finalValidation.suggestedCorrections : [],
         validationDetails: finalValidation,
       },
       correctionApplied: validationAttempts > 1,
@@ -284,11 +281,11 @@ IMPORTANT: L'image doit transmettre CHALEUR, ACCUEIL et ESPOIR pour des personne
       maxAttempts: MAX_VALIDATION_ATTEMPTS,
     });
   } catch (error) {
-    console.error("Erreur lors de la génération du prompt image :", error);
+    console.error('Erreur lors de la génération du prompt image :', error);
 
     if (error instanceof SyntaxError) {
       return NextResponse.json(
-        { success: false, error: "Erreur de parsing JSON" },
+        { success: false, error: 'Erreur de parsing JSON' },
         { status: 400 }
       );
     }
@@ -296,17 +293,19 @@ IMPORTANT: L'image doit transmettre CHALEUR, ACCUEIL et ESPOIR pour des personne
     // Détecter les erreurs de surcharge API (529)
     const errorString = String(error).toLowerCase();
     const errorMessage = error instanceof Error ? error.message.toLowerCase() : '';
-    const isOverloaded = errorString.includes('overloaded') ||
-                         errorString.includes('529') ||
-                         errorMessage.includes('overloaded') ||
-                         errorMessage.includes('529');
+    const isOverloaded =
+      errorString.includes('overloaded') ||
+      errorString.includes('529') ||
+      errorMessage.includes('overloaded') ||
+      errorMessage.includes('529');
 
     if (isOverloaded) {
       return NextResponse.json(
         {
           success: false,
-          error: "L'API IA est temporairement surchargée. Veuillez réessayer dans quelques minutes.",
-          errorType: "overloaded",
+          error:
+            "L'API IA est temporairement surchargée. Veuillez réessayer dans quelques minutes.",
+          errorType: 'overloaded',
         },
         { status: 503 }
       );
@@ -315,10 +314,7 @@ IMPORTANT: L'image doit transmettre CHALEUR, ACCUEIL et ESPOIR pour des personne
     return NextResponse.json(
       {
         success: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : "Erreur interne lors de la génération",
+        error: error instanceof Error ? error.message : 'Erreur interne lors de la génération',
       },
       { status: 500 }
     );

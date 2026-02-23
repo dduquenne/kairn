@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * @module /api/blog/generate
  * @description Article generation API endpoint using Claude AI
@@ -13,13 +10,13 @@
  * @see generateArticleWithClaude for implementation details
  */
 
-import { NextResponse } from "next/server";
-import { z } from "zod";
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
 
 import {
   generateArticleWithClaude,
   type ArticleGenerationOptions,
-} from "../../common/claude-article-generator";
+} from '../../common/claude-article-generator';
 
 /**
  * Zod schema for validating article generation requests
@@ -38,9 +35,9 @@ const generateArticleSchema = z.object({
   // Champs du composant ArticleGenerator (new API)
   action: z.string().optional(),
   topic: z.string().trim().optional(),
-  category: z.enum(["Comprendre", "Traverser", "Découvrir", "Cheminer"]),
-  targetLength: z.enum(["short", "medium", "long"]).optional(),
-  editorialCategory: z.enum(["Comprendre", "Traverser", "Découvrir", "Cheminer"]).optional(),
+  category: z.enum(['Comprendre', 'Traverser', 'Découvrir', 'Cheminer']),
+  targetLength: z.enum(['short', 'medium', 'long']).optional(),
+  editorialCategory: z.enum(['Comprendre', 'Traverser', 'Découvrir', 'Cheminer']).optional(),
   preferredTones: z.array(z.string()).optional(),
   tones: z.array(z.string()).optional(), // Alias depuis ArticleGeneratorModal
   seoQuery: z.string().trim().optional(),
@@ -54,7 +51,7 @@ const generateArticleSchema = z.object({
   seoKeyword: z.string().trim().optional(),
   searchIntention: z.string().trim().optional(),
   persona: z.string().optional(),
-  tone: z.enum(["analytique", "poétique", "pédagogique", "introspectif"]).optional(),
+  tone: z.enum(['analytique', 'poétique', 'pédagogique', 'introspectif']).optional(),
 });
 
 type GenerateArticlePayload = z.infer<typeof generateArticleSchema>;
@@ -96,13 +93,13 @@ export async function POST(request: Request) {
 
     if (!parsed.success) {
       const firstError = parsed.error.issues[0];
-      const message = firstError?.message ?? "Données invalides.";
+      const message = firstError?.message ?? 'Données invalides.';
       return NextResponse.json({ message }, { status: 400 });
     }
 
     payload = parsed.data;
   } catch (error) {
-    return NextResponse.json({ message: "Données invalides." }, { status: 400 });
+    return NextResponse.json({ message: 'Données invalides.' }, { status: 400 });
   }
 
   // Récupérer la clé API Anthropic
@@ -110,10 +107,7 @@ export async function POST(request: Request) {
 
   if (!apiKey) {
     console.error("ANTHROPIC_API_KEY n'est pas configurée");
-    return NextResponse.json(
-      { message: "Le service n'est pas configuré." },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Le service n'est pas configuré." }, { status: 500 });
   }
 
   try {
@@ -127,22 +121,22 @@ export async function POST(request: Request) {
     const singleTone = allTones?.[0] || payload.tone;
 
     const options: ArticleGenerationOptions = {
-      topic: payload.topic || payload.subject || "",
+      topic: payload.topic || payload.subject || '',
       category: payload.editorialCategory || payload.category,
       editorialCategory: payload.editorialCategory || payload.category,
-      seoQuery: payload.seoQuery || payload.seoKeyword || "",
-      searchIntent: payload.searchIntent || payload.searchIntention || "",
-      readerPersona: payload.readerPersona || payload.persona || "",
-      specificTone: singleTone as any,
+      seoQuery: payload.seoQuery || payload.seoKeyword || '',
+      searchIntent: payload.searchIntent || payload.searchIntention || '',
+      readerPersona: payload.readerPersona || payload.persona || '',
+      specificTone: singleTone as ArticleGenerationOptions['specificTone'],
       usePsypnosStyle: payload.usePsypnosStyle !== false,
-      targetLength: (payload.targetLength || "long") as "short" | "medium" | "long",
+      targetLength: (payload.targetLength || 'long') as 'short' | 'medium' | 'long',
       preferredTones: allTones, // Utiliser les tons fusionnés
     };
 
     const result = await generateArticleWithClaude(options, apiKey);
 
     if (!result.success) {
-      throw new Error(result.error || "Erreur lors de la génération");
+      throw new Error(result.error || 'Erreur lors de la génération');
     }
 
     return NextResponse.json({
@@ -167,16 +161,15 @@ export async function POST(request: Request) {
       seoKeyword: payload.seoQuery || payload.seoKeyword,
       searchIntention: payload.searchIntent || payload.searchIntention,
       category: payload.category || payload.editorialCategory,
-      persona: payload.readerPersona || payload.persona || "",
+      persona: payload.readerPersona || payload.persona || '',
       tone: singleTone,
     });
   } catch (error) {
     console.error("Erreur lors de la génération de l'article:", error);
     return NextResponse.json(
       {
-        message:
-          "Une erreur est survenue lors de la génération. Veuillez réessayer.",
-        error: error instanceof Error ? error.message : "Unknown error",
+        message: 'Une erreur est survenue lors de la génération. Veuillez réessayer.',
+        error: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

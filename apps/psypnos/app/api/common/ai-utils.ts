@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * Utilitaires communs pour les appels IA (Claude, OpenAI)
  *
@@ -160,7 +157,7 @@ function defaultIsRetriable(error: unknown): boolean {
   const errorMessage = error instanceof Error ? error.message.toLowerCase() : '';
 
   return DEFAULT_RETRIABLE_ERRORS.some(
-    (code) => errorString.includes(code.toLowerCase()) || errorMessage.includes(code.toLowerCase())
+    code => errorString.includes(code.toLowerCase()) || errorMessage.includes(code.toLowerCase())
   );
 }
 
@@ -178,10 +175,7 @@ function defaultIsRetriable(error: unknown): boolean {
  *   { maxRetries: 3, initialDelayMs: 1000 }
  * );
  */
-export async function withRetry<T>(
-  fn: () => Promise<T>,
-  options: RetryOptions = {}
-): Promise<T> {
+export async function withRetry<T>(fn: () => Promise<T>, options: RetryOptions = {}): Promise<T> {
   const {
     maxRetries = 3,
     initialDelayMs = 1000,
@@ -216,7 +210,7 @@ export async function withRetry<T>(
       }
 
       // Attendre avant le retry
-      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      await new Promise(resolve => setTimeout(resolve, delayMs));
 
       // Augmenter le délai pour la prochaine tentative
       delayMs = Math.min(delayMs * backoffMultiplier, maxDelayMs);
@@ -285,20 +279,17 @@ export async function withRetryAndTimeout<T>(
   timeoutMs: number,
   retryOptions: RetryOptions = {}
 ): Promise<T> {
-  return withRetry(
-    () => withTimeout(fn(), timeoutMs, `Appel API timeout après ${timeoutMs}ms`),
-    {
-      ...retryOptions,
-      isRetriable: (error) => {
-        // Timeout est retriable
-        if (error instanceof Error && error.message.includes('timeout')) {
-          return true;
-        }
-        // Utiliser la fonction par défaut ou celle fournie
-        return (retryOptions.isRetriable || defaultIsRetriable)(error);
-      },
-    }
-  );
+  return withRetry(() => withTimeout(fn(), timeoutMs, `Appel API timeout après ${timeoutMs}ms`), {
+    ...retryOptions,
+    isRetriable: error => {
+      // Timeout est retriable
+      if (error instanceof Error && error.message.includes('timeout')) {
+        return true;
+      }
+      // Utiliser la fonction par défaut ou celle fournie
+      return (retryOptions.isRetriable || defaultIsRetriable)(error);
+    },
+  });
 }
 
 /**
@@ -312,7 +303,7 @@ export async function withRetryAndTimeout<T>(
 export function extractXmlBlock(text: string, tagName: string): string | undefined {
   const regex = new RegExp(`<${tagName}>([\\s\\S]*?)<\\/${tagName}>`, 'i');
   const match = text.match(regex);
-  return match ? match[1].trim() : undefined;
+  return match?.[1]?.trim();
 }
 
 /**
