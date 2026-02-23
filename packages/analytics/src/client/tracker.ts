@@ -468,7 +468,9 @@ export class Tracker {
     try {
       const session = this.sessionManager.getSession();
       if (!session) {
-        this.log('No session, events ignored');
+        // Put events back in queue — don't lose them silently
+        this.eventQueue = [...eventsToSend, ...this.eventQueue];
+        this.log('No session, events re-queued for next attempt');
         return;
       }
 

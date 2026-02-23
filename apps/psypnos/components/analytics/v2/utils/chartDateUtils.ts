@@ -645,6 +645,53 @@ export interface Visit {
 }
 
 /**
+ * Parse a period key string into a Date object.
+ * Handles formats that new Date() cannot parse natively:
+ * - ISO week: "2024-W08" → Monday of that week
+ * - Year-month: "2024-02" → 1st of that month
+ * - Year only: "2024" → Jan 1st of that year
+ * - Standard ISO dates/timestamps pass through to new Date()
+ */
+const parsePeriodKey = (key: string): Date | null => {
+  // Try standard parsing first
+  const directDate = new Date(key);
+  if (!isNaN(directDate.getTime())) {
+    return directDate;
+  }
+
+  // ISO week format: "2024-W08"
+  const weekMatch = key.match(/^(\d{4})-W(\d{2})$/);
+  if (weekMatch) {
+    const year = parseInt(weekMatch[1]!, 10);
+    const week = parseInt(weekMatch[2]!, 10);
+    // ISO week: Jan 4 is always in week 1. Find Monday of the target week.
+    const jan4 = new Date(Date.UTC(year, 0, 4));
+    const jan4Day = jan4.getUTCDay() || 7; // Monday=1 ... Sunday=7
+    const mondayWeek1 = new Date(Date.UTC(year, 0, 4 - jan4Day + 1));
+    const targetMonday = new Date(mondayWeek1);
+    targetMonday.setUTCDate(targetMonday.getUTCDate() + (week - 1) * 7);
+    return targetMonday;
+  }
+
+  // Year-month format: "2024-02"
+  const monthMatch = key.match(/^(\d{4})-(\d{2})$/);
+  if (monthMatch) {
+    const year = parseInt(monthMatch[1]!, 10);
+    const month = parseInt(monthMatch[2]!, 10) - 1;
+    return new Date(Date.UTC(year, month, 1));
+  }
+
+  // Year only: "2024"
+  const yearMatch = key.match(/^(\d{4})$/);
+  if (yearMatch) {
+    const year = parseInt(yearMatch[1]!, 10);
+    return new Date(Date.UTC(year, 0, 1));
+  }
+
+  return null;
+};
+
+/**
  * Aggregate visits into chart buckets based on period.
  * Returns buckets with aggregated values.
  *
@@ -673,11 +720,14 @@ export const aggregateVisitsIntoBuckets = (
 
   // Aggregate visits
   visits.forEach(visit => {
+    // Prefer the 'timestamp' field (proper ISO string) over 'period' (may be unparseable)
     const visitTimestamp = visit.timestamp || visit.period;
     if (!visitTimestamp) return;
 
-    const visitDate = new Date(visitTimestamp);
-    if (isNaN(visitDate.getTime())) return;
+    const visitDate = visitTimestamp instanceof Date
+      ? visitTimestamp
+      : parsePeriodKey(String(visitTimestamp));
+    if (!visitDate) return;
 
     // Normalize the visit date to its bucket start
     const normalizedDate = normalizeToBucketStart(

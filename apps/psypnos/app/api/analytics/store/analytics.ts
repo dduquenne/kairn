@@ -138,37 +138,62 @@ export async function getVisitsByPeriod(
   startDate?: string,
   endDate?: string,
   preloaded?: PreloadedData
-): Promise<Array<{ period: string; visits: number }>> {
+): Promise<Array<{ period: string; visits: number; timestamp: string }>> {
   const { visits } = preloaded || (await preloadAnalyticsData(startDate, endDate));
 
-  const periodMap = new Map<string, number>();
+  const periodMap = new Map<string, { count: number; timestamp: string }>();
 
   for (const visit of visits) {
     const date = new Date(visit.timestamp);
     let periodKey = '';
+    let timestamp = '';
 
     if (period === 'hour') {
       periodKey = date.toISOString().slice(0, 13) + ':00';
+      timestamp = new Date(
+        Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours())
+      ).toISOString();
     } else if (period === 'day') {
       periodKey = date.toISOString().split('T')[0];
+      timestamp = new Date(
+        Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
+      ).toISOString();
     } else if (period === 'week') {
       const tempDate = new Date(date);
       tempDate.setDate(tempDate.getDate() + 4 - (tempDate.getDay() || 7));
       const yearStart = new Date(tempDate.getFullYear(), 0, 1);
       const weekNum = Math.ceil(((tempDate.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
       periodKey = `${date.getFullYear()}-W${weekNum.toString().padStart(2, '0')}`;
+      // Use Monday of that week as timestamp
+      const monday = new Date(date);
+      const dayOfWeek = monday.getUTCDay();
+      const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      monday.setUTCDate(monday.getUTCDate() + diff);
+      timestamp = new Date(
+        Date.UTC(monday.getUTCFullYear(), monday.getUTCMonth(), monday.getUTCDate())
+      ).toISOString();
     } else if (period === 'month') {
       periodKey = date.toISOString().substring(0, 7);
+      timestamp = new Date(
+        Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1)
+      ).toISOString();
     } else if (period === 'year') {
       periodKey = date.getFullYear().toString();
+      timestamp = new Date(
+        Date.UTC(date.getUTCFullYear(), 0, 1)
+      ).toISOString();
     }
 
-    const current = periodMap.get(periodKey) || 0;
-    periodMap.set(periodKey, current + 1);
+    const existing = periodMap.get(periodKey);
+    if (existing) {
+      existing.count++;
+    } else {
+      periodMap.set(periodKey, { count: 1, timestamp });
+    }
   }
 
   return Array.from(periodMap.entries())
-    .map(([key, count]) => ({ period: key, visits: count }))
+    .map(([key, data]) => ({ period: key, visits: data.count, timestamp: data.timestamp }))
     .sort((a, b) => a.period.localeCompare(b.period));
 }
 
