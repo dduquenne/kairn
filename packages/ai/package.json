@@ -51,11 +51,11 @@
     }
   },
   "devDependencies": {
-    "@anthropic-ai/sdk": "^0.71.2",
+    "@anthropic-ai/sdk": "^0.78.0",
     "@kairn/eslint-config": "workspace:*",
     "@kairn/typescript-config": "workspace:*",
     "eslint": "^8.57.0",
-    "openai": "^6.16.0",
+    "openai": "^6.22.0",
     "typescript": "^5.4.0"
   }
 }
