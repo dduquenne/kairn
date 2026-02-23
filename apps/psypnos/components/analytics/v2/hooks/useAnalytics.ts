@@ -467,14 +467,16 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       const geoData = dashboardData.geoData || { byCountry: [], byCity: [] };
       const goalsData = dashboardData.goalsData || { goals: [] };
       const alertsData = dashboardData.alertsData || { alerts: [] };
-      const blogAnalyticsData = dashboardData.blogData || { articles: [], totalViews: 0, totalUniqueVisitors: 0 };
+      const blogAnalyticsData = dashboardData.blogData || {
+        articles: [],
+        totalViews: 0,
+        totalUniqueVisitors: 0,
+      };
       const blogCtaData = dashboardData.blogCtaData || { summary: { appointment: 0, seminar: 0 } };
       const blogFaqData = dashboardData.blogFaqData || { summary: {}, clicks: [] };
 
       const botsData =
-        botsRes && botsRes.ok
-          ? await botsRes.json()
-          : { bots: [], timeline: [], pages: [] };
+        botsRes && botsRes.ok ? await botsRes.json() : { bots: [], timeline: [], pages: [] };
 
       // Insights are NOT loaded here — they are lazy-loaded on demand
       // via fetchInsights() to avoid the 3-15s Claude API call latency
@@ -574,9 +576,8 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       if (rawFunnelSteps.length > 0) {
         funnelSteps = rawFunnelSteps.map((step: any, i: number) => {
           const percentage = totalVisits > 0 ? (step.visitors / totalVisits) * 100 : 0;
-          const prevPercentage = i > 0 && totalVisits > 0
-            ? (rawFunnelSteps[i - 1].visitors / totalVisits) * 100
-            : 100;
+          const prevPercentage =
+            i > 0 && totalVisits > 0 ? (rawFunnelSteps[i - 1].visitors / totalVisits) * 100 : 100;
           return {
             name: step.name || step.stepName || `Étape ${i + 1}`,
             visitors: step.visitors || step.count || 0,
@@ -590,7 +591,12 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
         const converted = Math.round((totalVisits * convRate) / 100);
         funnelSteps = [
           { name: 'Visite', visitors: totalVisits, percentage: 100, dropoff: 0 },
-          { name: 'Conversion', visitors: converted, percentage: convRate, dropoff: 100 - convRate },
+          {
+            name: 'Conversion',
+            visitors: converted,
+            percentage: convRate,
+            dropoff: 100 - convRate,
+          },
         ];
       }
 
@@ -758,7 +764,8 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
         topPages,
         totalViews: dashboardData.summary?.totalVisits || 0,
         totalVisitors: dashboardData.summary?.uniqueSessions || 0,
-        newVisitors: dashboardData.summary?.newVisitors ?? dashboardData.summary?.uniqueSessions ?? 0,
+        newVisitors:
+          dashboardData.summary?.newVisitors ?? dashboardData.summary?.uniqueSessions ?? 0,
         avgSessionDuration: (dashboardData.summary?.averageTimeOnSite || 0) / 1000,
         avgPagesPerSession:
           topPages.length > 0
@@ -857,7 +864,7 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       );
       if (res.ok) {
         const insightsData = await res.json();
-        setData((prev) => {
+        setData(prev => {
           if (!prev) return prev;
           return {
             ...prev,

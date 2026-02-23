@@ -241,7 +241,10 @@ export async function POST(request: Request) {
 
   // Build and sanitize message history for Claude
   const rawHistory = [
-    ...conversation.messages.map(msg => ({ role: msg.role, content: msg.content })),
+    ...conversation.messages.map((msg: { role: string; content: string }) => ({
+      role: msg.role,
+      content: msg.content,
+    })),
     { role: 'user', content: message },
   ];
   const messageHistory = sanitizeMessageHistory(rawHistory);

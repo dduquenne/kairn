@@ -7,6 +7,7 @@ import type Anthropic from '@anthropic-ai/sdk';
 import type {
   Message,
   MessageCreateParamsNonStreaming,
+  TextBlock,
 } from '@anthropic-ai/sdk/resources/messages';
 
 import {
@@ -135,7 +136,7 @@ export class AnthropicProvider implements AIProvider {
 
   private parseResponse(response: Message, startTime: number): TextGenerationResult {
     const content = response.content
-      .filter((block): block is { type: 'text'; text: string } => block.type === 'text')
+      .filter((block): block is TextBlock => block.type === 'text')
       .map(block => block.text)
       .join('');
 

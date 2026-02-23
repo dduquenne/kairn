@@ -13,7 +13,6 @@ import type { BlogPostSummary } from '../../lib/blog';
 
 import { ArticlesList } from './ArticlesList';
 
-
 interface HypnoseContentProps {
   posts: BlogPostSummary[];
 }
@@ -66,7 +65,6 @@ export function HypnoseContent({ posts }: HypnoseContentProps) {
   return (
     <div className="from-night via-night/95 to-night text-ivory min-h-screen bg-gradient-to-b">
       {/* Analytics tracking (lazy loaded, client-side only) */}
-
 
       {/* Navigation Menu */}
       <NavigationMenu forceVisible />

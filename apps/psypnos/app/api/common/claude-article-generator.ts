@@ -1,25 +1,18 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * Utilitaire pour générer des articles de blog avec Claude (Anthropic)
  */
 
-import Anthropic from "@anthropic-ai/sdk";
+import Anthropic from '@anthropic-ai/sdk';
 
-import {
-  parseJsonFromText,
-  validateXmlCompletion,
-  withRetryAndTimeout,
-} from "./ai-utils";
+import { parseJsonFromText, validateXmlCompletion, withRetryAndTimeout } from './ai-utils';
 import {
   PSYPNOS_IMAGE_GENERATION_PROMPT,
   enrichImagePromptWithThematics,
   validatePromptForMandatoryElements,
   PSYPNOS_BRAND_COLORS,
   getCategoryStyleModifier,
-} from "./psypnos-image-prompt-generator";
-import { PSYPNOS_STYLE_SYSTEM_PROMPT } from "./psypnos-system-prompt";
+} from './psypnos-image-prompt-generator';
+import { PSYPNOS_STYLE_SYSTEM_PROMPT } from './psypnos-system-prompt';
 
 // Configuration des timeouts et retries
 const API_TIMEOUT_MS = 120000; // 2 minutes par appel
@@ -34,15 +27,29 @@ export interface ArticleGenerationOptions {
   topic: string;
   category: string;
   tags?: string[];
-  targetLength?: "short" | "medium" | "long";
-  tone?: "professional" | "empathetic" | "educational";
+  targetLength?: 'short' | 'medium' | 'long';
+  tone?: 'professional' | 'empathetic' | 'educational';
   includeReferences?: boolean;
   // ✨ Nouveaux paramètres pour style PSYPNOS
   seoQuery?: string; // Requête SEO principale
   searchIntent?: string; // Intention de recherche
-  editorialCategory?: "Comprendre" | "Traverser" | "Découvrir" | "Cheminer";
+  editorialCategory?: 'Comprendre' | 'Traverser' | 'Découvrir' | 'Cheminer';
   readerPersona?: string; // Description du persona lecteur
-  specificTone?: "analytique" | "poétique" | "pédagogique" | "introspectif" | "informatif" | "inspirant" | "narratif" | "conversationnel" | "professionnel" | "provocateur" | "humoristique" | "engagé" | "scientifique" | "pragmatique";
+  specificTone?:
+    | 'analytique'
+    | 'poétique'
+    | 'pédagogique'
+    | 'introspectif'
+    | 'informatif'
+    | 'inspirant'
+    | 'narratif'
+    | 'conversationnel'
+    | 'professionnel'
+    | 'provocateur'
+    | 'humoristique'
+    | 'engagé'
+    | 'scientifique'
+    | 'pragmatique';
   // Nouveaux tons préférés (multi-sélection)
   preferredTones?: string[];
   usePsypnosStyle?: boolean; // Activer le style rédactionnel PSYPNOS complet (default: true)
@@ -164,35 +171,33 @@ Utilise les callouts Markdown :
  * Constantes pour les longueurs et tons
  */
 const LENGTH_GUIDE = {
-  short: "800-1000 mots",
-  medium: "1000-1500 mots",
-  long: "1500-2000 mots",
+  short: '800-1000 mots',
+  medium: '1000-1500 mots',
+  long: '1500-2000 mots',
 } as const;
 
 const TONE_GUIDE = {
-  professional:
-    "Adopte un ton professionnel et scientifique, tout en restant accessible.",
+  professional: 'Adopte un ton professionnel et scientifique, tout en restant accessible.',
   empathetic:
     "Adopte un ton empathique et bienveillant, comme un thérapeute qui s'adresse à ses patients.",
-  educational:
-    "Adopte un ton pédagogique et didactique, pour expliquer clairement les concepts.",
+  educational: 'Adopte un ton pédagogique et didactique, pour expliquer clairement les concepts.',
 } as const;
 
 const SPECIFIC_TONE_GUIDE: Record<string, string> = {
   informatif:
-    "Présente les faits et informations avec clarté et objectivité, priorité à la transmission de connaissances utiles.",
+    'Présente les faits et informations avec clarté et objectivité, priorité à la transmission de connaissances utiles.',
   pédagogique:
-    "Approche pédagogique progressive, guidant pas à pas vers la compréhension avec exemples et explications progressives.",
+    'Approche pédagogique progressive, guidant pas à pas vers la compréhension avec exemples et explications progressives.',
   inspirant:
-    "Motivant et porteur, incitant le lecteur à croire en ses capacités de transformation et de croissance personnelle.",
+    'Motivant et porteur, incitant le lecteur à croire en ses capacités de transformation et de croissance personnelle.',
   narratif:
-    "Raconte des histoires engageantes, utilisant des anecdotes et récits pour illustrer les concepts.",
+    'Raconte des histoires engageantes, utilisant des anecdotes et récits pour illustrer les concepts.',
   conversationnel:
-    "Adopte un ton amical et accessible, comme une conversation entre amis, décontracté mais informatif.",
+    'Adopte un ton amical et accessible, comme une conversation entre amis, décontracté mais informatif.',
   professionnel:
-    "Formel et expert, adoptant un registre soutenu avec vocabulaire spécialisé et structure rigoureuse.",
+    'Formel et expert, adoptant un registre soutenu avec vocabulaire spécialisé et structure rigoureuse.',
   provocateur:
-    "Défi les conventions établies, provoque la réflexion critique en soulevant des questions inconfortables.",
+    'Défi les conventions établies, provoque la réflexion critique en soulevant des questions inconfortables.',
   humoristique:
     "Léger et amusant, utilise l'humour, l'ironie et la dérision pour rendre le sujet plus engageant.",
   poétique:
@@ -202,11 +207,11 @@ const SPECIFIC_TONE_GUIDE: Record<string, string> = {
   engagé:
     "Prend position, appelle à l'action ou au changement avec passion et conviction sur des enjeux importants.",
   scientifique:
-    "Base sur les données et recherches, cite études et faits vérifiables, ton neutre et basé sur les preuves.",
+    'Base sur les données et recherches, cite études et faits vérifiables, ton neutre et basé sur les preuves.',
   pragmatique:
     "Focalisé sur l'utilité pratique et les résultats concrets, conseils actionnables et solutions directes.",
   analytique:
-    "Approche analytique et structurée, décortiquant les mécanismes avec précision logique et décomposition systématique.",
+    'Approche analytique et structurée, décortiquant les mécanismes avec précision logique et décomposition systématique.',
 } as const;
 
 /**
@@ -219,20 +224,22 @@ function extractFAQsFromContent(content: string): Array<{ question: string; answ
   const faqList: Array<{ question: string; answer: string }> = [];
 
   // Chercher la section FAQ
-  const faqSectionMatch = content.match(/##\s+(?:FAQ|Questions?\s+fr[eé]quentes|FAQ\s*[:)].*?)\s*\n([\s\S]*?)(?=##|---|\n\n```|$)/i);
+  const faqSectionMatch = content.match(
+    /##\s+(?:FAQ|Questions?\s+fr[eé]quentes|FAQ\s*[:)].*?)\s*\n([\s\S]*?)(?=##|---|\n\n```|$)/i
+  );
 
   if (!faqSectionMatch) {
     return [];
   }
 
-  const faqSection = faqSectionMatch[1];
+  const faqSection = faqSectionMatch[1] ?? '';
   const lines = faqSection.split('\n');
 
   let currentQuestion = '';
   let currentAnswer = '';
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+    const line = lines[i] ?? '';
 
     // Détecte une question au format **1. Question?** ou **Question?**
     const questionMatch = line.match(/^\s*\*\*\d*\.?\s*([^*]+\?)\*\*\s*$/);
@@ -245,7 +252,7 @@ function extractFAQsFromContent(content: string): Array<{ question: string; answ
           answer: currentAnswer.trim(),
         });
       }
-      currentQuestion = questionMatch[1].replace(/^\d+\.\s*/, '').trim();
+      currentQuestion = (questionMatch[1] ?? '').replace(/^\d+\.\s*/, '').trim();
       currentAnswer = '';
     } else if (currentQuestion && line.trim() && !line.match(/^---/) && !line.match(/^##/)) {
       // Ajouter à la réponse courante si on a une question active
@@ -268,7 +275,12 @@ function extractFAQsFromContent(content: string): Array<{ question: string; answ
  * Retire la section FAQ du contenu
  */
 function removeFAQSection(content: string): string {
-  return content.replace(/##\s+(?:FAQ|Questions?\s+fr[eé]quentes|FAQ\s*[:)].*?)\s*\n[\s\S]*?(?=##|---|\n\n```|$)/i, '').trim();
+  return content
+    .replace(
+      /##\s+(?:FAQ|Questions?\s+fr[eé]quentes|FAQ\s*[:)].*?)\s*\n[\s\S]*?(?=##|---|\n\n```|$)/i,
+      ''
+    )
+    .trim();
 }
 
 /**
@@ -291,27 +303,29 @@ export async function generateArticleWithClaude(
     const usePsypnosStyle = options.usePsypnosStyle !== false;
 
     // Construire le prompt selon les options
-    const targetLength = options.targetLength || "medium";
-    const tone = options.tone || "empathetic";
+    const targetLength = options.targetLength || 'medium';
+    const tone = options.tone || 'empathetic';
     const specificTone = options.specificTone;
 
     // Construire le contexte éditorial (Process H)
-    let editorialContext = "";
-    let tonInstructions = "";
+    let editorialContext = '';
+    let tonInstructions = '';
 
     if (usePsypnosStyle) {
       // Formater les tons préférés et créer les instructions
       if (options.preferredTones && options.preferredTones.length > 0) {
         // Créer un contexte riche pour les tons multiples
-        const tonesList = options.preferredTones.map((t) => `- **${t}** : ${SPECIFIC_TONE_GUIDE[t] || t}`).join("\n");
+        const tonesList = options.preferredTones
+          .map(t => `- **${t}** : ${SPECIFIC_TONE_GUIDE[t] || t}`)
+          .join('\n');
 
         editorialContext = `
 ## CONTEXTE ÉDITORIAL
 
-${options.seoQuery ? `**Requête SEO principale** : ${options.seoQuery}` : ""}
-${options.searchIntent ? `**Intention de recherche** : ${options.searchIntent}` : ""}
-${options.editorialCategory ? `**Catégorie éditoriale** : ${options.editorialCategory}` : ""}
-${options.readerPersona ? `**Persona lecteur** : ${options.readerPersona}` : ""}
+${options.seoQuery ? `**Requête SEO principale** : ${options.seoQuery}` : ''}
+${options.searchIntent ? `**Intention de recherche** : ${options.searchIntent}` : ''}
+${options.editorialCategory ? `**Catégorie éditoriale** : ${options.editorialCategory}` : ''}
+${options.readerPersona ? `**Persona lecteur** : ${options.readerPersona}` : ''}
 
 **Tons préférés à intégrer dans cet article** :
 ${tonesList}
@@ -324,12 +338,12 @@ ${tonesList}
 L'article doit intégrer UNE COMBINAISON HARMONIEUSE des tons préférés ci-dessus:
 ${options.preferredTones
   .map(
-    (tone) => `
+    tone => `
 ### ${tone.charAt(0).toUpperCase() + tone.slice(1)}
 ${SPECIFIC_TONE_GUIDE[tone] || tone}
 `
   )
-  .join("")}
+  .join('')}
 
 **Conseil pour harmoniser les tons** :
 - Utilise les tons comme différentes couches ou perspectives sur le même sujet
@@ -341,20 +355,20 @@ ${SPECIFIC_TONE_GUIDE[tone] || tone}
         editorialContext = `
 ## CONTEXTE ÉDITORIAL
 
-${options.seoQuery ? `**Requête SEO principale** : ${options.seoQuery}` : ""}
-${options.searchIntent ? `**Intention de recherche** : ${options.searchIntent}` : ""}
-${options.editorialCategory ? `**Catégorie éditoriale** : ${options.editorialCategory}` : ""}
-${options.readerPersona ? `**Persona lecteur** : ${options.readerPersona}` : ""}
+${options.seoQuery ? `**Requête SEO principale** : ${options.seoQuery}` : ''}
+${options.searchIntent ? `**Intention de recherche** : ${options.searchIntent}` : ''}
+${options.editorialCategory ? `**Catégorie éditoriale** : ${options.editorialCategory}` : ''}
+${options.readerPersona ? `**Persona lecteur** : ${options.readerPersona}` : ''}
 **Ton spécifique souhaité** : ${SPECIFIC_TONE_GUIDE[specificTone] || specificTone}
 `;
       } else {
         editorialContext = `
 ## CONTEXTE ÉDITORIAL
 
-${options.seoQuery ? `**Requête SEO principale** : ${options.seoQuery}` : ""}
-${options.searchIntent ? `**Intention de recherche** : ${options.searchIntent}` : ""}
-${options.editorialCategory ? `**Catégorie éditoriale** : ${options.editorialCategory}` : ""}
-${options.readerPersona ? `**Persona lecteur** : ${options.readerPersona}` : ""}
+${options.seoQuery ? `**Requête SEO principale** : ${options.seoQuery}` : ''}
+${options.searchIntent ? `**Intention de recherche** : ${options.searchIntent}` : ''}
+${options.editorialCategory ? `**Catégorie éditoriale** : ${options.editorialCategory}` : ''}
+${options.readerPersona ? `**Persona lecteur** : ${options.readerPersona}` : ''}
 `;
       }
     }
@@ -371,9 +385,9 @@ ${tonInstructions}
 
 **Sujet** : ${options.topic}
 **Catégorie** : ${options.category}
-${options.tags && options.tags.length > 0 ? `**Tags suggérés** : ${options.tags.join(", ")}` : ""}
+${options.tags && options.tags.length > 0 ? `**Tags suggérés** : ${options.tags.join(', ')}` : ''}
 **Longueur cible du corps** : ${LENGTH_GUIDE[targetLength]} (sans les FAQs - FAQ optionnelle séparée)
-${!options.preferredTones || options.preferredTones.length === 0 ? `**Ton général** : ${TONE_GUIDE[tone]}` : ""}
+${!options.preferredTones || options.preferredTones.length === 0 ? `**Ton général** : ${TONE_GUIDE[tone]}` : ''}
 
 ---
 
@@ -470,7 +484,7 @@ Génère maintenant l'article.`
 
 SUJET : ${options.topic}
 CATÉGORIE : ${options.category}
-${options.tags && options.tags.length > 0 ? `TAGS : ${options.tags.join(", ")}` : ""}
+${options.tags && options.tags.length > 0 ? `TAGS : ${options.tags.join(', ')}` : ''}
 LONGUEUR CIBLE DU CORPS : ${LENGTH_GUIDE[targetLength]} (sans les FAQs - FAQ optionnelle séparée)
 TON : ${TONE_GUIDE[tone]}
 
@@ -509,123 +523,114 @@ Génère maintenant l'article complet.`;
     // Total estimé: contenu + ~2000 tokens pour balises XML, metadata, FAQ JSON et IMAGE_PROMPT détaillé
     // IMPORTANT: Valeurs augmentées pour éviter la troncation récurrente
     const maxTokensByLength = {
-      short: 6000,   // 800-1000 mots + metadata complet + FAQ + IMAGE_PROMPT
+      short: 6000, // 800-1000 mots + metadata complet + FAQ + IMAGE_PROMPT
       medium: 10000, // 1000-1500 mots + metadata complet + FAQ détaillée + IMAGE_PROMPT
-      long: 16000,   // 1500-2000 mots + TAGS + FAQ complète + IMAGE_PROMPT détaillé
+      long: 16000, // 1500-2000 mots + TAGS + FAQ complète + IMAGE_PROMPT détaillé
     };
 
     // Appel API avec retry et timeout
     const message = await withRetryAndTimeout(
-      () => anthropic.messages.create({
-        model: "claude-sonnet-4-5-20250929",
-        max_tokens: maxTokensByLength[targetLength],
-        temperature: 0.7,
-        // ✨ Utiliser le system prompt PSYPNOS si activé
-        ...(usePsypnosStyle && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-      }),
+      () =>
+        anthropic.messages.create({
+          model: 'claude-sonnet-4-5-20250929',
+          max_tokens: maxTokensByLength[targetLength],
+          temperature: 0.7,
+          // ✨ Utiliser le system prompt PSYPNOS si activé
+          ...(usePsypnosStyle && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
+          messages: [
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+        }),
       API_TIMEOUT_MS,
       RETRY_OPTIONS
     );
 
     // Extraire le contenu de la réponse
-    const responseContent =
-      message.content[0].type === "text" ? message.content[0].text : "";
+    const firstBlock = message.content[0];
+    const responseContent = firstBlock?.type === 'text' ? firstBlock.text : '';
 
     if (!responseContent) {
-      throw new Error("Aucun contenu dans la réponse de Claude");
+      throw new Error('Aucun contenu dans la réponse de Claude');
     }
 
     // Vérifier si la réponse a été tronquée (toutes les balises XML requises)
     const requiredTags = usePsypnosStyle
-      ? ["TITLE", "DESCRIPTION", "CONTENT", "TAGS", "FAQ", "IMAGE_PROMPT"]
-      : ["TITLE", "DESCRIPTION", "CONTENT", "TAGS"];
+      ? ['TITLE', 'DESCRIPTION', 'CONTENT', 'TAGS', 'FAQ', 'IMAGE_PROMPT']
+      : ['TITLE', 'DESCRIPTION', 'CONTENT', 'TAGS'];
 
     const xmlValidation = validateXmlCompletion(responseContent, requiredTags);
 
     if (!xmlValidation.isComplete) {
       const issues: string[] = [];
       if (xmlValidation.missingTags.length > 0) {
-        issues.push(`Balises manquantes: ${xmlValidation.missingTags.join(", ")}`);
+        issues.push(`Balises manquantes: ${xmlValidation.missingTags.join(', ')}`);
       }
       if (xmlValidation.truncatedTags.length > 0) {
-        issues.push(`Balises tronquées: ${xmlValidation.truncatedTags.join(", ")}`);
+        issues.push(`Balises tronquées: ${xmlValidation.truncatedTags.join(', ')}`);
       }
 
       console.warn(
-        `⚠️ ATTENTION: La réponse est incomplète! max_tokens=${maxTokensByLength[targetLength]}. ${issues.join(". ")}`
+        `⚠️ ATTENTION: La réponse est incomplète! max_tokens=${maxTokensByLength[targetLength]}. ${issues.join('. ')}`
       );
-      console.warn("Derniers 500 caractères:", responseContent.slice(-500));
+      console.warn('Derniers 500 caractères:', responseContent.slice(-500));
 
       // Si seules les balises non-critiques sont manquantes/tronquées, on continue
-      const criticalTags = ["TITLE", "CONTENT"];
+      const criticalTags = ['TITLE', 'CONTENT'];
       const hasCriticalIssue = criticalTags.some(
         tag => xmlValidation.missingTags.includes(tag) || xmlValidation.truncatedTags.includes(tag)
       );
 
       if (hasCriticalIssue) {
         throw new Error(
-          `Génération tronquée: ${issues.join(". ")}. Augmentez max_tokens pour "${targetLength}".`
+          `Génération tronquée: ${issues.join('. ')}. Augmentez max_tokens pour "${targetLength}".`
         );
       }
       // Log l'avertissement mais continue pour les balises non-critiques
-      console.warn("⚠️ Balises non-critiques incomplètes, continuation avec données partielles...");
+      console.warn('⚠️ Balises non-critiques incomplètes, continuation avec données partielles...');
     }
 
     // Parser la réponse structurée
     const titleMatch = responseContent.match(/<TITLE>([\s\S]*?)<\/TITLE>/);
-    const descriptionMatch = responseContent.match(
-      /<DESCRIPTION>([\s\S]*?)<\/DESCRIPTION>/
-    );
-    const categoryMatch = responseContent.match(
-      /<CATEGORY>([\s\S]*?)<\/CATEGORY>/
-    );
-    const contentMatch = responseContent.match(
-      /<CONTENT>([\s\S]*?)<\/CONTENT>/
-    );
+    const descriptionMatch = responseContent.match(/<DESCRIPTION>([\s\S]*?)<\/DESCRIPTION>/);
+    const categoryMatch = responseContent.match(/<CATEGORY>([\s\S]*?)<\/CATEGORY>/);
+    const contentMatch = responseContent.match(/<CONTENT>([\s\S]*?)<\/CONTENT>/);
     const tagsMatch = responseContent.match(/<TAGS>([\s\S]*?)<\/TAGS>/);
     const faqMatch = responseContent.match(/<FAQ>([\s\S]*?)<\/FAQ>/);
-    const imagePromptMatch = responseContent.match(
-      /<IMAGE_PROMPT>([\s\S]*?)<\/IMAGE_PROMPT>/
-    );
+    const imagePromptMatch = responseContent.match(/<IMAGE_PROMPT>([\s\S]*?)<\/IMAGE_PROMPT>/);
 
     // FALLBACK ROBUSTE: Si pas de balises XML complètes, on ne fallback PAS
     // Car cela signifie que la génération a échoué (réponse tronquée, format invalide, etc)
     if (!titleMatch || !contentMatch) {
-      console.error("❌ Format XML invalide - balises manquantes");
-      console.error("Titre trouvé:", !!titleMatch);
-      console.error("Contenu trouvé:", !!contentMatch);
-      console.error("Premiers 500 caractères:", responseContent.slice(0, 500));
+      console.error('❌ Format XML invalide - balises manquantes');
+      console.error('Titre trouvé:', !!titleMatch);
+      console.error('Contenu trouvé:', !!contentMatch);
+      console.error('Premiers 500 caractères:', responseContent.slice(0, 500));
 
       return {
         success: false,
-        error: "La génération AI a échoué: format XML invalide ou incomplète. Réessayez.",
+        error: 'La génération AI a échoué: format XML invalide ou incomplète. Réessayez.',
       };
     }
 
     // Parser les tags
-    const tags = tagsMatch
+    const tags = tagsMatch?.[1]
       ? tagsMatch[1]
-          .split(",")
-          .map((t) => t.trim())
-          .filter((t) => t.length > 0)
+          .split(',')
+          .map((t: string) => t.trim())
+          .filter((t: string) => t.length > 0)
       : options.tags || [];
 
     // Parser la catégorie
-    const category = categoryMatch
-      ? categoryMatch[1].trim()
-      : options.category;
+    const category = categoryMatch?.[1] ? categoryMatch[1].trim() : options.category;
 
     // Parser la FAQ avec l'utilitaire robuste
     let faq: Array<{ question: string; answer: string }> = [];
     if (faqMatch) {
       try {
-        const faqText = faqMatch[1].trim();
+        const faqText = (faqMatch[1] ?? '').trim();
 
         // Utiliser le parsing robuste qui gère les cas edge (JSON tronqué, texte autour, etc.)
         const parsed = parseJsonFromText<Array<{ question: string; answer: string }>>(
@@ -640,21 +645,23 @@ Génère maintenant l'article complet.`;
           // Essayer de récupérer les éléments valides uniquement
           faq = parsed.filter(item => item && item.question && item.answer);
           if (faq.length > 0) {
-            console.warn(`FAQ partiellement valide: ${faq.length}/${parsed.length} éléments récupérés`);
+            console.warn(
+              `FAQ partiellement valide: ${faq.length}/${parsed.length} éléments récupérés`
+            );
           }
         }
       } catch (error) {
-        console.warn("Erreur lors du parsing de la FAQ JSON (non-bloquant):", error);
+        console.warn('Erreur lors du parsing de la FAQ JSON (non-bloquant):', error);
         // FAQ optionnelle, on continue sans
       }
     }
 
     // Extraire les FAQs du contenu généré (même si pas en balise XML)
-    const fullContent = contentMatch[1].trim();
+    const fullContent = (contentMatch?.[1] ?? '').trim();
     const extractedFAQs = extractFAQsFromContent(fullContent);
 
     // Utiliser les FAQs extraites du contenu si les FAQs XML ne sont pas présentes
-    const finalFaq = faq.length > 0 ? faq : (extractedFAQs.length > 0 ? extractedFAQs : undefined);
+    const finalFaq = faq.length > 0 ? faq : extractedFAQs.length > 0 ? extractedFAQs : undefined;
 
     // Retirer la section FAQ du contenu si elle y est présente
     const contentWithoutFAQ = removeFAQSection(fullContent);
@@ -662,7 +669,7 @@ Génère maintenant l'article complet.`;
     // Traitement de l'IMAGE_PROMPT avec enrichissement et validation
     let finalImagePrompt: string | undefined = undefined;
     if (imagePromptMatch) {
-      const rawImagePrompt = imagePromptMatch[1].trim();
+      const rawImagePrompt = (imagePromptMatch[1] ?? '').trim();
 
       // Enrichir avec les données thématiques et la catégorie
       const enrichedPrompt = enrichImagePromptWithThematics(
@@ -676,24 +683,24 @@ Génère maintenant l'article complet.`;
 
       if (!validation.isValid) {
         console.warn(
-          `⚠️ IMAGE_PROMPT généré manque des éléments obligatoires: ${validation.missingElements.join(", ")}`
+          `⚠️ IMAGE_PROMPT généré manque des éléments obligatoires: ${validation.missingElements.join(', ')}`
         );
-        console.warn("Suggestions de correction:", validation.suggestedCorrections);
+        console.warn('Suggestions de correction:', validation.suggestedCorrections);
       }
 
       finalImagePrompt = enrichedPrompt;
     }
 
     // Ajouter le titre H1 au début du contenu
-    const titleText = titleMatch[1].trim();
+    const titleText = (titleMatch?.[1] ?? '').trim();
     const contentWithTitle = `# ${titleText}\n\n${contentWithoutFAQ}`;
 
     return {
       success: true,
       title: titleText,
       description: descriptionMatch
-        ? descriptionMatch[1].trim()
-        : contentWithoutFAQ.slice(0, 200).trim() + "...",
+        ? (descriptionMatch[1] ?? '').trim()
+        : contentWithoutFAQ.slice(0, 200).trim() + '...',
       category: category,
       content: contentWithTitle,
       tags,
@@ -701,10 +708,10 @@ Génère maintenant l'article complet.`;
       imagePrompt: finalImagePrompt,
     };
   } catch (error) {
-    console.error("Erreur lors de la génération avec Claude:", error);
+    console.error('Erreur lors de la génération avec Claude:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Erreur inconnue",
+      error: error instanceof Error ? error.message : 'Erreur inconnue',
     };
   }
 }
@@ -767,28 +774,29 @@ Retourne uniquement le contenu amélioré en Markdown, sans balises additionnell
 
     // Appel API avec retry et timeout
     const message = await withRetryAndTimeout(
-      () => anthropic.messages.create({
-        model: "claude-sonnet-4-5-20250929",
-        max_tokens: 6000, // Même limite que la génération
-        temperature: 0.7,
-        // ✨ Utiliser le system prompt PSYPNOS si activé
-        ...(usePsypnosStyle && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-      }),
+      () =>
+        anthropic.messages.create({
+          model: 'claude-sonnet-4-5-20250929',
+          max_tokens: 6000, // Même limite que la génération
+          temperature: 0.7,
+          // ✨ Utiliser le system prompt PSYPNOS si activé
+          ...(usePsypnosStyle && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
+          messages: [
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+        }),
       API_TIMEOUT_MS,
       RETRY_OPTIONS
     );
 
-    const improvedContent =
-      message.content[0].type === "text" ? message.content[0].text : "";
+    const improvedBlock = message.content[0];
+    const improvedContent = improvedBlock?.type === 'text' ? improvedBlock.text : '';
 
     if (!improvedContent) {
-      throw new Error("Aucun contenu dans la réponse de Claude");
+      throw new Error('Aucun contenu dans la réponse de Claude');
     }
 
     return {
@@ -799,7 +807,7 @@ Retourne uniquement le contenu amélioré en Markdown, sans balises additionnell
     console.error("Erreur lors de l'amélioration avec Claude:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Erreur inconnue",
+      error: error instanceof Error ? error.message : 'Erreur inconnue',
     };
   }
 }

@@ -324,7 +324,7 @@ export function useSectionTimeTracking(sectionId: string) {
  * This function delegates to the batch tracker instead of making
  * individual HTTP calls to /api/analytics/conversion.
  */
-export function trackConversionEvent(
+export async function trackConversionEvent(
   eventType:
     | 'appointment_request'
     | 'seminar_registration'
@@ -336,7 +336,7 @@ export function trackConversionEvent(
   metadata?: Record<string, unknown>
 ) {
   try {
-    const { getTracker } = require('@/lib/tracking');
+    const { getTracker } = await import('@/lib/tracking');
     const tracker = getTracker();
     tracker.trackConversion(eventType, stepName, 1, completed, undefined, metadata);
   } catch (error) {

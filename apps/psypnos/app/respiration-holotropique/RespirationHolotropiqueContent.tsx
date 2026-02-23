@@ -14,7 +14,6 @@ import type { BlogPostSummary } from '../../lib/blog';
 import { ArticlesList } from './ArticlesList';
 import { SeminarsList, type Seminar } from './SeminarsList';
 
-
 interface RespirationHolotropiqueContentProps {
   posts: BlogPostSummary[];
   seminars: Seminar[];
