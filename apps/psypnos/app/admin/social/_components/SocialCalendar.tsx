@@ -57,6 +57,7 @@ interface SocialCalendarProps {
   onEditPost: (post: CalendarPost) => void;
   onDeletePost: (postId: string) => void;
   selectedPostId?: string | null;
+  onMonthChange?: (year: number, month: number) => void;
 }
 
 // ===========================================
@@ -684,6 +685,7 @@ export function SocialCalendar({
   onEditPost,
   onDeletePost,
   selectedPostId,
+  onMonthChange,
 }: SocialCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<CalendarView>('month');
@@ -720,16 +722,19 @@ export function SocialCalendar({
         } else {
           newDate.setDate(prev.getDate() + (direction === 'next' ? 1 : -1));
         }
+        onMonthChange?.(newDate.getFullYear(), newDate.getMonth());
         return newDate;
       });
     },
-    [view]
+    [view, onMonthChange]
   );
 
   const goToToday = useCallback(() => {
-    setCurrentDate(new Date());
+    const today = new Date();
+    setCurrentDate(today);
     setSelectedDay(null);
-  }, []);
+    onMonthChange?.(today.getFullYear(), today.getMonth());
+  }, [onMonthChange]);
 
   const handleDateSelect = useCallback(
     (date: Date) => {

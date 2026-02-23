@@ -202,8 +202,8 @@ export async function getSocialPosts(filters: SocialPostFilters = {}): Promise<S
   const posts = await prisma.socialPost.findMany({
     where,
     orderBy: { scheduledAt: 'asc' },
-    take: filters.limit || 500,
-    skip: filters.offset || 0,
+    ...(filters.limit ? { take: filters.limit } : {}),
+    ...(filters.offset ? { skip: filters.offset } : {}),
   });
 
   return posts.map(mapPost);
@@ -239,8 +239,8 @@ export async function getSocialPostsWithRelations(
       analytics: true,
     },
     orderBy: { scheduledAt: 'asc' },
-    take: filters.limit || 100,
-    skip: filters.offset || 0,
+    ...(filters.limit ? { take: filters.limit } : {}),
+    ...(filters.offset ? { skip: filters.offset } : {}),
   });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -66,14 +66,29 @@ export default function SocialPage() {
   const [editingPost, setEditingPost] = useState<SocialPostData | null>(null);
   const [isPublishing, setIsPublishing] = useState(false);
 
+  // Calendar month tracking
+  const [calendarYear, setCalendarYear] = useState(() => new Date().getFullYear());
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date().getMonth());
+
   // ===========================================
   // Data Loading
   // ===========================================
 
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (year?: number, month?: number) => {
     try {
-      // Load posts
-      const postsRes = await fetch('/api/social/posts?t=' + Date.now(), {
+      // Build date range for the target month
+      const targetYear = year ?? calendarYear;
+      const targetMonth = month ?? calendarMonth;
+      const from = new Date(targetYear, targetMonth, 1).toISOString();
+      const to = new Date(targetYear, targetMonth + 1, 0, 23, 59, 59, 999).toISOString();
+
+      // Load posts scoped to the calendar month
+      const params = new URLSearchParams({
+        t: Date.now().toString(),
+        from,
+        to,
+      });
+      const postsRes = await fetch(`/api/social/posts?${params}`, {
         cache: 'no-store',
       });
       if (postsRes.ok) {
@@ -104,7 +119,7 @@ export default function SocialPage() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [calendarYear, calendarMonth]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -236,6 +251,19 @@ export default function SocialPage() {
       });
     }
   };
+
+  // ===========================================
+  // Calendar month change handler
+  // ===========================================
+
+  const handleMonthChange = useCallback(
+    (year: number, month: number) => {
+      setCalendarYear(year);
+      setCalendarMonth(month);
+      loadData(year, month);
+    },
+    [loadData]
+  );
 
   // ===========================================
   // Computed Data
@@ -482,6 +510,7 @@ export default function SocialPage() {
                   onEditPost={post => setEditingPost(posts.find(p => p.id === post.id) || null)}
                   onDeletePost={handleDeletePost}
                   selectedPostId={selectedPost?.id}
+                  onMonthChange={handleMonthChange}
                 />
               </motion.div>
             )}
