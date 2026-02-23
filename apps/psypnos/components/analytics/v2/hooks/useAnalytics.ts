@@ -309,6 +309,8 @@ interface UseAnalyticsReturn {
   refresh: () => Promise<void>;
   isRefreshing: boolean;
   lastUpdated: Date | null;
+  fetchInsights: () => Promise<void>;
+  isLoadingInsights: boolean;
 }
 
 // Map PeriodType to API timeRange
@@ -410,6 +412,7 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoadingInsights, setIsLoadingInsights] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
@@ -445,10 +448,14 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
         endDate,
       });
 
-      // Fetch main dashboard data
-      const dashboardRes = await fetch(`/api/analytics/dashboard?${params}`, {
-        cache: 'no-store',
-      });
+      // Single consolidated API call — replaces 9 separate HTTP requests.
+      // Geo, goals, alerts, blog analytics, CTA clicks, FAQ clicks are all
+      // included in the dashboard response. Only bots (requires admin auth)
+      // is fetched separately.
+      const [dashboardRes, botsRes] = await Promise.all([
+        fetch(`/api/analytics/dashboard?${params}`, { cache: 'no-store' }),
+        fetch(`/api/analytics/bots?${params}`).catch(() => null),
+      ]);
 
       if (!dashboardRes.ok) {
         throw new Error('Erreur lors de la récupération des données');
@@ -456,68 +463,24 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
 
       const dashboardData = await dashboardRes.json();
 
-      // Fetch additional data in parallel - all APIs use the same date range
-      const [
-        geoRes,
-        goalsRes,
-        botsRes,
-        alertsRes,
-        insightsRes,
-        blogAnalyticsRes,
-        blogCtaRes,
-        blogFaqRes,
-      ] = await Promise.allSettled([
-        fetch(`/api/analytics/geolocation?${params}`),
-        fetch(`/api/analytics/goals?summary=true&startDate=${startDate}&endDate=${endDate}`),
-        fetch(`/api/analytics/bots?${params}`),
-        fetch('/api/analytics/alerts'),
-        fetch(
-          `/api/analytics/insights?timeRange=${timeRange}&startDate=${startDate}&endDate=${endDate}`
-        ),
-        fetch(`/api/blog/analytics?startDate=${startDate}&endDate=${endDate}`),
-        fetch(`/api/blog/cta-clicks?startDate=${startDate}&endDate=${endDate}`),
-        fetch(`/api/blog/faq-clicks?startDate=${startDate}&endDate=${endDate}`),
-      ]);
-
-      const geoData =
-        geoRes.status === 'fulfilled' && geoRes.value.ok
-          ? await geoRes.value.json()
-          : { countries: [], cities: [] };
-
-      const goalsData =
-        goalsRes.status === 'fulfilled' && goalsRes.value.ok
-          ? await goalsRes.value.json()
-          : { goals: [] };
+      // Extract consolidated data from the single response
+      const geoData = dashboardData.geoData || { byCountry: [], byCity: [] };
+      const goalsData = dashboardData.goalsData || { goals: [] };
+      const alertsData = dashboardData.alertsData || { alerts: [] };
+      const blogAnalyticsData = dashboardData.blogData || {
+        articles: [],
+        totalViews: 0,
+        totalUniqueVisitors: 0,
+      };
+      const blogCtaData = dashboardData.blogCtaData || { summary: { appointment: 0, seminar: 0 } };
+      const blogFaqData = dashboardData.blogFaqData || { summary: {}, clicks: [] };
 
       const botsData =
-        botsRes.status === 'fulfilled' && botsRes.value.ok
-          ? await botsRes.value.json()
-          : { bots: [], timeline: [], pages: [] };
+        botsRes && botsRes.ok ? await botsRes.json() : { bots: [], timeline: [], pages: [] };
 
-      const alertsData =
-        alertsRes.status === 'fulfilled' && alertsRes.value.ok
-          ? await alertsRes.value.json()
-          : { alerts: [] };
-
-      const insightsData =
-        insightsRes.status === 'fulfilled' && insightsRes.value.ok
-          ? await insightsRes.value.json()
-          : { insights: [] };
-
-      const blogAnalyticsData =
-        blogAnalyticsRes.status === 'fulfilled' && blogAnalyticsRes.value.ok
-          ? await blogAnalyticsRes.value.json()
-          : { articles: [], totalViews: 0, totalUniqueVisitors: 0 };
-
-      const blogCtaData =
-        blogCtaRes.status === 'fulfilled' && blogCtaRes.value.ok
-          ? await blogCtaRes.value.json()
-          : { summary: { appointment: 0, seminar: 0 } };
-
-      const blogFaqData =
-        blogFaqRes.status === 'fulfilled' && blogFaqRes.value.ok
-          ? await blogFaqRes.value.json()
-          : { summary: {}, clicks: [] };
+      // Insights are NOT loaded here — they are lazy-loaded on demand
+      // via fetchInsights() to avoid the 3-15s Claude API call latency
+      const insightsData = { insights: [] };
 
       // Calculate derived values
       const healthScore = calculateHealthScore(dashboardData);
@@ -557,7 +520,7 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       const topPages: TopPage[] = topSections.map((section: any) => ({
         path: section.section || 'Unknown',
         views: section.visits || 0,
-        uniqueVisitors: Math.round((section.visits || 0) * 0.7), // Estimate
+        uniqueVisitors: section.uniqueSessions ?? section.visitors ?? section.visits ?? 0,
         percentage: totalSectionVisits > 0 ? ((section.visits || 0) / totalSectionVisits) * 100 : 0,
       }));
 
@@ -569,10 +532,7 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
           avgTime: section.avgTimeSeconds || 0,
           scrollDepth: section.scrollRate || 0,
           interactions: section.visitors || 0,
-          // Deterministic bounce rate based on scroll rate (inverse relationship)
-          bounceRate: section.scrollRate
-            ? Math.max(20, Math.min(80, 100 - section.scrollRate))
-            : 40 + ((index * 5) % 40),
+          bounceRate: section.bounceRate ?? 0,
         })
       );
 
@@ -608,37 +568,37 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
         })
       );
 
-      // Build funnel steps (placeholder - needs real funnel data)
-      const funnelSteps: FunnelStep[] = [
-        {
-          name: 'Visite',
-          visitors: dashboardData.summary?.totalVisits || 0,
-          percentage: 100,
-          dropoff: 0,
-        },
-        {
-          name: 'Engagement',
-          visitors: Math.round((dashboardData.summary?.totalVisits || 0) * 0.6),
-          percentage: 60,
-          dropoff: 40,
-        },
-        {
-          name: 'Intérêt',
-          visitors: Math.round((dashboardData.summary?.totalVisits || 0) * 0.3),
-          percentage: 30,
-          dropoff: 30,
-        },
-        {
-          name: 'Conversion',
-          visitors: Math.round(
-            ((dashboardData.summary?.totalVisits || 0) *
-              (dashboardData.summary?.conversionRate || 0)) /
-              100
-          ),
-          percentage: dashboardData.summary?.conversionRate || 0,
-          dropoff: 30 - (dashboardData.summary?.conversionRate || 0),
-        },
-      ];
+      // Build funnel steps from real funnel data if available
+      const rawFunnelSteps = dashboardData.summary?.funnelSteps || [];
+      const totalVisits = dashboardData.summary?.totalVisits || 0;
+      let funnelSteps: FunnelStep[];
+
+      if (rawFunnelSteps.length > 0) {
+        funnelSteps = rawFunnelSteps.map((step: any, i: number) => {
+          const percentage = totalVisits > 0 ? (step.visitors / totalVisits) * 100 : 0;
+          const prevPercentage =
+            i > 0 && totalVisits > 0 ? (rawFunnelSteps[i - 1].visitors / totalVisits) * 100 : 100;
+          return {
+            name: step.name || step.stepName || `Étape ${i + 1}`,
+            visitors: step.visitors || step.count || 0,
+            percentage: Math.round(percentage * 10) / 10,
+            dropoff: Math.round((prevPercentage - percentage) * 10) / 10,
+          };
+        });
+      } else {
+        // Fallback: derive from totalVisits and conversionRate
+        const convRate = dashboardData.summary?.conversionRate || 0;
+        const converted = Math.round((totalVisits * convRate) / 100);
+        funnelSteps = [
+          { name: 'Visite', visitors: totalVisits, percentage: 100, dropoff: 0 },
+          {
+            name: 'Conversion',
+            visitors: converted,
+            percentage: convRate,
+            dropoff: 100 - convRate,
+          },
+        ];
+      }
 
       // Build goals from API
       const goals: Goal[] = (goalsData.goals || []).map((goal: any) => ({
@@ -804,14 +764,15 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
         topPages,
         totalViews: dashboardData.summary?.totalVisits || 0,
         totalVisitors: dashboardData.summary?.uniqueSessions || 0,
-        newVisitors: Math.round((dashboardData.summary?.uniqueSessions || 0) * 0.4), // Estimate
+        newVisitors:
+          dashboardData.summary?.newVisitors ?? dashboardData.summary?.uniqueSessions ?? 0,
         avgSessionDuration: (dashboardData.summary?.averageTimeOnSite || 0) / 1000,
         avgPagesPerSession:
           topPages.length > 0
             ? (dashboardData.summary?.totalVisits || 0) /
               (dashboardData.summary?.uniqueSessions || 1)
             : 1,
-        bounceRate: 45, // Placeholder
+        bounceRate: dashboardData.summary?.bounceRate ?? 0,
         scrollDepth:
           heatmapData.length > 0
             ? heatmapData.reduce((sum: number, h: any) => sum + (h.scrollRate || 0), 0) /
@@ -890,6 +851,41 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
     setIsRefreshing(false);
   }, [fetchData]);
 
+  // Lazy-load insights (Claude API call — 3-15s latency)
+  // Called on demand when the user opens the InsightsDrawer
+  const fetchInsights = useCallback(async () => {
+    if (isLoadingInsights) return;
+    setIsLoadingInsights(true);
+    try {
+      const timeRange = mapPeriodToTimeRange(period);
+      const { startDate, endDate } = getDateRange(period, customStartDate, customEndDate);
+      const res = await fetch(
+        `/api/analytics/insights?timeRange=${timeRange}&startDate=${startDate}&endDate=${endDate}`
+      );
+      if (res.ok) {
+        const insightsData = await res.json();
+        setData(prev => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            insights: (insightsData.insights || []).map((insight: any, i: number) => ({
+              id: insight.id || String(i),
+              type: insight.type || 'neutral',
+              title: insight.title || '',
+              description: insight.description || insight.message || '',
+              metric: insight.metric,
+              value: insight.value,
+            })),
+          };
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching insights:', err);
+    } finally {
+      setIsLoadingInsights(false);
+    }
+  }, [period, customStartDate, customEndDate, isLoadingInsights]);
+
   return {
     data,
     isLoading,
@@ -897,5 +893,7 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
     refresh,
     isRefreshing,
     lastUpdated,
+    fetchInsights,
+    isLoadingInsights,
   };
 }
