@@ -1,8 +1,8 @@
 import { MetadataRoute } from 'next'
 
-import { getAllPosts } from '@/lib/blog'
+import { getAllPostsAsync } from '@/lib/blog'
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://psypnos.fr'
 
   // Pages statiques principales
@@ -132,7 +132,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ]
 
   // Articles de blog
-  const posts = getAllPosts()
+  const posts = await getAllPostsAsync()
   const blogPosts: MetadataRoute.Sitemap = posts.map((post) => ({
     url: `${baseUrl}/blog/${post.slug}`,
     lastModified: new Date(post.date),
