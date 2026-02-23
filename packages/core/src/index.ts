@@ -56,6 +56,15 @@ export {
   type CookieOptions,
 } from './utils/cookies';
 
+// Phone validation
+export {
+  normalizePhone,
+  isValidPhone,
+  PHONE_HINT,
+  PHONE_ERROR,
+  PHONE_ERROR_DETAILED,
+} from './utils/phone';
+
 // Errors
 export {
   AppError,

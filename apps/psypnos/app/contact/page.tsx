@@ -427,7 +427,7 @@ export default function ContactPage() {
                       className="border-ivory/20 bg-night/50 placeholder:text-ivory/40 focus-ring-inset w-full rounded-lg border px-4 py-2.5 text-sm transition-colors"
                     />
                     <span id="phone-hint" className="text-ivory/50 mt-1 block text-xs">
-                      Format français : 06 12 34 56 78 ou +33 6 12 34 56 78
+                      Formats acceptés : 06 12 34 56 78, +33 6 12 34 56 78, 06.12.34.56.78
                     </span>
                   </div>
 

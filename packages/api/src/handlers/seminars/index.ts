@@ -60,7 +60,13 @@ export const registrationSchema = z.object({
   firstName: z.string().min(1).max(100),
   lastName: z.string().min(1).max(100),
   email: z.string().email().max(255),
-  phone: z.string().max(20).optional(),
+  phone: z
+    .string()
+    .optional()
+    .transform(value => value?.trim() ?? '')
+    .refine(value => !value || /^(?:\+\d{7,15}|\d{10,15})$/.test(value.replace(/[^+\d]/g, '')), {
+      message: 'Format de téléphone invalide',
+    }),
   company: z.string().max(100).optional(),
   message: z.string().max(1000).optional(),
 });

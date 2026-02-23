@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { siteConfig } from '@/config/site.config';
+
 import { validateCSRFMiddleware } from '../common/csrf-middleware';
 import {
   buildAdminEmailHtml,
@@ -17,8 +18,6 @@ const branding = getEmailBranding(siteConfig);
 
 const requestTypeValues = ['', 'premiere_consultation', 'question_generale', 'seminaire'] as const;
 
-const phoneRegex = /^(\+33|0)[1-9](\d{2}){4}$|^\+?\d{10,15}$/;
-
 const quickContactSchema = z.object({
   firstName: z.string().trim().min(2, 'Le prénom est requis').max(50),
   lastName: z.string().trim().min(2, 'Le nom est requis').max(50),
@@ -26,8 +25,8 @@ const quickContactSchema = z.object({
   phone: z
     .string()
     .optional()
-    .transform(value => value?.trim().replace(/\s/g, '') ?? '')
-    .refine(value => !value || phoneRegex.test(value), {
+    .transform(value => value?.trim() ?? '')
+    .refine(value => !value || /^(?:\+\d{7,15}|\d{10,15})$/.test(value.replace(/[^+\d]/g, '')), {
       message: 'Format de téléphone invalide',
     }),
   requestType: z.enum(requestTypeValues).refine(val => val !== '', {
@@ -68,25 +67,25 @@ const formatAdminEmail = (payload: QuickContactPayload): EmailContent => {
   const fullName = `${payload.firstName} ${payload.lastName}`;
 
   const options = {
-    heading: "Nouvelle demande rapide",
+    heading: 'Nouvelle demande rapide',
     badge: requestTypeLabels[payload.requestType],
     sections: [
       {
-        title: "Coordonnées",
+        title: 'Coordonnées',
         fields: [
-          { label: "Nom complet", value: fullName },
-          { label: "Email", value: payload.email, emailLink: true },
-          { label: "Téléphone", value: payload.phone || "Non précisé", phoneLink: !!payload.phone },
-          { label: "Type de demande", value: requestTypeLabels[payload.requestType], badge: true },
+          { label: 'Nom complet', value: fullName },
+          { label: 'Email', value: payload.email, emailLink: true },
+          { label: 'Téléphone', value: payload.phone || 'Non précisé', phoneLink: !!payload.phone },
+          { label: 'Type de demande', value: requestTypeLabels[payload.requestType], badge: true },
         ],
       },
     ],
     messageBlock: {
-      label: "Message",
+      label: 'Message',
       content: payload.message,
     },
     metadata: {
-      type: "quick_contact",
+      type: 'quick_contact',
       first_name: payload.firstName,
       last_name: payload.lastName,
       email: payload.email,
@@ -116,15 +115,15 @@ const formatConfirmationEmail = (payload: QuickContactPayload): EmailContent => 
     intro:
       "Merci d'avoir pris le temps de me contacter. Votre message a bien été reçu et je vous répondrai sous 48 heures.",
     recap: {
-      title: "Récapitulatif",
+      title: 'Récapitulatif',
       fields: [
-        { label: "Nom", value: fullName },
-        { label: "Email", value: payload.email },
-        { label: "Demande", value: requestTypeLabels[payload.requestType] },
-        { label: "Envoyé le", value: formatSubmittedAt(payload.meta.submitted_at) },
+        { label: 'Nom', value: fullName },
+        { label: 'Email', value: payload.email },
+        { label: 'Demande', value: requestTypeLabels[payload.requestType] },
+        { label: 'Envoyé le', value: formatSubmittedAt(payload.meta.submitted_at) },
       ],
     },
-    closing: "À très bientôt,",
+    closing: 'À très bientôt,',
     signer: `${branding.practitionerName} — ${branding.siteName}`,
   };
 
@@ -243,10 +242,7 @@ export async function POST(request: Request) {
 
     // Send confirmation to user
     try {
-      await sendEmailThroughResend(
-        formatConfirmationEmail(payload),
-        payload.email
-      );
+      await sendEmailThroughResend(formatConfirmationEmail(payload), payload.email);
     } catch (confirmationError) {
       console.error("Échec de l'envoi de la confirmation du formulaire rapide", confirmationError);
     }

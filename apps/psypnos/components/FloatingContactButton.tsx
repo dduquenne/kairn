@@ -62,8 +62,8 @@ const validateForm = (values: FormValues) => {
   }
 
   if (values.phone.trim()) {
-    const phoneRegex = /^(\+33|0)[1-9](\d{2}){4}$|^\+?\d{10,15}$/;
-    if (!phoneRegex.test(values.phone.replace(/\s/g, ''))) {
+    const normalized = values.phone.replace(/[^+\d]/g, '');
+    if (!/^(?:\+\d{7,15}|\d{10,15})$/.test(normalized)) {
       errors.phone = 'Format de téléphone invalide.';
     }
   }

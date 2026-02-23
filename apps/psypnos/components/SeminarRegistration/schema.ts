@@ -41,10 +41,10 @@ export const seminarRegistrationSchema = z
       .email('Veuillez entrer une adresse e-mail valide. Exemple : marie.dupont@exemple.fr'),
     phone: z
       .string()
-      .min(10, 'Le numéro doit contenir au moins 10 chiffres.')
-      .regex(
-        /^[+0-9\s().-]{10,}$/u,
-        'Format de téléphone invalide. Utilisez le format : 06 12 34 56 78 ou +33 6 12 34 56 78'
+      .min(1, 'Veuillez indiquer votre numéro de téléphone.')
+      .refine(
+        value => /^(?:\+\d{7,15}|\d{10,15})$/.test(value.replace(/[^+\d]/g, '')),
+        'Format de téléphone invalide. Exemples : 06 12 34 56 78, +33 6 12 34 56 78, 06.12.34.56.78'
       ),
     seminarId: z.string().min(1, 'Veuillez sélectionner un séminaire dans la liste.'),
     firstTime: z.boolean().optional().default(false),
@@ -98,10 +98,10 @@ export const seminarRegistrationSchema = z
       .max(50, 'Le prénom ne doit pas dépasser 50 caractères.'),
     emergencyPhone: z
       .string()
-      .min(10, "Le numéro d'urgence doit contenir au moins 10 chiffres.")
-      .regex(
-        /^[+0-9\s().-]{10,}$/u,
-        'Format de téléphone invalide. Utilisez le format : 06 12 34 56 78 ou +33 6 12 34 56 78'
+      .min(1, "Veuillez indiquer le numéro de téléphone d'urgence.")
+      .refine(
+        value => /^(?:\+\d{7,15}|\d{10,15})$/.test(value.replace(/[^+\d]/g, '')),
+        'Format de téléphone invalide. Exemples : 06 12 34 56 78, +33 6 12 34 56 78, 06.12.34.56.78'
       ),
     hasPriorWork: z.boolean().optional().default(false),
     priorWorkDetails: z

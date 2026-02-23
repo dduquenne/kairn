@@ -40,10 +40,14 @@ const appointmentRequestSchema = z
       .string()
       .optional()
       .transform(value => value?.trim() ?? '')
-      .refine(value => value.length === 0 || /^[+0-9\s().-]{6,}$/u.test(value), {
-        message:
-          'Format de téléphone invalide. Utilisez le format : 06 12 34 56 78 ou +33 6 12 34 56 78',
-      }),
+      .refine(
+        value =>
+          value.length === 0 || /^(?:\+\d{7,15}|\d{10,15})$/.test(value.replace(/[^+\d]/g, '')),
+        {
+          message:
+            'Format de téléphone invalide. Exemples : 06 12 34 56 78, +33 6 12 34 56 78, 06.12.34.56.78',
+        }
+      ),
     contact_preference: z.enum(contactPreferenceValues),
     reason: z
       .string()
@@ -499,7 +503,7 @@ export default function AppointmentRequestForm() {
               autoComplete="tel"
             />
             <span id={`${fieldIds.phone}-hint`} className="text-ivory/50 mt-1 block text-xs">
-              Format : 06 12 34 56 78 ou +33 6 12 34 56 78
+              Formats acceptés : 06 12 34 56 78, +33 6 12 34 56 78, 06.12.34.56.78
             </span>
             {renderError('phone')}
           </div>
