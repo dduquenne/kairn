@@ -3,51 +3,90 @@
 // TODO: Migration - Type incompatibilities to fix
 /**
  * Analytics Summary Functions
+ *
+ * Optimized to read data once and pass it through functions,
+ * eliminating redundant file reads (previously up to 17 reads per dashboard request).
+ * O(n²) algorithms replaced with Map-based lookups.
  */
 
-import { getConversionEvents } from "./conversions";
-import { getPageVisits } from "./page-visits";
-import { getSectionTimes } from "./section-times";
+import { readAnalyticsData } from "./cache";
+import type { PageVisit, SectionTime, ConversionEvent, Analytics } from "./types";
+
+// Shared data loader: reads the JSON file once per request context
+interface PreloadedData {
+  visits: PageVisit[];
+  times: SectionTime[];
+  events: ConversionEvent[];
+}
+
+function filterByDate<T extends { timestamp: string }>(
+  items: T[],
+  startDate?: string,
+  endDate?: string
+): T[] {
+  if (!startDate && !endDate) return items;
+  const start = startDate ? new Date(startDate).getTime() : 0;
+  const end = endDate ? new Date(endDate).getTime() : Date.now();
+  return items.filter((item) => {
+    const t = new Date(item.timestamp).getTime();
+    return t >= start && t <= end;
+  });
+}
+
+/**
+ * Load all analytics data once, filtered by date range.
+ * Pass the result to all summary functions to avoid redundant reads.
+ */
+export async function preloadAnalyticsData(
+  startDate?: string,
+  endDate?: string
+): Promise<PreloadedData> {
+  const data = await readAnalyticsData();
+  return {
+    visits: filterByDate(data.pageVisits, startDate, endDate),
+    times: filterByDate(data.sectionTimes, startDate, endDate),
+    events: filterByDate(data.conversionEvents, startDate, endDate),
+  };
+}
 
 export async function getAnalyticsSummary(
   startDate?: string,
   endDate?: string,
-): Promise<{
-  totalVisits: number;
-  uniqueSessions: number;
-  averageTimeOnSite: number;
-  conversionRate: number;
-  topSections: Array<{ section: string; avgTime: number; visits: number }>;
-  conversionByType: Record<string, { clicks: number; completed: number; rate: number }>;
-}> {
-  const visits = await getPageVisits(startDate, endDate);
-  const times = await getSectionTimes(startDate, endDate);
-  const events = await getConversionEvents(startDate, endDate);
+  preloaded?: PreloadedData,
+) {
+  const { visits, times, events } = preloaded || await preloadAnalyticsData(startDate, endDate);
 
   const uniqueSessions = new Set(visits.map((v) => v.sessionId)).size;
   const totalVisits = visits.length;
 
+  // Bounce rate: sessions with only 1 page view
+  const sessionPageCounts = new Map<string, number>();
+  for (const v of visits) {
+    sessionPageCounts.set(v.sessionId, (sessionPageCounts.get(v.sessionId) || 0) + 1);
+  }
+  const bouncedSessions = Array.from(sessionPageCounts.values()).filter((c) => c === 1).length;
+  const bounceRate = uniqueSessions > 0 ? (bouncedSessions / uniqueSessions) * 100 : 0;
+
   // Average time on site
   const sessionDurations = new Map<string, number>();
-  times.forEach((time) => {
+  for (const time of times) {
     const current = sessionDurations.get(time.sessionId) || 0;
     sessionDurations.set(time.sessionId, current + time.timeSpent);
-  });
+  }
   const averageTimeOnSite =
     sessionDurations.size > 0
-      ? Array.from(sessionDurations.values()).reduce((a, b) => a + b, 0) /
-        sessionDurations.size
+      ? Array.from(sessionDurations.values()).reduce((a, b) => a + b, 0) / sessionDurations.size
       : 0;
 
   // Top sections
   const sectionMap = new Map<string, { totalTime: number; count: number }>();
-  times.forEach((time) => {
+  for (const time of times) {
     const current = sectionMap.get(time.section) || { totalTime: 0, count: 0 };
     sectionMap.set(time.section, {
       totalTime: current.totalTime + time.timeSpent,
       count: current.count + 1,
     });
-  });
+  }
 
   const topSections = Array.from(sectionMap.entries())
     .map(([section, { totalTime, count }]) => ({
@@ -60,20 +99,15 @@ export async function getAnalyticsSummary(
 
   // Conversion by type
   const conversionMap = new Map<string, { clicks: number; completed: number }>();
-  events.forEach((event) => {
+  for (const event of events) {
     const current = conversionMap.get(event.eventType) || { clicks: 0, completed: 0 };
     if (event.completed) {
-      conversionMap.set(event.eventType, {
-        clicks: current.clicks,
-        completed: current.completed + 1,
-      });
+      current.completed++;
     } else {
-      conversionMap.set(event.eventType, {
-        clicks: current.clicks + 1,
-        completed: current.completed,
-      });
+      current.clicks++;
     }
-  });
+    conversionMap.set(event.eventType, current);
+  }
 
   const conversionByType: Record<string, { clicks: number; completed: number; rate: number }> = {};
   conversionMap.forEach((value, key) => {
@@ -93,6 +127,7 @@ export async function getAnalyticsSummary(
     uniqueSessions,
     averageTimeOnSite,
     conversionRate,
+    bounceRate,
     topSections,
     conversionByType,
   };
@@ -102,17 +137,17 @@ export async function getVisitsByPeriod(
   period: "hour" | "day" | "week" | "month" | "year",
   startDate?: string,
   endDate?: string,
+  preloaded?: PreloadedData,
 ): Promise<Array<{ period: string; visits: number }>> {
-  const visits = await getPageVisits(startDate, endDate);
+  const { visits } = preloaded || await preloadAnalyticsData(startDate, endDate);
 
   const periodMap = new Map<string, number>();
 
-  visits.forEach((visit) => {
+  for (const visit of visits) {
     const date = new Date(visit.timestamp);
     let periodKey = "";
 
     if (period === "hour") {
-      // Format: YYYY-MM-DDTHH:00 for hourly data
       periodKey = date.toISOString().slice(0, 13) + ":00";
     } else if (period === "day") {
       periodKey = date.toISOString().split("T")[0];
@@ -120,9 +155,10 @@ export async function getVisitsByPeriod(
       const tempDate = new Date(date);
       tempDate.setDate(tempDate.getDate() + 4 - (tempDate.getDay() || 7));
       const yearStart = new Date(tempDate.getFullYear(), 0, 1);
-      const weekNum = Math.ceil((((tempDate.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-      const year = date.getFullYear();
-      periodKey = `${year}-W${weekNum.toString().padStart(2, "0")}`;
+      const weekNum = Math.ceil(
+        ((tempDate.getTime() - yearStart.getTime()) / 86400000 + 1) / 7
+      );
+      periodKey = `${date.getFullYear()}-W${weekNum.toString().padStart(2, "0")}`;
     } else if (period === "month") {
       periodKey = date.toISOString().substring(0, 7);
     } else if (period === "year") {
@@ -131,7 +167,7 @@ export async function getVisitsByPeriod(
 
     const current = periodMap.get(periodKey) || 0;
     periodMap.set(periodKey, current + 1);
-  });
+  }
 
   return Array.from(periodMap.entries())
     .map(([key, count]) => ({ period: key, visits: count }))
@@ -140,26 +176,7 @@ export async function getVisitsByPeriod(
 
 export async function getAnalyticsSummaryWithComparison(
   timeRange: "day" | "week" | "month" | "year",
-): Promise<{
-  current: {
-    totalVisits: number;
-    uniqueSessions: number;
-    averageTimeOnSite: number;
-    conversionRate: number;
-  };
-  previous: {
-    totalVisits: number;
-    uniqueSessions: number;
-    averageTimeOnSite: number;
-    conversionRate: number;
-  };
-  comparison: {
-    totalVisitsChange: number;
-    uniqueSessionsChange: number;
-    averageTimeOnSiteChange: number;
-    conversionRateChange: number;
-  };
-}> {
+) {
   const now = new Date();
 
   let currentStart = new Date();
@@ -172,7 +189,6 @@ export async function getAnalyticsSummaryWithComparison(
   if (timeRange === "day") {
     currentStart = new Date(now);
     currentStart.setHours(0, 0, 0, 0);
-
     previousEnd = new Date(currentStart);
     previousEnd.setDate(previousEnd.getDate() - 1);
     previousEnd.setHours(23, 59, 59, 999);
@@ -183,7 +199,6 @@ export async function getAnalyticsSummaryWithComparison(
     const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
     currentStart = new Date(now.setDate(diff));
     currentStart.setHours(0, 0, 0, 0);
-
     previousStart = new Date(currentStart);
     previousStart.setDate(previousStart.getDate() - 7);
     previousEnd = new Date(currentStart);
@@ -192,7 +207,6 @@ export async function getAnalyticsSummaryWithComparison(
   } else if (timeRange === "month") {
     currentStart = new Date(now.getFullYear(), now.getMonth(), 1);
     currentStart.setHours(0, 0, 0, 0);
-
     previousStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     previousStart.setHours(0, 0, 0, 0);
     previousEnd = new Date(now.getFullYear(), now.getMonth(), 0);
@@ -200,38 +214,34 @@ export async function getAnalyticsSummaryWithComparison(
   } else if (timeRange === "year") {
     currentStart = new Date(now.getFullYear(), 0, 1);
     currentStart.setHours(0, 0, 0, 0);
-
     previousStart = new Date(now.getFullYear() - 1, 0, 1);
     previousStart.setHours(0, 0, 0, 0);
     previousEnd = new Date(now.getFullYear() - 1, 11, 31);
     previousEnd.setHours(23, 59, 59, 999);
   }
 
-  const currentSummary = await getAnalyticsSummary(
-    currentStart.toISOString(),
-    currentEnd.toISOString()
-  );
+  // Read data once, filter twice — instead of reading 6 times
+  const allData = await readAnalyticsData();
 
-  const previousSummary = await getAnalyticsSummary(
-    previousStart.toISOString(),
-    previousEnd.toISOString()
-  );
+  const currentData: PreloadedData = {
+    visits: filterByDate(allData.pageVisits, currentStart.toISOString(), currentEnd.toISOString()),
+    times: filterByDate(allData.sectionTimes, currentStart.toISOString(), currentEnd.toISOString()),
+    events: filterByDate(allData.conversionEvents, currentStart.toISOString(), currentEnd.toISOString()),
+  };
 
-  const totalVisitsChange = previousSummary.totalVisits > 0
-    ? ((currentSummary.totalVisits - previousSummary.totalVisits) / previousSummary.totalVisits) * 100
-    : 0;
+  const previousData: PreloadedData = {
+    visits: filterByDate(allData.pageVisits, previousStart.toISOString(), previousEnd.toISOString()),
+    times: filterByDate(allData.sectionTimes, previousStart.toISOString(), previousEnd.toISOString()),
+    events: filterByDate(allData.conversionEvents, previousStart.toISOString(), previousEnd.toISOString()),
+  };
 
-  const uniqueSessionsChange = previousSummary.uniqueSessions > 0
-    ? ((currentSummary.uniqueSessions - previousSummary.uniqueSessions) / previousSummary.uniqueSessions) * 100
-    : 0;
+  const [currentSummary, previousSummary] = await Promise.all([
+    getAnalyticsSummary(undefined, undefined, currentData),
+    getAnalyticsSummary(undefined, undefined, previousData),
+  ]);
 
-  const averageTimeOnSiteChange = previousSummary.averageTimeOnSite > 0
-    ? ((currentSummary.averageTimeOnSite - previousSummary.averageTimeOnSite) / previousSummary.averageTimeOnSite) * 100
-    : 0;
-
-  const conversionRateChange = previousSummary.conversionRate > 0
-    ? currentSummary.conversionRate - previousSummary.conversionRate
-    : 0;
+  const calcChange = (current: number, previous: number) =>
+    previous > 0 ? ((current - previous) / previous) * 100 : 0;
 
   return {
     current: {
@@ -247,10 +257,10 @@ export async function getAnalyticsSummaryWithComparison(
       conversionRate: previousSummary.conversionRate,
     },
     comparison: {
-      totalVisitsChange,
-      uniqueSessionsChange,
-      averageTimeOnSiteChange,
-      conversionRateChange,
+      totalVisitsChange: calcChange(currentSummary.totalVisits, previousSummary.totalVisits),
+      uniqueSessionsChange: calcChange(currentSummary.uniqueSessions, previousSummary.uniqueSessions),
+      averageTimeOnSiteChange: calcChange(currentSummary.averageTimeOnSite, previousSummary.averageTimeOnSite),
+      conversionRateChange: currentSummary.conversionRate - previousSummary.conversionRate,
     },
   };
 }
@@ -258,36 +268,18 @@ export async function getAnalyticsSummaryWithComparison(
 export async function getSectionHeatmap(
   startDate?: string,
   endDate?: string,
-): Promise<
-  Array<{
-    section: string;
-    visitors: number;
-    avgTimeSeconds: number;
-    scrollRate: number;
-    conversionsFromSection: number;
-    conversionsByType: Record<
-      string,
-      { count: number; type: "appointment_request" | "seminar_registration" | "contact_form" }
-    >;
-  }>
-> {
-  const visits = await getPageVisits(startDate, endDate);
-  const times = await getSectionTimes(startDate, endDate);
-  const events = await getConversionEvents(startDate, endDate);
+  preloaded?: PreloadedData,
+) {
+  const { visits, times, events } = preloaded || await preloadAnalyticsData(startDate, endDate);
 
   const sessionIds = new Set(visits.map((v) => v.sessionId));
 
   const sectionMap = new Map<
     string,
-    {
-      visitors: number;
-      totalTime: number;
-      count: number;
-      sessionIds: Set<string>;
-    }
+    { visitors: number; totalTime: number; count: number; sessionIds: Set<string> }
   >();
 
-  times.forEach((time) => {
+  for (const time of times) {
     const current = sectionMap.get(time.section) || {
       visitors: 0,
       totalTime: 0,
@@ -298,54 +290,49 @@ export async function getSectionHeatmap(
     current.totalTime += time.timeSpent;
     current.sessionIds.add(time.sessionId);
     sectionMap.set(time.section, current);
-  });
+  }
+
+  // Pre-build a Map<sessionId, ConversionEvent[]> for O(1) lookups
+  // instead of O(n) filter() inside nested loop (was O(n²))
+  const completedBySession = new Map<string, ConversionEvent[]>();
+  for (const e of events) {
+    if (e.completed) {
+      const list = completedBySession.get(e.sessionId) || [];
+      list.push(e);
+      completedBySession.set(e.sessionId, list);
+    }
+  }
 
   const conversionsBySection = new Map<
     string,
-    {
-      count: number;
-      byType: Record<
-        string,
-        { count: number; type: "appointment_request" | "seminar_registration" | "contact_form" }
-      >;
-    }
+    { count: number; byType: Record<string, { count: number; type: string }> }
   >();
 
-  times.forEach((time) => {
-    const sessionConversions = events.filter(
-      (e) => e.sessionId === time.sessionId && e.completed
-    );
+  for (const time of times) {
+    const sessionConversions = completedBySession.get(time.sessionId);
+    if (!sessionConversions || sessionConversions.length === 0) continue;
 
-    if (sessionConversions.length > 0) {
-      const current = conversionsBySection.get(time.section) || { count: 0, byType: {} };
-      sessionConversions.forEach((conv) => {
-        current.count++;
-        if (!current.byType[conv.eventType]) {
-          current.byType[conv.eventType] = {
-            count: 0,
-            type: conv.eventType,
-          };
-        }
-        current.byType[conv.eventType].count++;
-      });
-      conversionsBySection.set(time.section, current);
+    const current = conversionsBySection.get(time.section) || { count: 0, byType: {} };
+    for (const conv of sessionConversions) {
+      current.count++;
+      if (!current.byType[conv.eventType]) {
+        current.byType[conv.eventType] = { count: 0, type: conv.eventType };
+      }
+      current.byType[conv.eventType].count++;
     }
-  });
-
-  const scrollRates = new Map<string, number>();
-  Array.from(sectionMap.entries()).forEach(([section, data]) => {
-    const rate = sessionIds.size > 0 ? (data.sessionIds.size / sessionIds.size) * 100 : 0;
-    scrollRates.set(section, rate);
-  });
+    conversionsBySection.set(time.section, current);
+  }
 
   return Array.from(sectionMap.entries())
-    // Filter out 'unknown' sections - these are sections without proper data-track-section attributes
-    .filter(([section]) => section.toLowerCase() !== 'unknown')
+    .filter(([section]) => section.toLowerCase() !== "unknown")
     .map(([section, data]) => ({
       section,
       visitors: data.sessionIds.size,
       avgTimeSeconds: data.count > 0 ? Math.round(data.totalTime / data.count / 1000) : 0,
-      scrollRate: parseFloat(scrollRates.get(section)?.toFixed(1) || "0"),
+      scrollRate:
+        sessionIds.size > 0
+          ? parseFloat(((data.sessionIds.size / sessionIds.size) * 100).toFixed(1))
+          : 0,
       conversionsFromSection: conversionsBySection.get(section)?.count || 0,
       conversionsByType: conversionsBySection.get(section)?.byType || {},
     }))
@@ -355,54 +342,32 @@ export async function getSectionHeatmap(
 export async function getTrafficSources(
   startDate?: string,
   endDate?: string,
-): Promise<
-  Array<{
-    source: string;
-    medium: string;
-    visits: number;
-    uniqueSessions: number;
-    conversionRate: number;
-  }>
-> {
-  const visits = await getPageVisits(startDate, endDate);
-  const events = await getConversionEvents(startDate, endDate);
+  preloaded?: PreloadedData,
+) {
+  const { visits, events } = preloaded || await preloadAnalyticsData(startDate, endDate);
 
-  const sourceMap = new Map<
-    string,
-    {
-      visits: number;
-      sessions: Set<string>;
-      conversions: number;
-    }
-  >();
+  const sourceMap = new Map<string, { visits: number; sessions: Set<string> }>();
 
-  visits.forEach((visit) => {
-    const source = visit.utmSource || (visit.referrerDomain || 'direct');
-    const medium = visit.utmMedium || 'none';
+  for (const visit of visits) {
+    const source = visit.utmSource || visit.referrerDomain || "direct";
+    const medium = visit.utmMedium || "none";
     const key = `${source}|${medium}`;
 
-    const current = sourceMap.get(key) || {
-      visits: 0,
-      sessions: new Set<string>(),
-      conversions: 0,
-    };
-
+    const current = sourceMap.get(key) || { visits: 0, sessions: new Set<string>() };
     current.visits++;
     current.sessions.add(visit.sessionId);
     sourceMap.set(key, current);
-  });
+  }
 
   const sessionConversions = new Set<string>();
-  events.filter((e) => e.completed).forEach((e) => {
-    sessionConversions.add(e.sessionId);
-  });
+  for (const e of events) {
+    if (e.completed) sessionConversions.add(e.sessionId);
+  }
 
   return Array.from(sourceMap.entries())
     .map(([key, data]) => {
-      const [source, medium] = key.split('|');
-      const sessionsArray = Array.from(data.sessions);
-      const conversions = sessionsArray.filter((s) => sessionConversions.has(s)).length;
-
+      const [source, medium] = key.split("|");
+      const conversions = Array.from(data.sessions).filter((s) => sessionConversions.has(s)).length;
       return {
         source,
         medium,
@@ -417,41 +382,28 @@ export async function getTrafficSources(
 export async function getDeviceBreakdown(
   startDate?: string,
   endDate?: string,
-): Promise<
-  Array<{
-    deviceType: string;
-    visits: number;
-    uniqueSessions: number;
-    avgTimeOnSite: number;
-  }>
-> {
-  const visits = await getPageVisits(startDate, endDate);
-  const times = await getSectionTimes(startDate, endDate);
+  preloaded?: PreloadedData,
+) {
+  const { visits, times } = preloaded || await preloadAnalyticsData(startDate, endDate);
 
-  const deviceMap = new Map<
-    string,
-    {
-      visits: number;
-      sessions: Set<string>;
-    }
-  >();
+  const deviceMap = new Map<string, { visits: number; sessions: Set<string> }>();
 
-  visits.forEach((visit) => {
-    const device = visit.deviceType || 'unknown';
-    const current = deviceMap.get(device) || {
-      visits: 0,
-      sessions: new Set<string>(),
-    };
+  // Pre-build a Map<sessionId, deviceType> for O(1) lookups
+  // instead of O(n) find() inside nested loop (was O(n²))
+  const sessionDeviceMap = new Map<string, string>();
 
+  for (const visit of visits) {
+    const device = visit.deviceType || "unknown";
+    const current = deviceMap.get(device) || { visits: 0, sessions: new Set<string>() };
     current.visits++;
     current.sessions.add(visit.sessionId);
     deviceMap.set(device, current);
-  });
+    sessionDeviceMap.set(visit.sessionId, device);
+  }
 
   const sessionDurations = new Map<string, Map<string, number>>();
-  times.forEach((time) => {
-    const visit = visits.find((v) => v.sessionId === time.sessionId);
-    const device = visit?.deviceType || 'unknown';
+  for (const time of times) {
+    const device = sessionDeviceMap.get(time.sessionId) || "unknown";
 
     if (!sessionDurations.has(device)) {
       sessionDurations.set(device, new Map());
@@ -460,7 +412,7 @@ export async function getDeviceBreakdown(
     const deviceSessions = sessionDurations.get(device)!;
     const current = deviceSessions.get(time.sessionId) || 0;
     deviceSessions.set(time.sessionId, current + time.timeSpent);
-  });
+  }
 
   return Array.from(deviceMap.entries())
     .map(([device, data]) => {

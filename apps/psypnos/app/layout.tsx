@@ -1,11 +1,18 @@
 import type { Metadata, Viewport } from 'next';
 
+import dynamic from 'next/dynamic';
+
 import { PsypnosChatWidget } from '@/components/ChatWidgetWrapper';
 import { PsypnosFloatingContactButton } from '@/components/FloatingContactButtonWrapper';
 import { WebVitalsReporter } from '@/components/WebVitalsReporter';
 import { CustomizationProvider } from '@/lib/customization-context';
 import { ThemeProvider } from '@/lib/theme-context';
 import { ToastProvider } from '@/lib/toast-context';
+
+// Global analytics tracking — initialized once, covers ALL pages.
+// Loaded client-only (SSR: false) to avoid hydration issues.
+const Analytics = dynamic(() => import('@/components/Analytics').then(mod => ({ default: mod.Analytics })), { ssr: false });
+const SectionTracker = dynamic(() => import('@/components/Analytics').then(mod => ({ default: mod.SectionTracker })), { ssr: false });
 
 import './globals.css';
 
@@ -483,6 +490,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ThemeProvider defaultTheme="dark">
             <ToastProvider position="top-right">
               {children}
+              <Analytics />
+              <SectionTracker />
               <PsypnosChatWidget />
               <PsypnosFloatingContactButton />
               <WebVitalsReporter />

@@ -49,12 +49,14 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const timeRange = (searchParams.get("timeRange") || "week") as "day" | "week" | "month" | "year";
+    const startDate = searchParams.get("startDate") || undefined;
+    const endDate = searchParams.get("endDate") || undefined;
 
-    // Fetch analytics data
+    // Fetch analytics data — now respects date filters
     const [summary, comparison, trafficSources] = await Promise.all([
-      getAnalyticsSummary(),
+      getAnalyticsSummary(startDate, endDate),
       getAnalyticsSummaryWithComparison(timeRange),
-      getTrafficSources(),
+      getTrafficSources(startDate, endDate),
     ]);
 
     // Prepare prompt for Claude
@@ -150,7 +152,9 @@ Réponds UNIQUEMENT avec un JSON valide dans ce format exact (pas de markdown, p
     console.error("Error generating insights:", error);
 
     // Return fallback insights on error
-    const summary = await getAnalyticsSummary();
+    const startDate = request.nextUrl.searchParams.get("startDate") || undefined;
+    const endDate = request.nextUrl.searchParams.get("endDate") || undefined;
+    const summary = await getAnalyticsSummary(startDate, endDate);
     const comparison = await getAnalyticsSummaryWithComparison("week");
 
     return Response.json(
