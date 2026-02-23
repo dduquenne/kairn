@@ -2,6 +2,13 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { validateCSRFMiddleware } from '../common/csrf-middleware';
+import {
+  buildAdminEmailHtml,
+  buildAdminEmailText,
+  buildConfirmationEmailHtml,
+  buildConfirmationEmailText,
+  formatSubmittedAt,
+} from '../common/email-templates';
 import { recordAttempt, getClientIP } from '../common/rate-limiter';
 
 const requestTypeValues = ['', 'premiere_consultation', 'question_generale', 'seminaire'] as const;
@@ -53,69 +60,74 @@ const requestTypeLabels: Record<(typeof requestTypeValues)[number], string> = {
   seminaire: 'Séminaire de respiration holotropique',
 };
 
-/**
- * Escape HTML characters to prevent XSS
- */
-function escapeHtml(unsafe: string): string {
-  return unsafe
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
-}
-
-const formatEmailContent = (payload: QuickContactPayload): EmailContent => {
-  const submittedAtRaw = payload.meta.submitted_at ? new Date(payload.meta.submitted_at) : null;
-  const submittedAtIso =
-    submittedAtRaw && !Number.isNaN(submittedAtRaw.getTime())
-      ? submittedAtRaw.toISOString()
-      : 'Non précisé';
-
+const formatAdminEmail = (payload: QuickContactPayload): EmailContent => {
   const fullName = `${payload.firstName} ${payload.lastName}`;
 
-  const text =
-    `Nouvelle demande via le formulaire rapide Psypnos\n\n` +
-    `Nom complet : ${fullName}\n` +
-    `Email : ${payload.email}\n` +
-    `Téléphone : ${payload.phone || 'Non précisé'}\n` +
-    `Type de demande : ${requestTypeLabels[payload.requestType]}\n` +
-    `Message :\n${payload.message}\n\n` +
-    `Consentement RGPD : ${payload.consent ? 'Oui' : 'Non'}\n` +
-    `Page source : ${payload.meta.source_page || 'Non précisée'}\n` +
-    `Soumis le : ${submittedAtIso}\n`;
-
-  // Escape HTML content for security
-  const escapedFullName = escapeHtml(fullName);
-  const escapedEmail = escapeHtml(payload.email);
-  const escapedPhone = escapeHtml(payload.phone || 'Non précisé');
-  const escapedMessage = escapeHtml(payload.message).replace(/\n/g, '<br />');
-  const escapedSourcePage = escapeHtml(payload.meta.source_page || 'Non précisée');
-  const escapedSubmittedAt = escapeHtml(submittedAtIso);
-
-  const html =
-    `<!doctype html><html lang="fr"><body style="font-family:Arial,Helvetica,sans-serif;line-height:1.6;color:#0b0b0d;">` +
-    `<h2 style="color:#c7a962;">Nouvelle demande via le formulaire rapide Psypnos</h2>` +
-    `<table style="border-collapse:collapse;width:100%;max-width:600px;">` +
-    `<tr><td style="padding:8px;border-bottom:1px solid #eee;"><strong>Nom complet :</strong></td><td style="padding:8px;border-bottom:1px solid #eee;">${escapedFullName}</td></tr>` +
-    `<tr><td style="padding:8px;border-bottom:1px solid #eee;"><strong>Email :</strong></td><td style="padding:8px;border-bottom:1px solid #eee;"><a href="mailto:${escapedEmail}">${escapedEmail}</a></td></tr>` +
-    `<tr><td style="padding:8px;border-bottom:1px solid #eee;"><strong>Téléphone :</strong></td><td style="padding:8px;border-bottom:1px solid #eee;">${escapedPhone}</td></tr>` +
-    `<tr><td style="padding:8px;border-bottom:1px solid #eee;"><strong>Type de demande :</strong></td><td style="padding:8px;border-bottom:1px solid #eee;"><span style="background:#c7a962;color:#0e1f2f;padding:2px 8px;border-radius:4px;">${requestTypeLabels[payload.requestType]}</span></td></tr>` +
-    `</table>` +
-    `<div style="margin-top:20px;padding:15px;background:#f5f5f5;border-radius:8px;">` +
-    `<strong>Message :</strong><br /><br />${escapedMessage}` +
-    `</div>` +
-    `<p style="margin-top:20px;font-size:12px;color:#666;">` +
-    `Consentement RGPD : ${payload.consent ? 'Oui' : 'Non'}<br />` +
-    `Page source : ${escapedSourcePage}<br />` +
-    `Soumis le : ${escapedSubmittedAt}` +
-    `</p>` +
-    `</body></html>`;
+  const options = {
+    heading: "Nouvelle demande rapide",
+    badge: requestTypeLabels[payload.requestType],
+    sections: [
+      {
+        title: "Coordonnées",
+        fields: [
+          { label: "Nom complet", value: fullName },
+          { label: "Email", value: payload.email, emailLink: true },
+          { label: "Téléphone", value: payload.phone || "Non précisé", phoneLink: !!payload.phone },
+          { label: "Type de demande", value: requestTypeLabels[payload.requestType], badge: true },
+        ],
+      },
+    ],
+    messageBlock: {
+      label: "Message",
+      content: payload.message,
+    },
+    metadata: {
+      type: "quick_contact",
+      first_name: payload.firstName,
+      last_name: payload.lastName,
+      email: payload.email,
+      phone: payload.phone || null,
+      request_type: payload.requestType,
+      message: payload.message,
+      consent: payload.consent,
+      submitted_at: payload.meta.submitted_at ?? new Date().toISOString(),
+      source_page: payload.meta.source_page ?? null,
+    },
+    submittedAt: payload.meta.submitted_at,
+    sourcePage: payload.meta.source_page,
+  };
 
   return {
-    subject: `[Psypnos] ${requestTypeLabels[payload.requestType]} - ${fullName}`,
-    text,
-    html,
+    subject: `[Psypnos] ${requestTypeLabels[payload.requestType]} — ${fullName}`,
+    text: buildAdminEmailText(options),
+    html: buildAdminEmailHtml(options),
+  };
+};
+
+const formatConfirmationEmail = (payload: QuickContactPayload): EmailContent => {
+  const fullName = `${payload.firstName} ${payload.lastName}`;
+
+  const options = {
+    recipientName: payload.firstName,
+    intro:
+      "Merci d'avoir pris le temps de me contacter. Votre message a bien été reçu et je vous répondrai sous 48 heures.",
+    recap: {
+      title: "Récapitulatif",
+      fields: [
+        { label: "Nom", value: fullName },
+        { label: "Email", value: payload.email },
+        { label: "Demande", value: requestTypeLabels[payload.requestType] },
+        { label: "Envoyé le", value: formatSubmittedAt(payload.meta.submitted_at) },
+      ],
+    },
+    closing: "À très bientôt,",
+    signer: "David Duquenne — Psypnos",
+  };
+
+  return {
+    subject: `Votre message a bien été reçu — Psypnos`,
+    text: buildConfirmationEmailText(options),
+    html: buildConfirmationEmailHtml(options),
   };
 };
 
@@ -219,32 +231,16 @@ export async function POST(request: Request) {
     process.env.CONTACT_FORM_RECIPIENT ??
     process.env.APPOINTMENT_REQUEST_RECIPIENT ??
     'contact@psypnos.fr';
-  const content = formatEmailContent(payload);
+  const adminContent = formatAdminEmail(payload);
 
   try {
     // Send email to recipient
-    await sendEmailThroughResend(content, recipient, payload.email);
+    await sendEmailThroughResend(adminContent, recipient, payload.email);
 
     // Send confirmation to user
     try {
-      const fullName = `${payload.firstName} ${payload.lastName}`;
       await sendEmailThroughResend(
-        {
-          subject: 'Votre message a bien été reçu - Psypnos',
-          text: `Bonjour ${fullName},\n\nMerci pour votre message. Je vous répondrai sous 48h.\n\nBien à vous,\nDavid Duquenne\nPsypnos`,
-          html: `<!doctype html><html lang="fr"><body style="font-family:Arial,Helvetica,sans-serif;line-height:1.6;color:#0b0b0d;">
-            <div style="max-width:600px;margin:0 auto;padding:20px;">
-              <h2 style="color:#c7a962;">Message reçu</h2>
-              <p>Bonjour ${escapeHtml(fullName)},</p>
-              <p>Merci pour votre message. Je vous répondrai sous 48h.</p>
-              <p>Bien à vous,<br /><strong>David Duquenne</strong><br />Psypnos</p>
-              <hr style="border:none;border-top:1px solid #eee;margin:20px 0;" />
-              <p style="font-size:12px;color:#666;">
-                <a href="https://psypnos.fr" style="color:#c7a962;">psypnos.fr</a>
-              </p>
-            </div>
-          </body></html>`,
-        },
+        formatConfirmationEmail(payload),
         payload.email
       );
     } catch (confirmationError) {

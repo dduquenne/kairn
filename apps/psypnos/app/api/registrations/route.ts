@@ -6,6 +6,12 @@ import { z } from "zod";
 
 import seminarsData from "../../../data/seminars.json";
 import { validateCSRFMiddleware } from "../common/csrf-middleware";
+import {
+  buildAdminEmailHtml,
+  buildAdminEmailText,
+  buildConfirmationEmailHtml,
+  buildConfirmationEmailText,
+} from "../common/email-templates";
 
 
 type Seminar = {
@@ -126,36 +132,6 @@ const formatSeminarDetails = (seminar?: Seminar) => {
   };
 };
 
-const formatSeminarWindow = (seminar?: Seminar) => {
-  if (!seminar) {
-    return "Séminaire non référencé";
-  }
-
-  const start = new Date(seminar.startAt);
-  const end = new Date(seminar.endAt);
-  const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric"
-  });
-
-  const startLabel = dateFormatter.format(start);
-  const endLabel = dateFormatter.format(end);
-
-  return startLabel === endLabel
-    ? `${seminar.title} — ${startLabel}`
-    : `${seminar.title} — du ${startLabel} au ${endLabel}`;
-};
-
-const escapeHtml = (value: string) =>
-  value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-
 const formatAdminEmail = (
   payload: SeminarRegistrationPayload,
   seminar?: Seminar
@@ -172,71 +148,95 @@ const formatAdminEmail = (
       ? `Autre (${payload.sexOther})`
       : payload.sex.charAt(0).toUpperCase() + payload.sex.slice(1);
 
-  const text =
-    `Nouvelle inscription à un séminaire Psypnos\n\n` +
-    `═══ INFORMATIONS PARTICIPANT ═══\n` +
-    `Identité : ${payload.firstName} ${payload.lastName}\n` +
-    `Email : ${payload.email}\n` +
-    `Téléphone : ${payload.phone}\n` +
-    `Année de naissance : ${payload.birthYear}\n` +
-    `Sexe : ${sexLabel}\n` +
-    `Adresse : ${payload.addressStreet}, ${payload.addressZip} ${payload.addressCity}, ${payload.addressCountry}\n` +
-    `Contact d'urgence : ${payload.emergencyFirstName} ${payload.emergencyLastName} (${payload.emergencyPhone})\n` +
-    `\n═══ INFORMATIONS SÉMINAIRE ═══\n` +
-    `Titre : ${seminarInfo.title}\n` +
-    `Dates : ${seminarInfo.dates}\n` +
-    `Lieu : ${seminarInfo.location}\n` +
-    `Animateurs : ${seminarInfo.speakers}\n` +
-    `Capacité : ${seminarInfo.capacity} personnes\n` +
-    `Coût : ${seminarInfo.price}€\n` +
-    `Acompte : ${seminarInfo.deposit}€\n` +
-    `Ordre chèque : ${seminarInfo.order}\n` +
-    `Description : ${seminarInfo.description}\n` +
-    `\n═══ DÉTAILS INSCRIPTION ═══\n` +
-    `Première participation : ${formatBoolean(payload.firstTime)}\n` +
-    `A déjà participé à un stage : ${formatBoolean(payload.hasPriorWork ?? false)}\n` +
-    `Détails des stages précédents : ${priorWork}\n` +
-    `Précisions supplémentaires : ${precision}\n` +
-    `Inscription newsletter : ${formatBoolean(payload.newsletterOptIn ?? false)}\n` +
-    `Consentement conditions : ${formatBoolean(payload.consent)}\n` +
-    `Consentement RGPD : ${formatBoolean(payload.consent_RGPD)}\n` +
-    `Soumis le : ${submittedAt}`;
+  const fullName = `${payload.firstName} ${payload.lastName}`;
 
-  const html =
-    `<!doctype html><html lang="fr"><body style="font-family:Arial,Helvetica,sans-serif;line-height:1.6;color:#0b0b0d;">` +
-    `<h2>Nouvelle inscription à un séminaire Psypnos</h2>` +
-    `<h3 style="color:#c7a962;margin-top:1.5em;">Informations du participant</h3>` +
-    `<p><strong>Identité :</strong> ${escapeHtml(`${payload.firstName} ${payload.lastName}`)}</p>` +
-    `<p><strong>Email :</strong> ${escapeHtml(payload.email)}</p>` +
-    `<p><strong>Téléphone :</strong> ${escapeHtml(payload.phone)}</p>` +
-    `<p><strong>Année de naissance :</strong> ${payload.birthYear}</p>` +
-    `<p><strong>Sexe :</strong> ${escapeHtml(sexLabel)}</p>` +
-    `<p><strong>Adresse :</strong><br />${escapeHtml(payload.addressStreet)}<br />` +
-    `${escapeHtml(`${payload.addressZip} ${payload.addressCity}`)}<br />${escapeHtml(payload.addressCountry)}</p>` +
-    `<p><strong>Contact d'urgence :</strong> ${escapeHtml(`${payload.emergencyFirstName} ${payload.emergencyLastName}`)} — ${escapeHtml(payload.emergencyPhone)}</p>` +
-    `<h3 style="color:#c7a962;margin-top:1.5em;">Informations du séminaire</h3>` +
-    `<p><strong>Titre :</strong> ${escapeHtml(seminarInfo.title)}</p>` +
-    `<p><strong>Dates :</strong> ${escapeHtml(seminarInfo.dates)}</p>` +
-    `<p><strong>Lieu :</strong> ${escapeHtml(seminarInfo.location)}</p>` +
-    `<p><strong>Animateurs :</strong> ${escapeHtml(seminarInfo.speakers)}</p>` +
-    `<p><strong>Capacité :</strong> ${seminarInfo.capacity} personnes</p>` +
-    `<p style="background-color:#f5f1e6;border-left:4px solid #c7a962;padding:12px;margin:1em 0;"><strong>Coût :</strong> ${seminarInfo.price}€<br /><strong>Acompte :</strong> ${seminarInfo.deposit}€<br /><strong>Ordre chèque :</strong> ${escapeHtml(seminarInfo.order)}</p>` +
-    `<p><strong>Description :</strong><br />${escapeHtml(seminarInfo.description).replace(/\n/g, "<br />")}</p>` +
-    `<h3 style="color:#c7a962;margin-top:1.5em;">Détails de l'inscription</h3>` +
-    `<p><strong>Première participation :</strong> ${formatBoolean(payload.firstTime)}</p>` +
-    `<p><strong>A déjà participé à un stage :</strong> ${formatBoolean(payload.hasPriorWork ?? false)}</p>` +
-    `<p><strong>Détails des stages précédents :</strong><br />${escapeHtml(priorWork).replace(/\n/g, "<br />")}</p>` +
-    `<p><strong>Précisions supplémentaires :</strong><br />${escapeHtml(precision).replace(/\n/g, "<br />")}</p>` +
-    `<p><strong>Inscription newsletter :</strong> ${formatBoolean(payload.newsletterOptIn ?? false)}</p>` +
-    `<p><strong>Consentement conditions :</strong> ${formatBoolean(payload.consent)}</p>` +
-    `<p><strong>Consentement RGPD :</strong> ${formatBoolean(payload.consent_RGPD)}</p>` +
-    `<p><strong>Soumis le :</strong> ${submittedAt}</p>` +
-    `</body></html>`;
+  const options = {
+    heading: "Nouvelle inscription séminaire",
+    badge: seminarInfo.title,
+    sections: [
+      {
+        title: "Participant",
+        fields: [
+          { label: "Identité", value: fullName },
+          { label: "Email", value: payload.email, emailLink: true },
+          { label: "Téléphone", value: payload.phone, phoneLink: true },
+          { label: "Année de naissance", value: String(payload.birthYear) },
+          { label: "Sexe", value: sexLabel },
+          {
+            label: "Adresse",
+            value: `${payload.addressStreet}, ${payload.addressZip} ${payload.addressCity}, ${payload.addressCountry}`,
+          },
+          {
+            label: "Contact d'urgence",
+            value: `${payload.emergencyFirstName} ${payload.emergencyLastName} — ${payload.emergencyPhone}`,
+          },
+        ],
+      },
+      {
+        title: "Séminaire",
+        fields: [
+          { label: "Titre", value: seminarInfo.title },
+          { label: "Dates", value: seminarInfo.dates },
+          { label: "Lieu", value: seminarInfo.location },
+          { label: "Animateurs", value: seminarInfo.speakers },
+          { label: "Capacité", value: `${seminarInfo.capacity} personnes` },
+          { label: "Coût", value: `${seminarInfo.price} €` },
+          { label: "Acompte", value: `${seminarInfo.deposit} €` },
+          { label: "Ordre chèque", value: seminarInfo.order },
+        ],
+      },
+      {
+        title: "Inscription",
+        fields: [
+          { label: "Première participation", value: formatBoolean(payload.firstTime) },
+          { label: "Stages précédents", value: formatBoolean(payload.hasPriorWork ?? false) },
+          { label: "Détails stages", value: priorWork },
+          { label: "Précisions", value: precision },
+          { label: "Newsletter", value: formatBoolean(payload.newsletterOptIn ?? false) },
+          { label: "Consentement", value: formatBoolean(payload.consent) },
+          { label: "Consentement RGPD", value: formatBoolean(payload.consent_RGPD) },
+        ],
+      },
+    ],
+    metadata: {
+      type: "seminar_registration",
+      first_name: payload.firstName,
+      last_name: payload.lastName,
+      email: payload.email,
+      phone: payload.phone,
+      birth_year: payload.birthYear,
+      sex: payload.sex,
+      sex_other: payload.sexOther || null,
+      address: {
+        street: payload.addressStreet,
+        zip: payload.addressZip,
+        city: payload.addressCity,
+        country: payload.addressCountry,
+      },
+      emergency_contact: {
+        first_name: payload.emergencyFirstName,
+        last_name: payload.emergencyLastName,
+        phone: payload.emergencyPhone,
+      },
+      seminar_id: payload.seminarId,
+      seminar_title: seminarInfo.title,
+      seminar_dates: seminarInfo.dates,
+      seminar_price: seminarInfo.price,
+      seminar_deposit: seminarInfo.deposit,
+      first_time: payload.firstTime,
+      has_prior_work: payload.hasPriorWork ?? false,
+      prior_work_details: payload.priorWorkDetails || null,
+      precisions: payload.precisions || null,
+      newsletter_opt_in: payload.newsletterOptIn ?? false,
+      submitted_at: submittedAt,
+    },
+    submittedAt,
+  };
 
   return {
-    subject: `Nouvelle inscription — ${payload.firstName} ${payload.lastName} pour ${seminarInfo.title}`,
-    text,
-    html
+    subject: `[Psypnos] Inscription séminaire — ${fullName} — ${seminarInfo.title}`,
+    text: buildAdminEmailText(options),
+    html: buildAdminEmailHtml(options),
   };
 };
 
@@ -246,75 +246,60 @@ const formatConfirmationEmail = (
 ): EmailContent => {
   const seminarInfo = formatSeminarDetails(seminar);
   const precision = payload.precisions?.trim() ? payload.precisions.trim() : "Non précisé";
+  const fullName = `${payload.firstName} ${payload.lastName}`;
 
-  const text =
-    `Bonjour ${payload.firstName},\n\n` +
-    `Merci pour votre inscription au séminaire Psypnos !\n\n` +
-    `═══ INFORMATIONS SÉMINAIRE ═══\n` +
-    `Titre : ${seminarInfo.title}\n` +
-    `Dates : ${seminarInfo.dates}\n` +
-    `Lieu : ${seminarInfo.location}\n` +
-    `Animateurs : ${seminarInfo.speakers}\n` +
-    `Description : ${seminarInfo.description}\n` +
-    `\nNous revenons vers vous rapidement pour confirmer votre participation.\n\n` +
-    `═══ CONDITIONS FINANCIÈRES ═══\n` +
-    `💰 COÛT TOTAL : ${seminarInfo.price}€\n` +
-    `📋 ACOMPTE À ENVOYER : ${seminarInfo.deposit}€ par chèque\n` +
-    `✓ Ordre du chèque : ${seminarInfo.order}\n` +
-    `📬 Adresse : David Duquenne, Le Moulin d'en Bas, 89330 Saint-Julien-du-Sault\n` +
-    `\n═══ RAPPEL DES CONDITIONS ═══\n` +
-    `- Règlement de l'acompte (${seminarInfo.deposit}€) par chèque à l'ordre de ${seminarInfo.order}.\n` +
-    `- Pour une première inscription, merci d'attendre l'entretien préalable avant d'envoyer l'acompte.\n` +
-    `- Annulation entre 15 jours et une semaine avant le séminaire : l'acompte est encaissé.\n` +
-    `- Annulation à moins d'une semaine : la totalité (${seminarInfo.price}€) est due (sauf remplacement possible).\n\n` +
-    `═══ RÉCAPITULATIF ═══\n` +
-    `• Nom : ${payload.firstName} ${payload.lastName}\n` +
-    `• Téléphone : ${payload.phone}\n` +
-    `• Précisions communiquées : ${precision}\n\n` +
-    `Vos informations sont traitées conformément au RGPD et resteront strictement confidentielles.\n\n` +
-    `À très bientôt,\nPsypnos`;
-
-  const html =
-    `<!doctype html><html lang="fr"><body style="font-family:Arial,Helvetica,sans-serif;line-height:1.7;color:#0b0b0d;">` +
-    `<p>Bonjour ${escapeHtml(payload.firstName)},</p>` +
-    `<p>Merci pour votre inscription au séminaire Psypnos ! Nous revenons vers vous très rapidement pour confirmer votre participation.</p>` +
-    `<h3 style="color:#c7a962;margin-top:1.5em;">Informations du séminaire</h3>` +
-    `<p>` +
-    `<strong>${escapeHtml(seminarInfo.title)}</strong><br />` +
-    `<em>${escapeHtml(seminarInfo.dates)}</em>` +
-    `</p>` +
-    `<p><strong>Lieu :</strong> ${escapeHtml(seminarInfo.location)}</p>` +
-    `<p><strong>Animateurs :</strong> ${escapeHtml(seminarInfo.speakers)}</p>` +
-    `<p><strong>Description :</strong><br />${escapeHtml(seminarInfo.description).replace(/\n/g, "<br />")}</p>` +
-    `<h3 style="color:#c7a962;margin-top:1.5em;border-bottom:2px solid #c7a962;padding-bottom:0.5em;">Conditions Financières</h3>` +
-    `<div style="background-color:#f5f1e6;border-left:4px solid #c7a962;padding:1em;margin:1em 0;border-radius:4px;">` +
-    `<p style="margin:0.5em 0;"><strong style="font-size:1.2em;color:#c7a962;">💰 Coût total du séminaire : ${seminarInfo.price}€</strong></p>` +
-    `<p style="margin:0.5em 0;"><strong style="font-size:1.1em;color:#0b0b0d;">📋 Acompte à envoyer : ${seminarInfo.deposit}€</strong></p>` +
-    `<p style="margin:0.5em 0;"><em>Paiement par chèque à l'ordre de : <strong>${escapeHtml(seminarInfo.order)}</strong></em></p>` +
-    `<p style="margin:0.5em 0;"><em>À adresser à : David Duquenne – Le Moulin d'en Bas – 89330 Saint-Julien-du-Sault</em></p>` +
-    `</div>` +
-    `<h3 style="color:#c7a962;margin-top:1.5em;">Rappel des conditions d'inscription</h3>` +
-    `<ul>` +
-    `<li>Versement de l'acompte (<strong>${seminarInfo.deposit}€</strong>) par chèque à l'ordre de <strong>${escapeHtml(seminarInfo.order)}</strong>, à envoyer à David Duquenne – Le Moulin d'en Bas – 89330 Saint-Julien-du-Sault.</li>` +
-    `<li>Pour une première inscription, merci d'attendre l'entretien préalable avant d'expédier l'acompte.</li>` +
-    `<li>Annulation entre 15 jours et une semaine avant le séminaire : l'acompte est encaissé.</li>` +
-    `<li>Annulation à moins d'une semaine : la totalité du séminaire (<strong>${seminarInfo.price}€</strong>) est due (sauf remplacement possible).</li>` +
-    `</ul>` +
-    `<h3 style="color:#c7a962;margin-top:1.5em;">Récapitulatif de votre inscription</h3>` +
-    `<ul>` +
-    `<li><strong>Nom :</strong> ${escapeHtml(`${payload.firstName} ${payload.lastName}`)}</li>` +
-    `<li><strong>Téléphone :</strong> ${escapeHtml(payload.phone)}</li>` +
-    `<li><strong>Séminaire :</strong> ${escapeHtml(seminarInfo.title)}</li>` +
-    `<li><strong>Précisions :</strong> ${escapeHtml(precision)}</li>` +
-    `</ul>` +
-    `<p style="margin-top:1.5em;font-size:0.9em;color:#666;">Vos informations sont traitées dans le respect du RGPD et resteront strictement confidentielles.</p>` +
-    `<p>À très bientôt,<br /><strong>Psypnos</strong></p>` +
-    `</body></html>`;
+  const options = {
+    recipientName: payload.firstName,
+    intro:
+      "Merci pour votre inscription au séminaire Psypnos ! Nous revenons vers vous très rapidement pour confirmer votre participation.",
+    sections: [
+      {
+        title: "Informations du séminaire",
+        fields: [
+          { label: "Séminaire", value: seminarInfo.title },
+          { label: "Dates", value: seminarInfo.dates },
+          { label: "Lieu", value: seminarInfo.location },
+          { label: "Animateurs", value: seminarInfo.speakers },
+          ...(seminarInfo.description ? [{ label: "Description", value: seminarInfo.description }] : []),
+        ],
+      },
+    ],
+    callout: {
+      icon: "💰",
+      title: "Conditions financières",
+      lines: [
+        `Coût total du séminaire : ${seminarInfo.price} €`,
+        `Acompte à envoyer : ${seminarInfo.deposit} € par chèque`,
+        `Ordre du chèque : ${seminarInfo.order}`,
+        `Adresse d'envoi : David Duquenne — Le Moulin d'en Bas — 89330 Saint-Julien-du-Sault`,
+      ],
+    },
+    bulletList: {
+      title: "Rappel des conditions d'inscription",
+      items: [
+        `Versement de l'acompte (${seminarInfo.deposit} €) par chèque à l'ordre de ${seminarInfo.order}.`,
+        "Pour une première inscription, merci d'attendre l'entretien préalable avant d'envoyer l'acompte.",
+        "Annulation entre 15 jours et une semaine avant le séminaire : l'acompte est encaissé.",
+        `Annulation à moins d'une semaine : la totalité (${seminarInfo.price} €) est due (sauf remplacement possible).`,
+      ],
+    },
+    recap: {
+      title: "Récapitulatif de votre inscription",
+      fields: [
+        { label: "Nom", value: fullName },
+        { label: "Téléphone", value: payload.phone },
+        { label: "Séminaire", value: seminarInfo.title },
+        { label: "Précisions", value: precision },
+      ],
+    },
+    closing: "À très bientôt,",
+    signer: "David Duquenne — Psypnos",
+  };
 
   return {
     subject: `Confirmation de votre inscription — ${seminarInfo.title}`,
-    text,
-    html
+    text: buildConfirmationEmailText(options),
+    html: buildConfirmationEmailHtml(options),
   };
 };
 

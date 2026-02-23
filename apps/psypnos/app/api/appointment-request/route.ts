@@ -5,6 +5,13 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { validateCSRFMiddleware } from "../common/csrf-middleware";
+import {
+  buildAdminEmailHtml,
+  buildAdminEmailText,
+  buildConfirmationEmailHtml,
+  buildConfirmationEmailText,
+  formatSubmittedAt,
+} from "../common/email-templates";
 import { recordAttempt, getClientIP } from "../common/rate-limiter";
 
 const contactPreferenceValues = [
@@ -92,65 +99,98 @@ const referralLabels: Record<(typeof referralValues)[number], string> = {
   autre: "Autre"
 };
 
-/**
- * Échappe les caractères HTML dangereux pour prévenir les injections XSS
- */
-function escapeHtml(unsafe: string): string {
-  return unsafe
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-const formatEmailContent = (payload: AppointmentRequestPayload): EmailContent => {
-  const submittedAtRaw = payload.meta.submitted_at
-    ? new Date(payload.meta.submitted_at)
-    : null;
-  const submittedAtIso =
-    submittedAtRaw && !Number.isNaN(submittedAtRaw.getTime())
-      ? submittedAtRaw.toISOString()
-      : "Non précisé";
-
-  const text = `Nouvelle demande de rendez-vous Psypnos\n\n` +
-    `Nom : ${payload.name}\n` +
-    `Email : ${payload.email}\n` +
-    `Téléphone : ${payload.phone || "Non précisé"}\n` +
-    `Préférence de contact : ${contactPreferenceLabels[payload.contact_preference]}\n` +
-    `Motif : ${payload.reason}\n` +
-    `Type de séance : ${sessionTypeLabels[payload.session_type]}\n` +
-    `Disponibilités : ${payload.availability || "Non précisées"}\n` +
-    `Origine : ${referralLabels[payload.referral]}\n` +
-    `Consentement : ${payload.consent ? "Oui" : "Non"}\n` +
-    `Soumis le : ${submittedAtIso}`;
-
-  // SÉCURITÉ : Échapper tout le contenu HTML pour prévenir les injections XSS
-  const escapedName = escapeHtml(payload.name);
-  const escapedEmail = escapeHtml(payload.email);
-  const escapedPhone = escapeHtml(payload.phone || "Non précisé");
-  const escapedReason = escapeHtml(payload.reason).replace(/\n/g, "<br />");
-  const escapedAvailability = escapeHtml(payload.availability || "Non précisées").replace(/\n/g, "<br />");
-  const escapedSubmittedAt = escapeHtml(submittedAtIso);
-
-  const html = `<!doctype html><html lang="fr"><body style="font-family:Arial,Helvetica,sans-serif;line-height:1.6;color:#0b0b0d;">` +
-    `<h2>Nouvelle demande de rendez-vous Psypnos</h2>` +
-    `<p><strong>Nom :</strong> ${escapedName}</p>` +
-    `<p><strong>Email :</strong> ${escapedEmail}</p>` +
-    `<p><strong>Téléphone :</strong> ${escapedPhone}</p>` +
-    `<p><strong>Préférence de contact :</strong> ${contactPreferenceLabels[payload.contact_preference]}</p>` +
-    `<p><strong>Motif :</strong><br />${escapedReason}</p>` +
-    `<p><strong>Type de séance :</strong> ${sessionTypeLabels[payload.session_type]}</p>` +
-    `<p><strong>Disponibilités :</strong><br />${escapedAvailability}</p>` +
-    `<p><strong>Origine :</strong> ${referralLabels[payload.referral]}</p>` +
-    `<p><strong>Consentement :</strong> ${payload.consent ? "Oui" : "Non"}</p>` +
-    `<p><strong>Soumis le :</strong> ${escapedSubmittedAt}</p>` +
-    `</body></html>`;
+const formatAdminEmail = (payload: AppointmentRequestPayload): EmailContent => {
+  const options = {
+    heading: "Nouvelle demande de rendez-vous",
+    badge: "Rendez-vous",
+    sections: [
+      {
+        title: "Coordonnées du demandeur",
+        fields: [
+          { label: "Nom", value: payload.name },
+          { label: "Email", value: payload.email, emailLink: true },
+          { label: "Téléphone", value: payload.phone || "Non précisé", phoneLink: !!payload.phone },
+          { label: "Préférence de contact", value: contactPreferenceLabels[payload.contact_preference], badge: true },
+        ],
+      },
+      {
+        title: "Détails de la demande",
+        fields: [
+          { label: "Type de séance", value: sessionTypeLabels[payload.session_type], badge: true },
+          { label: "Disponibilités", value: payload.availability || "Non précisées" },
+          { label: "Comment m'a trouvé", value: referralLabels[payload.referral] },
+        ],
+      },
+    ],
+    messageBlock: {
+      label: "Motif de la demande",
+      content: payload.reason,
+    },
+    metadata: {
+      type: "appointment_request",
+      name: payload.name,
+      email: payload.email,
+      phone: payload.phone || null,
+      contact_preference: payload.contact_preference,
+      reason: payload.reason,
+      session_type: payload.session_type,
+      availability: payload.availability || null,
+      referral: payload.referral,
+      submitted_at: payload.meta.submitted_at ?? new Date().toISOString(),
+      source_page: payload.meta.source_page ?? null,
+    },
+    submittedAt: payload.meta.submitted_at,
+    sourcePage: payload.meta.source_page,
+  };
 
   return {
-    subject: "Nouvelle demande de rendez-vous Psypnos",
-    text,
-    html
+    subject: `[Psypnos] Demande de rendez-vous — ${payload.name}`,
+    text: buildAdminEmailText(options),
+    html: buildAdminEmailHtml(options),
+  };
+};
+
+const formatConfirmationEmail = (payload: AppointmentRequestPayload): EmailContent => {
+  const options = {
+    recipientName: payload.name,
+    intro:
+      "Merci pour votre demande de rendez-vous. Elle a bien été enregistrée et je vous recontacte prochainement pour convenir d'un échange.",
+    sections: [
+      {
+        title: "Votre demande",
+        fields: [
+          { label: "Type de séance", value: sessionTypeLabels[payload.session_type] },
+          { label: "Contact préféré", value: contactPreferenceLabels[payload.contact_preference] },
+          ...(payload.availability ? [{ label: "Disponibilités", value: payload.availability }] : []),
+        ],
+      },
+    ],
+    callout: {
+      icon: "📋",
+      title: "Prochaines étapes",
+      lines: [
+        "Je prends connaissance de votre demande dans les plus brefs délais.",
+        `Je vous recontacte par ${payload.contact_preference === "telephone" ? "téléphone" : payload.contact_preference === "email" ? "e-mail" : "le moyen le plus adapté"} pour fixer un premier échange.`,
+        "Cet échange permettra de préciser ensemble vos besoins et le cadre de l'accompagnement.",
+      ],
+    },
+    recap: {
+      title: "Vos coordonnées",
+      fields: [
+        { label: "Nom", value: payload.name },
+        { label: "Email", value: payload.email },
+        ...(payload.phone ? [{ label: "Téléphone", value: payload.phone }] : []),
+        { label: "Envoyé le", value: formatSubmittedAt(payload.meta.submitted_at) },
+      ],
+    },
+    closing: "À très bientôt,",
+    signer: "David Duquenne — Psypnos",
+  };
+
+  return {
+    subject: "Votre demande de rendez-vous — Psypnos",
+    text: buildConfirmationEmailText(options),
+    html: buildConfirmationEmailHtml(options),
   };
 };
 
@@ -249,30 +289,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true }, { status: 200 });
   }
 
-  const content = formatEmailContent(payload);
+  const adminContent = formatAdminEmail(payload);
   const recipient = process.env.APPOINTMENT_REQUEST_RECIPIENT ?? "contact@psypnos.fr";
 
   try {
-    await sendEmailThroughResend(content, recipient, payload.email);
+    await sendEmailThroughResend(adminContent, recipient, payload.email);
 
     try {
       await sendEmailThroughResend(
-        {
-          subject: "Votre demande de rendez-vous Psypnos",
-          text:
-            "Bonjour,\n\nMerci pour votre demande de rendez-vous. Je vous recontacte prochainement pour convenir d’un échange.\n\nBien à vous,\nDavid Duquenne",
-          html:
-            "<!doctype html><html lang=\"fr\"><body style=\"font-family:Arial,Helvetica,sans-serif;line-height:1.6;color:#0b0b0d;\"><p>Bonjour,</p><p>Merci pour votre demande de rendez-vous. Je vous recontacte prochainement pour convenir d’un échange.</p><p>Bien à vous,<br />Psypnos</p></body></html>"
-        },
+        formatConfirmationEmail(payload),
         payload.email
       );
     } catch (confirmationError) {
-      console.error("Échec de l’envoi de la confirmation", confirmationError);
+      console.error("Échec de l'envoi de la confirmation", confirmationError);
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Échec de l’envoi de la demande", error);
+    console.error("Échec de l'envoi de la demande", error);
     return NextResponse.json(
       { message: "Une erreur est survenue. Veuillez réessayer dans quelques instants." },
       { status: 500 }
