@@ -53,10 +53,7 @@ export function getCookieDomain(siteUrl?: string): string | undefined {
  * With 'strict', cookies are not sent during redirects
  * from external sites (like Facebook, LinkedIn, etc.)
  */
-export function getAuthCookieOptions(
-  maxAge: number,
-  siteUrl?: string
-): CookieOptions {
+export function getAuthCookieOptions(maxAge: number, siteUrl?: string): CookieOptions {
   return {
     httpOnly: true,
     sameSite: 'lax',
@@ -70,10 +67,7 @@ export function getAuthCookieOptions(
 /**
  * Get cookie options for OAuth state cookies
  */
-export function getOAuthStateCookieOptions(
-  maxAgeSeconds: number,
-  siteUrl?: string
-): CookieOptions {
+export function getOAuthStateCookieOptions(maxAgeSeconds: number, siteUrl?: string): CookieOptions {
   return {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -94,7 +88,7 @@ export function getCSRFCookieOptions(
   return {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: 'lax',
     maxAge: maxAgeSeconds,
     path: '/',
     domain: getCookieDomain(siteUrl),
@@ -120,24 +114,23 @@ export function getSessionCookieOptions(siteUrl?: string): CookieOptions {
 export function parseCookies(cookieString?: string): Record<string, string> {
   if (!cookieString) return {};
 
-  return cookieString.split(';').reduce((cookies, cookie) => {
-    const [name, ...rest] = cookie.split('=');
-    const trimmedName = name?.trim();
-    if (trimmedName) {
-      cookies[trimmedName] = decodeURIComponent(rest.join('=').trim());
-    }
-    return cookies;
-  }, {} as Record<string, string>);
+  return cookieString.split(';').reduce(
+    (cookies, cookie) => {
+      const [name, ...rest] = cookie.split('=');
+      const trimmedName = name?.trim();
+      if (trimmedName) {
+        cookies[trimmedName] = decodeURIComponent(rest.join('=').trim());
+      }
+      return cookies;
+    },
+    {} as Record<string, string>
+  );
 }
 
 /**
  * Serialize cookie for Set-Cookie header
  */
-export function serializeCookie(
-  name: string,
-  value: string,
-  options?: CookieOptions
-): string {
+export function serializeCookie(name: string, value: string, options?: CookieOptions): string {
   let cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}`;
 
   if (options?.maxAge !== undefined) {
