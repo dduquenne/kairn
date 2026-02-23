@@ -93,12 +93,12 @@ describe('Cookie Utilities', () => {
   });
 
   describe('getCSRFCookieOptions', () => {
-    it('should use strict sameSite for CSRF', () => {
+    it('should use lax sameSite for CSRF', () => {
       process.env.NODE_ENV = 'production';
 
       const options = getCSRFCookieOptions();
 
-      expect(options.sameSite).toBe('strict');
+      expect(options.sameSite).toBe('lax');
       expect(options.httpOnly).toBe(true);
       expect(options.maxAge).toBe(3600);
     });

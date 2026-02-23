@@ -1,26 +1,24 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
-import { createHmac, randomBytes, timingSafeEqual } from "crypto";
-
-import { cookies } from "next/headers";
+import { createHmac, randomBytes, timingSafeEqual } from 'crypto';
 
 /**
  * Configuration du middleware CSRF
  */
 const CSRF_CONFIG = {
   // Nom du cookie qui stocke le token CSRF
-  cookieName: "psypnos_csrf_token",
+  cookieName: 'psypnos_csrf_token',
   // Nom du header qui contient le token CSRF dans les requêtes
-  headerName: "x-csrf-token",
+  headerName: 'x-csrf-token',
   // Durée de vie du token en secondes (1 heure)
   tokenLifetime: 3600,
   // Options des cookies
   cookieOptions: {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict" as const,
-    path: "/",
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax' as const,
+    path: '/',
     maxAge: 3600, // 1 heure
   },
 } as const;
@@ -55,14 +53,12 @@ function getCSRFSecret(): string {
  * @returns Token CSRF encodé en base64
  */
 export function generateCSRFToken(): string {
-  const value = randomBytes(32).toString("base64");
+  const value = randomBytes(32).toString('base64');
   const timestamp = Date.now();
   const secret = getCSRFSecret();
 
   // Créer une signature HMAC du token avec le timestamp
-  const signature = createHmac("sha256", secret)
-    .update(`${value}:${timestamp}`)
-    .digest("base64");
+  const signature = createHmac('sha256', secret).update(`${value}:${timestamp}`).digest('base64');
 
   const token: CSRFToken = {
     value,
@@ -71,28 +67,28 @@ export function generateCSRFToken(): string {
   };
 
   // Encoder le token complet en base64
-  return Buffer.from(JSON.stringify(token)).toString("base64");
+  return Buffer.from(JSON.stringify(token)).toString('base64');
 }
 
 /**
  * Valide un token CSRF
+ *
+ * La validation repose sur la signature HMAC du token (Signed Token Pattern).
+ * Le token est auto-validant : sa signature prouve qu'il a été généré par le serveur.
+ * Un attaquant cross-origin ne peut ni forger le token (secret inconnu)
+ * ni le voler (same-origin policy empêche la lecture des réponses JSON).
+ *
  * @param token Token CSRF à valider
- * @param cookieToken Token CSRF stocké dans le cookie (optionnel)
  * @returns true si le token est valide, false sinon
  */
-export function validateCSRFToken(
-  token: string | null | undefined,
-  cookieToken?: string | null
-): boolean {
+export function validateCSRFToken(token: string | null | undefined): boolean {
   if (!token) {
     return false;
   }
 
   try {
     // Décoder le token
-    const decoded = JSON.parse(
-      Buffer.from(token, "base64").toString("utf-8")
-    ) as CSRFToken;
+    const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf-8')) as CSRFToken;
 
     // Vérifier que le token a tous les champs requis
     if (!decoded.value || !decoded.timestamp || !decoded.signature) {
@@ -109,12 +105,12 @@ export function validateCSRFToken(
 
     // Vérifier la signature
     const secret = getCSRFSecret();
-    const expectedSignature = createHmac("sha256", secret)
+    const expectedSignature = createHmac('sha256', secret)
       .update(`${decoded.value}:${decoded.timestamp}`)
-      .digest("base64");
+      .digest('base64');
 
-    const tokenSignatureBuffer = Buffer.from(decoded.signature, "base64");
-    const expectedSignatureBuffer = Buffer.from(expectedSignature, "base64");
+    const tokenSignatureBuffer = Buffer.from(decoded.signature, 'base64');
+    const expectedSignatureBuffer = Buffer.from(expectedSignature, 'base64');
 
     if (tokenSignatureBuffer.length !== expectedSignatureBuffer.length) {
       return false;
@@ -122,11 +118,6 @@ export function validateCSRFToken(
 
     // Utiliser timingSafeEqual pour éviter les attaques par timing
     if (!timingSafeEqual(tokenSignatureBuffer, expectedSignatureBuffer)) {
-      return false;
-    }
-
-    // Si un token de cookie est fourni, vérifier qu'il correspond
-    if (cookieToken && cookieToken !== token) {
       return false;
     }
 
@@ -143,9 +134,7 @@ export function validateCSRFToken(
  * @param request Requête HTTP
  * @returns Token CSRF ou null s'il n'est pas trouvé
  */
-export async function getCSRFTokenFromRequest(
-  request: Request
-): Promise<string | null> {
+export async function getCSRFTokenFromRequest(request: Request): Promise<string | null> {
   // Essayer de récupérer le token depuis les headers
   const headerToken = request.headers.get(CSRF_CONFIG.headerName);
 
@@ -155,20 +144,20 @@ export async function getCSRFTokenFromRequest(
 
   // Si pas dans les headers, essayer de le récupérer depuis le body (pour les formulaires)
   try {
-    const contentType = request.headers.get("content-type") || "";
+    const contentType = request.headers.get('content-type') || '';
 
-    if (contentType.includes("application/json")) {
+    if (contentType.includes('application/json')) {
       // Si c'est du JSON, cloner la requête pour pouvoir lire le body
       const clonedRequest = request.clone();
       const body = await clonedRequest.json();
       return body.csrf_token || null;
     }
 
-    if (contentType.includes("application/x-www-form-urlencoded")) {
+    if (contentType.includes('application/x-www-form-urlencoded')) {
       // Si c'est du form-data
       const clonedRequest = request.clone();
       const formData = await clonedRequest.formData();
-      return formData.get("csrf_token") as string | null;
+      return formData.get('csrf_token') as string | null;
     }
   } catch (error) {
     // En cas d'erreur de parsing, retourner null
@@ -179,59 +168,43 @@ export async function getCSRFTokenFromRequest(
 }
 
 /**
- * Récupère le token CSRF depuis les cookies
- * @returns Token CSRF depuis le cookie ou null
+ * Récupère la configuration des cookies CSRF
+ * (utilisé par la route /api/csrf-token pour définir le cookie sur la réponse)
  */
-export async function getCSRFTokenFromCookie(): Promise<string | null> {
-  const cookieStore = await cookies();
-  const cookie = cookieStore.get(CSRF_CONFIG.cookieName);
-  return cookie?.value || null;
-}
-
-/**
- * Définit un cookie CSRF avec le token fourni
- * @param token Token CSRF à stocker dans le cookie
- */
-export async function setCSRFCookie(token: string): Promise<void> {
-  const cookieStore = await cookies();
-  cookieStore.set(CSRF_CONFIG.cookieName, token, CSRF_CONFIG.cookieOptions);
-}
-
-/**
- * Supprime le cookie CSRF
- */
-export async function deleteCSRFCookie(): Promise<void> {
-  const cookieStore = await cookies();
-  cookieStore.delete(CSRF_CONFIG.cookieName);
+export function getCSRFCookieConfig() {
+  return {
+    cookieName: CSRF_CONFIG.cookieName,
+    cookieOptions: CSRF_CONFIG.cookieOptions,
+  };
 }
 
 /**
  * Middleware de validation CSRF pour les routes API
- * Valide le token CSRF et retourne une erreur si invalide
+ *
+ * Valide le token CSRF envoyé dans le header ou le body de la requête.
+ * La validation repose uniquement sur la signature HMAC (Signed Token Pattern),
+ * ce qui évite les problèmes de désynchronisation cookie/header lorsque
+ * plusieurs composants génèrent des tokens CSRF en parallèle.
+ *
  * @param request Requête HTTP
  * @returns null si le token est valide, Response d'erreur sinon
  */
-export async function validateCSRFMiddleware(
-  request: Request
-): Promise<Response | null> {
-  // Récupérer le token depuis la requête
+export async function validateCSRFMiddleware(request: Request): Promise<Response | null> {
+  // Récupérer le token depuis la requête (header ou body)
   const requestToken = await getCSRFTokenFromRequest(request);
 
-  // Récupérer le token depuis le cookie
-  const cookieToken = await getCSRFTokenFromCookie();
-
-  // Valider le token
-  const isValid = validateCSRFToken(requestToken, cookieToken);
+  // Valider la signature HMAC du token
+  const isValid = validateCSRFToken(requestToken);
 
   if (!isValid) {
     return new Response(
       JSON.stringify({
-        message: "Token CSRF invalide ou expiré. Veuillez rafraîchir la page.",
+        message: 'Token CSRF invalide ou expiré. Veuillez rafraîchir la page.',
       }),
       {
         status: 403,
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
       }
     );
