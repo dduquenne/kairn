@@ -1,7 +1,6 @@
 'use client';
 
 import { motion, useScroll, useTransform } from 'framer-motion';
-import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRef, useState } from 'react';
@@ -15,16 +14,6 @@ import type { BlogPostSummary } from '../../lib/blog';
 import { ArticlesList } from './ArticlesList';
 import { SeminarsList, type Seminar } from './SeminarsList';
 
-// Lazy load Analytics with SSR disabled
-const Analytics = dynamic(
-  () =>
-    import('../../components/Analytics').then(mod => ({
-      default: mod.Analytics,
-    })),
-  {
-    ssr: false,
-  }
-);
 
 interface RespirationHolotropiqueContentProps {
   posts: BlogPostSummary[];
@@ -81,9 +70,6 @@ export function RespirationHolotropiqueContent({
 
   return (
     <div className="from-night via-night/95 to-night text-ivory min-h-screen bg-gradient-to-b">
-      {/* Analytics tracking (lazy loaded, client-side only) */}
-      <Analytics />
-
       {/* Navigation Menu */}
       <NavigationMenu forceVisible />
 

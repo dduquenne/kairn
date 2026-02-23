@@ -82,7 +82,17 @@ export async function getAnalyticsSummary(startDate?: string, endDate?: string) 
       });
 
       const totalVisits = humanPageViews.length;
-      const uniqueSessions = new Set(humanPageViews.map((pv) => pv.sessionId).filter(Boolean)).size;
+      const sessionSet = new Set(humanPageViews.map((pv) => pv.sessionId).filter(Boolean));
+      const uniqueSessions = sessionSet.size;
+
+      // Bounce rate: sessions with only 1 page view
+      const sessionPageCounts = new Map<string, number>();
+      for (const pv of humanPageViews) {
+        if (!pv.sessionId) continue;
+        sessionPageCounts.set(pv.sessionId, (sessionPageCounts.get(pv.sessionId) || 0) + 1);
+      }
+      const bouncedSessions = Array.from(sessionPageCounts.values()).filter((c) => c === 1).length;
+      const bounceRate = uniqueSessions > 0 ? (bouncedSessions / uniqueSessions) * 100 : 0;
 
       // Calculate average time on site from section times
       const sessionDurations = new Map<string, number>();
@@ -157,6 +167,7 @@ export async function getAnalyticsSummary(startDate?: string, endDate?: string) 
         uniqueSessions,
         averageTimeOnSite,
         conversionRate,
+        bounceRate,
         topSections,
         conversionByType,
       };

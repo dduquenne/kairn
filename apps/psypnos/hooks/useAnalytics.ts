@@ -319,7 +319,12 @@ export function useSectionTimeTracking(sectionId: string) {
  * Track conversion events
  * Records user actions in the conversion funnel
  */
-export async function trackConversionEvent(
+/**
+ * Track conversion events via the unified @kairn/analytics tracker.
+ * This function delegates to the batch tracker instead of making
+ * individual HTTP calls to /api/analytics/conversion.
+ */
+export function trackConversionEvent(
   eventType:
     | 'appointment_request'
     | 'seminar_registration'
@@ -331,17 +336,9 @@ export async function trackConversionEvent(
   metadata?: Record<string, unknown>
 ) {
   try {
-    await fetch('/api/analytics/conversion', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        sessionId: getSessionId(),
-        eventType,
-        stepName,
-        completed,
-        metadata,
-      }),
-    });
+    const { getTracker } = require('@/lib/tracking');
+    const tracker = getTracker();
+    tracker.trackConversion(eventType, stepName, 1, completed, undefined, metadata);
   } catch (error) {
     console.error('Failed to track conversion event:', error);
   }
