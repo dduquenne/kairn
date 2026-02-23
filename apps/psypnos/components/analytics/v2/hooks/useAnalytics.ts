@@ -318,8 +318,8 @@ const mapPeriodToTimeRange = (period: PeriodType): string => {
   switch (period) {
     case 'realtime':
     case 'today':
-      return 'hour';
     case 'yesterday':
+      return 'hour';
     case 'last7days':
       return 'day';
     case 'last30days':
@@ -743,20 +743,14 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       const analyticsData: AnalyticsData = {
         healthScore,
         kpis: {
-          visitors:
-            dashboardData.comparison?.current?.totalVisits ||
-            dashboardData.summary?.totalVisits ||
-            0,
+          // Always use summary (scoped to the selected date range) for absolute values.
+          // comparison.current refers to a fixed window (today/this week/etc.)
+          // which doesn't match the user's selected period.
+          visitors: dashboardData.summary?.totalVisits || 0,
           visitorsChange: dashboardData.comparison?.comparison?.totalVisitsChange || 0,
-          conversionRate:
-            dashboardData.comparison?.current?.conversionRate ||
-            dashboardData.summary?.conversionRate ||
-            0,
+          conversionRate: dashboardData.summary?.conversionRate || 0,
           conversionChange: dashboardData.comparison?.comparison?.conversionRateChange || 0,
-          avgDuration:
-            (dashboardData.comparison?.current?.averageTimeOnSite ||
-              dashboardData.summary?.averageTimeOnSite ||
-              0) / 1000,
+          avgDuration: (dashboardData.summary?.averageTimeOnSite || 0) / 1000,
           durationChange:
             ((dashboardData.comparison?.comparison?.averageTimeOnSiteChange || 0) / 100) * 60, // convert % to seconds estimate
         },
