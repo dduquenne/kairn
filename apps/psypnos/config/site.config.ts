@@ -122,7 +122,7 @@ ses patients avec bienveillance et professionnalisme dans leur cheminement perso
       'Psypnos - Psychothérapie, Hypnose & Respiration Holotropique | Saint-Julien-du-Sault, Yonne',
     titleTemplate: '%s | Psypnos',
     description:
-      'David Duquenne, thérapeute et praticien en psychothérapie transpersonnelle et en hypnose ericksonienne. Accompagnement des crises de vie, anxiété, deuil, burn-out à Saint-Julien-du-Sault (89).',
+      'David Duquenne, psychothérapeute à Saint-Julien-du-Sault (89). Psychothérapie transpersonnelle, hypnose ericksonienne et respiration holotropique.',
     keywords: [
       'psychothérapie',
       'hypnose ericksonienne',
