@@ -4,6 +4,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { siteConfig } from "@/config/site.config";
 import { validateCSRFMiddleware } from "../common/csrf-middleware";
 import {
   buildAdminEmailHtml,
@@ -11,8 +12,11 @@ import {
   buildConfirmationEmailHtml,
   buildConfirmationEmailText,
   formatSubmittedAt,
+  getEmailBranding,
 } from "../common/email-templates";
 import { recordAttempt, getClientIP } from "../common/rate-limiter";
+
+const branding = getEmailBranding(siteConfig);
 
 const contactSchema = z.object({
   name: z.string().trim().min(2).max(100),
@@ -65,9 +69,9 @@ const formatAdminEmail = (payload: ContactPayload): EmailContent => {
   };
 
   return {
-    subject: `[Psypnos] Message de contact — ${payload.name}`,
+    subject: `[${branding.siteName}] Message de contact — ${payload.name}`,
     text: buildAdminEmailText(options),
-    html: buildAdminEmailHtml(options),
+    html: buildAdminEmailHtml(options, branding),
   };
 };
 
@@ -88,13 +92,13 @@ const formatConfirmationEmail = (payload: ContactPayload): EmailContent => {
       ],
     },
     closing: "À très bientôt,",
-    signer: "David Duquenne — Psypnos",
+    signer: `${branding.practitionerName} — ${branding.siteName}`,
   };
 
   return {
-    subject: "Votre message a bien été reçu — Psypnos",
-    text: buildConfirmationEmailText(options),
-    html: buildConfirmationEmailHtml(options),
+    subject: `Votre message a bien été reçu — ${branding.siteName}`,
+    text: buildConfirmationEmailText(options, branding),
+    html: buildConfirmationEmailHtml(options, branding),
   };
 };
 
@@ -103,7 +107,7 @@ const sendEmailThroughResend = async (content: EmailContent, to: string, replyTo
   const fromAddress =
     process.env.CONTACT_FORM_FROM ??
     process.env.APPOINTMENT_REQUEST_FROM ??
-    "Psypnos <no-reply@psypnos.fr>";
+    `${branding.siteName} <no-reply@${branding.domain}>`;
 
   if (!apiKey) {
     throw new Error("Le service d'envoi d'e-mails n'est pas configuré.");
@@ -196,7 +200,7 @@ export async function POST(request: Request) {
   const recipient =
     process.env.CONTACT_FORM_RECIPIENT ??
     process.env.APPOINTMENT_REQUEST_RECIPIENT ??
-    "contact@psypnos.fr";
+    branding.contactEmail;
   const adminContent = formatAdminEmail(payload);
 
   try {

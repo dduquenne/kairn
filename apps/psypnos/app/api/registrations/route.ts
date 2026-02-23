@@ -4,6 +4,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { siteConfig } from "@/config/site.config";
 import seminarsData from "../../../data/seminars.json";
 import { validateCSRFMiddleware } from "../common/csrf-middleware";
 import {
@@ -11,8 +12,10 @@ import {
   buildAdminEmailText,
   buildConfirmationEmailHtml,
   buildConfirmationEmailText,
+  getEmailBranding,
 } from "../common/email-templates";
 
+const branding = getEmailBranding(siteConfig);
 
 type Seminar = {
   id: string;
@@ -128,7 +131,7 @@ const formatSeminarDetails = (seminar?: Seminar) => {
     capacity: seminar.capacity || 0,
     price: seminar.price || 0,
     deposit: seminar.deposit || 0,
-    order: seminar.order || "Psypnos"
+    order: seminar.order || branding.siteName
   };
 };
 
@@ -234,9 +237,9 @@ const formatAdminEmail = (
   };
 
   return {
-    subject: `[Psypnos] Inscription séminaire — ${fullName} — ${seminarInfo.title}`,
+    subject: `[${branding.siteName}] Inscription séminaire — ${fullName} — ${seminarInfo.title}`,
     text: buildAdminEmailText(options),
-    html: buildAdminEmailHtml(options),
+    html: buildAdminEmailHtml(options, branding),
   };
 };
 
@@ -251,7 +254,7 @@ const formatConfirmationEmail = (
   const options = {
     recipientName: payload.firstName,
     intro:
-      "Merci pour votre inscription au séminaire Psypnos ! Nous revenons vers vous très rapidement pour confirmer votre participation.",
+      `Merci pour votre inscription au séminaire ${branding.siteName} ! Nous revenons vers vous très rapidement pour confirmer votre participation.`,
     sections: [
       {
         title: "Informations du séminaire",
@@ -271,7 +274,7 @@ const formatConfirmationEmail = (
         `Coût total du séminaire : ${seminarInfo.price} €`,
         `Acompte à envoyer : ${seminarInfo.deposit} € par chèque`,
         `Ordre du chèque : ${seminarInfo.order}`,
-        `Adresse d'envoi : David Duquenne — Le Moulin d'en Bas — 89330 Saint-Julien-du-Sault`,
+        `Adresse d'envoi : ${branding.practitionerName} — ${branding.address.replace(' · ', ' — ')}`,
       ],
     },
     bulletList: {
@@ -293,13 +296,13 @@ const formatConfirmationEmail = (
       ],
     },
     closing: "À très bientôt,",
-    signer: "David Duquenne — Psypnos",
+    signer: `${branding.practitionerName} — ${branding.siteName}`,
   };
 
   return {
     subject: `Confirmation de votre inscription — ${seminarInfo.title}`,
-    text: buildConfirmationEmailText(options),
-    html: buildConfirmationEmailHtml(options),
+    text: buildConfirmationEmailText(options, branding),
+    html: buildConfirmationEmailHtml(options, branding),
   };
 };
 
@@ -308,7 +311,7 @@ const sendEmailThroughResend = async (content: EmailContent, to: string, replyTo
   const fromAddress =
     process.env.SEMINAR_REGISTRATION_FROM ??
     process.env.APPOINTMENT_REQUEST_FROM ??
-    "Psypnos <no-reply@psypnos.fr>";
+    `${branding.siteName} <no-reply@${branding.domain}>`;
 
   if (!apiKey) {
     throw new Error("Le service d'envoi d'e-mails n'est pas configuré.");
@@ -373,7 +376,7 @@ export async function POST(request: Request) {
   const recipient =
     process.env.SEMINAR_REGISTRATION_RECIPIENT ??
     process.env.APPOINTMENT_REQUEST_RECIPIENT ??
-    "contact@psypnos.fr";
+    branding.contactEmail;
 
   try {
     await sendEmailThroughResend(formatAdminEmail(payload, seminar), recipient, payload.email);

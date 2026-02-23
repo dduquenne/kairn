@@ -4,6 +4,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { siteConfig } from "@/config/site.config";
 import { validateCSRFMiddleware } from "../common/csrf-middleware";
 import {
   buildAdminEmailHtml,
@@ -11,8 +12,11 @@ import {
   buildConfirmationEmailHtml,
   buildConfirmationEmailText,
   formatSubmittedAt,
+  getEmailBranding,
 } from "../common/email-templates";
 import { recordAttempt, getClientIP } from "../common/rate-limiter";
+
+const branding = getEmailBranding(siteConfig);
 
 const contactPreferenceValues = [
   "",
@@ -84,7 +88,7 @@ const contactPreferenceLabels: Record<(typeof contactPreferenceValues)[number], 
 
 const sessionTypeLabels: Record<(typeof sessionTypeValues)[number], string> = {
   "": "Non précisé",
-  presentiel: "Présentiel à Saint-Julien-du-Sault",
+  presentiel: `Présentiel à ${siteConfig.contact.address.city}`,
   visio: "Visioconférence",
   indecis: "Je ne sais pas encore"
 };
@@ -144,9 +148,9 @@ const formatAdminEmail = (payload: AppointmentRequestPayload): EmailContent => {
   };
 
   return {
-    subject: `[Psypnos] Demande de rendez-vous — ${payload.name}`,
+    subject: `[${branding.siteName}] Demande de rendez-vous — ${payload.name}`,
     text: buildAdminEmailText(options),
-    html: buildAdminEmailHtml(options),
+    html: buildAdminEmailHtml(options, branding),
   };
 };
 
@@ -184,19 +188,19 @@ const formatConfirmationEmail = (payload: AppointmentRequestPayload): EmailConte
       ],
     },
     closing: "À très bientôt,",
-    signer: "David Duquenne — Psypnos",
+    signer: `${branding.practitionerName} — ${branding.siteName}`,
   };
 
   return {
-    subject: "Votre demande de rendez-vous — Psypnos",
-    text: buildConfirmationEmailText(options),
-    html: buildConfirmationEmailHtml(options),
+    subject: `Votre demande de rendez-vous — ${branding.siteName}`,
+    text: buildConfirmationEmailText(options, branding),
+    html: buildConfirmationEmailHtml(options, branding),
   };
 };
 
 const sendEmailThroughResend = async (content: EmailContent, to: string, replyTo?: string) => {
   const apiKey = process.env.RESEND_API_KEY;
-  const fromAddress = process.env.APPOINTMENT_REQUEST_FROM ?? "Psypnos <no-reply@psypnos.fr>";
+  const fromAddress = process.env.APPOINTMENT_REQUEST_FROM ?? `${branding.siteName} <no-reply@${branding.domain}>`;
 
   if (!apiKey) {
     throw new Error("Le service d'envoi d'e-mails n'est pas configuré.");
@@ -290,7 +294,7 @@ export async function POST(request: Request) {
   }
 
   const adminContent = formatAdminEmail(payload);
-  const recipient = process.env.APPOINTMENT_REQUEST_RECIPIENT ?? "contact@psypnos.fr";
+  const recipient = process.env.APPOINTMENT_REQUEST_RECIPIENT ?? branding.contactEmail;
 
   try {
     await sendEmailThroughResend(adminContent, recipient, payload.email);
