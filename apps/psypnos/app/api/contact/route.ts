@@ -4,8 +4,19 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { siteConfig } from "@/config/site.config";
 import { validateCSRFMiddleware } from "../common/csrf-middleware";
+import {
+  buildAdminEmailHtml,
+  buildAdminEmailText,
+  buildConfirmationEmailHtml,
+  buildConfirmationEmailText,
+  formatSubmittedAt,
+  getEmailBranding,
+} from "../common/email-templates";
 import { recordAttempt, getClientIP } from "../common/rate-limiter";
+
+const branding = getEmailBranding(siteConfig);
 
 const contactSchema = z.object({
   name: z.string().trim().min(2).max(100),
@@ -28,53 +39,66 @@ type EmailContent = {
   html: string;
 };
 
-/**
- * Échappe les caractères HTML dangereux pour prévenir les injections XSS
- */
-function escapeHtml(unsafe: string): string {
-  return unsafe
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-const formatEmailContent = (payload: ContactPayload): EmailContent => {
-  const submittedAtRaw = payload.meta.submitted_at
-    ? new Date(payload.meta.submitted_at)
-    : null;
-  const submittedAtIso =
-    submittedAtRaw && !Number.isNaN(submittedAtRaw.getTime())
-      ? submittedAtRaw.toISOString()
-      : "Non précisé";
-
-  const text =
-    `Nouveau message via le formulaire de contact Psypnos\n\n` +
-    `Nom : ${payload.name}\n` +
-    `Email : ${payload.email}\n` +
-    `Message :\n${payload.message}\n\n` +
-    `Soumis le : ${submittedAtIso}\n`;
-
-  // SÉCURITÉ : Échapper tout le contenu HTML pour prévenir les injections XSS
-  const escapedName = escapeHtml(payload.name);
-  const escapedEmail = escapeHtml(payload.email);
-  const escapedMessage = escapeHtml(payload.message).replace(/\n/g, "<br />");
-  const escapedSubmittedAt = escapeHtml(submittedAtIso);
-
-  const html =
-    `<!doctype html><html lang="fr"><body style="font-family:Arial,Helvetica,sans-serif;line-height:1.6;color:#0b0b0d;">` +
-    `<h2>Nouveau message via le formulaire de contact Psypnos</h2>` +
-    `<p><strong>Nom :</strong> ${escapedName}</p>` +
-    `<p><strong>Email :</strong> ${escapedEmail}</p>` +
-    `<p><strong>Message :</strong><br />${escapedMessage}</p>` +
-    `<p><strong>Soumis le :</strong> ${escapedSubmittedAt}</p>` +
-    `</body></html>`;
+const formatAdminEmail = (payload: ContactPayload): EmailContent => {
+  const options = {
+    heading: "Nouveau message de contact",
+    badge: "Contact",
+    sections: [
+      {
+        title: "Coordonnées",
+        fields: [
+          { label: "Nom", value: payload.name },
+          { label: "Email", value: payload.email, emailLink: true },
+        ],
+      },
+    ],
+    messageBlock: {
+      label: "Message",
+      content: payload.message,
+    },
+    metadata: {
+      type: "contact",
+      name: payload.name,
+      email: payload.email,
+      message: payload.message,
+      submitted_at: payload.meta.submitted_at ?? new Date().toISOString(),
+      source_page: payload.meta.source_page ?? null,
+    },
+    submittedAt: payload.meta.submitted_at,
+    sourcePage: payload.meta.source_page,
+  };
 
   return {
-    subject: "Nouveau message de contact Psypnos",
-    text,
-    html
+    subject: `[${branding.siteName}] Message de contact — ${payload.name}`,
+    text: buildAdminEmailText(options),
+    html: buildAdminEmailHtml(options, branding),
+  };
+};
+
+const formatConfirmationEmail = (payload: ContactPayload): EmailContent => {
+  const options = {
+    recipientName: payload.name,
+    intro:
+      "Merci d'avoir pris le temps de me contacter. Votre message a bien été reçu et je vous répondrai dans les meilleurs délais.",
+    recap: {
+      title: "Récapitulatif de votre message",
+      fields: [
+        { label: "Nom", value: payload.name },
+        { label: "Email", value: payload.email },
+        {
+          label: "Envoyé le",
+          value: formatSubmittedAt(payload.meta.submitted_at),
+        },
+      ],
+    },
+    closing: "À très bientôt,",
+    signer: `${branding.practitionerName} — ${branding.siteName}`,
+  };
+
+  return {
+    subject: `Votre message a bien été reçu — ${branding.siteName}`,
+    text: buildConfirmationEmailText(options, branding),
+    html: buildConfirmationEmailHtml(options, branding),
   };
 };
 
@@ -83,7 +107,7 @@ const sendEmailThroughResend = async (content: EmailContent, to: string, replyTo
   const fromAddress =
     process.env.CONTACT_FORM_FROM ??
     process.env.APPOINTMENT_REQUEST_FROM ??
-    "Psypnos <no-reply@psypnos.fr>";
+    `${branding.siteName} <no-reply@${branding.domain}>`;
 
   if (!apiKey) {
     throw new Error("Le service d'envoi d'e-mails n'est pas configuré.");
@@ -176,30 +200,24 @@ export async function POST(request: Request) {
   const recipient =
     process.env.CONTACT_FORM_RECIPIENT ??
     process.env.APPOINTMENT_REQUEST_RECIPIENT ??
-    "contact@psypnos.fr";
-  const content = formatEmailContent(payload);
+    branding.contactEmail;
+  const adminContent = formatAdminEmail(payload);
 
   try {
-    await sendEmailThroughResend(content, recipient, payload.email);
+    await sendEmailThroughResend(adminContent, recipient, payload.email);
 
     try {
       await sendEmailThroughResend(
-        {
-          subject: "Votre message a bien été reçu",
-          text:
-            "Bonjour,\n\nMerci pour votre message. Je vous réponds dans les plus brefs délais.\n\nBien à vous,\nPsypnos",
-          html:
-            "<!doctype html><html lang=\"fr\"><body style=\"font-family:Arial,Helvetica,sans-serif;line-height:1.6;color:#0b0b0d;\"><p>Bonjour,</p><p>Merci pour votre message. Je vous réponds dans les plus brefs délais.</p><p>Bien à vous,<br />Psypnos</p></body></html>"
-        },
+        formatConfirmationEmail(payload),
         payload.email
       );
     } catch (confirmationError) {
-      console.error("Échec de l’envoi de la confirmation du formulaire de contact", confirmationError);
+      console.error("Échec de l'envoi de la confirmation du formulaire de contact", confirmationError);
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Échec de l’envoi du formulaire de contact", error);
+    console.error("Échec de l'envoi du formulaire de contact", error);
     return NextResponse.json(
       {
         message: "Une erreur est survenue. Veuillez réessayer dans quelques instants."
