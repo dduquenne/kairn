@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Prisma models may not be available in Kairn schema
 /**
  * API de Tracking Analytics Unifiée
  *
@@ -16,7 +13,7 @@ import { createHmac } from 'crypto';
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 
-import type { TrackingPayload, TrackingEvent, GeolocationData } from '@/lib/tracking/types';
+import type { TrackingPayload, TrackingEvent, GeolocationData } from '@/lib/tracking';
 
 import { recordAttempt, getClientIP } from '../../common/rate-limiter';
 
@@ -47,11 +44,16 @@ const SessionDataSchema = z.object({
   isReturning: z.boolean(),
 });
 
+const VALID_EVENT_TYPES = [
+  'page_view', 'page_exit', 'scroll_depth', 'section_view',
+  'section_time', 'conversion', 'custom_event', 'session_start', 'session_end',
+] as const;
+
 const BaseEventSchema = z.object({
-  type: z.string(),
-  timestamp: z.string(),
-  sessionId: z.string(),
-  url: z.string(),
+  type: z.enum(VALID_EVENT_TYPES),
+  timestamp: z.string().refine((s) => !isNaN(Date.parse(s)), { message: 'Invalid timestamp' }),
+  sessionId: z.string().min(1),
+  url: z.string().min(1),
 });
 
 const TrackingPayloadSchema = z.object({
@@ -154,7 +156,7 @@ function getCountryName(code: string): string {
  */
 function isBot(userAgent: string): boolean {
   const botPatterns = [
-    /bot/i,
+    /bot\b/i,
     /crawler/i,
     /spider/i,
     /crawling/i,
@@ -163,20 +165,22 @@ function isBot(userAgent: string): boolean {
     /pingdom/i,
     /gtmetrix/i,
     /pagespeed/i,
-    /google/i,
-    /bing/i,
-    /yahoo/i,
-    /yandex/i,
-    /baidu/i,
-    /duckduck/i,
+    /googlebot/i,
+    /google-inspectiontool/i,
+    /bingbot/i,
+    /bingpreview/i,
+    /yahoo!?\s*slurp/i,
+    /yandexbot/i,
+    /baiduspider/i,
+    /duckduckbot/i,
     /facebookexternalhit/i,
     /twitterbot/i,
     /linkedinbot/i,
     /slackbot/i,
     /telegrambot/i,
     /whatsapp/i,
-    /semrush/i,
-    /ahrefs/i,
+    /semrushbot/i,
+    /ahrefsbot/i,
     /mj12bot/i,
     /dotbot/i,
     /petalbot/i,
@@ -198,21 +202,46 @@ function isBot(userAgent: string): boolean {
 /**
  * Traite les événements de tracking et les persiste en base de données
  */
+// Type for event fields that go beyond BaseEventSchema
+// These are validated by the client tracker but passed through BaseEventSchema
+interface EventExtras {
+  referrer?: string;
+  timeOnPage?: number;
+  scrollDepthPercent?: number;
+  engagementScore?: number;
+  depth?: number;
+  sectionId?: string;
+  sectionName?: string;
+  timeSpent?: number;
+  conversionType?: string;
+  stepName?: string;
+  stepOrder?: number;
+  completed?: boolean;
+  value?: number;
+  metadata?: Record<string, unknown>;
+  category?: string;
+  action?: string;
+  label?: string;
+  duration?: number;
+  pageViewCount?: number;
+  exitPage?: string;
+  bounced?: boolean;
+}
+
+type ValidatedEvent = z.infer<typeof BaseEventSchema> & EventExtras;
+
 async function processEvents(
-  events: TrackingEvent[],
-  session: TrackingPayload['session'],
-  clientInfo: TrackingPayload['clientInfo'],
+  events: ValidatedEvent[],
+  session: z.infer<typeof SessionDataSchema>,
+  clientInfo: z.infer<typeof TrackingPayloadSchema>['clientInfo'],
   geolocation: GeolocationData | null,
   clientIP: string
 ): Promise<{ processed: number; errors: string[] }> {
   const errors: string[] = [];
   let processed = 0;
 
-  // Import dynamique du store
   const store = await import('../store-index');
 
-  // IMPORTANT: Enregistrer la géolocalisation au premier événement de chaque session
-  // La fonction trackGeolocation vérifie si une entrée existe déjà pour éviter les doublons
   if (geolocation && events.length > 0) {
     try {
       await trackGeolocation(
@@ -223,7 +252,6 @@ async function processEvents(
       );
     } catch (error) {
       console.error('[Track API] Error tracking geolocation:', error);
-      // Ne pas bloquer le traitement des événements si la géolocalisation échoue
     }
   }
 
@@ -235,7 +263,7 @@ async function processEvents(
             timestamp: event.timestamp,
             sessionId: event.sessionId,
             page: event.url,
-            referrer: (event as { referrer?: string }).referrer || undefined,
+            referrer: event.referrer || undefined,
             userAgent: clientInfo.userAgent,
             utmSource: session.utmSource || undefined,
             utmMedium: session.utmMedium || undefined,
@@ -251,158 +279,114 @@ async function processEvents(
           break;
 
         case 'page_exit':
-          // Mise à jour de la visite de page existante avec le temps et scroll
-          const exitEvent = event as {
-            timeOnPage?: number;
-            scrollDepthPercent?: number;
-          };
-
-          // On enregistre comme un événement personnalisé pour le temps et scroll
           await store.trackCustomEvent({
             timestamp: event.timestamp,
             sessionId: event.sessionId,
             category: 'Engagement',
             action: 'page_exit',
             label: event.url,
-            value: exitEvent.timeOnPage,
+            value: event.timeOnPage,
             metadata: {
-              scrollDepthPercent: exitEvent.scrollDepthPercent,
-              engagementScore: (event as { engagementScore?: number }).engagementScore,
+              scrollDepthPercent: event.scrollDepthPercent,
+              engagementScore: event.engagementScore,
             },
           });
           break;
 
         case 'scroll_depth':
-          const scrollEvent = event as { depth?: number };
           await store.trackCustomEvent({
             timestamp: event.timestamp,
             sessionId: event.sessionId,
             category: 'Engagement',
             action: 'scroll_depth',
             label: event.url,
-            value: scrollEvent.depth,
+            value: event.depth,
           });
           break;
 
         case 'section_view':
-          const sectionViewEvent = event as { sectionId?: string; sectionName?: string };
           await store.trackCustomEvent({
             timestamp: event.timestamp,
             sessionId: event.sessionId,
             category: 'Section',
             action: 'view',
-            label: sectionViewEvent.sectionName || sectionViewEvent.sectionId,
-            metadata: { sectionId: sectionViewEvent.sectionId, page: event.url },
+            label: event.sectionName || event.sectionId,
+            metadata: { sectionId: event.sectionId, page: event.url },
           });
           break;
 
-        case 'section_time':
-          const sectionTimeEvent = event as {
-            sectionId?: string;
-            sectionName?: string;
-            timeSpent?: number;
-          };
-          // Determine section name, skip if unknown or invalid
-          const sectionName = sectionTimeEvent.sectionName || sectionTimeEvent.sectionId;
+        case 'section_time': {
+          const sectionName = event.sectionName || event.sectionId;
           if (sectionName && sectionName.toLowerCase() !== 'unknown') {
             await store.trackSectionTime({
               timestamp: event.timestamp,
               sessionId: event.sessionId,
               section: sectionName,
-              timeSpent: sectionTimeEvent.timeSpent || 0,
+              timeSpent: event.timeSpent || 0,
             });
           }
-          // Skip tracking for 'unknown' sections - they provide no useful data
           break;
+        }
 
-        case 'conversion':
-          const conversionEvent = event as {
-            conversionType?: string;
-            stepName?: string;
-            stepOrder?: number;
-            completed?: boolean;
-            value?: number;
-            metadata?: Record<string, unknown>;
-          };
+        case 'conversion': {
+          const conversionType = event.conversionType || 'contact_form';
+          const stepName = event.stepName || 'unknown';
 
-          // Enregistrer l'événement de conversion
           await store.trackConversionEvent({
             timestamp: event.timestamp,
             sessionId: event.sessionId,
-            eventType: (conversionEvent.conversionType ||
-              'contact_form') as 'appointment_request' | 'seminar_registration' | 'contact_form',
-            stepName: conversionEvent.stepName || 'unknown',
-            completed: conversionEvent.completed || false,
-            metadata: conversionEvent.metadata,
+            eventType: conversionType as 'appointment_request' | 'seminar_registration' | 'contact_form',
+            stepName,
+            completed: event.completed || false,
+            metadata: event.metadata,
           });
 
-          // Enregistrer aussi comme étape de funnel
           await store.trackFunnelStep({
             timestamp: event.timestamp,
             sessionId: event.sessionId,
-            funnelName: conversionEvent.conversionType || 'default',
-            stepName: conversionEvent.stepName || 'unknown',
-            stepOrder: conversionEvent.stepOrder || 0,
-            metadata: conversionEvent.metadata,
+            funnelName: conversionType,
+            stepName,
+            stepOrder: event.stepOrder || 0,
+            metadata: event.metadata,
           });
           break;
+        }
 
         case 'custom_event':
-          const customEvent = event as {
-            category?: string;
-            action?: string;
-            label?: string;
-            value?: number;
-            metadata?: Record<string, unknown>;
-          };
           await store.trackCustomEvent({
             timestamp: event.timestamp,
             sessionId: event.sessionId,
-            category: customEvent.category || 'Unknown',
-            action: customEvent.action || 'unknown',
-            label: customEvent.label,
-            value: customEvent.value,
-            metadata: customEvent.metadata,
+            category: event.category || 'Unknown',
+            action: event.action || 'unknown',
+            label: event.label,
+            value: event.value,
+            metadata: event.metadata,
           });
           break;
 
         case 'session_start':
-          // La géolocalisation est maintenant enregistrée automatiquement au début de processEvents
-          // Ce case est conservé pour compatibilité avec les clients qui envoient cet événement
           break;
 
         case 'session_end':
-          const sessionEndEvent = event as {
-            duration?: number;
-            pageViewCount?: number;
-            exitPage?: string;
-            bounced?: boolean;
-          };
-
-          // Enregistrer comme événement personnalisé
           await store.trackCustomEvent({
             timestamp: event.timestamp,
             sessionId: event.sessionId,
             category: 'Session',
             action: 'end',
-            value: sessionEndEvent.duration,
+            value: event.duration,
             metadata: {
-              pageViewCount: sessionEndEvent.pageViewCount,
-              exitPage: sessionEndEvent.exitPage,
-              bounced: sessionEndEvent.bounced,
+              pageViewCount: event.pageViewCount,
+              exitPage: event.exitPage,
+              bounced: event.bounced,
             },
           });
           break;
-
-        default:
-          // Type d'événement inconnu - logger mais ne pas échouer
-          console.warn(`[Track API] Unknown event type: ${(event as { type: string }).type}`);
       }
 
       processed++;
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
-      errors.push(`Event ${(event as { type: string }).type}: ${message}`);
+      errors.push(`Event ${event.type}: ${message}`);
       console.error(`[Track API] Error processing event:`, error);
     }
   }
@@ -420,16 +404,16 @@ async function trackGeolocation(
   ipAddress: string
 ): Promise<void> {
   const { prisma } = await import('@/lib/db/prisma');
+  const { getCurrentSiteId } = await import('../store-postgres/utils');
 
-  // Vérifier si la géolocalisation existe déjà pour cette session
-  const existing = await prisma.visitorGeolocation.findFirst({
+  const siteId = getCurrentSiteId();
+
+  // Use upsert to avoid race conditions between concurrent requests
+  // for the same session (findFirst + create is not atomic)
+  await prisma.visitorGeolocation.upsert({
     where: { sessionId },
-  });
-
-  if (existing) return;
-
-  await prisma.visitorGeolocation.create({
-    data: {
+    update: {}, // No-op if already exists
+    create: {
       timestamp: new Date(timestamp),
       sessionId,
       country: geo.country,
@@ -440,7 +424,8 @@ async function trackGeolocation(
       latitude: geo.latitude,
       longitude: geo.longitude,
       timezone: geo.timezone,
-      ipAddress: hashIP(ipAddress), // Hasher l'IP pour la confidentialité
+      ipAddress: hashIP(ipAddress),
+      siteId,
     },
   });
 }
@@ -450,7 +435,11 @@ async function trackGeolocation(
  * Utilise HMAC-SHA256 avec un secret pour empêcher la réversibilité par force brute
  */
 function hashIP(ip: string): string {
-  const secret = process.env.IP_HASH_SECRET || process.env.JWT_SECRET || 'kairn-ip-hash-fallback';
+  const secret = process.env.IP_HASH_SECRET || process.env.JWT_SECRET;
+  if (!secret) {
+    console.warn('[Track API] No IP_HASH_SECRET or JWT_SECRET configured, IP hashing is insecure');
+    return `ip_${createHmac('sha256', 'kairn-dev-only').update(ip).digest('hex').slice(0, 16)}`;
+  }
   return `ip_${createHmac('sha256', secret).update(ip).digest('hex').slice(0, 16)}`;
 }
 
@@ -514,11 +503,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const payload = validationResult.data as TrackingPayload;
+    const payload = validationResult.data;
 
     // Vérifier si c'est un bot
     if (isBot(payload.clientInfo.userAgent)) {
-      // Ignorer silencieusement les requêtes de bots
       return Response.json({
         success: true,
         processed: 0,
@@ -532,7 +520,7 @@ export async function POST(request: NextRequest) {
 
     // Traiter les événements
     const result = await processEvents(
-      payload.events as TrackingEvent[],
+      payload.events as ValidatedEvent[],
       payload.session,
       payload.clientInfo,
       geolocation,
@@ -562,14 +550,34 @@ export async function POST(request: NextRequest) {
 /**
  * OPTIONS handler pour CORS (si nécessaire)
  */
-export async function OPTIONS() {
+export async function OPTIONS(request: NextRequest) {
+  const origin = request.headers.get('origin') || '';
+  const allowedOrigin = getAllowedOrigin(origin);
+
   return new Response(null, {
     status: 204,
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': allowedOrigin,
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
       'Access-Control-Max-Age': '86400',
     },
   });
+}
+
+function getAllowedOrigin(origin: string): string {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.VERCEL_URL;
+  if (!siteUrl) {
+    // In development, allow localhost origins
+    if (origin.startsWith('http://localhost:')) return origin;
+    return '';
+  }
+
+  const normalizedSiteUrl = siteUrl.startsWith('http') ? siteUrl : `https://${siteUrl}`;
+  if (origin === normalizedSiteUrl) return origin;
+
+  // Allow Vercel preview deployments
+  if (origin.endsWith('.vercel.app')) return origin;
+
+  return '';
 }

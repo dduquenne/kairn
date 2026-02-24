@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest } from 'next/server';
 
 import { getCached, buildCacheKey, CACHE_KEYS, CACHE_TTL } from '@/lib/cache/redis';
@@ -128,9 +126,10 @@ export async function GET(request: NextRequest) {
     const startISO = startDate.toISOString();
     const endISO = endDate.toISOString();
 
-    // Use Redis cache for the entire dashboard response (except realtime)
+    const siteId = getCurrentSiteId();
     const cacheTTL = isRealtimeMode ? CACHE_TTL.SHORT : CACHE_TTL.MEDIUM;
     const cacheKey = buildCacheKey(CACHE_KEYS.DASHBOARD, {
+      siteId,
       timeRange,
       start: startISO,
       end: endISO,
@@ -159,7 +158,7 @@ export async function GET(request: NextRequest) {
           getAnalyticsSummaryWithComparison(comparisonTimeRange),
           getSectionHeatmap(startISO, endISO),
           isRealtimeMode
-            ? getPageVisits(startISO, endISO)
+            ? getPageVisits(startISO, endISO).then((visits: any[]) => visits.slice(0, 1000))
             : getVisitsByPeriod(comparisonTimeRange, startISO, endISO),
           getTrafficSources(startISO, endISO),
           getDeviceBreakdown(startISO, endISO),

@@ -128,6 +128,11 @@ export class Tracker {
   private boundHandleScroll: () => void;
   private boundHandleBeforeUnload: () => void;
   private boundHandleVisibilityChange: () => void;
+  private boundHandlePopState: () => void;
+
+  // Original History methods for SPA tracking
+  private originalPushState: typeof history.pushState | null = null;
+  private originalReplaceState: typeof history.replaceState | null = null;
 
   constructor(config: Partial<TrackerConfig> = {}) {
     this.config = { ...DEFAULT_TRACKER_CONFIG, ...config };
@@ -140,6 +145,7 @@ export class Tracker {
     this.boundHandleScroll = debounce(this.handleScroll.bind(this), this.config.scrollDebounce);
     this.boundHandleBeforeUnload = this.handleBeforeUnload.bind(this);
     this.boundHandleVisibilityChange = this.handleVisibilityChange.bind(this);
+    this.boundHandlePopState = this.handleSPANavigation.bind(this);
   }
 
   // ============================================
@@ -614,6 +620,10 @@ export class Tracker {
     window.addEventListener('scroll', this.boundHandleScroll, { passive: true });
     window.addEventListener('beforeunload', this.boundHandleBeforeUnload);
     document.addEventListener('visibilitychange', this.boundHandleVisibilityChange);
+
+    // SPA navigation tracking: intercept History API and popstate
+    window.addEventListener('popstate', this.boundHandlePopState);
+    this.patchHistoryAPI();
   }
 
   /**
@@ -623,6 +633,10 @@ export class Tracker {
     window.removeEventListener('scroll', this.boundHandleScroll);
     window.removeEventListener('beforeunload', this.boundHandleBeforeUnload);
     document.removeEventListener('visibilitychange', this.boundHandleVisibilityChange);
+    window.removeEventListener('popstate', this.boundHandlePopState);
+
+    // Restore original History API methods
+    this.restoreHistoryAPI();
 
     // Cancel debounce
     (this.boundHandleScroll as ReturnType<typeof debounce>).cancel?.();
@@ -671,6 +685,55 @@ export class Tracker {
     } else {
       // Page visible - resume section tracking
       this.resumeSectionTracking();
+    }
+  }
+
+  // ============================================
+  // SPA Navigation
+  // ============================================
+
+  /**
+   * Handles SPA navigation (pushState, replaceState, popstate)
+   * Tracks a new page view when the URL changes
+   */
+  private handleSPANavigation(): void {
+    const newUrl = window.location.pathname;
+    if (newUrl !== this.currentPage) {
+      this.trackPageView();
+    }
+  }
+
+  /**
+   * Patches History.pushState and History.replaceState to detect SPA navigations
+   */
+  private patchHistoryAPI(): void {
+    this.originalPushState = history.pushState.bind(history);
+    this.originalReplaceState = history.replaceState.bind(history);
+
+    const tracker = this;
+
+    history.pushState = function (...args: Parameters<typeof history.pushState>) {
+      tracker.originalPushState!(...args);
+      tracker.handleSPANavigation();
+    };
+
+    history.replaceState = function (...args: Parameters<typeof history.replaceState>) {
+      tracker.originalReplaceState!(...args);
+      tracker.handleSPANavigation();
+    };
+  }
+
+  /**
+   * Restores original History API methods
+   */
+  private restoreHistoryAPI(): void {
+    if (this.originalPushState) {
+      history.pushState = this.originalPushState;
+      this.originalPushState = null;
+    }
+    if (this.originalReplaceState) {
+      history.replaceState = this.originalReplaceState;
+      this.originalReplaceState = null;
     }
   }
 
