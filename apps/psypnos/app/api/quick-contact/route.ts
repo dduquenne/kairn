@@ -21,6 +21,9 @@ const requestTypeValues = ['', 'premiere_consultation', 'question_generale', 'se
 
 const phoneRegex = /^(\+33|0)[1-9](\d{2}){4}$|^\+?\d{10,15}$/;
 
+// Supprime espaces, tirets, points et parenthèses pour normaliser un numéro de téléphone
+const normalizePhone = (value: string) => value.replace(/[\s.\-()]/g, '');
+
 const quickContactSchema = z.object({
   firstName: z.string().trim().min(2, 'Le prénom est requis').max(50),
   lastName: z.string().trim().min(2, 'Le nom est requis').max(50),
@@ -28,7 +31,7 @@ const quickContactSchema = z.object({
   phone: z
     .string()
     .optional()
-    .transform(value => value?.trim().replace(/\s/g, '') ?? '')
+    .transform(value => normalizePhone(value?.trim() ?? ''))
     .refine(value => !value || phoneRegex.test(value), {
       message: 'Format de téléphone invalide',
     }),
