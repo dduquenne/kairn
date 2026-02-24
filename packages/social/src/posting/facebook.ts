@@ -272,10 +272,10 @@ export class FacebookPublisher implements SocialPublisher {
       if (!response.ok) {
         return { success: false, error: `Facebook API error: ${response.status}` };
       }
-      const data = await response.json();
+      const data = (await response.json()) as Record<string, unknown>;
       return {
         success: true,
-        followers: data.followers_count || data.fan_count || 0,
+        followers: (data.followers_count as number) || (data.fan_count as number) || 0,
         following: 0, // Pages don't have a "following" count
         postsCount: 0, // Requires separate paginated call
         rawData: data,

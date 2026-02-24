@@ -269,12 +269,12 @@ export class InstagramPublisher implements SocialPublisher {
       if (!response.ok) {
         return { success: false, error: `Instagram API error: ${response.status}` };
       }
-      const data = await response.json();
+      const data = (await response.json()) as Record<string, unknown>;
       return {
         success: true,
-        followers: data.followers_count || 0,
-        following: data.follows_count || 0,
-        postsCount: data.media_count || 0,
+        followers: (data.followers_count as number) || 0,
+        following: (data.follows_count as number) || 0,
+        postsCount: (data.media_count as number) || 0,
         rawData: data,
       };
     } catch (error) {

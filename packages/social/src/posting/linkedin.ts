@@ -280,7 +280,7 @@ export class LinkedInPublisher implements SocialPublisher {
   async getAccountMetrics(input: GetAccountMetricsInput): Promise<AccountMetricsResult> {
     const { accessToken, accountMetadata } = input;
     try {
-      const isOrganization = accountMetadata?.type === 'ORGANIZATION';
+      const isOrganization = !!accountMetadata?.organizationId;
 
       if (isOrganization) {
         const orgId = accountMetadata?.organizationId;
@@ -298,11 +298,13 @@ export class LinkedInPublisher implements SocialPublisher {
         if (!response.ok) {
           return { success: false, error: `LinkedIn API error: ${response.status}` };
         }
-        const data = await response.json();
-        const followerStats = data.elements?.[0] || {};
+        const data = (await response.json()) as Record<string, unknown>;
+        const elements = data.elements as Array<Record<string, unknown>> | undefined;
+        const followerStats = elements?.[0] || {};
+        const followerCounts = followerStats.followerCounts as Record<string, unknown> | undefined;
         return {
           success: true,
-          followers: followerStats.followerCounts?.organicFollowerCount || 0,
+          followers: (followerCounts?.organicFollowerCount as number) || 0,
           following: 0,
           postsCount: 0,
           rawData: data,
@@ -317,7 +319,7 @@ export class LinkedInPublisher implements SocialPublisher {
       if (!response.ok) {
         return { success: false, error: `LinkedIn API error: ${response.status}` };
       }
-      const data = await response.json();
+      const data = (await response.json()) as Record<string, unknown>;
       return {
         success: true,
         followers: 0, // Personal profile follower count not available via API
