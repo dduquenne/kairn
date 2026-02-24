@@ -334,6 +334,8 @@ enum EventType {
   FORM_SUBMIT      // Form submission
   DOWNLOAD         // File download
   CUSTOM           // Custom event
+  SESSION_START    // Session start
+  SESSION_END      // Session end with duration and page count
 }
 
 /// Analytics event - Unified event storage
