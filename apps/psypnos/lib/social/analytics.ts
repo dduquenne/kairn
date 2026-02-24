@@ -747,6 +747,109 @@ export async function getPostTypeStats(
 }
 
 // ===========================================
+// Hashtag Performance Analysis
+// ===========================================
+
+export interface HashtagPerformance {
+  hashtag: string;
+  usageCount: number;
+  avgEngagementRate: number;
+  totalReach: number;
+  totalEngagements: number;
+}
+
+/**
+ * Extrait les hashtags d'un contenu textuel
+ */
+function extractHashtags(content: string): string[] {
+  const matches = content.match(/#[\w\u00C0-\u024F]+/g);
+  if (!matches) return [];
+  return [...new Set(matches.map((h) => h.toLowerCase()))];
+}
+
+/**
+ * Analyse la performance des hashtags utilisés dans les posts.
+ * Retourne les hashtags triés par taux d'engagement moyen décroissant.
+ */
+export async function getHashtagPerformance(
+  startDate?: Date,
+  endDate?: Date,
+  limit = 20
+): Promise<HashtagPerformance[]> {
+  const dateFilter = buildDateFilter(startDate, endDate);
+
+  const posts: Array<{
+    content: string;
+    analytics: {
+      impressions: number;
+      reach: number;
+      engagements: number;
+    } | null;
+  }> = await prisma.socialPost.findMany({
+    where: {
+      ...dateFilter,
+      status: 'PUBLISHED',
+    },
+    select: {
+      content: true,
+      analytics: {
+        select: { impressions: true, reach: true, engagements: true },
+      },
+    },
+  });
+
+  const hashtagBuckets: Map<
+    string,
+    { count: number; totalEngRate: number; totalReach: number; totalEngagements: number }
+  > = new Map();
+
+  for (const post of posts) {
+    const hashtags = extractHashtags(post.content);
+    if (hashtags.length === 0) continue;
+
+    const impressions = post.analytics?.impressions || 0;
+    const reach = post.analytics?.reach || 0;
+    const engagements = post.analytics?.engagements || 0;
+    const engRate = impressions > 0 ? (engagements / impressions) * 100 : 0;
+
+    for (const tag of hashtags) {
+      const existing = hashtagBuckets.get(tag) || {
+        count: 0,
+        totalEngRate: 0,
+        totalReach: 0,
+        totalEngagements: 0,
+      };
+      existing.count += 1;
+      existing.totalEngRate += engRate;
+      existing.totalReach += reach;
+      existing.totalEngagements += engagements;
+      hashtagBuckets.set(tag, existing);
+    }
+  }
+
+  const results: HashtagPerformance[] = [];
+
+  for (const [hashtag, bucket] of hashtagBuckets) {
+    results.push({
+      hashtag,
+      usageCount: bucket.count,
+      avgEngagementRate: bucket.count > 0 ? bucket.totalEngRate / bucket.count : 0,
+      totalReach: bucket.totalReach,
+      totalEngagements: bucket.totalEngagements,
+    });
+  }
+
+  // Sort by avgEngagementRate descending, then by usage count
+  results.sort((a, b) => {
+    const rateCompare = b.avgEngagementRate - a.avgEngagementRate;
+    if (Math.abs(rateCompare) < 0.01) return b.usageCount - a.usageCount;
+    return rateCompare;
+  });
+
+  return results.slice(0, limit);
+}
+
+// ===========================================
 // Helpers
 // ===========================================
 

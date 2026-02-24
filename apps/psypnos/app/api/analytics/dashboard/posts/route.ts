@@ -22,6 +22,7 @@ import {
   getComparisonStats,
   getBestPostingTimes,
   getPostTypeStats,
+  getHashtagPerformance,
 } from '@/lib/social/analytics';
 import { getTotalFollowersByPlatform } from '@/lib/social/snapshots';
 
@@ -80,6 +81,7 @@ export async function GET(request: NextRequest) {
       bestTimes,
       postTypes,
       followersByPlatform,
+      hashtagPerformance,
     ] = await Promise.all([
       getDashboardStats(startDate, endDate),
       getStatsByPlatform(startDate, endDate),
@@ -91,6 +93,7 @@ export async function GET(request: NextRequest) {
       getBestPostingTimes(startDate, endDate),
       getPostTypeStats(startDate, endDate),
       getTotalFollowersByPlatform(),
+      getHashtagPerformance(startDate, endDate, 20),
     ]);
 
     // Format platform stats for PostsPanel
@@ -162,6 +165,13 @@ export async function GET(request: NextRequest) {
         day: bt.day,
         hour: bt.hour,
         engagement: bt.engagement,
+      })),
+      hashtagPerformance: hashtagPerformance.map((h) => ({
+        hashtag: h.hashtag,
+        usageCount: h.usageCount,
+        avgEngagementRate: h.avgEngagementRate,
+        totalReach: h.totalReach,
+        totalEngagements: h.totalEngagements,
       })),
     };
 
