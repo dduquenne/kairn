@@ -11,27 +11,27 @@
  * - Uptime
  */
 
-import os from "os";
+import os from 'os';
 
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server';
 
-import { checkRedisHealth } from "@/lib/cache/redis";
-import { isDatabaseConnected, prisma } from "@/lib/db/prisma";
+import { checkRedisHealth } from '@/lib/cache/redis';
+import { isDatabaseConnected, prisma } from '@/lib/db/prisma';
 
 interface HealthStatus {
-  status: "healthy" | "degraded" | "unhealthy";
+  status: 'healthy' | 'degraded' | 'unhealthy';
   timestamp: string;
   uptime: number | null;
   uptimeMessage?: string;
   version: string;
   checks: {
     database: {
-      status: "up" | "down";
+      status: 'up' | 'down';
       latencyMs?: number;
       error?: string;
     };
     redis: {
-      status: "up" | "down" | "disabled";
+      status: 'up' | 'down' | 'disabled';
       latencyMs?: number;
       error?: string;
     };
@@ -55,8 +55,8 @@ export async function GET(): Promise<NextResponse<HealthStatus>> {
 
   try {
     const lastSuccessfulDeployment = await prisma.deployment.findFirst({
-      where: { status: "success" },
-      orderBy: { completedAt: "desc" },
+      where: { status: 'success' },
+      orderBy: { completedAt: 'desc' },
       select: { completedAt: true },
     });
 
@@ -64,37 +64,37 @@ export async function GET(): Promise<NextResponse<HealthStatus>> {
       const now = new Date();
       uptime = Math.floor((now.getTime() - lastSuccessfulDeployment.completedAt.getTime()) / 1000);
     } else {
-      uptimeMessage = "Aucun déploiement enregistré";
+      uptimeMessage = 'Aucun déploiement enregistré';
     }
   } catch {
     uptimeMessage = "Impossible de récupérer l'uptime";
   }
 
   // Check database
-  let dbStatus: HealthStatus["checks"]["database"];
+  let dbStatus: HealthStatus['checks']['database'];
   const dbStart = Date.now();
   try {
     const connected = await isDatabaseConnected();
     dbStatus = {
-      status: connected ? "up" : "down",
+      status: connected ? 'up' : 'down',
       latencyMs: Date.now() - dbStart,
     };
   } catch (error) {
     dbStatus = {
-      status: "down",
+      status: 'down',
       latencyMs: Date.now() - dbStart,
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 
   // Check Redis
-  let redisStatus: HealthStatus["checks"]["redis"];
+  let redisStatus: HealthStatus['checks']['redis'];
   if (!process.env.REDIS_URL) {
-    redisStatus = { status: "disabled" };
+    redisStatus = { status: 'disabled' };
   } else {
     const redisHealth = await checkRedisHealth();
     redisStatus = {
-      status: redisHealth.available ? "up" : "down",
+      status: redisHealth.available ? 'up' : 'down',
       latencyMs: redisHealth.latencyMs,
       error: redisHealth.error,
     };
@@ -115,18 +115,17 @@ export async function GET(): Promise<NextResponse<HealthStatus>> {
   };
 
   // Determine overall status
-  let overallStatus: HealthStatus["status"] = "healthy";
+  let overallStatus: HealthStatus['status'] = 'healthy';
 
-  // If database mode is postgres and DB is down, it's unhealthy
-  const analyticsMode = process.env.ANALYTICS_STORAGE_MODE || "json";
-  if (analyticsMode === "postgres" && dbStatus.status === "down") {
-    overallStatus = "unhealthy";
+  // Analytics always uses PostgreSQL — if DB is down, it's unhealthy
+  if (dbStatus.status === 'down') {
+    overallStatus = 'unhealthy';
   } else if (
-    (analyticsMode === "postgres" && dbStatus.latencyMs && dbStatus.latencyMs > 1000) ||
-    (redisStatus.status === "down" && process.env.REDIS_URL) ||
+    (dbStatus.latencyMs && dbStatus.latencyMs > 1000) ||
+    (redisStatus.status === 'down' && process.env.REDIS_URL) ||
     memory.percentUsed > 90
   ) {
-    overallStatus = "degraded";
+    overallStatus = 'degraded';
   }
 
   const response: HealthStatus = {
@@ -134,7 +133,7 @@ export async function GET(): Promise<NextResponse<HealthStatus>> {
     timestamp,
     uptime,
     ...(uptimeMessage && { uptimeMessage }),
-    version: process.env.npm_package_version || "1.0.0",
+    version: process.env.npm_package_version || '1.0.0',
     checks: {
       database: dbStatus,
       redis: redisStatus,
@@ -143,7 +142,7 @@ export async function GET(): Promise<NextResponse<HealthStatus>> {
     analyticsMode,
   };
 
-  const httpStatus = overallStatus === "unhealthy" ? 503 : 200;
+  const httpStatus = overallStatus === 'unhealthy' ? 503 : 200;
 
   return NextResponse.json(response, { status: httpStatus });
 }

@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 
-import { withAdminAuth } from '../../../../auth/middleware';
 import { prisma } from '@/lib/db/prisma';
+
+import { withAdminAuth } from '../../../../auth/middleware';
 
 /**
  * GET /api/admin/chatbot/conversations/[id]
@@ -37,15 +38,14 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     }
 
     // Compute total tokens used
-    const totalTokens = conversation.messages.reduce(
-      (sum, msg) => sum + (msg.tokensUsed || 0),
-      0
-    );
+    type Msg = { tokensUsed?: number | null; processingTime?: number | null };
+    const msgs = conversation.messages as Msg[];
+    const totalTokens = msgs.reduce((sum: number, msg: Msg) => sum + (msg.tokensUsed || 0), 0);
     const avgProcessingTime =
-      conversation.messages.filter((m) => m.processingTime).length > 0
+      msgs.filter((m: Msg) => m.processingTime).length > 0
         ? Math.round(
-            conversation.messages.reduce((sum, m) => sum + (m.processingTime || 0), 0) /
-              conversation.messages.filter((m) => m.processingTime).length
+            msgs.reduce((sum: number, m: Msg) => sum + (m.processingTime || 0), 0) /
+              msgs.filter((m: Msg) => m.processingTime).length
           )
         : null;
 
@@ -67,10 +67,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
  * DELETE /api/admin/chatbot/conversations/[id]
  * Delete a conversation and all its messages
  */
-export async function DELETE(
-  _request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const authResult = await withAdminAuth();
   if (authResult.error) return authResult.error;
 
