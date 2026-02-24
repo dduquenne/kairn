@@ -130,10 +130,10 @@ export async function GET(request: NextRequest) {
       engagementRate: p.engagementRate,
     }));
 
-    // Format trend data
+    // Format trend data — use real reach when available, fallback to impressions
     const engagementTrends = trendData.map((t) => ({
       label: t.date,
-      reach: t.impressions, // Using impressions as reach proxy
+      reach: t.reach > 0 ? t.reach : t.impressions,
       engagement: t.engagements,
       posts: t.posts,
     }));

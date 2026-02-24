@@ -65,7 +65,11 @@ export interface PostPerformance {
 export interface TrendDataPoint {
   date: string;
   impressions: number;
+  reach: number;
   engagements: number;
+  likes: number;
+  comments: number;
+  shares: number;
   posts: number;
 }
 
@@ -374,7 +378,11 @@ export async function getTrendData(
     dataByDate.set(dateKey, {
       date: dateKey,
       impressions: 0,
+      reach: 0,
       engagements: 0,
+      likes: 0,
+      comments: 0,
+      shares: 0,
       posts: 0,
     });
     currentDate.setDate(currentDate.getDate() + 1);
@@ -389,7 +397,11 @@ export async function getTrendData(
 
     if (existing) {
       existing.impressions += post.analytics?.impressions || 0;
+      existing.reach += post.analytics?.reach || 0;
       existing.engagements += post.analytics?.engagements || 0;
+      existing.likes += post.analytics?.likes || 0;
+      existing.comments += post.analytics?.comments || 0;
+      existing.shares += post.analytics?.shares || 0;
       existing.posts += 1;
     }
   }
