@@ -17,6 +17,18 @@ import {
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Sanitizes a CSV cell value to prevent formula injection attacks.
+ * Cells starting with =, +, -, @, \t, or \r could be interpreted
+ * as formulas by spreadsheet software.
+ */
+function sanitizeCSVCell(value: string): string {
+  if (value.length > 0 && /^[=+\-@\t\r]/.test(value)) {
+    return `'${value}`;
+  }
+  return value;
+}
+
 // Helper function to convert array of objects to CSV
 function arrayToCSV(data: any[], headers: string[]): string {
   const csvHeaders = headers.join(",");
@@ -26,7 +38,7 @@ function arrayToCSV(data: any[], headers: string[]): string {
         const value = row[header];
         // Escape commas and quotes in values
         if (value === null || value === undefined) return "";
-        const stringValue = String(value);
+        const stringValue = sanitizeCSVCell(String(value));
         if (stringValue.includes(",") || stringValue.includes('"') || stringValue.includes("\n")) {
           return `"${stringValue.replace(/"/g, '""')}"`;
         }
@@ -40,6 +52,11 @@ function arrayToCSV(data: any[], headers: string[]): string {
 
 export async function GET(request: NextRequest) {
   try {
+    // Verify admin authentication
+    const { withAdminAuth } = await import('../../auth/middleware');
+    const authResult = await withAdminAuth();
+    if (authResult.error) return authResult.error;
+
     const searchParams = request.nextUrl.searchParams;
     const exportType = searchParams.get("type") || "summary";
     const startDate = searchParams.get("startDate") || undefined;

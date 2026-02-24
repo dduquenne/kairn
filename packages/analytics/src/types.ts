@@ -19,6 +19,10 @@ export type TrackingEventType =
   | 'section_view' // Section view
   | 'section_time' // Time spent on section
   | 'conversion' // Conversion event
+  | 'funnel_step' // Funnel step (maps to Prisma FUNNEL_STEP)
+  | 'click' // Click event (maps to Prisma CLICK)
+  | 'form_submit' // Form submission (maps to Prisma FORM_SUBMIT)
+  | 'download' // Download event (maps to Prisma DOWNLOAD)
   | 'custom_event' // Custom event
   | 'session_start' // Session start
   | 'session_end'; // Session end

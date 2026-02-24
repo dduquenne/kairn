@@ -31,6 +31,7 @@ export class SessionManager {
   private session: SessionData | null = null;
   private activityTimeout: ReturnType<typeof setTimeout> | null = null;
   private onSessionEnd: ((session: SessionData) => void) | null = null;
+  private throttledActivityHandler: ((...args: unknown[]) => void) | null = null;
   private config: {
     sessionStorageKey: string;
     sessionTimeout: number;
@@ -141,12 +142,13 @@ export class SessionManager {
   destroy(): void {
     this.clearActivityTimeout();
 
-    if (typeof window !== 'undefined') {
-      window.removeEventListener('mousemove', this.handleActivity);
-      window.removeEventListener('keydown', this.handleActivity);
-      window.removeEventListener('scroll', this.handleActivity);
-      window.removeEventListener('click', this.handleActivity);
-      window.removeEventListener('touchstart', this.handleActivity);
+    if (typeof window !== 'undefined' && this.throttledActivityHandler) {
+      window.removeEventListener('mousemove', this.throttledActivityHandler);
+      window.removeEventListener('keydown', this.throttledActivityHandler);
+      window.removeEventListener('scroll', this.throttledActivityHandler);
+      window.removeEventListener('click', this.throttledActivityHandler);
+      window.removeEventListener('touchstart', this.throttledActivityHandler);
+      this.throttledActivityHandler = null;
     }
   }
 
@@ -245,14 +247,40 @@ export class SessionManager {
   }
 
   /**
-   * Marks user as visitor (to detect returns)
+   * Visitor ID TTL: 13 months (CNIL recommendation)
+   */
+  private static readonly VISITOR_ID_TTL_MS = 13 * 30 * 24 * 60 * 60 * 1000;
+
+  /**
+   * Marks user as visitor (to detect returns).
+   * Visitor ID includes creation timestamp for expiration enforcement.
    */
   private markAsVisitor(): void {
     try {
-      if (!localStorage.getItem(this.config.visitorIdKey)) {
-        const visitorId = `v_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 9)}`;
-        localStorage.setItem(this.config.visitorIdKey, visitorId);
+      const raw = localStorage.getItem(this.config.visitorIdKey);
+
+      if (raw) {
+        // Check expiration on existing visitor ID
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed.createdAt) {
+            const age = Date.now() - new Date(parsed.createdAt).getTime();
+            if (age <= SessionManager.VISITOR_ID_TTL_MS) {
+              return; // Still valid
+            }
+          }
+        } catch {
+          // Legacy format (plain string) — treat as expired
+        }
+        localStorage.removeItem(this.config.visitorIdKey);
       }
+
+      // Create new visitor ID with creation timestamp
+      const visitorData = {
+        id: `v_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 9)}`,
+        createdAt: new Date().toISOString(),
+      };
+      localStorage.setItem(this.config.visitorIdKey, JSON.stringify(visitorData));
     } catch {
       // localStorage not available
     }
@@ -322,13 +350,14 @@ export class SessionManager {
    */
   private setupActivityListeners(): void {
     // Throttle to avoid too many calls
-    const throttledHandler = this.throttle(this.handleActivity.bind(this), 1000);
+    // Store reference so destroy() can properly remove the listeners
+    this.throttledActivityHandler = this.throttle(this.handleActivity.bind(this), 1000);
 
-    window.addEventListener('mousemove', throttledHandler, { passive: true });
-    window.addEventListener('keydown', throttledHandler, { passive: true });
-    window.addEventListener('scroll', throttledHandler, { passive: true });
-    window.addEventListener('click', throttledHandler, { passive: true });
-    window.addEventListener('touchstart', throttledHandler, { passive: true });
+    window.addEventListener('mousemove', this.throttledActivityHandler, { passive: true });
+    window.addEventListener('keydown', this.throttledActivityHandler, { passive: true });
+    window.addEventListener('scroll', this.throttledActivityHandler, { passive: true });
+    window.addEventListener('click', this.throttledActivityHandler, { passive: true });
+    window.addEventListener('touchstart', this.throttledActivityHandler, { passive: true });
 
     // Handle page close
     window.addEventListener('beforeunload', () => {

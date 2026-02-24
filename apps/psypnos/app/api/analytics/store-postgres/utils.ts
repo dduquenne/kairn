@@ -73,6 +73,8 @@ export function toEventType(type: string): EventType {
     download: EventType.DOWNLOAD,
     custom: EventType.CUSTOM,
     custom_event: EventType.CUSTOM,
+    session_start: EventType.SESSION_START,
+    session_end: EventType.SESSION_END,
   };
 
   return mapping[type.toLowerCase()] || EventType.CUSTOM;
@@ -94,6 +96,8 @@ export function fromEventType(type: EventType): string {
     [EventType.FORM_SUBMIT]: "form_submit",
     [EventType.DOWNLOAD]: "download",
     [EventType.CUSTOM]: "custom",
+    [EventType.SESSION_START]: "session_start",
+    [EventType.SESSION_END]: "session_end",
   };
 
   return mapping[type] || "custom";

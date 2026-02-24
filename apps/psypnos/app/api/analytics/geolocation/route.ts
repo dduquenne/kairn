@@ -16,6 +16,11 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
+    // Verify admin authentication
+    const { withAdminAuth } = await import('../../auth/middleware');
+    const authResult = await withAdminAuth();
+    if (authResult.error) return authResult.error;
+
     const searchParams = request.nextUrl.searchParams;
     const startDateParam = searchParams.get("startDate");
     const endDateParam = searchParams.get("endDate");

@@ -13,6 +13,11 @@ export const dynamic = 'force-dynamic';
  */
 export async function GET(request: NextRequest) {
   try {
+    // Verify admin authentication
+    const { withAdminAuth } = await import('../../auth/middleware');
+    const authResult = await withAdminAuth();
+    if (authResult.error) return authResult.error;
+
     const now = new Date();
 
     // Calculate time windows
