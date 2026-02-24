@@ -8,7 +8,7 @@
  * Si Redis n'est pas disponible, utilise un fallback en mémoire avec éviction LRU.
  */
 
-import { getRedisClient, isRedisConnected } from "@/lib/cache/redis";
+import { getRedisClient, isRedisConnected } from '@/lib/cache/redis';
 
 interface RateLimitEntry {
   attempts: number;
@@ -25,6 +25,7 @@ export interface RateLimitConfig {
 export const RATE_LIMITS: Record<string, RateLimitConfig> = {
   login: { maxAttempts: 5, windowMs: 60 * 1000 }, // 5 tentatives/minute
   contact: { maxAttempts: 5, windowMs: 60 * 1000 }, // 5 messages/minute
+  'quick-contact': { maxAttempts: 5, windowMs: 60 * 1000 }, // 5 messages/minute
   appointment: { maxAttempts: 5, windowMs: 60 * 1000 }, // 5 demandes/minute
   registration: { maxAttempts: 3, windowMs: 60 * 1000 }, // 3 inscriptions/minute
   assistant: { maxAttempts: 10, windowMs: 60 * 60 * 1000 }, // 10 requêtes/heure
@@ -37,7 +38,7 @@ export const RATE_LIMITS: Record<string, RateLimitConfig> = {
 // REDIS RATE LIMITING (Production)
 // ============================================
 
-const REDIS_KEY_PREFIX = "ratelimit:";
+const REDIS_KEY_PREFIX = 'ratelimit:';
 
 /**
  * Build Redis key for rate limiting
@@ -93,7 +94,7 @@ async function redisRateLimitCheck(
 
     return { limited, remaining, resetTime };
   } catch (error) {
-    console.error("[RateLimiter] Redis error:", error);
+    console.error('[RateLimiter] Redis error:', error);
     return null; // Fallback to memory
   }
 }
@@ -112,7 +113,7 @@ async function redisClearAttempts(type: string, identifier: string): Promise<boo
     await client.del(key);
     return true;
   } catch (error) {
-    console.error("[RateLimiter] Redis clear error:", error);
+    console.error('[RateLimiter] Redis clear error:', error);
     return false;
   }
 }
@@ -264,7 +265,10 @@ export async function recordAttemptAsync(
  * Enregistre une tentative (version synchrone, mémoire uniquement)
  * @deprecated Use recordAttemptAsync for Redis support
  */
-export function recordAttempt(type: string, identifier: string): {
+export function recordAttempt(
+  type: string,
+  identifier: string
+): {
   limited: boolean;
   remaining: number;
   resetTime: number;
@@ -317,22 +321,22 @@ export function cleanupExpiredEntries(): void {
  * Récupère l'IP du client depuis les headers Next.js
  */
 export function getClientIP(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  const realIP = request.headers.get("x-real-ip");
+  const forwarded = request.headers.get('x-forwarded-for');
+  const realIP = request.headers.get('x-real-ip');
 
   if (forwarded) {
-    return forwarded.split(",")[0].trim();
+    return forwarded.split(',')[0].trim();
   }
 
   if (realIP) {
     return realIP;
   }
 
-  return "unknown";
+  return 'unknown';
 }
 
 // Nettoyer les entrées expirées toutes les 5 minutes
-if (typeof window === "undefined" && typeof setInterval !== "undefined") {
+if (typeof window === 'undefined' && typeof setInterval !== 'undefined') {
   const interval = setInterval(cleanupExpiredEntries, 5 * 60 * 1000);
   // Permettre au processus d'exit
   if (interval.unref) {

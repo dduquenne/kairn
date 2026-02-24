@@ -1,19 +1,19 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
-import { NextResponse } from "next/server";
-import { z } from "zod";
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
 
-import { siteConfig } from "@/config/site.config";
-import seminarsData from "../../../data/seminars.json";
-import { validateCSRFMiddleware } from "../common/csrf-middleware";
+import { siteConfig } from '@/config/site.config';
+
+import seminarsData from '../../../data/seminars.json';
+import { validateCSRFMiddleware } from '../common/csrf-middleware';
 import {
   buildAdminEmailHtml,
   buildAdminEmailText,
   buildConfirmationEmailHtml,
   buildConfirmationEmailText,
   getEmailBranding,
-} from "../common/email-templates";
+} from '../common/email-templates';
+import { recordAttempt, getClientIP } from '../common/rate-limiter';
+import { sendEmailThroughResend, type EmailContent } from '../common/send-email';
 
 const branding = getEmailBranding(siteConfig);
 
@@ -31,7 +31,7 @@ type Seminar = {
   tags?: string[];
 };
 
-const sexValues = ["homme", "femme", "autre"] as const;
+const sexValues = ['homme', 'femme', 'autre'] as const;
 
 const registrationSchema = z.object({
   firstName: z.string().trim().min(2),
@@ -40,12 +40,22 @@ const registrationSchema = z.object({
   phone: z.string().trim().min(10),
   seminarId: z.string().trim().min(1),
   firstTime: z.boolean().default(false),
-  precisions: z.string().trim().max(500).optional().transform((value) => value ?? ""),
+  precisions: z
+    .string()
+    .trim()
+    .max(500)
+    .optional()
+    .transform(value => value ?? ''),
   newsletterOptIn: z.boolean().optional().default(false),
-  consent: z.boolean().refine((value) => value === true),
+  consent: z.boolean().refine(value => value === true),
   birthYear: z.number().int(),
   sex: z.enum(sexValues),
-  sexOther: z.string().trim().max(50).optional().transform((value) => value ?? ""),
+  sexOther: z
+    .string()
+    .trim()
+    .max(50)
+    .optional()
+    .transform(value => value ?? ''),
   addressStreet: z.string().trim().min(3).max(120),
   addressZip: z.string().trim().min(2).max(12),
   addressCity: z.string().trim().min(2).max(80),
@@ -54,22 +64,21 @@ const registrationSchema = z.object({
   emergencyFirstName: z.string().trim().min(2).max(50),
   emergencyPhone: z.string().trim().min(10),
   hasPriorWork: z.boolean().optional().default(false),
-  priorWorkDetails: z.string().trim().max(800).optional().transform((value) => value ?? ""),
-  consent_RGPD: z.boolean().refine((value) => value === true)
+  priorWorkDetails: z
+    .string()
+    .trim()
+    .max(800)
+    .optional()
+    .transform(value => value ?? ''),
+  consent_RGPD: z.boolean().refine(value => value === true),
 });
 
 type SeminarRegistrationPayload = z.infer<typeof registrationSchema>;
 
-type EmailContent = {
-  subject: string;
-  text: string;
-  html: string;
-};
-
-const formatBoolean = (value: boolean) => (value ? "Oui" : "Non");
+const formatBoolean = (value: boolean) => (value ? 'Oui' : 'Non');
 
 const getSeminarById = (id: string) => {
-  if (!seminarsData || typeof seminarsData !== "object") {
+  if (!seminarsData || typeof seminarsData !== 'object') {
     return undefined;
   }
 
@@ -78,21 +87,21 @@ const getSeminarById = (id: string) => {
     return undefined;
   }
 
-  return seminars.find((seminar) => seminar.id === id);
+  return seminars.find(seminar => seminar.id === id);
 };
 
 const formatSeminarDates = (seminar?: Seminar): string => {
   if (!seminar) {
-    return "Dates non disponibles";
+    return 'Dates non disponibles';
   }
 
   const start = new Date(seminar.startAt);
   const end = new Date(seminar.endAt);
-  const dateFormatter = new Intl.DateTimeFormat("fr-FR", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric"
+  const dateFormatter = new Intl.DateTimeFormat('fr-FR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
   });
 
   const startLabel = dateFormatter.format(start);
@@ -104,69 +113,67 @@ const formatSeminarDates = (seminar?: Seminar): string => {
 const formatSeminarDetails = (seminar?: Seminar) => {
   if (!seminar) {
     return {
-      title: "Séminaire non référencé",
-      dates: "Dates non disponibles",
-      description: "",
-      speakers: "",
-      location: "Non spécifié",
+      title: 'Séminaire non référencé',
+      dates: 'Dates non disponibles',
+      description: '',
+      speakers: '',
+      location: 'Non spécifié',
       capacity: 0,
       price: 0,
       deposit: 0,
-      order: "Non spécifié"
+      order: 'Non spécifié',
     };
   }
 
   const speakers = seminar.speakers?.length
-    ? seminar.speakers.map((s) => `${s.firstName} ${s.lastName}`).join(", ")
-    : "Non spécifié";
+    ? seminar.speakers.map(s => `${s.firstName} ${s.lastName}`).join(', ')
+    : 'Non spécifié';
 
-  const location = seminar.tags?.find((tag) => tag.includes("lieu:"))?.replace("lieu:", "") || "Non spécifié";
+  const location =
+    seminar.tags?.find(tag => tag.includes('lieu:'))?.replace('lieu:', '') || 'Non spécifié';
 
   return {
     title: seminar.title,
     dates: formatSeminarDates(seminar),
-    description: seminar.description || "",
+    description: seminar.description || '',
     speakers,
     location,
     capacity: seminar.capacity || 0,
     price: seminar.price || 0,
     deposit: seminar.deposit || 0,
-    order: seminar.order || branding.siteName
+    order: seminar.order || branding.siteName,
   };
 };
 
-const formatAdminEmail = (
-  payload: SeminarRegistrationPayload,
-  seminar?: Seminar
-): EmailContent => {
+const formatAdminEmail = (payload: SeminarRegistrationPayload, seminar?: Seminar): EmailContent => {
   const submittedAt = new Date().toISOString();
   const seminarInfo = formatSeminarDetails(seminar);
-  const precision = payload.precisions?.trim() ? payload.precisions.trim() : "Non précisées";
+  const precision = payload.precisions?.trim() ? payload.precisions.trim() : 'Non précisées';
   const priorWork = payload.priorWorkDetails?.trim()
     ? payload.priorWorkDetails.trim()
-    : "Non précisé";
+    : 'Non précisé';
 
   const sexLabel =
-    payload.sex === "autre" && payload.sexOther
+    payload.sex === 'autre' && payload.sexOther
       ? `Autre (${payload.sexOther})`
       : payload.sex.charAt(0).toUpperCase() + payload.sex.slice(1);
 
   const fullName = `${payload.firstName} ${payload.lastName}`;
 
   const options = {
-    heading: "Nouvelle inscription séminaire",
+    heading: 'Nouvelle inscription séminaire',
     badge: seminarInfo.title,
     sections: [
       {
-        title: "Participant",
+        title: 'Participant',
         fields: [
-          { label: "Identité", value: fullName },
-          { label: "Email", value: payload.email, emailLink: true },
-          { label: "Téléphone", value: payload.phone, phoneLink: true },
-          { label: "Année de naissance", value: String(payload.birthYear) },
-          { label: "Sexe", value: sexLabel },
+          { label: 'Identité', value: fullName },
+          { label: 'Email', value: payload.email, emailLink: true },
+          { label: 'Téléphone', value: payload.phone, phoneLink: true },
+          { label: 'Année de naissance', value: String(payload.birthYear) },
+          { label: 'Sexe', value: sexLabel },
           {
-            label: "Adresse",
+            label: 'Adresse',
             value: `${payload.addressStreet}, ${payload.addressZip} ${payload.addressCity}, ${payload.addressCountry}`,
           },
           {
@@ -176,33 +183,33 @@ const formatAdminEmail = (
         ],
       },
       {
-        title: "Séminaire",
+        title: 'Séminaire',
         fields: [
-          { label: "Titre", value: seminarInfo.title },
-          { label: "Dates", value: seminarInfo.dates },
-          { label: "Lieu", value: seminarInfo.location },
-          { label: "Animateurs", value: seminarInfo.speakers },
-          { label: "Capacité", value: `${seminarInfo.capacity} personnes` },
-          { label: "Coût", value: `${seminarInfo.price} €` },
-          { label: "Acompte", value: `${seminarInfo.deposit} €` },
-          { label: "Ordre chèque", value: seminarInfo.order },
+          { label: 'Titre', value: seminarInfo.title },
+          { label: 'Dates', value: seminarInfo.dates },
+          { label: 'Lieu', value: seminarInfo.location },
+          { label: 'Animateurs', value: seminarInfo.speakers },
+          { label: 'Capacité', value: `${seminarInfo.capacity} personnes` },
+          { label: 'Coût', value: `${seminarInfo.price} €` },
+          { label: 'Acompte', value: `${seminarInfo.deposit} €` },
+          { label: 'Ordre chèque', value: seminarInfo.order },
         ],
       },
       {
-        title: "Inscription",
+        title: 'Inscription',
         fields: [
-          { label: "Première participation", value: formatBoolean(payload.firstTime) },
-          { label: "Stages précédents", value: formatBoolean(payload.hasPriorWork ?? false) },
-          { label: "Détails stages", value: priorWork },
-          { label: "Précisions", value: precision },
-          { label: "Newsletter", value: formatBoolean(payload.newsletterOptIn ?? false) },
-          { label: "Consentement", value: formatBoolean(payload.consent) },
-          { label: "Consentement RGPD", value: formatBoolean(payload.consent_RGPD) },
+          { label: 'Première participation', value: formatBoolean(payload.firstTime) },
+          { label: 'Stages précédents', value: formatBoolean(payload.hasPriorWork ?? false) },
+          { label: 'Détails stages', value: priorWork },
+          { label: 'Précisions', value: precision },
+          { label: 'Newsletter', value: formatBoolean(payload.newsletterOptIn ?? false) },
+          { label: 'Consentement', value: formatBoolean(payload.consent) },
+          { label: 'Consentement RGPD', value: formatBoolean(payload.consent_RGPD) },
         ],
       },
     ],
     metadata: {
-      type: "seminar_registration",
+      type: 'seminar_registration',
       first_name: payload.firstName,
       last_name: payload.lastName,
       email: payload.email,
@@ -248,28 +255,29 @@ const formatConfirmationEmail = (
   seminar?: Seminar
 ): EmailContent => {
   const seminarInfo = formatSeminarDetails(seminar);
-  const precision = payload.precisions?.trim() ? payload.precisions.trim() : "Non précisé";
+  const precision = payload.precisions?.trim() ? payload.precisions.trim() : 'Non précisé';
   const fullName = `${payload.firstName} ${payload.lastName}`;
 
   const options = {
     recipientName: payload.firstName,
-    intro:
-      `Merci pour votre inscription au séminaire ${branding.siteName} ! Nous revenons vers vous très rapidement pour confirmer votre participation.`,
+    intro: `Merci pour votre inscription au séminaire ${branding.siteName} ! Nous revenons vers vous très rapidement pour confirmer votre participation.`,
     sections: [
       {
-        title: "Informations du séminaire",
+        title: 'Informations du séminaire',
         fields: [
-          { label: "Séminaire", value: seminarInfo.title },
-          { label: "Dates", value: seminarInfo.dates },
-          { label: "Lieu", value: seminarInfo.location },
-          { label: "Animateurs", value: seminarInfo.speakers },
-          ...(seminarInfo.description ? [{ label: "Description", value: seminarInfo.description }] : []),
+          { label: 'Séminaire', value: seminarInfo.title },
+          { label: 'Dates', value: seminarInfo.dates },
+          { label: 'Lieu', value: seminarInfo.location },
+          { label: 'Animateurs', value: seminarInfo.speakers },
+          ...(seminarInfo.description
+            ? [{ label: 'Description', value: seminarInfo.description }]
+            : []),
         ],
       },
     ],
     callout: {
-      icon: "💰",
-      title: "Conditions financières",
+      icon: '💰',
+      title: 'Conditions financières',
       lines: [
         `Coût total du séminaire : ${seminarInfo.price} €`,
         `Acompte à envoyer : ${seminarInfo.deposit} € par chèque`,
@@ -287,15 +295,15 @@ const formatConfirmationEmail = (
       ],
     },
     recap: {
-      title: "Récapitulatif de votre inscription",
+      title: 'Récapitulatif de votre inscription',
       fields: [
-        { label: "Nom", value: fullName },
-        { label: "Téléphone", value: payload.phone },
-        { label: "Séminaire", value: seminarInfo.title },
-        { label: "Précisions", value: precision },
+        { label: 'Nom', value: fullName },
+        { label: 'Téléphone', value: payload.phone },
+        { label: 'Séminaire', value: seminarInfo.title },
+        { label: 'Précisions', value: precision },
       ],
     },
-    closing: "À très bientôt,",
+    closing: 'À très bientôt,',
     signer: `${branding.practitionerName} — ${branding.siteName}`,
   };
 
@@ -306,41 +314,26 @@ const formatConfirmationEmail = (
   };
 };
 
-const sendEmailThroughResend = async (content: EmailContent, to: string, replyTo?: string) => {
-  const apiKey = process.env.RESEND_API_KEY;
-  const fromAddress =
-    process.env.SEMINAR_REGISTRATION_FROM ??
-    process.env.APPOINTMENT_REQUEST_FROM ??
-    `${branding.siteName} <no-reply@${branding.domain}>`;
-
-  if (!apiKey) {
-    throw new Error("Le service d'envoi d'e-mails n'est pas configuré.");
-  }
-
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      from: fromAddress,
-      to: [to],
-      reply_to: replyTo ? [replyTo] : undefined,
-      subject: content.subject,
-      text: content.text,
-      html: content.html
-    })
-  });
-
-  if (!response.ok) {
-    const body = await response.json().catch(() => null);
-    const message = body?.message || "L'envoi de l'e-mail a échoué.";
-    throw new Error(message);
-  }
-};
-
 export async function POST(request: Request) {
+  // PROTECTION : Rate limiting - 3 inscriptions par minute par IP
+  const clientIP = getClientIP(request);
+  const rateLimitResult = recordAttempt('registration', clientIP);
+
+  if (rateLimitResult.limited) {
+    return NextResponse.json(
+      {
+        message: 'Trop de tentatives. Veuillez réessayer dans quelques instants.',
+        retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000),
+      },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)),
+        },
+      }
+    );
+  }
+
   // Valider le token CSRF
   const csrfError = await validateCSRFMiddleware(request);
   if (csrfError) {
@@ -352,24 +345,21 @@ export async function POST(request: Request) {
     const body = await request.json();
 
     // Honeypot check: if the hidden field is filled, return fake success silently
-    const honeypot = typeof body?.meta?.honeypot === "string" ? body.meta.honeypot.trim() : "";
-    if (honeypot !== "") {
+    const honeypot = typeof body?.meta?.honeypot === 'string' ? body.meta.honeypot.trim() : '';
+    if (honeypot !== '') {
       return NextResponse.json({ success: true });
     }
     const parsed = registrationSchema.safeParse(body);
 
     if (!parsed.success) {
       const firstIssue = parsed.error.issues[0];
-      const message = firstIssue?.message ?? "Données invalides.";
+      const message = firstIssue?.message ?? 'Données invalides.';
       return NextResponse.json({ message }, { status: 400 });
     }
 
     payload = parsed.data;
-  } catch (error) {
-    return NextResponse.json(
-      { message: "Données invalides." },
-      { status: 400 }
-    );
+  } catch {
+    return NextResponse.json({ message: 'Données invalides.' }, { status: 400 });
   }
 
   const seminar = getSeminarById(payload.seminarId);
@@ -379,10 +369,16 @@ export async function POST(request: Request) {
     branding.contactEmail;
 
   try {
-    await sendEmailThroughResend(formatAdminEmail(payload, seminar), recipient, payload.email);
+    await sendEmailThroughResend(formatAdminEmail(payload, seminar), recipient, branding, {
+      replyTo: payload.email,
+    });
 
     try {
-      await sendEmailThroughResend(formatConfirmationEmail(payload, seminar), payload.email);
+      await sendEmailThroughResend(
+        formatConfirmationEmail(payload, seminar),
+        payload.email,
+        branding
+      );
     } catch (confirmationError) {
       console.error("Échec de l'envoi de la confirmation du séminaire", confirmationError);
     }
@@ -391,7 +387,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Échec de l'envoi du formulaire d'inscription au séminaire", error);
     return NextResponse.json(
-      { message: "Une erreur est survenue. Veuillez réessayer dans quelques instants." },
+      { message: 'Une erreur est survenue. Veuillez réessayer dans quelques instants.' },
       { status: 500 }
     );
   }
