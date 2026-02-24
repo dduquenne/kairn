@@ -140,6 +140,18 @@ export async function GET(request: NextRequest) {
       async () => {
         // Fetch ALL data in a single parallel batch
         // This replaces 9 separate HTTP calls from the client
+        // Each query has its own .catch() so a single failure does not
+        // take down the entire dashboard.
+        const defaultSummary = {
+          totalVisits: 0,
+          uniqueSessions: 0,
+          averageTimeOnSite: 0,
+          conversionRate: 0,
+          bounceRate: 0,
+          topSections: [],
+          conversionByType: {},
+        };
+
         const [
           summary,
           comparison,
@@ -154,17 +166,44 @@ export async function GET(request: NextRequest) {
           blogCtaData,
           blogFaqData,
         ] = await Promise.all([
-          getAnalyticsSummary(startISO, endISO),
-          getAnalyticsSummaryWithComparison(comparisonTimeRange),
-          getSectionHeatmap(startISO, endISO),
-          isRealtimeMode
+          getAnalyticsSummary(startISO, endISO).catch((err: unknown) => {
+            console.error('[Dashboard] getAnalyticsSummary failed:', err);
+            return defaultSummary;
+          }),
+          getAnalyticsSummaryWithComparison(comparisonTimeRange).catch((err: unknown) => {
+            console.error('[Dashboard] getAnalyticsSummaryWithComparison failed:', err);
+            return { current: defaultSummary, previous: defaultSummary, comparison: {} };
+          }),
+          getSectionHeatmap(startISO, endISO).catch((err: unknown) => {
+            console.error('[Dashboard] getSectionHeatmap failed:', err);
+            return [];
+          }),
+          (isRealtimeMode
             ? getPageVisits(startISO, endISO).then((visits: any[]) => visits.slice(0, 1000))
-            : getVisitsByPeriod(comparisonTimeRange, startISO, endISO),
-          getTrafficSources(startISO, endISO),
-          getDeviceBreakdown(startISO, endISO),
+            : getVisitsByPeriod(comparisonTimeRange, startISO, endISO)
+          ).catch((err: unknown) => {
+            console.error('[Dashboard] getVisits failed:', err);
+            return [];
+          }),
+          getTrafficSources(startISO, endISO).catch((err: unknown) => {
+            console.error('[Dashboard] getTrafficSources failed:', err);
+            return [];
+          }),
+          getDeviceBreakdown(startISO, endISO).catch((err: unknown) => {
+            console.error('[Dashboard] getDeviceBreakdown failed:', err);
+            return [];
+          }),
           fetchGeoData(startDate, endDate),
-          getGoalsSummary(startISO, endISO).catch(() => ({ goals: [] })),
-          getAlerts().catch(() => []),
+          getGoalsSummary(startISO, endISO)
+            .then((goals: any[]) => ({ goals }))
+            .catch((err: unknown) => {
+              console.error('[Dashboard] getGoalsSummary failed:', err);
+              return { goals: [] };
+            }),
+          getAlerts().catch((err: unknown) => {
+            console.error('[Dashboard] getAlerts failed:', err);
+            return [];
+          }),
           fetchBlogAnalytics(startDate, endDate),
           fetchBlogCtaClicks(startDate, endDate),
           fetchBlogFaqClicks(startDate, endDate),
