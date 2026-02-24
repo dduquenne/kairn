@@ -27,6 +27,8 @@ import { refreshPostAnalytics } from "@/lib/social/analytics";
 // Configuration
 const RECENT_HOURS = 48; // Posts des dernières 48h
 const POPULAR_DAYS = 7;  // Posts populaires des 7 derniers jours
+const AGING_DAYS = 30;   // Posts vieillissants (7-30 jours)
+const ARCHIVE_DAYS = 90; // Posts archivés (30-90 jours)
 const DELAY_MS = 500;    // Délai entre les appels API
 
 interface RefreshResult {
@@ -112,8 +114,90 @@ export async function GET(request: NextRequest) {
 
     console.log(`[Cron:fetch-social-analytics] ${popularPosts.length} posts populaires à rafraîchir`);
 
-    // 3. Combiner et dédupliquer
-    const allPosts = [...recentPosts, ...popularPosts];
+    // 3. Posts vieillissants (7-30 jours) — sync quotidienne
+    // Seulement exécuté entre 2h et 6h pour limiter l'usage des quotas API
+    const currentHour = new Date().getUTCHours();
+    let agingPosts: typeof recentPosts = [];
+
+    if (currentHour >= 2 && currentHour <= 6) {
+      const agingCutoff = new Date(Date.now() - AGING_DAYS * 24 * 60 * 60 * 1000);
+
+      agingPosts = await prisma.socialPost.findMany({
+        where: {
+          status: "PUBLISHED",
+          publishedAt: {
+            gte: agingCutoff,
+            lt: popularCutoff,
+          },
+          externalPostId: {
+            not: null,
+          },
+          analytics: {
+            engagements: {
+              gt: 0,
+            },
+          },
+        },
+        select: {
+          id: true,
+          platform: true,
+          externalPostId: true,
+          publishedAt: true,
+        },
+        orderBy: {
+          analytics: {
+            engagements: "desc",
+          },
+        },
+        take: 50,
+      });
+
+      console.log(`[Cron:fetch-social-analytics] ${agingPosts.length} posts vieillissants (7-30j) à rafraîchir`);
+    }
+
+    // 4. Posts archivés (30-90 jours) — sync hebdomadaire (lundi uniquement)
+    const currentDay = new Date().getUTCDay(); // 0=dimanche, 1=lundi
+    let archivePosts: typeof recentPosts = [];
+
+    if (currentDay === 1 && currentHour >= 2 && currentHour <= 6) {
+      const archiveCutoff = new Date(Date.now() - ARCHIVE_DAYS * 24 * 60 * 60 * 1000);
+      const agingCutoff = new Date(Date.now() - AGING_DAYS * 24 * 60 * 60 * 1000);
+
+      archivePosts = await prisma.socialPost.findMany({
+        where: {
+          status: "PUBLISHED",
+          publishedAt: {
+            gte: archiveCutoff,
+            lt: agingCutoff,
+          },
+          externalPostId: {
+            not: null,
+          },
+          analytics: {
+            engagements: {
+              gt: 0,
+            },
+          },
+        },
+        select: {
+          id: true,
+          platform: true,
+          externalPostId: true,
+          publishedAt: true,
+        },
+        orderBy: {
+          analytics: {
+            engagements: "desc",
+          },
+        },
+        take: 20,
+      });
+
+      console.log(`[Cron:fetch-social-analytics] ${archivePosts.length} posts archivés (30-90j) à rafraîchir`);
+    }
+
+    // 5. Combiner et dédupliquer
+    const allPosts = [...recentPosts, ...popularPosts, ...agingPosts, ...archivePosts];
     const uniquePosts = Array.from(
       new Map(allPosts.map((p) => [p.id, p])).values()
     );
@@ -128,6 +212,8 @@ export async function GET(request: NextRequest) {
           failed: 0,
           recentPosts: 0,
           popularPosts: 0,
+          agingPosts: 0,
+          archivePosts: 0,
         },
       });
     }
@@ -192,6 +278,8 @@ export async function GET(request: NextRequest) {
         failed,
         recentPosts: recentPosts.length,
         popularPosts: popularPosts.length,
+        agingPosts: agingPosts.length,
+        archivePosts: archivePosts.length,
         totalImpressions,
         totalEngagements,
       },

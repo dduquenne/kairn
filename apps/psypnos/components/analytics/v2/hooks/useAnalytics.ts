@@ -452,9 +452,10 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       // Geo, goals, alerts, blog analytics, CTA clicks, FAQ clicks are all
       // included in the dashboard response. Only bots (requires admin auth)
       // is fetched separately.
-      const [dashboardRes, botsRes] = await Promise.all([
+      const [dashboardRes, botsRes, postsRes] = await Promise.all([
         fetch(`/api/analytics/dashboard?${params}`, { cache: 'no-store' }),
         fetch(`/api/analytics/bots?${params}`).catch(() => null),
+        fetch(`/api/analytics/dashboard/posts?${params}`).catch(() => null),
       ]);
 
       if (!dashboardRes.ok) {
@@ -477,6 +478,10 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
 
       const botsData =
         botsRes && botsRes.ok ? await botsRes.json() : { bots: [], timeline: [], pages: [] };
+
+      // Social media posts data — null if API fails (graceful degradation)
+      const postsData: PostsPanelData | null =
+        postsRes && postsRes.ok ? await postsRes.json() : null;
 
       // Insights are NOT loaded here — they are lazy-loaded on demand
       // via fetchInsights() to avoid the 3-15s Claude API call latency
@@ -806,7 +811,7 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
         insights,
         alerts,
         blogData,
-        postsData: null, // Social media data requires external API integration
+        postsData,
       };
 
       setData(analyticsData);

@@ -484,6 +484,204 @@ export async function refreshRecentAnalytics(
 }
 
 // ===========================================
+// Comparison Stats (current vs previous period)
+// ===========================================
+
+export interface ComparisonStats {
+  postsChange: number;
+  reachChange: number;
+  engagementChange: number;
+  engagementRateChange: number;
+}
+
+/**
+ * Calcule les variations en % entre la période courante et la période précédente
+ * de même durée. Ex: si startDate-endDate = 30 jours, on compare avec les 30 jours
+ * précédents.
+ */
+export async function getComparisonStats(
+  startDate: Date,
+  endDate: Date
+): Promise<ComparisonStats> {
+  const durationMs = endDate.getTime() - startDate.getTime();
+  const prevStart = new Date(startDate.getTime() - durationMs);
+  const prevEnd = new Date(startDate.getTime());
+
+  const [currentStats, previousStats] = await Promise.all([
+    getDashboardStats(startDate, endDate),
+    getDashboardStats(prevStart, prevEnd),
+  ]);
+
+  const pctChange = (current: number, previous: number): number => {
+    if (previous === 0) return current > 0 ? 100 : 0;
+    return ((current - previous) / previous) * 100;
+  };
+
+  return {
+    postsChange: pctChange(currentStats.publishedPosts, previousStats.publishedPosts),
+    reachChange: pctChange(currentStats.totalReach, previousStats.totalReach),
+    engagementChange: pctChange(currentStats.totalEngagements, previousStats.totalEngagements),
+    engagementRateChange:
+      currentStats.averageEngagementRate - previousStats.averageEngagementRate,
+  };
+}
+
+// ===========================================
+// Best Posting Times
+// ===========================================
+
+export interface BestPostingTimeData {
+  day: string;
+  hour: number;
+  engagement: number;
+}
+
+const DAY_LABELS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+
+/**
+ * Calcule les meilleurs moments pour poster à partir des données historiques
+ * d'engagement. Agrège par jour de la semaine et créneau horaire.
+ */
+export async function getBestPostingTimes(
+  startDate?: Date,
+  endDate?: Date
+): Promise<BestPostingTimeData[]> {
+  const dateFilter = buildDateFilter(startDate, endDate);
+
+  const posts: Array<{
+    publishedAt: Date | null;
+    analytics: { engagements: number } | null;
+  }> = await prisma.socialPost.findMany({
+    where: {
+      ...dateFilter,
+      status: 'PUBLISHED',
+      publishedAt: { not: null },
+    },
+    select: {
+      publishedAt: true,
+      analytics: {
+        select: { engagements: true },
+      },
+    },
+  });
+
+  // Aggregate engagements by day/hour bucket
+  const buckets: Map<string, { total: number; count: number }> = new Map();
+
+  for (const post of posts) {
+    if (!post.publishedAt) continue;
+    const dayLabel = DAY_LABELS[post.publishedAt.getDay()] ?? 'Lun';
+    // Round to nearest display hour (9, 12, 15, 18, 21)
+    const rawHour = post.publishedAt.getHours();
+    const displayHours = [9, 12, 15, 18, 21];
+    const nearestHour = displayHours.reduce((prev, curr) =>
+      Math.abs(curr - rawHour) < Math.abs(prev - rawHour) ? curr : prev
+    );
+
+    const key = `${dayLabel}-${nearestHour}`;
+    const existing = buckets.get(key) || { total: 0, count: 0 };
+    existing.total += post.analytics?.engagements || 0;
+    existing.count += 1;
+    buckets.set(key, existing);
+  }
+
+  const results: BestPostingTimeData[] = [];
+  const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+  const hours = [9, 12, 15, 18, 21];
+
+  for (const day of days) {
+    for (const hour of hours) {
+      const bucket = buckets.get(`${day}-${hour}`);
+      results.push({
+        day,
+        hour,
+        engagement: bucket ? Math.round(bucket.total / bucket.count) : 0,
+      });
+    }
+  }
+
+  return results;
+}
+
+// ===========================================
+// Post Type Stats
+// ===========================================
+
+export interface PostTypeStatsData {
+  type: string;
+  count: number;
+  avgEngagement: number;
+  percentage: number;
+}
+
+/**
+ * Agrège les stats par type de contenu (image, video, carousel, etc.)
+ * Se base sur le champ mediaUrls pour déduire le type.
+ */
+export async function getPostTypeStats(
+  startDate?: Date,
+  endDate?: Date
+): Promise<PostTypeStatsData[]> {
+  const dateFilter = buildDateFilter(startDate, endDate);
+
+  const posts: Array<{
+    mediaUrls: unknown;
+    content: string;
+    analytics: { engagements: number; impressions: number } | null;
+  }> = await prisma.socialPost.findMany({
+    where: {
+      ...dateFilter,
+      status: 'PUBLISHED',
+    },
+    select: {
+      mediaUrls: true,
+      content: true,
+      analytics: {
+        select: { engagements: true, impressions: true },
+      },
+    },
+  });
+
+  const typeBuckets: Map<string, { count: number; totalEngRate: number }> = new Map();
+
+  for (const post of posts) {
+    const mediaArr = Array.isArray(post.mediaUrls) ? post.mediaUrls : [];
+    let type = 'text';
+    if (mediaArr.length > 1) type = 'carousel';
+    else if (mediaArr.length === 1) {
+      const url = String(mediaArr[0] || '');
+      if (/\.(mp4|mov|avi|webm)/i.test(url)) type = 'video';
+      else type = 'image';
+    }
+
+    const impressions = post.analytics?.impressions || 0;
+    const engagements = post.analytics?.engagements || 0;
+    const engRate = impressions > 0 ? (engagements / impressions) * 100 : 0;
+
+    const existing = typeBuckets.get(type) || { count: 0, totalEngRate: 0 };
+    existing.count += 1;
+    existing.totalEngRate += engRate;
+    typeBuckets.set(type, existing);
+  }
+
+  const totalPosts = posts.length || 1;
+  const results: PostTypeStatsData[] = [];
+
+  for (const [type, bucket] of typeBuckets) {
+    results.push({
+      type,
+      count: bucket.count,
+      avgEngagement: bucket.count > 0 ? bucket.totalEngRate / bucket.count : 0,
+      percentage: (bucket.count / totalPosts) * 100,
+    });
+  }
+
+  // Sort by count descending
+  results.sort((a, b) => b.count - a.count);
+  return results;
+}
+
+// ===========================================
 // Helpers
 // ===========================================
 
