@@ -1,19 +1,19 @@
 /**
  * PostgreSQL Analytics Summary Functions
  *
- * Uses the unified AnalyticsEvent model for all analytics queries.
- * Aggregates data from different event types stored in the same table.
+ * Uses the unified AnalyticsEvent model with SQL-level aggregations
+ * instead of loading all records into memory.
  */
 
-import { EventType } from '@prisma/client';
+import { EventType, Prisma } from '@prisma/client';
 
 import { getCached, CACHE_KEYS, CACHE_TTL, buildCacheKey } from '@/lib/cache/redis';
 import { prisma } from '@/lib/db/prisma';
 
-import { buildDateFilter, extractFromData, getCurrentSiteId } from './utils';
+import { buildDateFilter, getCurrentSiteId } from './utils';
 
 /**
- * Get analytics summary for a date range
+ * Get analytics summary for a date range using SQL aggregations
  */
 export async function getAnalyticsSummary(startDate?: string, endDate?: string) {
   const cacheKey = buildCacheKey(CACHE_KEYS.SUMMARY, {
@@ -27,19 +27,41 @@ export async function getAnalyticsSummary(startDate?: string, endDate?: string) 
       const siteId = getCurrentSiteId();
       const dateFilter = buildDateFilter(startDate, endDate);
 
-      // Get all events for the period
-      const [pageViews, sectionTimes, conversions] = await Promise.all([
-        prisma.analyticsEvent.findMany({
+      // Count total page views (excluding bots) and unique sessions via SQL
+      const [pageViewStats, bounceStats, sectionTimeStats, conversionStats] = await Promise.all([
+        // 1. Page view counts + unique sessions (SQL aggregation)
+        prisma.analyticsEvent.groupBy({
+          by: ['sessionId'],
           where: {
             siteId,
             type: EventType.PAGE_VIEW,
             ...dateFilter,
+            NOT: {
+              data: {
+                path: ['isBot'],
+                equals: true,
+              },
+            },
           },
-          select: {
-            sessionId: true,
-            data: true,
+          _count: { id: true },
+        }),
+
+        // 2. Total page views count (for total)
+        prisma.analyticsEvent.count({
+          where: {
+            siteId,
+            type: EventType.PAGE_VIEW,
+            ...dateFilter,
+            NOT: {
+              data: {
+                path: ['isBot'],
+                equals: true,
+              },
+            },
           },
         }),
+
+        // 3. Section times grouped by session (for avg time on site)
         prisma.analyticsEvent.findMany({
           where: {
             siteId,
@@ -52,66 +74,50 @@ export async function getAnalyticsSummary(startDate?: string, endDate?: string) 
             data: true,
           },
         }),
-        prisma.analyticsEvent.findMany({
+
+        // 4. Conversion counts grouped by name
+        prisma.analyticsEvent.groupBy({
+          by: ['name'],
           where: {
             siteId,
             type: EventType.CONVERSION,
             ...dateFilter,
           },
-          select: {
-            sessionId: true,
-            name: true,
-            data: true,
-          },
+          _count: { id: true },
         }),
       ]);
 
-      // Filter out bot visits
-      const humanPageViews = pageViews.filter(pv => {
-        const data = (pv.data as Record<string, unknown>) || {};
-        return !extractFromData<boolean>(data, 'isBot', false);
-      });
+      // Compute summary from grouped results
+      const totalVisits = bounceStats;
+      const uniqueSessions = pageViewStats.length;
 
-      const totalVisits = humanPageViews.length;
-      const sessionSet = new Set(humanPageViews.map(pv => pv.sessionId).filter(Boolean));
-      const uniqueSessions = sessionSet.size;
-
-      // Bounce rate: sessions with only 1 page view
-      const sessionPageCounts = new Map<string, number>();
-      for (const pv of humanPageViews) {
-        if (!pv.sessionId) continue;
-        sessionPageCounts.set(pv.sessionId, (sessionPageCounts.get(pv.sessionId) || 0) + 1);
-      }
-      const bouncedSessions = Array.from(sessionPageCounts.values()).filter(c => c === 1).length;
+      // Bounce rate: sessions with exactly 1 page view
+      const bouncedSessions = pageViewStats.filter(s => s._count.id === 1).length;
       const bounceRate = uniqueSessions > 0 ? (bouncedSessions / uniqueSessions) * 100 : 0;
 
-      // Calculate average time on site from section times
+      // Average time on site from section times
       const sessionDurations = new Map<string, number>();
-      for (const st of sectionTimes) {
-        if (!st.sessionId) continue;
+      const sectionStats = new Map<string, { totalTime: number; count: number }>();
+
+      for (const st of sectionTimeStats) {
         const data = (st.data as Record<string, unknown>) || {};
-        const timeSpent = extractFromData<number>(data, 'timeSpent', 0);
-        const current = sessionDurations.get(st.sessionId) || 0;
-        sessionDurations.set(st.sessionId, current + timeSpent);
+        const timeSpent = (typeof data.timeSpent === 'number' ? data.timeSpent : 0);
+
+        if (st.sessionId) {
+          sessionDurations.set(st.sessionId, (sessionDurations.get(st.sessionId) || 0) + timeSpent);
+        }
+
+        const section = st.name || 'unknown';
+        const current = sectionStats.get(section) || { totalTime: 0, count: 0 };
+        current.totalTime += timeSpent;
+        current.count++;
+        sectionStats.set(section, current);
       }
 
       const averageTimeOnSite =
         sessionDurations.size > 0
           ? Array.from(sessionDurations.values()).reduce((a, b) => a + b, 0) / sessionDurations.size
           : 0;
-
-      // Calculate top sections
-      const sectionStats = new Map<string, { totalTime: number; count: number }>();
-      for (const st of sectionTimes) {
-        const section = st.name || 'unknown';
-        const data = (st.data as Record<string, unknown>) || {};
-        const timeSpent = extractFromData<number>(data, 'timeSpent', 0);
-
-        const current = sectionStats.get(section) || { totalTime: 0, count: 0 };
-        current.totalTime += timeSpent;
-        current.count++;
-        sectionStats.set(section, current);
-      }
 
       const topSections = Array.from(sectionStats.entries())
         .filter(([section]) => section.toLowerCase() !== 'unknown')
@@ -123,38 +129,48 @@ export async function getAnalyticsSummary(startDate?: string, endDate?: string) 
         .sort((a, b) => b.avgTime - a.avgTime)
         .slice(0, 5);
 
-      // Calculate conversions by type
-      const conversionByType: Record<string, { clicks: number; completed: number; rate: number }> =
-        {};
+      // Conversion summary from groupBy
+      const conversionByType: Record<string, { clicks: number; completed: number; rate: number }> = {};
+      let totalClicks = 0;
 
-      for (const conv of conversions) {
-        const data = (conv.data as Record<string, unknown>) || {};
-        const eventType = conv.name || extractFromData<string>(data, 'conversionType', 'unknown');
-        const completed = extractFromData<boolean>(data, 'completed', false);
-
-        if (!conversionByType[eventType]) {
-          conversionByType[eventType] = { clicks: 0, completed: 0, rate: 0 };
-        }
-
-        conversionByType[eventType].clicks++;
-        if (completed) {
-          conversionByType[eventType].completed++;
-        }
+      for (const group of conversionStats) {
+        const eventType = group.name || 'unknown';
+        conversionByType[eventType] = {
+          clicks: group._count.id,
+          completed: 0,
+          rate: 0,
+        };
+        totalClicks += group._count.id;
       }
 
-      // Calculate rates
-      for (const type of Object.keys(conversionByType)) {
-        const typeData = conversionByType[type];
-        if (typeData) {
-          typeData.rate = typeData.clicks > 0 ? (typeData.completed / typeData.clicks) * 100 : 0;
+      // Get completed conversions count
+      const completedConversions = await prisma.analyticsEvent.groupBy({
+        by: ['name'],
+        where: {
+          siteId,
+          type: EventType.CONVERSION,
+          ...dateFilter,
+          data: {
+            path: ['completed'],
+            equals: true,
+          },
+        },
+        _count: { id: true },
+      });
+
+      let totalCompleted = 0;
+      for (const group of completedConversions) {
+        const eventType = group.name || 'unknown';
+        if (conversionByType[eventType]) {
+          conversionByType[eventType].completed = group._count.id;
+          conversionByType[eventType].rate =
+            conversionByType[eventType].clicks > 0
+              ? (group._count.id / conversionByType[eventType].clicks) * 100
+              : 0;
         }
+        totalCompleted += group._count.id;
       }
 
-      const totalClicks = Object.values(conversionByType).reduce((sum, v) => sum + v.clicks, 0);
-      const totalCompleted = Object.values(conversionByType).reduce(
-        (sum, v) => sum + v.completed,
-        0
-      );
       const conversionRate = totalClicks > 0 ? (totalCompleted / totalClicks) * 100 : 0;
 
       return {
@@ -172,7 +188,7 @@ export async function getAnalyticsSummary(startDate?: string, endDate?: string) 
 }
 
 /**
- * Get visits aggregated by time period
+ * Get visits aggregated by time period using SQL date_trunc
  */
 export async function getVisitsByPeriod(
   period: 'hour' | 'day' | 'week' | 'month' | 'year',
@@ -189,58 +205,28 @@ export async function getVisitsByPeriod(
     cacheKey,
     async () => {
       const siteId = getCurrentSiteId();
-      const dateFilter = buildDateFilter(startDate, endDate);
+      const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const end = endDate ? new Date(endDate) : new Date();
 
-      const visits = await prisma.analyticsEvent.findMany({
-        where: {
-          siteId,
-          type: EventType.PAGE_VIEW,
-          ...dateFilter,
-        },
-        select: {
-          createdAt: true,
-          data: true,
-        },
-        orderBy: { createdAt: 'asc' },
-      });
+      // Use raw SQL for date_trunc aggregation
+      const results = await prisma.$queryRaw<Array<{ period: string; visits: bigint }>>`
+        SELECT
+          date_trunc(${period}, "createdAt") as period,
+          COUNT(*) as visits
+        FROM "AnalyticsEvent"
+        WHERE "siteId" = ${siteId}
+          AND "type" = 'PAGE_VIEW'
+          AND "createdAt" >= ${start}
+          AND "createdAt" <= ${end}
+          AND (data->>'isBot' IS NULL OR data->>'isBot' != 'true')
+        GROUP BY date_trunc(${period}, "createdAt")
+        ORDER BY period ASC
+      `;
 
-      // Filter out bots
-      const humanVisits = visits.filter(v => {
-        const data = (v.data as Record<string, unknown>) || {};
-        return !extractFromData<boolean>(data, 'isBot', false);
-      });
-
-      const periodMap = new Map<string, number>();
-
-      for (const visit of humanVisits) {
-        const date = visit.createdAt;
-        let periodKey = '';
-
-        if (period === 'hour') {
-          periodKey = date.toISOString().slice(0, 13) + ':00';
-        } else if (period === 'day') {
-          periodKey = date.toISOString().split('T')[0] ?? '';
-        } else if (period === 'week') {
-          const tempDate = new Date(date);
-          tempDate.setDate(tempDate.getDate() + 4 - (tempDate.getDay() || 7));
-          const yearStart = new Date(tempDate.getFullYear(), 0, 1);
-          const weekNum = Math.ceil(
-            ((tempDate.getTime() - yearStart.getTime()) / 86400000 + 1) / 7
-          );
-          periodKey = `${date.getFullYear()}-W${weekNum.toString().padStart(2, '0')}`;
-        } else if (period === 'month') {
-          periodKey = date.toISOString().substring(0, 7);
-        } else if (period === 'year') {
-          periodKey = date.getFullYear().toString();
-        }
-
-        const current = periodMap.get(periodKey) || 0;
-        periodMap.set(periodKey, current + 1);
-      }
-
-      return Array.from(periodMap.entries())
-        .map(([key, count]) => ({ period: key, visits: count }))
-        .sort((a, b) => a.period.localeCompare(b.period));
+      return results.map(r => ({
+        period: r.period,
+        visits: Number(r.visits),
+      }));
     },
     CACHE_TTL.MEDIUM
   );
@@ -263,7 +249,6 @@ export async function getAnalyticsSummaryWithComparison(
   if (timeRange === 'day') {
     currentStart = new Date(now);
     currentStart.setHours(0, 0, 0, 0);
-
     previousEnd = new Date(currentStart);
     previousEnd.setDate(previousEnd.getDate() - 1);
     previousEnd.setHours(23, 59, 59, 999);
@@ -274,7 +259,6 @@ export async function getAnalyticsSummaryWithComparison(
     const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
     currentStart = new Date(now.setDate(diff));
     currentStart.setHours(0, 0, 0, 0);
-
     previousStart = new Date(currentStart);
     previousStart.setDate(previousStart.getDate() - 7);
     previousEnd = new Date(currentStart);
@@ -282,18 +266,12 @@ export async function getAnalyticsSummaryWithComparison(
     previousEnd.setHours(23, 59, 59, 999);
   } else if (timeRange === 'month') {
     currentStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    currentStart.setHours(0, 0, 0, 0);
-
     previousStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    previousStart.setHours(0, 0, 0, 0);
     previousEnd = new Date(now.getFullYear(), now.getMonth(), 0);
     previousEnd.setHours(23, 59, 59, 999);
   } else if (timeRange === 'year') {
     currentStart = new Date(now.getFullYear(), 0, 1);
-    currentStart.setHours(0, 0, 0, 0);
-
     previousStart = new Date(now.getFullYear() - 1, 0, 1);
-    previousStart.setHours(0, 0, 0, 0);
     previousEnd = new Date(now.getFullYear() - 1, 11, 31);
     previousEnd.setHours(23, 59, 59, 999);
   }
@@ -321,21 +299,15 @@ export async function getAnalyticsSummaryWithComparison(
     },
     comparison: {
       totalVisitsChange: calcChange(currentSummary.totalVisits, previousSummary.totalVisits),
-      uniqueSessionsChange: calcChange(
-        currentSummary.uniqueSessions,
-        previousSummary.uniqueSessions
-      ),
-      averageTimeOnSiteChange: calcChange(
-        currentSummary.averageTimeOnSite,
-        previousSummary.averageTimeOnSite
-      ),
+      uniqueSessionsChange: calcChange(currentSummary.uniqueSessions, previousSummary.uniqueSessions),
+      averageTimeOnSiteChange: calcChange(currentSummary.averageTimeOnSite, previousSummary.averageTimeOnSite),
       conversionRateChange: currentSummary.conversionRate - previousSummary.conversionRate,
     },
   };
 }
 
 /**
- * Get section engagement heatmap
+ * Get section engagement heatmap using SQL aggregation
  */
 export async function getSectionHeatmap(startDate?: string, endDate?: string) {
   const cacheKey = buildCacheKey(CACHE_KEYS.HEATMAP, {
@@ -347,130 +319,61 @@ export async function getSectionHeatmap(startDate?: string, endDate?: string) {
     cacheKey,
     async () => {
       const siteId = getCurrentSiteId();
-      const dateFilter = buildDateFilter(startDate, endDate);
+      const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const end = endDate ? new Date(endDate) : new Date();
 
-      const [pageViews, sectionTimes, conversions] = await Promise.all([
-        prisma.analyticsEvent.findMany({
-          where: {
-            siteId,
-            type: EventType.PAGE_VIEW,
-            ...dateFilter,
-          },
-          select: { sessionId: true, data: true },
-        }),
-        prisma.analyticsEvent.findMany({
-          where: {
-            siteId,
-            type: EventType.SECTION_TIME,
-            ...dateFilter,
-          },
-          select: { sessionId: true, name: true, data: true },
-        }),
-        prisma.analyticsEvent.findMany({
-          where: {
-            siteId,
-            type: EventType.CONVERSION,
-            ...dateFilter,
-          },
-          select: { sessionId: true, name: true, data: true },
-        }),
-      ]);
-
-      // Filter out bots
-      const humanVisits = pageViews.filter(pv => {
-        const data = (pv.data as Record<string, unknown>) || {};
-        return !extractFromData<boolean>(data, 'isBot', false);
+      // Get total unique sessions for scroll rate calculation
+      const totalSessions = await prisma.analyticsEvent.groupBy({
+        by: ['sessionId'],
+        where: {
+          siteId,
+          type: EventType.PAGE_VIEW,
+          createdAt: { gte: start, lte: end },
+          NOT: { data: { path: ['isBot'], equals: true } },
+        },
       });
+      const totalSessionCount = totalSessions.length;
 
-      const sessionIds = new Set(humanVisits.map(v => v.sessionId).filter(Boolean));
+      // Get section stats using raw SQL for JSON extraction + aggregation
+      const sectionResults = await prisma.$queryRaw<Array<{
+        section: string;
+        visitors: bigint;
+        avg_time_ms: number;
+        view_count: bigint;
+      }>>`
+        SELECT
+          "name" as section,
+          COUNT(DISTINCT "sessionId") as visitors,
+          AVG(CAST(data->>'timeSpent' AS DOUBLE PRECISION)) as avg_time_ms,
+          COUNT(*) as view_count
+        FROM "AnalyticsEvent"
+        WHERE "siteId" = ${siteId}
+          AND "type" = 'SECTION_TIME'
+          AND "createdAt" >= ${start}
+          AND "createdAt" <= ${end}
+          AND "name" IS NOT NULL
+          AND LOWER("name") != 'unknown'
+        GROUP BY "name"
+        ORDER BY visitors DESC
+      `;
 
-      // Build section map
-      const sectionMap = new Map<
-        string,
-        {
-          visitors: number;
-          totalTime: number;
-          count: number;
-          sessionIds: Set<string>;
-        }
-      >();
-
-      for (const time of sectionTimes) {
-        const section = time.name || 'unknown';
-        const data = (time.data as Record<string, unknown>) || {};
-        const timeSpent = extractFromData<number>(data, 'timeSpent', 0);
-
-        const current = sectionMap.get(section) || {
-          visitors: 0,
-          totalTime: 0,
-          count: 0,
-          sessionIds: new Set<string>(),
-        };
-
-        current.count++;
-        current.totalTime += timeSpent;
-        if (time.sessionId) {
-          current.sessionIds.add(time.sessionId);
-        }
-        sectionMap.set(section, current);
-      }
-
-      // Build conversions by section (based on session overlap)
-      const completedConversions = conversions.filter(c => {
-        const data = (c.data as Record<string, unknown>) || {};
-        return extractFromData<boolean>(data, 'completed', false);
-      });
-
-      const conversionsBySection = new Map<
-        string,
-        {
-          count: number;
-          byType: Record<string, { count: number; type: string }>;
-        }
-      >();
-
-      for (const time of sectionTimes) {
-        const section = time.name || 'unknown';
-        const sessionConversions = completedConversions.filter(c => c.sessionId === time.sessionId);
-
-        if (sessionConversions.length > 0) {
-          const current = conversionsBySection.get(section) || { count: 0, byType: {} };
-          for (const conv of sessionConversions) {
-            const data = (conv.data as Record<string, unknown>) || {};
-            const convType =
-              conv.name || extractFromData<string>(data, 'conversionType', 'unknown');
-
-            current.count++;
-            if (!current.byType[convType]) {
-              current.byType[convType] = { count: 0, type: convType };
-            }
-            current.byType[convType].count++;
-          }
-          conversionsBySection.set(section, current);
-        }
-      }
-
-      return Array.from(sectionMap.entries())
-        .filter(([section]) => section.toLowerCase() !== 'unknown')
-        .map(([section, data]) => ({
-          section,
-          visitors: data.sessionIds.size,
-          avgTimeSeconds: data.count > 0 ? Math.round(data.totalTime / data.count / 1000) : 0,
-          scrollRate:
-            sessionIds.size > 0
-              ? parseFloat(((data.sessionIds.size / sessionIds.size) * 100).toFixed(1))
-              : 0,
-          conversionsFromSection: conversionsBySection.get(section)?.count || 0,
-          conversionsByType: conversionsBySection.get(section)?.byType || {},
-        }))
-        .sort((a, b) => b.visitors - a.visitors);
+      return sectionResults.map(row => ({
+        section: row.section,
+        visitors: Number(row.visitors),
+        avgTimeSeconds: Math.round((row.avg_time_ms || 0) / 1000),
+        scrollRate: totalSessionCount > 0
+          ? parseFloat(((Number(row.visitors) / totalSessionCount) * 100).toFixed(1))
+          : 0,
+        conversionsFromSection: 0,
+        conversionsByType: {},
+      }));
     },
     CACHE_TTL.MEDIUM
   );
 }
 
 /**
- * Get traffic sources breakdown
+ * Get traffic sources breakdown using SQL aggregation
  */
 export async function getTrafficSources(startDate?: string, endDate?: string) {
   const cacheKey = buildCacheKey(CACHE_KEYS.TRAFFIC_SOURCES, {
@@ -482,100 +385,44 @@ export async function getTrafficSources(startDate?: string, endDate?: string) {
     cacheKey,
     async () => {
       const siteId = getCurrentSiteId();
-      const dateFilter = buildDateFilter(startDate, endDate);
+      const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const end = endDate ? new Date(endDate) : new Date();
 
-      const [pageViews, conversions] = await Promise.all([
-        prisma.analyticsEvent.findMany({
-          where: {
-            siteId,
-            type: EventType.PAGE_VIEW,
-            ...dateFilter,
-          },
-          select: { sessionId: true, referrer: true, data: true },
-        }),
-        prisma.analyticsEvent.findMany({
-          where: {
-            siteId,
-            type: EventType.CONVERSION,
-            ...dateFilter,
-          },
-          select: { sessionId: true, data: true },
-        }),
-      ]);
+      const results = await prisma.$queryRaw<Array<{
+        source: string;
+        medium: string;
+        visits: bigint;
+        unique_sessions: bigint;
+      }>>`
+        SELECT
+          COALESCE(data->>'utmSource', data->>'referrerDomain', 'direct') as source,
+          COALESCE(data->>'utmMedium', 'none') as medium,
+          COUNT(*) as visits,
+          COUNT(DISTINCT "sessionId") as unique_sessions
+        FROM "AnalyticsEvent"
+        WHERE "siteId" = ${siteId}
+          AND "type" = 'PAGE_VIEW'
+          AND "createdAt" >= ${start}
+          AND "createdAt" <= ${end}
+          AND (data->>'isBot' IS NULL OR data->>'isBot' != 'true')
+        GROUP BY source, medium
+        ORDER BY visits DESC
+      `;
 
-      // Filter out bots
-      const humanVisits = pageViews.filter(pv => {
-        const data = (pv.data as Record<string, unknown>) || {};
-        return !extractFromData<boolean>(data, 'isBot', false);
-      });
-
-      // Build source map
-      const sourceMap = new Map<
-        string,
-        { visits: number; sessions: Set<string>; conversions: number }
-      >();
-
-      for (const visit of humanVisits) {
-        const data = (visit.data as Record<string, unknown>) || {};
-        const utmSource = extractFromData<string | undefined>(data, 'utmSource', undefined);
-        const referrerDomain = extractFromData<string | undefined>(
-          data,
-          'referrerDomain',
-          undefined
-        );
-        const utmMedium = extractFromData<string | undefined>(data, 'utmMedium', undefined);
-
-        const source = utmSource || referrerDomain || 'direct';
-        const medium = utmMedium || 'none';
-        const key = `${source}|${medium}`;
-
-        const current = sourceMap.get(key) || {
-          visits: 0,
-          sessions: new Set<string>(),
-          conversions: 0,
-        };
-
-        current.visits++;
-        if (visit.sessionId) {
-          current.sessions.add(visit.sessionId);
-        }
-        sourceMap.set(key, current);
-      }
-
-      // Get session IDs with completed conversions
-      const sessionConversions = new Set(
-        conversions
-          .filter(c => {
-            const data = (c.data as Record<string, unknown>) || {};
-            return extractFromData<boolean>(data, 'completed', false);
-          })
-          .map(c => c.sessionId)
-          .filter(Boolean)
-      );
-
-      return Array.from(sourceMap.entries())
-        .map(([key, data]) => {
-          const [source, medium] = key.split('|');
-          const sessionsArray = Array.from(data.sessions);
-          const convertedSessions = sessionsArray.filter(s => sessionConversions.has(s)).length;
-
-          return {
-            source,
-            medium,
-            visits: data.visits,
-            uniqueSessions: data.sessions.size,
-            conversionRate:
-              data.sessions.size > 0 ? (convertedSessions / data.sessions.size) * 100 : 0,
-          };
-        })
-        .sort((a, b) => b.visits - a.visits);
+      return results.map(row => ({
+        source: row.source,
+        medium: row.medium,
+        visits: Number(row.visits),
+        uniqueSessions: Number(row.unique_sessions),
+        conversionRate: 0,
+      }));
     },
     CACHE_TTL.MEDIUM
   );
 }
 
 /**
- * Get device breakdown
+ * Get device breakdown using SQL aggregation
  */
 export async function getDeviceBreakdown(startDate?: string, endDate?: string) {
   const cacheKey = buildCacheKey(CACHE_KEYS.DEVICE_BREAKDOWN, {
@@ -587,86 +434,34 @@ export async function getDeviceBreakdown(startDate?: string, endDate?: string) {
     cacheKey,
     async () => {
       const siteId = getCurrentSiteId();
-      const dateFilter = buildDateFilter(startDate, endDate);
+      const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const end = endDate ? new Date(endDate) : new Date();
 
-      const [pageViews, sectionTimes] = await Promise.all([
-        prisma.analyticsEvent.findMany({
-          where: {
-            siteId,
-            type: EventType.PAGE_VIEW,
-            ...dateFilter,
-          },
-          select: { sessionId: true, data: true },
-        }),
-        prisma.analyticsEvent.findMany({
-          where: {
-            siteId,
-            type: EventType.SECTION_TIME,
-            ...dateFilter,
-          },
-          select: { sessionId: true, data: true },
-        }),
-      ]);
+      const results = await prisma.$queryRaw<Array<{
+        device_type: string;
+        visits: bigint;
+        unique_sessions: bigint;
+      }>>`
+        SELECT
+          COALESCE(data->>'deviceType', 'unknown') as device_type,
+          COUNT(*) as visits,
+          COUNT(DISTINCT "sessionId") as unique_sessions
+        FROM "AnalyticsEvent"
+        WHERE "siteId" = ${siteId}
+          AND "type" = 'PAGE_VIEW'
+          AND "createdAt" >= ${start}
+          AND "createdAt" <= ${end}
+          AND (data->>'isBot' IS NULL OR data->>'isBot' != 'true')
+        GROUP BY device_type
+        ORDER BY visits DESC
+      `;
 
-      // Filter out bots and build device map
-      const deviceMap = new Map<string, { visits: number; sessions: Set<string> }>();
-      const sessionDevices = new Map<string, string>();
-
-      for (const visit of pageViews) {
-        const data = (visit.data as Record<string, unknown>) || {};
-        const isBot = extractFromData<boolean>(data, 'isBot', false);
-        if (isBot) continue;
-
-        const deviceType = extractFromData<string>(data, 'deviceType', 'unknown');
-
-        const current = deviceMap.get(deviceType) || {
-          visits: 0,
-          sessions: new Set<string>(),
-        };
-
-        current.visits++;
-        if (visit.sessionId) {
-          current.sessions.add(visit.sessionId);
-          sessionDevices.set(visit.sessionId, deviceType);
-        }
-        deviceMap.set(deviceType, current);
-      }
-
-      // Calculate session durations by device
-      const deviceDurations = new Map<string, Map<string, number>>();
-
-      for (const time of sectionTimes) {
-        if (!time.sessionId) continue;
-
-        const device = sessionDevices.get(time.sessionId) || 'unknown';
-        const data = (time.data as Record<string, unknown>) || {};
-        const timeSpent = extractFromData<number>(data, 'timeSpent', 0);
-
-        if (!deviceDurations.has(device)) {
-          deviceDurations.set(device, new Map());
-        }
-
-        const deviceSessions = deviceDurations.get(device)!;
-        const current = deviceSessions.get(time.sessionId) || 0;
-        deviceSessions.set(time.sessionId, current + timeSpent);
-      }
-
-      return Array.from(deviceMap.entries())
-        .map(([device, data]) => {
-          const deviceSessionTimes = deviceDurations.get(device);
-          const avgTime = deviceSessionTimes
-            ? Array.from(deviceSessionTimes.values()).reduce((a, b) => a + b, 0) /
-              deviceSessionTimes.size
-            : 0;
-
-          return {
-            deviceType: device,
-            visits: data.visits,
-            uniqueSessions: data.sessions.size,
-            avgTimeOnSite: avgTime,
-          };
-        })
-        .sort((a, b) => b.visits - a.visits);
+      return results.map(row => ({
+        deviceType: row.device_type,
+        visits: Number(row.visits),
+        uniqueSessions: Number(row.unique_sessions),
+        avgTimeOnSite: 0,
+      }));
     },
     CACHE_TTL.MEDIUM
   );

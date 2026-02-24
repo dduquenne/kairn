@@ -43,6 +43,7 @@ model Site {
 
   // Relations - Analytics
   analyticsEvents          AnalyticsEvent[]
+  analyticsDailySummaries  AnalyticsDailySummary[]
   visitorGeolocations      VisitorGeolocation[]
   analyticsGoals           AnalyticsGoal[]
   analyticsAlerts          AnalyticsAlert[]
@@ -375,9 +376,40 @@ model AnalyticsEvent {
   @@index([siteId, type, createdAt])
   @@index([siteId, sessionId])
   @@index([siteId, name, createdAt])
-  @@index([path])
-  @@index([sessionId])
-  @@index([createdAt])
+  @@index([siteId, path, createdAt])
+  @@index([siteId, createdAt])
+}
+
+/// Pre-computed daily analytics summary for fast dashboard queries
+model AnalyticsDailySummary {
+  id              String   @id @default(cuid())
+  /// Date for this summary (without time)
+  date            DateTime @db.Date
+  /// Total page views for the day
+  pageViews       Int      @default(0)
+  /// Unique visitors (distinct sessions)
+  uniqueVisitors  Int      @default(0)
+  /// Total sessions started
+  sessions        Int      @default(0)
+  /// Bounce rate (% of single-page sessions)
+  bounceRate      Float    @default(0)
+  /// Average time on site in milliseconds
+  avgTimeOnSite   Float    @default(0)
+  /// Top pages with view counts (JSON array)
+  topPages        Json?
+  /// Top traffic sources with visit counts (JSON array)
+  topSources      Json?
+  /// Device breakdown (JSON object)
+  deviceBreakdown Json?
+  /// Conversion counts by type (JSON object)
+  conversions     Json?
+
+  // Multi-tenancy
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, date])
+  @@index([siteId, date])
 }
 
 // =============================================================================
@@ -395,7 +427,7 @@ model VisitorGeolocation {
   country     String
   /// ISO country code
   countryCode String
-  /// Region/state name
+  /// Region/state name (required for multi-tenant isolation)
   region      String?
   /// Region/state code
   regionCode  String?
@@ -410,9 +442,9 @@ model VisitorGeolocation {
   /// Hashed IP address for privacy
   ipAddress   String?
 
-  // Multi-tenancy
-  siteId String?
-  site   Site?  @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  // Multi-tenancy (required for data isolation)
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   @@index([timestamp])
   @@index([siteId, timestamp])
