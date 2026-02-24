@@ -179,7 +179,7 @@ export async function GET(request: NextRequest) {
           deviceBreakdown,
           geoData,
           goalsData,
-          alertsData: { alerts: Array.isArray(alertsData) ? alertsData : alertsData?.alerts || [] },
+          alertsData: { alerts: alertsData },
           blogData: blogAnalyticsData,
           blogCtaData,
           blogFaqData,
@@ -244,24 +244,22 @@ async function fetchGeoData(startDate: Date, endDate: Date) {
     > = {};
 
     for (const geo of geolocations) {
-      if (!countryStats[geo.country]) {
-        countryStats[geo.country] = { count: 0, countryCode: geo.countryCode };
-      }
-      countryStats[geo.country].count++;
+      const countryStat = countryStats[geo.country] ?? { count: 0, countryCode: geo.countryCode };
+      countryStat.count++;
+      countryStats[geo.country] = countryStat;
 
       if (geo.city) {
         const cityKey = `${geo.country}|${geo.region || ''}|${geo.city}`;
-        if (!cityStats[cityKey]) {
-          cityStats[cityKey] = {
-            count: 0,
-            country: geo.country,
-            countryCode: geo.countryCode,
-            region: geo.region,
-            latitude: geo.latitude,
-            longitude: geo.longitude,
-          };
-        }
-        cityStats[cityKey].count++;
+        const cityStat = cityStats[cityKey] ?? {
+          count: 0,
+          country: geo.country,
+          countryCode: geo.countryCode,
+          region: geo.region,
+          latitude: geo.latitude,
+          longitude: geo.longitude,
+        };
+        cityStat.count++;
+        cityStats[cityKey] = cityStat;
       }
     }
 

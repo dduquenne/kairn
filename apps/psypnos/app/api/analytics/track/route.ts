@@ -45,13 +45,20 @@ const SessionDataSchema = z.object({
 });
 
 const VALID_EVENT_TYPES = [
-  'page_view', 'page_exit', 'scroll_depth', 'section_view',
-  'section_time', 'conversion', 'custom_event', 'session_start', 'session_end',
+  'page_view',
+  'page_exit',
+  'scroll_depth',
+  'section_view',
+  'section_time',
+  'conversion',
+  'custom_event',
+  'session_start',
+  'session_end',
 ] as const;
 
 const BaseEventSchema = z.object({
   type: z.enum(VALID_EVENT_TYPES),
-  timestamp: z.string().refine((s) => !isNaN(Date.parse(s)), { message: 'Invalid timestamp' }),
+  timestamp: z.string().refine(s => !isNaN(Date.parse(s)), { message: 'Invalid timestamp' }),
   sessionId: z.string().min(1),
   url: z.string().min(1),
 });
@@ -192,7 +199,7 @@ function isBot(userAgent: string): boolean {
     /phantomjs/i,
   ];
 
-  return botPatterns.some((pattern) => pattern.test(userAgent));
+  return botPatterns.some(pattern => pattern.test(userAgent));
 }
 
 // ============================================
@@ -242,14 +249,10 @@ async function processEvents(
 
   const store = await import('../store-index');
 
-  if (geolocation && events.length > 0) {
+  const firstEvent = events[0];
+  if (geolocation && firstEvent) {
     try {
-      await trackGeolocation(
-        session.id,
-        events[0].timestamp,
-        geolocation,
-        clientIP
-      );
+      await trackGeolocation(session.id, firstEvent.timestamp, geolocation, clientIP);
     } catch (error) {
       console.error('[Track API] Error tracking geolocation:', error);
     }
@@ -335,7 +338,10 @@ async function processEvents(
           await store.trackConversionEvent({
             timestamp: event.timestamp,
             sessionId: event.sessionId,
-            eventType: conversionType as 'appointment_request' | 'seminar_registration' | 'contact_form',
+            eventType: conversionType as
+              | 'appointment_request'
+              | 'seminar_registration'
+              | 'contact_form',
             stepName,
             completed: event.completed || false,
             metadata: event.metadata,
