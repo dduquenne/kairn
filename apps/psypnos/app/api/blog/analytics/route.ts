@@ -7,7 +7,7 @@ import {
   isMockMode,
   generateMockBlogAnalytics,
   generateMockBlogArticleStats,
-  logDataMode
+  logDataMode,
 } from '@/lib/pwaDataMode';
 
 import { recordAttempt, getClientIP } from '../../common/rate-limiter';
@@ -24,10 +24,7 @@ type BlogAnalyticsRecord = {
 
 function hashVisitorId(userAgent: string, ip: string): string {
   const secret = process.env.IP_HASH_SECRET || process.env.JWT_SECRET || 'blog-visitor-hash';
-  return createHmac('sha256', secret)
-    .update(`${userAgent}-${ip}`)
-    .digest('hex')
-    .slice(0, 16);
+  return createHmac('sha256', secret).update(`${userAgent}-${ip}`).digest('hex').slice(0, 16);
 }
 
 // GET - Récupérer les statistiques des articles du blog (admin only)
@@ -86,11 +83,11 @@ export async function GET(request: NextRequest) {
 
     if (slug) {
       // Retourner les stats d'un article spécifique
-      const stats = await prisma.blogAnalytics.findMany({
+      const stats = (await prisma.blogAnalytics.findMany({
         where: { articleSlug: slug, ...dateFilter },
         orderBy: { timestamp: 'desc' },
         take: 10_000,
-      }) as BlogAnalyticsRecord[];
+      })) as BlogAnalyticsRecord[];
 
       const views = stats.length;
       const uniqueVisitors = new Set(stats.map(s => s.sessionId)).size;
@@ -105,15 +102,15 @@ export async function GET(request: NextRequest) {
         .filter((v): v is number => v !== null && v !== undefined);
       const completedReads = stats.filter(s => s.completed).length;
 
-      const avgScrollDepth = validScrollDepths.length > 0
-        ? Math.round(validScrollDepths.reduce((a, b) => a + b, 0) / validScrollDepths.length)
-        : null;
-      const avgTimeOnPage = validTimesOnPage.length > 0
-        ? Math.round(validTimesOnPage.reduce((a, b) => a + b, 0) / validTimesOnPage.length)
-        : null;
-      const completionRate = views > 0
-        ? Math.round((completedReads / views) * 100)
-        : null;
+      const avgScrollDepth =
+        validScrollDepths.length > 0
+          ? Math.round(validScrollDepths.reduce((a, b) => a + b, 0) / validScrollDepths.length)
+          : null;
+      const avgTimeOnPage =
+        validTimesOnPage.length > 0
+          ? Math.round(validTimesOnPage.reduce((a, b) => a + b, 0) / validTimesOnPage.length)
+          : null;
+      const completionRate = views > 0 ? Math.round((completedReads / views) * 100) : null;
 
       return NextResponse.json({
         slug,
@@ -131,7 +128,7 @@ export async function GET(request: NextRequest) {
 
     // Retourner toutes les stats triées par nombre de vues (filtrées par période)
     // Limit to 50,000 records to prevent memory exhaustion
-    const allAnalytics = await prisma.blogAnalytics.findMany({
+    const allAnalytics = (await prisma.blogAnalytics.findMany({
       where: dateFilter,
       select: {
         articleSlug: true,
@@ -143,7 +140,7 @@ export async function GET(request: NextRequest) {
       },
       take: 50_000,
       orderBy: { timestamp: 'desc' },
-    }) as Array<{
+    })) as Array<{
       articleSlug: string;
       sessionId: string;
       timestamp: Date;
@@ -153,9 +150,9 @@ export async function GET(request: NextRequest) {
     }>;
 
     // Grouper par articleSlug
-    const groupedBySlug = allAnalytics.reduce((acc, record) => {
-      if (!acc[record.articleSlug]) {
-        acc[record.articleSlug] = {
+    const groupedBySlug = allAnalytics.reduce(
+      (acc, record) => {
+        const entry = acc[record.articleSlug] ?? {
           views: 0,
           sessions: new Set<string>(),
           lastViewed: record.timestamp,
@@ -163,80 +160,91 @@ export async function GET(request: NextRequest) {
           timesOnPage: [] as number[],
           completedReads: 0,
         };
-      }
-      acc[record.articleSlug].views += 1;
-      acc[record.articleSlug].sessions.add(record.sessionId);
-      if (record.timestamp > acc[record.articleSlug].lastViewed) {
-        acc[record.articleSlug].lastViewed = record.timestamp;
-      }
-      if (record.scrollDepthPercent !== null) {
-        acc[record.articleSlug].scrollDepths.push(record.scrollDepthPercent);
-      }
-      if (record.timeOnPage !== null) {
-        acc[record.articleSlug].timesOnPage.push(record.timeOnPage);
-      }
-      if (record.completed) {
-        acc[record.articleSlug].completedReads += 1;
-      }
-      return acc;
-    }, {} as Record<string, {
-      views: number;
-      sessions: Set<string>;
-      lastViewed: Date;
-      scrollDepths: number[];
-      timesOnPage: number[];
-      completedReads: number;
-    }>);
+        entry.views += 1;
+        entry.sessions.add(record.sessionId);
+        if (record.timestamp > entry.lastViewed) {
+          entry.lastViewed = record.timestamp;
+        }
+        if (record.scrollDepthPercent !== null) {
+          entry.scrollDepths.push(record.scrollDepthPercent);
+        }
+        if (record.timeOnPage !== null) {
+          entry.timesOnPage.push(record.timeOnPage);
+        }
+        if (record.completed) {
+          entry.completedReads += 1;
+        }
+        acc[record.articleSlug] = entry;
+        return acc;
+      },
+      {} as Record<
+        string,
+        {
+          views: number;
+          sessions: Set<string>;
+          lastViewed: Date;
+          scrollDepths: number[];
+          timesOnPage: number[];
+          completedReads: number;
+        }
+      >
+    );
 
     // Transformer en array avec métriques calculées
-    const articlesWithMetrics = Object.entries(groupedBySlug)
-      .map(([slug, data]) => {
-        const avgScrollDepth = data.scrollDepths.length > 0
+    const articlesWithMetrics = Object.entries(groupedBySlug).map(([slug, data]) => {
+      const avgScrollDepth =
+        data.scrollDepths.length > 0
           ? Math.round(data.scrollDepths.reduce((a, b) => a + b, 0) / data.scrollDepths.length)
           : null;
-        const avgTimeOnPage = data.timesOnPage.length > 0
+      const avgTimeOnPage =
+        data.timesOnPage.length > 0
           ? Math.round(data.timesOnPage.reduce((a, b) => a + b, 0) / data.timesOnPage.length)
           : null;
-        const completionRate = data.views > 0
-          ? Math.round((data.completedReads / data.views) * 100)
-          : null;
+      const completionRate =
+        data.views > 0 ? Math.round((data.completedReads / data.views) * 100) : null;
 
-        return {
-          slug,
-          views: data.views,
-          uniqueVisitors: data.sessions.size,
-          averageViews: data.sessions.size > 0 ? (data.views / data.sessions.size).toFixed(2) : '0.00',
-          lastViewed: data.lastViewed.toISOString(),
-          engagement: {
-            avgScrollDepth,
-            avgTimeOnPage,
-            completedReads: data.completedReads,
-            completionRate,
-          },
-        };
-      });
+      return {
+        slug,
+        views: data.views,
+        uniqueVisitors: data.sessions.size,
+        averageViews:
+          data.sessions.size > 0 ? (data.views / data.sessions.size).toFixed(2) : '0.00',
+        lastViewed: data.lastViewed.toISOString(),
+        engagement: {
+          avgScrollDepth,
+          avgTimeOnPage,
+          completedReads: data.completedReads,
+          completionRate,
+        },
+      };
+    });
 
     // Calculer les maximums pour la normalisation du score
     const maxViews = Math.max(...articlesWithMetrics.map(a => a.views), 1);
     const maxUniqueVisitors = Math.max(...articlesWithMetrics.map(a => a.uniqueVisitors), 1);
-    const maxTimeOnPage = Math.max(...articlesWithMetrics.map(a => a.engagement.avgTimeOnPage || 0), 1);
+    const maxTimeOnPage = Math.max(
+      ...articlesWithMetrics.map(a => a.engagement.avgTimeOnPage || 0),
+      1
+    );
     const maxScrollDepth = 100; // Le scroll depth est déjà en pourcentage
 
     // Calculer le score composite pour chaque article
     // Score = (vues * 0.25) + (visiteurs * 0.20) + (durée * 0.25) + (lecture * 0.30)
-    const allStats = articlesWithMetrics.map(article => {
-      const viewsScore = (article.views / maxViews) * 25;
-      const visitorsScore = (article.uniqueVisitors / maxUniqueVisitors) * 20;
-      const timeScore = ((article.engagement.avgTimeOnPage || 0) / maxTimeOnPage) * 25;
-      const readScore = ((article.engagement.avgScrollDepth || 0) / maxScrollDepth) * 30;
+    const allStats = articlesWithMetrics
+      .map(article => {
+        const viewsScore = (article.views / maxViews) * 25;
+        const visitorsScore = (article.uniqueVisitors / maxUniqueVisitors) * 20;
+        const timeScore = ((article.engagement.avgTimeOnPage || 0) / maxTimeOnPage) * 25;
+        const readScore = ((article.engagement.avgScrollDepth || 0) / maxScrollDepth) * 30;
 
-      const score = Math.round(viewsScore + visitorsScore + timeScore + readScore);
+        const score = Math.round(viewsScore + visitorsScore + timeScore + readScore);
 
-      return {
-        ...article,
-        score,
-      };
-    }).sort((a, b) => b.score - a.score);
+        return {
+          ...article,
+          score,
+        };
+      })
+      .sort((a, b) => b.score - a.score);
 
     // Calculer les totaux
     const totalViews = allStats.reduce((sum, stat) => sum + stat.views, 0);
@@ -249,10 +257,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error fetching analytics:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch analytics' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch analytics' }, { status: 500 });
   }
 }
 
@@ -265,7 +270,12 @@ export async function POST(request: NextRequest) {
     if (rateLimitResult.limited) {
       return NextResponse.json(
         { error: 'Rate limit exceeded' },
-        { status: 429, headers: { 'Retry-After': String(Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)) } }
+        {
+          status: 429,
+          headers: {
+            'Retry-After': String(Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)),
+          },
+        }
       );
     }
 
@@ -273,27 +283,21 @@ export async function POST(request: NextRequest) {
     const { slug, sessionId } = body;
 
     if (!slug || typeof slug !== 'string') {
-      return NextResponse.json(
-        { error: 'Slug is required and must be a string' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Slug is required and must be a string' }, { status: 400 });
     }
 
     // Validate slug format (alphanumeric + hyphens, max 200 chars)
     if (slug.length > 200 || !/^[a-z0-9][a-z0-9-]*[a-z0-9]$/i.test(slug)) {
-      return NextResponse.json(
-        { error: 'Invalid slug format' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid slug format' }, { status: 400 });
     }
 
     const userAgent = request.headers.get('user-agent') || '';
-    const ip = request.headers.get('x-forwarded-for') ||
-               request.headers.get('x-real-ip') ||
-               'unknown';
-    const finalSessionId = (typeof sessionId === 'string' && sessionId.length > 0)
-      ? sessionId
-      : hashVisitorId(userAgent, ip);
+    const ip =
+      request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+    const finalSessionId =
+      typeof sessionId === 'string' && sessionId.length > 0
+        ? sessionId
+        : hashVisitorId(userAgent, ip);
 
     await prisma.blogAnalytics.create({
       data: {
@@ -322,10 +326,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error tracking view:', error);
-    return NextResponse.json(
-      { error: 'Failed to track view' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to track view' }, { status: 500 });
   }
 }
 
@@ -359,9 +360,6 @@ export async function DELETE(request: NextRequest) {
     }
   } catch (error) {
     console.error('Error deleting analytics:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete analytics' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to delete analytics' }, { status: 500 });
   }
 }
