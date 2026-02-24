@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { siteConfig } from '@/config/site.config';
+
 import { validateCSRFMiddleware } from '../common/csrf-middleware';
 import {
   buildAdminEmailHtml,
@@ -12,6 +13,7 @@ import {
   getEmailBranding,
 } from '../common/email-templates';
 import { recordAttempt, getClientIP } from '../common/rate-limiter';
+import { sendEmailThroughResend, type EmailContent } from '../common/send-email';
 
 const branding = getEmailBranding(siteConfig);
 
@@ -51,12 +53,6 @@ const quickContactSchema = z.object({
 
 type QuickContactPayload = z.infer<typeof quickContactSchema>;
 
-type EmailContent = {
-  subject: string;
-  text: string;
-  html: string;
-};
-
 const requestTypeLabels: Record<(typeof requestTypeValues)[number], string> = {
   '': 'Non précisé',
   premiere_consultation: 'Première consultation',
@@ -68,25 +64,25 @@ const formatAdminEmail = (payload: QuickContactPayload): EmailContent => {
   const fullName = `${payload.firstName} ${payload.lastName}`;
 
   const options = {
-    heading: "Nouvelle demande rapide",
+    heading: 'Nouvelle demande rapide',
     badge: requestTypeLabels[payload.requestType],
     sections: [
       {
-        title: "Coordonnées",
+        title: 'Coordonnées',
         fields: [
-          { label: "Nom complet", value: fullName },
-          { label: "Email", value: payload.email, emailLink: true },
-          { label: "Téléphone", value: payload.phone || "Non précisé", phoneLink: !!payload.phone },
-          { label: "Type de demande", value: requestTypeLabels[payload.requestType], badge: true },
+          { label: 'Nom complet', value: fullName },
+          { label: 'Email', value: payload.email, emailLink: true },
+          { label: 'Téléphone', value: payload.phone || 'Non précisé', phoneLink: !!payload.phone },
+          { label: 'Type de demande', value: requestTypeLabels[payload.requestType], badge: true },
         ],
       },
     ],
     messageBlock: {
-      label: "Message",
+      label: 'Message',
       content: payload.message,
     },
     metadata: {
-      type: "quick_contact",
+      type: 'quick_contact',
       first_name: payload.firstName,
       last_name: payload.lastName,
       email: payload.email,
@@ -116,15 +112,15 @@ const formatConfirmationEmail = (payload: QuickContactPayload): EmailContent => 
     intro:
       "Merci d'avoir pris le temps de me contacter. Votre message a bien été reçu et je vous répondrai sous 48 heures.",
     recap: {
-      title: "Récapitulatif",
+      title: 'Récapitulatif',
       fields: [
-        { label: "Nom", value: fullName },
-        { label: "Email", value: payload.email },
-        { label: "Demande", value: requestTypeLabels[payload.requestType] },
-        { label: "Envoyé le", value: formatSubmittedAt(payload.meta.submitted_at) },
+        { label: 'Nom', value: fullName },
+        { label: 'Email', value: payload.email },
+        { label: 'Demande', value: requestTypeLabels[payload.requestType] },
+        { label: 'Envoyé le', value: formatSubmittedAt(payload.meta.submitted_at) },
       ],
     },
-    closing: "À très bientôt,",
+    closing: 'À très bientôt,',
     signer: `${branding.practitionerName} — ${branding.siteName}`,
   };
 
@@ -133,55 +129,6 @@ const formatConfirmationEmail = (payload: QuickContactPayload): EmailContent => 
     text: buildConfirmationEmailText(options, branding),
     html: buildConfirmationEmailHtml(options, branding),
   };
-};
-
-const sendEmailThroughResend = async (content: EmailContent, to: string, replyTo?: string) => {
-  const apiKey = process.env.RESEND_API_KEY;
-  const fromAddress =
-    process.env.CONTACT_FORM_FROM ??
-    process.env.APPOINTMENT_REQUEST_FROM ??
-    `${branding.siteName} <no-reply@${branding.domain}>`;
-
-  if (!apiKey) {
-    throw new Error("Le service d'envoi d'e-mails n'est pas configuré.");
-  }
-
-  // Timeout of 10 seconds to prevent indefinite blocking
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-  try {
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: fromAddress,
-        to: [to],
-        reply_to: replyTo ? [replyTo] : undefined,
-        subject: content.subject,
-        text: content.text,
-        html: content.html,
-      }),
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const body = await response.json().catch(() => null);
-      const message = body?.message || "L'envoi du message a échoué.";
-      throw new Error(message);
-    }
-  } catch (error) {
-    clearTimeout(timeoutId);
-    if (error instanceof Error && error.name === 'AbortError') {
-      throw new Error("Le service d'envoi d'e-mails a mis trop de temps à répondre.");
-    }
-    throw error;
-  }
 };
 
 export async function POST(request: Request) {
@@ -217,7 +164,6 @@ export async function POST(request: Request) {
     const parsed = quickContactSchema.safeParse(body);
 
     if (!parsed.success) {
-      // Generic error message for security
       return NextResponse.json({ message: 'Données invalides.' }, { status: 400 });
     }
 
@@ -238,15 +184,10 @@ export async function POST(request: Request) {
   const adminContent = formatAdminEmail(payload);
 
   try {
-    // Send email to recipient
-    await sendEmailThroughResend(adminContent, recipient, payload.email);
+    await sendEmailThroughResend(adminContent, recipient, branding, { replyTo: payload.email });
 
-    // Send confirmation to user
     try {
-      await sendEmailThroughResend(
-        formatConfirmationEmail(payload),
-        payload.email
-      );
+      await sendEmailThroughResend(formatConfirmationEmail(payload), payload.email, branding);
     } catch (confirmationError) {
       console.error("Échec de l'envoi de la confirmation du formulaire rapide", confirmationError);
     }

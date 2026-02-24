@@ -1,11 +1,9 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
-import { NextResponse } from "next/server";
-import { z } from "zod";
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
 
-import { siteConfig } from "@/config/site.config";
-import { validateCSRFMiddleware } from "../common/csrf-middleware";
+import { siteConfig } from '@/config/site.config';
+
+import { validateCSRFMiddleware } from '../common/csrf-middleware';
 import {
   buildAdminEmailHtml,
   buildAdminEmailText,
@@ -13,8 +11,9 @@ import {
   buildConfirmationEmailText,
   formatSubmittedAt,
   getEmailBranding,
-} from "../common/email-templates";
-import { recordAttempt, getClientIP } from "../common/rate-limiter";
+} from '../common/email-templates';
+import { recordAttempt, getClientIP } from '../common/rate-limiter';
+import { sendEmailThroughResend, type EmailContent } from '../common/send-email';
 
 const branding = getEmailBranding(siteConfig);
 
@@ -24,40 +23,37 @@ const contactSchema = z.object({
   message: z.string().trim().min(10).max(5000),
   meta: z
     .object({
-      honeypot: z.string().optional().transform((value) => value?.trim() ?? ""),
+      honeypot: z
+        .string()
+        .optional()
+        .transform(value => value?.trim() ?? ''),
       submitted_at: z.string().optional(),
-      source_page: z.string().optional()
+      source_page: z.string().optional(),
     })
-    .default({ honeypot: "", submitted_at: undefined, source_page: undefined })
+    .default({ honeypot: '', submitted_at: undefined, source_page: undefined }),
 });
 
 type ContactPayload = z.infer<typeof contactSchema>;
 
-type EmailContent = {
-  subject: string;
-  text: string;
-  html: string;
-};
-
 const formatAdminEmail = (payload: ContactPayload): EmailContent => {
   const options = {
-    heading: "Nouveau message de contact",
-    badge: "Contact",
+    heading: 'Nouveau message de contact',
+    badge: 'Contact',
     sections: [
       {
-        title: "Coordonnées",
+        title: 'Coordonnées',
         fields: [
-          { label: "Nom", value: payload.name },
-          { label: "Email", value: payload.email, emailLink: true },
+          { label: 'Nom', value: payload.name },
+          { label: 'Email', value: payload.email, emailLink: true },
         ],
       },
     ],
     messageBlock: {
-      label: "Message",
+      label: 'Message',
       content: payload.message,
     },
     metadata: {
-      type: "contact",
+      type: 'contact',
       name: payload.name,
       email: payload.email,
       message: payload.message,
@@ -81,17 +77,17 @@ const formatConfirmationEmail = (payload: ContactPayload): EmailContent => {
     intro:
       "Merci d'avoir pris le temps de me contacter. Votre message a bien été reçu et je vous répondrai dans les meilleurs délais.",
     recap: {
-      title: "Récapitulatif de votre message",
+      title: 'Récapitulatif de votre message',
       fields: [
-        { label: "Nom", value: payload.name },
-        { label: "Email", value: payload.email },
+        { label: 'Nom', value: payload.name },
+        { label: 'Email', value: payload.email },
         {
-          label: "Envoyé le",
+          label: 'Envoyé le',
           value: formatSubmittedAt(payload.meta.submitted_at),
         },
       ],
     },
-    closing: "À très bientôt,",
+    closing: 'À très bientôt,',
     signer: `${branding.practitionerName} — ${branding.siteName}`,
   };
 
@@ -102,70 +98,21 @@ const formatConfirmationEmail = (payload: ContactPayload): EmailContent => {
   };
 };
 
-const sendEmailThroughResend = async (content: EmailContent, to: string, replyTo?: string) => {
-  const apiKey = process.env.RESEND_API_KEY;
-  const fromAddress =
-    process.env.CONTACT_FORM_FROM ??
-    process.env.APPOINTMENT_REQUEST_FROM ??
-    `${branding.siteName} <no-reply@${branding.domain}>`;
-
-  if (!apiKey) {
-    throw new Error("Le service d'envoi d'e-mails n'est pas configuré.");
-  }
-
-  // ROBUSTESSE : Timeout de 10 secondes pour éviter le blocage indéfini
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000);
-
-  try {
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        from: fromAddress,
-        to: [to],
-        reply_to: replyTo ? [replyTo] : undefined,
-        subject: content.subject,
-        text: content.text,
-        html: content.html
-      }),
-      signal: controller.signal
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const body = await response.json().catch(() => null);
-      const message = body?.message || "L'envoi du message a échoué.";
-      throw new Error(message);
-    }
-  } catch (error) {
-    clearTimeout(timeoutId);
-    if (error instanceof Error && error.name === 'AbortError') {
-      throw new Error("Le service d'envoi d'e-mails a mis trop de temps à répondre.");
-    }
-    throw error;
-  }
-};
-
 export async function POST(request: Request) {
   // PROTECTION : Rate limiting - 5 messages par minute par IP
   const clientIP = getClientIP(request);
-  const rateLimitResult = recordAttempt("contact", clientIP);
+  const rateLimitResult = recordAttempt('contact', clientIP);
 
   if (rateLimitResult.limited) {
     return NextResponse.json(
       {
-        message: "Trop de tentatives. Veuillez réessayer dans quelques instants.",
+        message: 'Trop de tentatives. Veuillez réessayer dans quelques instants.',
         retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000),
       },
       {
         status: 429,
         headers: {
-          "Retry-After": String(Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)),
+          'Retry-After': String(Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)),
         },
       }
     );
@@ -184,13 +131,12 @@ export async function POST(request: Request) {
     const parsed = contactSchema.safeParse(body);
 
     if (!parsed.success) {
-      // SÉCURITÉ : Messages d'erreur génériques pour ne pas révéler la structure des données
-      return NextResponse.json({ message: "Données invalides." }, { status: 400 });
+      return NextResponse.json({ message: 'Données invalides.' }, { status: 400 });
     }
 
     payload = parsed.data;
-  } catch (error) {
-    return NextResponse.json({ message: "Données invalides." }, { status: 400 });
+  } catch {
+    return NextResponse.json({ message: 'Données invalides.' }, { status: 400 });
   }
 
   if (payload.meta.honeypot) {
@@ -204,15 +150,15 @@ export async function POST(request: Request) {
   const adminContent = formatAdminEmail(payload);
 
   try {
-    await sendEmailThroughResend(adminContent, recipient, payload.email);
+    await sendEmailThroughResend(adminContent, recipient, branding, { replyTo: payload.email });
 
     try {
-      await sendEmailThroughResend(
-        formatConfirmationEmail(payload),
-        payload.email
-      );
+      await sendEmailThroughResend(formatConfirmationEmail(payload), payload.email, branding);
     } catch (confirmationError) {
-      console.error("Échec de l'envoi de la confirmation du formulaire de contact", confirmationError);
+      console.error(
+        "Échec de l'envoi de la confirmation du formulaire de contact",
+        confirmationError
+      );
     }
 
     return NextResponse.json({ success: true });
@@ -220,7 +166,7 @@ export async function POST(request: Request) {
     console.error("Échec de l'envoi du formulaire de contact", error);
     return NextResponse.json(
       {
-        message: "Une erreur est survenue. Veuillez réessayer dans quelques instants."
+        message: 'Une erreur est survenue. Veuillez réessayer dans quelques instants.',
       },
       { status: 500 }
     );
