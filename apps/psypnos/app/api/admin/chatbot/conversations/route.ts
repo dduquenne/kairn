@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 
-import { withAdminAuth } from '../../../auth/middleware';
 import { prisma } from '@/lib/db/prisma';
+
+import { withAdminAuth } from '../../../auth/middleware';
 
 /**
  * GET /api/admin/chatbot/conversations
@@ -110,7 +111,8 @@ export async function GET(request: Request) {
       feedbackTotal > 0 ? Math.round((satisfiedCount / feedbackTotal) * 1000) / 10 : null;
 
     return NextResponse.json({
-      conversations: conversations.map((conv) => ({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      conversations: conversations.map((conv: any) => ({
         id: conv.id,
         sessionId: conv.sessionId,
         status: conv.status,
@@ -123,7 +125,9 @@ export async function GET(request: Request) {
         endedAt: conv.endedAt,
         preview: conv.messages[0]?.content?.slice(0, 120) || '',
         firstUserMessage:
-          conv.messages.find((m) => m.role === 'user')?.content?.slice(0, 150) || '',
+          conv.messages
+            .find((m: { role: string; content?: string }) => m.role === 'user')
+            ?.content?.slice(0, 150) || '',
       })),
       pagination: {
         page,

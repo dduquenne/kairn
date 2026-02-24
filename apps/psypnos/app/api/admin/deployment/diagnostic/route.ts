@@ -1,23 +1,22 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Deployment model not available in Kairn schema
-import { exec } from "child_process";
-import * as fs from "fs";
-import * as os from "os";
-import * as path from "path";
-import { promisify } from "util";
+import { exec } from 'child_process';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import { promisify } from 'util';
 
-import Anthropic from "@anthropic-ai/sdk";
-import { NextResponse } from "next/server";
+import Anthropic from '@anthropic-ai/sdk';
+import { NextResponse } from 'next/server';
 
-import { withAdminAuth } from "@/app/api/auth/middleware";
-import { checkRedisHealth, getRedisClient } from "@/lib/cache/redis";
-import { isDatabaseConnected, prisma } from "@/lib/db/prisma";
-
+import { withAdminAuth } from '@/app/api/auth/middleware';
+import { checkRedisHealth, getRedisClient } from '@/lib/cache/redis';
+import { isDatabaseConnected, prisma } from '@/lib/db/prisma';
 
 const execAsync = promisify(exec);
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 /**
  * Prompt système pour le diagnostic serveur
@@ -93,7 +92,7 @@ interface ExtendedSystemMetrics {
     };
   };
   database: {
-    status: "up" | "down";
+    status: 'up' | 'down';
     latencyMs?: number;
     error?: string;
     extended?: {
@@ -106,7 +105,7 @@ interface ExtendedSystemMetrics {
     };
   };
   redis: {
-    status: "up" | "down" | "disabled";
+    status: 'up' | 'down' | 'disabled';
     latencyMs?: number;
     error?: string;
     extended?: {
@@ -194,16 +193,16 @@ interface DiagnosticResponse {
   success: boolean;
   metrics?: ExtendedSystemMetrics;
   analysis?: {
-    overallHealth: "excellent" | "good" | "warning" | "critical";
+    overallHealth: 'excellent' | 'good' | 'warning' | 'critical';
     summary: string;
     findings: Array<{
       category: string;
-      status: "ok" | "warning" | "critical";
+      status: 'ok' | 'warning' | 'critical';
       message: string;
       details?: string;
     }>;
     recommendations: Array<{
-      priority: "high" | "medium" | "low";
+      priority: 'high' | 'medium' | 'low';
       title: string;
       description: string;
       commands?: string[];
@@ -226,35 +225,35 @@ async function safeExec(command: string, timeoutMs = 5000): Promise<string> {
     const { stdout } = await execAsync(command, { timeout: timeoutMs });
     return stdout.trim();
   } catch {
-    return "";
+    return '';
   }
 }
 
 /**
  * Collecte les métriques de disque
  */
-async function collectDiskMetrics(): Promise<ExtendedSystemMetrics["disk"]> {
+async function collectDiskMetrics(): Promise<ExtendedSystemMetrics['disk']> {
   const defaultDisk = {
     total: 0,
     used: 0,
     free: 0,
     percentUsed: 0,
-    mountPoint: "/",
+    mountPoint: '/',
   };
 
   try {
     // Utiliser df pour obtenir les infos de disque
-    const dfOutput = await safeExec("df -k / | tail -1");
+    const dfOutput = await safeExec('df -k / | tail -1');
     if (dfOutput) {
       const parts = dfOutput.split(/\s+/);
       if (parts.length >= 5) {
         const total = parseInt(parts[1]) * 1024; // Convert KB to bytes
         const used = parseInt(parts[2]) * 1024;
         const free = parseInt(parts[3]) * 1024;
-        const percentUsed = parseInt(parts[4].replace("%", ""));
+        const percentUsed = parseInt(parts[4].replace('%', ''));
 
         // Récupérer les inodes
-        const inodeOutput = await safeExec("df -i / | tail -1");
+        const inodeOutput = await safeExec('df -i / | tail -1');
         let inodes;
         if (inodeOutput) {
           const inodeParts = inodeOutput.split(/\s+/);
@@ -262,7 +261,7 @@ async function collectDiskMetrics(): Promise<ExtendedSystemMetrics["disk"]> {
             inodes = {
               total: parseInt(inodeParts[1]),
               used: parseInt(inodeParts[2]),
-              percentUsed: parseInt(inodeParts[4].replace("%", "")),
+              percentUsed: parseInt(inodeParts[4].replace('%', '')),
             };
           }
         }
@@ -272,7 +271,7 @@ async function collectDiskMetrics(): Promise<ExtendedSystemMetrics["disk"]> {
           used: Math.round(used / 1024 / 1024 / 1024),
           free: Math.round(free / 1024 / 1024 / 1024),
           percentUsed,
-          mountPoint: parts[5] || "/",
+          mountPoint: parts[5] || '/',
           inodes,
         };
       }
@@ -287,11 +286,11 @@ async function collectDiskMetrics(): Promise<ExtendedSystemMetrics["disk"]> {
 /**
  * Collecte les métriques PM2
  */
-async function collectPM2Metrics(): Promise<ExtendedSystemMetrics["pm2"]> {
+async function collectPM2Metrics(): Promise<ExtendedSystemMetrics['pm2']> {
   try {
-    const pm2Output = await safeExec("pm2 jlist 2>/dev/null");
+    const pm2Output = await safeExec('pm2 jlist 2>/dev/null');
     if (!pm2Output) {
-      return { available: false, error: "PM2 non disponible ou aucun processus" };
+      return { available: false, error: 'PM2 non disponible ou aucun processus' };
     }
 
     const processes = JSON.parse(pm2Output);
@@ -301,27 +300,29 @@ async function collectPM2Metrics(): Promise<ExtendedSystemMetrics["pm2"]> {
 
     return {
       available: true,
-      processes: processes.map((p: {
-        name: string;
-        pm2_env?: { status?: string };
-        monit?: { cpu?: number; memory?: number };
-        pm2_env_restart_time?: number;
-        pm2_env_pm_uptime?: number;
-        pid?: number;
-      }) => ({
-        name: p.name,
-        status: p.pm2_env?.status || "unknown",
-        cpu: p.monit?.cpu || 0,
-        memory: Math.round((p.monit?.memory || 0) / 1024 / 1024), // MB
-        restarts: p.pm2_env_restart_time || 0,
-        uptime: p.pm2_env_pm_uptime ? Math.floor((Date.now() - p.pm2_env_pm_uptime) / 1000) : 0,
-        pid: p.pid,
-      })),
+      processes: processes.map(
+        (p: {
+          name: string;
+          pm2_env?: { status?: string };
+          monit?: { cpu?: number; memory?: number };
+          pm2_env_restart_time?: number;
+          pm2_env_pm_uptime?: number;
+          pid?: number;
+        }) => ({
+          name: p.name,
+          status: p.pm2_env?.status || 'unknown',
+          cpu: p.monit?.cpu || 0,
+          memory: Math.round((p.monit?.memory || 0) / 1024 / 1024), // MB
+          restarts: p.pm2_env_restart_time || 0,
+          uptime: p.pm2_env_pm_uptime ? Math.floor((Date.now() - p.pm2_env_pm_uptime) / 1000) : 0,
+          pid: p.pid,
+        })
+      ),
     };
   } catch (error) {
     return {
       available: false,
-      error: error instanceof Error ? error.message : "Erreur PM2",
+      error: error instanceof Error ? error.message : 'Erreur PM2',
     };
   }
 }
@@ -329,13 +330,15 @@ async function collectPM2Metrics(): Promise<ExtendedSystemMetrics["pm2"]> {
 /**
  * Collecte les métriques réseau
  */
-async function collectNetworkMetrics(): Promise<ExtendedSystemMetrics["network"]> {
+async function collectNetworkMetrics(): Promise<ExtendedSystemMetrics['network']> {
   try {
     // Compter les connexions par état
-    const netstatOutput = await safeExec("netstat -an 2>/dev/null | grep -E 'ESTABLISHED|TIME_WAIT|CLOSE_WAIT' | wc -l");
-    const establishedOutput = await safeExec("netstat -an 2>/dev/null | grep ESTABLISHED | wc -l");
-    const timeWaitOutput = await safeExec("netstat -an 2>/dev/null | grep TIME_WAIT | wc -l");
-    const closeWaitOutput = await safeExec("netstat -an 2>/dev/null | grep CLOSE_WAIT | wc -l");
+    const netstatOutput = await safeExec(
+      "netstat -an 2>/dev/null | grep -E 'ESTABLISHED|TIME_WAIT|CLOSE_WAIT' | wc -l"
+    );
+    const establishedOutput = await safeExec('netstat -an 2>/dev/null | grep ESTABLISHED | wc -l');
+    const timeWaitOutput = await safeExec('netstat -an 2>/dev/null | grep TIME_WAIT | wc -l');
+    const closeWaitOutput = await safeExec('netstat -an 2>/dev/null | grep CLOSE_WAIT | wc -l');
 
     return {
       connections: {
@@ -345,17 +348,17 @@ async function collectNetworkMetrics(): Promise<ExtendedSystemMetrics["network"]
       },
     };
   } catch {
-    return { error: "Impossible de collecter les métriques réseau" };
+    return { error: 'Impossible de collecter les métriques réseau' };
   }
 }
 
 /**
  * Collecte les informations SSL
  */
-async function collectSSLMetrics(): Promise<ExtendedSystemMetrics["ssl"]> {
+async function collectSSLMetrics(): Promise<ExtendedSystemMetrics['ssl']> {
   try {
-    const domain = process.env.NEXT_PUBLIC_BASE_URL?.replace(/^https?:\/\//, "").split("/")[0];
-    if (!domain || domain.includes("localhost")) {
+    const domain = process.env.NEXT_PUBLIC_BASE_URL?.replace(/^https?:\/\//, '').split('/')[0];
+    if (!domain || domain.includes('localhost')) {
       return { available: false };
     }
 
@@ -371,7 +374,9 @@ async function collectSSLMetrics(): Promise<ExtendedSystemMetrics["ssl"]> {
       if (notAfterMatch) {
         const expiresAt = new Date(notAfterMatch[1]);
         const now = new Date();
-        const daysUntilExpiry = Math.floor((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        const daysUntilExpiry = Math.floor(
+          (expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+        );
 
         return {
           available: true,
@@ -383,16 +388,18 @@ async function collectSSLMetrics(): Promise<ExtendedSystemMetrics["ssl"]> {
       }
     }
 
-    return { available: false, domain, error: "Impossible de lire le certificat" };
+    return { available: false, domain, error: 'Impossible de lire le certificat' };
   } catch {
-    return { available: false, error: "Erreur lors de la vérification SSL" };
+    return { available: false, error: 'Erreur lors de la vérification SSL' };
   }
 }
 
 /**
  * Collecte les métriques PostgreSQL étendues
  */
-async function collectExtendedDatabaseMetrics(): Promise<ExtendedSystemMetrics["database"]["extended"]> {
+async function collectExtendedDatabaseMetrics(): Promise<
+  ExtendedSystemMetrics['database']['extended']
+> {
   try {
     const isConnected = await isDatabaseConnected();
     if (!isConnected) return undefined;
@@ -419,13 +426,13 @@ async function collectExtendedDatabaseMetrics(): Promise<ExtendedSystemMetrics["
     const sizeResult = await prisma.$queryRaw<Array<{ size: string }>>`
       SELECT pg_size_pretty(pg_database_size(current_database())) as size
     `;
-    const databaseSize = sizeResult[0]?.size || "N/A";
+    const databaseSize = sizeResult[0]?.size || 'N/A';
 
     // Max connections
     const maxConnResult = await prisma.$queryRaw<Array<{ setting: string }>>`
       SELECT setting FROM pg_settings WHERE name = 'max_connections'
     `;
-    const maxConnections = parseInt(maxConnResult[0]?.setting || "100");
+    const maxConnections = parseInt(maxConnResult[0]?.setting || '100');
 
     return {
       connectionCount,
@@ -443,25 +450,25 @@ async function collectExtendedDatabaseMetrics(): Promise<ExtendedSystemMetrics["
 /**
  * Collecte les métriques Redis étendues
  */
-async function collectExtendedRedisMetrics(): Promise<ExtendedSystemMetrics["redis"]["extended"]> {
+async function collectExtendedRedisMetrics(): Promise<ExtendedSystemMetrics['redis']['extended']> {
   try {
     const redis = getRedisClient();
     if (!redis) return undefined;
 
     const info = await redis.info();
-    const lines = info.split("\r\n");
+    const lines = info.split('\r\n');
     const metrics: Record<string, string> = {};
 
     for (const line of lines) {
-      const [key, value] = line.split(":");
+      const [key, value] = line.split(':');
       if (key && value) {
         metrics[key] = value;
       }
     }
 
     // Calculer le hit rate
-    const hits = parseInt(metrics["keyspace_hits"] || "0");
-    const misses = parseInt(metrics["keyspace_misses"] || "0");
+    const hits = parseInt(metrics['keyspace_hits'] || '0');
+    const misses = parseInt(metrics['keyspace_misses'] || '0');
     const hitRate = hits + misses > 0 ? Math.round((hits / (hits + misses)) * 100) : 0;
 
     // Compter les clés
@@ -469,13 +476,13 @@ async function collectExtendedRedisMetrics(): Promise<ExtendedSystemMetrics["red
     const totalKeys = dbKeysMatch ? parseInt(dbKeysMatch[1]) : 0;
 
     return {
-      usedMemory: metrics["used_memory_human"],
-      usedMemoryPeak: metrics["used_memory_peak_human"],
-      connectedClients: parseInt(metrics["connected_clients"] || "0"),
+      usedMemory: metrics['used_memory_human'],
+      usedMemoryPeak: metrics['used_memory_peak_human'],
+      connectedClients: parseInt(metrics['connected_clients'] || '0'),
       totalKeys,
       hitRate,
-      evictedKeys: parseInt(metrics["evicted_keys"] || "0"),
-      uptimeSeconds: parseInt(metrics["uptime_in_seconds"] || "0"),
+      evictedKeys: parseInt(metrics['evicted_keys'] || '0'),
+      uptimeSeconds: parseInt(metrics['uptime_in_seconds'] || '0'),
     };
   } catch {
     return undefined;
@@ -485,41 +492,41 @@ async function collectExtendedRedisMetrics(): Promise<ExtendedSystemMetrics["red
 /**
  * Collecte les informations de déploiement
  */
-async function collectDeploymentInfo(): Promise<ExtendedSystemMetrics["deployment"]> {
+async function collectDeploymentInfo(): Promise<ExtendedSystemMetrics['deployment']> {
   // Lire la version depuis package.json
-  let version = "unknown";
+  let version = 'unknown';
   try {
-    const packagePath = path.join(process.cwd(), "package.json");
-    const packageJson = JSON.parse(fs.readFileSync(packagePath, "utf-8"));
-    version = packageJson.version || "unknown";
+    const packagePath = path.join(process.cwd(), 'package.json');
+    const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf-8'));
+    version = packageJson.version || 'unknown';
   } catch {
     // Ignore
   }
 
   // Git commit et branch
-  const gitCommit = await safeExec("git rev-parse --short HEAD 2>/dev/null");
-  const gitBranch = await safeExec("git rev-parse --abbrev-ref HEAD 2>/dev/null");
+  const gitCommit = await safeExec('git rev-parse --short HEAD 2>/dev/null');
+  const gitBranch = await safeExec('git rev-parse --abbrev-ref HEAD 2>/dev/null');
 
   // Date du dernier commit
-  const lastCommitDate = await safeExec("git log -1 --format=%ci 2>/dev/null");
+  const lastCommitDate = await safeExec('git log -1 --format=%ci 2>/dev/null');
 
   return {
     version,
     gitCommit: gitCommit || undefined,
     gitBranch: gitBranch || undefined,
     lastDeployedAt: lastCommitDate || undefined,
-    nodeEnv: process.env.NODE_ENV || "development",
-    analyticsMode: process.env.ANALYTICS_STORAGE_MODE || "json",
+    nodeEnv: process.env.NODE_ENV || 'development',
+    analyticsMode: 'postgres',
   };
 }
 
 /**
  * Collecte les informations de sécurité (npm audit)
  */
-async function collectSecurityInfo(): Promise<ExtendedSystemMetrics["security"]> {
+async function collectSecurityInfo(): Promise<ExtendedSystemMetrics['security']> {
   try {
     // Exécuter npm audit en mode JSON (avec timeout court car peut être lent)
-    const auditOutput = await safeExec("pnpm audit --json 2>/dev/null", 15000);
+    const auditOutput = await safeExec('pnpm audit --json 2>/dev/null', 15000);
 
     if (auditOutput) {
       try {
@@ -541,7 +548,7 @@ async function collectSecurityInfo(): Promise<ExtendedSystemMetrics["security"]>
     }
 
     // Vérifier les packages obsolètes
-    const outdatedOutput = await safeExec("pnpm outdated --json 2>/dev/null | wc -l", 10000);
+    const outdatedOutput = await safeExec('pnpm outdated --json 2>/dev/null | wc -l', 10000);
     const outdatedCount = parseInt(outdatedOutput) || 0;
 
     return {
@@ -555,23 +562,23 @@ async function collectSecurityInfo(): Promise<ExtendedSystemMetrics["security"]>
 /**
  * Collecte la configuration PM2 (ecosystem.config.js)
  */
-async function collectPM2Config(): Promise<ExtendedSystemMetrics["pm2Config"]> {
+async function collectPM2Config(): Promise<ExtendedSystemMetrics['pm2Config']> {
   try {
-    const configPath = path.join(process.cwd(), "ecosystem.config.js");
+    const configPath = path.join(process.cwd(), 'ecosystem.config.js');
 
     if (fs.existsSync(configPath)) {
-      const content = fs.readFileSync(configPath, "utf-8");
+      const content = fs.readFileSync(configPath, 'utf-8');
       return {
         available: true,
         content,
       };
     }
 
-    return { available: false, error: "Fichier ecosystem.config.js non trouvé" };
+    return { available: false, error: 'Fichier ecosystem.config.js non trouvé' };
   } catch (error) {
     return {
       available: false,
-      error: error instanceof Error ? error.message : "Erreur de lecture",
+      error: error instanceof Error ? error.message : 'Erreur de lecture',
     };
   }
 }
@@ -579,24 +586,30 @@ async function collectPM2Config(): Promise<ExtendedSystemMetrics["pm2Config"]> {
 /**
  * Collecte les logs récents (erreurs)
  */
-async function collectRecentLogs(): Promise<ExtendedSystemMetrics["logs"]> {
+async function collectRecentLogs(): Promise<ExtendedSystemMetrics['logs']> {
   const recentErrors: string[] = [];
 
   try {
     // Essayer de lire les logs PM2
-    const pm2LogPath = await safeExec("pm2 info psypnos 2>/dev/null | grep 'err log path' | awk '{print $NF}'");
+    const pm2LogPath = await safeExec(
+      "pm2 info psypnos 2>/dev/null | grep 'err log path' | awk '{print $NF}'"
+    );
 
     if (pm2LogPath && fs.existsSync(pm2LogPath)) {
-      const logContent = await safeExec(`tail -100 "${pm2LogPath}" 2>/dev/null | grep -i "error\\|exception\\|fatal" | tail -10`);
+      const logContent = await safeExec(
+        `tail -100 "${pm2LogPath}" 2>/dev/null | grep -i "error\\|exception\\|fatal" | tail -10`
+      );
       if (logContent) {
-        recentErrors.push(...logContent.split("\n").filter(Boolean).slice(-10));
+        recentErrors.push(...logContent.split('\n').filter(Boolean).slice(-10));
       }
     }
 
     // Compter les erreurs des dernières 24h
     let errorCount24h = 0;
     if (pm2LogPath && fs.existsSync(pm2LogPath)) {
-      const countOutput = await safeExec(`grep -c -i "error" "${pm2LogPath}" 2>/dev/null || echo "0"`);
+      const countOutput = await safeExec(
+        `grep -c -i "error" "${pm2LogPath}" 2>/dev/null || echo "0"`
+      );
       errorCount24h = parseInt(countOutput) || 0;
     }
 
@@ -641,39 +654,39 @@ async function collectSystemMetrics(): Promise<ExtendedSystemMetrics> {
   const loadAverage = os.loadavg();
   const cpu = {
     cores: cpus.length,
-    model: cpus[0]?.model || "Unknown",
+    model: cpus[0]?.model || 'Unknown',
     loadAverage,
     loadPerCore: Math.round((loadAverage[0] / cpus.length) * 100) / 100,
   };
 
   // Database check
-  let dbStatus: ExtendedSystemMetrics["database"];
+  let dbStatus: ExtendedSystemMetrics['database'];
   const dbStart = Date.now();
   try {
     const connected = await isDatabaseConnected();
     const extended = connected ? await collectExtendedDatabaseMetrics() : undefined;
     dbStatus = {
-      status: connected ? "up" : "down",
+      status: connected ? 'up' : 'down',
       latencyMs: Date.now() - dbStart,
       extended,
     };
   } catch (error) {
     dbStatus = {
-      status: "down",
+      status: 'down',
       latencyMs: Date.now() - dbStart,
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 
   // Redis check
-  let redisStatus: ExtendedSystemMetrics["redis"];
+  let redisStatus: ExtendedSystemMetrics['redis'];
   if (!process.env.REDIS_URL) {
-    redisStatus = { status: "disabled" };
+    redisStatus = { status: 'disabled' };
   } else {
     const redisHealth = await checkRedisHealth();
     const extended = redisHealth.available ? await collectExtendedRedisMetrics() : undefined;
     redisStatus = {
-      status: redisHealth.available ? "up" : "down",
+      status: redisHealth.available ? 'up' : 'down',
       latencyMs: redisHealth.latencyMs,
       error: redisHealth.error,
       extended,
@@ -681,17 +694,18 @@ async function collectSystemMetrics(): Promise<ExtendedSystemMetrics> {
   }
 
   // Collect additional metrics in parallel
-  const [disk, pm2, network, ssl, deployment, security, logs, pm2Config, kernelVersion] = await Promise.all([
-    collectDiskMetrics(),
-    collectPM2Metrics(),
-    collectNetworkMetrics(),
-    collectSSLMetrics(),
-    collectDeploymentInfo(),
-    collectSecurityInfo(),
-    collectRecentLogs(),
-    collectPM2Config(),
-    safeExec("uname -r 2>/dev/null"),
-  ]);
+  const [disk, pm2, network, ssl, deployment, security, logs, pm2Config, kernelVersion] =
+    await Promise.all([
+      collectDiskMetrics(),
+      collectPM2Metrics(),
+      collectNetworkMetrics(),
+      collectSSLMetrics(),
+      collectDeploymentInfo(),
+      collectSecurityInfo(),
+      collectRecentLogs(),
+      collectPM2Config(),
+      safeExec('uname -r 2>/dev/null'),
+    ]);
 
   return {
     timestamp,
@@ -744,9 +758,9 @@ function buildDiagnosticPrompt(metrics: ExtendedSystemMetrics): string {
 
 ### Déploiement & Version
 - **Version application**: ${metrics.deployment.version}
-- **Commit Git**: ${metrics.deployment.gitCommit || "N/A"}
-- **Branche**: ${metrics.deployment.gitBranch || "N/A"}
-- **Dernier déploiement**: ${metrics.deployment.lastDeployedAt || "N/A"}
+- **Commit Git**: ${metrics.deployment.gitCommit || 'N/A'}
+- **Branche**: ${metrics.deployment.gitBranch || 'N/A'}
+- **Dernier déploiement**: ${metrics.deployment.lastDeployedAt || 'N/A'}
 - **NODE_ENV**: ${metrics.deployment.nodeEnv}
 - **Mode analytics**: ${metrics.deployment.analyticsMode}
 
@@ -767,7 +781,7 @@ function buildDiagnosticPrompt(metrics: ExtendedSystemMetrics): string {
 ### CPU
 - **Coeurs**: ${metrics.cpu.cores}
 - **Modèle**: ${metrics.cpu.model}
-- **Load average (1m, 5m, 15m)**: ${metrics.cpu.loadAverage.map(l => l.toFixed(2)).join(", ")}
+- **Load average (1m, 5m, 15m)**: ${metrics.cpu.loadAverage.map(l => l.toFixed(2)).join(', ')}
 - **Load par coeur**: ${metrics.cpu.loadPerCore}
 
 ### Stockage disque
@@ -785,7 +799,7 @@ function buildDiagnosticPrompt(metrics: ExtendedSystemMetrics): string {
 
 ### Base de données PostgreSQL
 - **Statut**: ${metrics.database.status}
-- **Latence**: ${metrics.database.latencyMs !== undefined ? `${metrics.database.latencyMs}ms` : "N/A"}`;
+- **Latence**: ${metrics.database.latencyMs !== undefined ? `${metrics.database.latencyMs}ms` : 'N/A'}`;
 
   if (metrics.database.error) {
     prompt += `
@@ -805,7 +819,7 @@ function buildDiagnosticPrompt(metrics: ExtendedSystemMetrics): string {
 
 ### Redis`;
 
-  if (metrics.redis.status === "disabled") {
+  if (metrics.redis.status === 'disabled') {
     prompt += `
 - **Statut**: Désactivé (non configuré)`;
   } else {
@@ -863,7 +877,7 @@ function buildDiagnosticPrompt(metrics: ExtendedSystemMetrics): string {
 - **Domaine**: ${metrics.ssl.domain}
 - **Expiration**: ${metrics.ssl.expiresAt}
 - **Jours restants**: ${metrics.ssl.daysUntilExpiry}
-- **Émetteur**: ${metrics.ssl.issuer || "N/A"}`;
+- **Émetteur**: ${metrics.ssl.issuer || 'N/A'}`;
   } else if (metrics.ssl?.error) {
     prompt += `
 
@@ -891,7 +905,7 @@ function buildDiagnosticPrompt(metrics: ExtendedSystemMetrics): string {
     prompt += `
 
 ### Erreurs récentes (logs)
-${metrics.logs.recentErrors.map(e => `- ${e}`).join("\n")}`;
+${metrics.logs.recentErrors.map(e => `- ${e}`).join('\n')}`;
     if (metrics.logs.errorCount24h) {
       prompt += `
 - **Total erreurs (estimé)**: ${metrics.logs.errorCount24h}`;
@@ -967,41 +981,50 @@ commande2
 /**
  * Parse la réponse XML de Claude en objet structuré
  */
-function parseDiagnosticResponse(response: string): DiagnosticResponse["analysis"] {
+function parseDiagnosticResponse(response: string): DiagnosticResponse['analysis'] {
   // Overall health
-  const healthMatch = response.match(/<OVERALL_HEALTH>(excellent|good|warning|critical)<\/OVERALL_HEALTH>/);
-  const overallHealth = (healthMatch?.[1] as "excellent" | "good" | "warning" | "critical") || "warning";
+  const healthMatch = response.match(
+    /<OVERALL_HEALTH>(excellent|good|warning|critical)<\/OVERALL_HEALTH>/
+  );
+  const overallHealth =
+    (healthMatch?.[1] as 'excellent' | 'good' | 'warning' | 'critical') || 'warning';
 
   // Summary
   const summaryMatch = response.match(/<SUMMARY>([\s\S]*?)<\/SUMMARY>/);
-  const summary = summaryMatch?.[1]?.trim() || "Diagnostic non disponible";
+  const summary = summaryMatch?.[1]?.trim() || 'Diagnostic non disponible';
 
   // Findings
-  const findingsRegex = /<FINDING\s+category="([^"]+)"\s+status="(ok|warning|critical)">\s*<MESSAGE>([\s\S]*?)<\/MESSAGE>\s*(?:<DETAILS>([\s\S]*?)<\/DETAILS>)?\s*<\/FINDING>/g;
-  const findings: NonNullable<DiagnosticResponse["analysis"]>["findings"] = [];
+  const findingsRegex =
+    /<FINDING\s+category="([^"]+)"\s+status="(ok|warning|critical)">\s*<MESSAGE>([\s\S]*?)<\/MESSAGE>\s*(?:<DETAILS>([\s\S]*?)<\/DETAILS>)?\s*<\/FINDING>/g;
+  const findings: NonNullable<DiagnosticResponse['analysis']>['findings'] = [];
 
   let findingMatch;
   while ((findingMatch = findingsRegex.exec(response)) !== null) {
     findings.push({
       category: findingMatch[1],
-      status: findingMatch[2] as "ok" | "warning" | "critical",
+      status: findingMatch[2] as 'ok' | 'warning' | 'critical',
       message: findingMatch[3].trim(),
       details: findingMatch[4]?.trim(),
     });
   }
 
   // Recommendations
-  const recommendationsRegex = /<RECOMMENDATION\s+priority="(high|medium|low)">\s*<TITLE>([\s\S]*?)<\/TITLE>\s*<DESCRIPTION>([\s\S]*?)<\/DESCRIPTION>\s*(?:<COMMANDS>([\s\S]*?)<\/COMMANDS>)?\s*<\/RECOMMENDATION>/g;
-  const recommendations: NonNullable<DiagnosticResponse["analysis"]>["recommendations"] = [];
+  const recommendationsRegex =
+    /<RECOMMENDATION\s+priority="(high|medium|low)">\s*<TITLE>([\s\S]*?)<\/TITLE>\s*<DESCRIPTION>([\s\S]*?)<\/DESCRIPTION>\s*(?:<COMMANDS>([\s\S]*?)<\/COMMANDS>)?\s*<\/RECOMMENDATION>/g;
+  const recommendations: NonNullable<DiagnosticResponse['analysis']>['recommendations'] = [];
 
   let recMatch;
   while ((recMatch = recommendationsRegex.exec(response)) !== null) {
     const commands = recMatch[4]
-      ? recMatch[4].trim().split("\n").map(c => c.trim()).filter(c => c)
+      ? recMatch[4]
+          .trim()
+          .split('\n')
+          .map(c => c.trim())
+          .filter(c => c)
       : undefined;
 
     recommendations.push({
-      priority: recMatch[1] as "high" | "medium" | "low",
+      priority: recMatch[1] as 'high' | 'medium' | 'low',
       title: recMatch[2].trim(),
       description: recMatch[3].trim(),
       commands: commands?.length ? commands : undefined,
@@ -1010,7 +1033,7 @@ function parseDiagnosticResponse(response: string): DiagnosticResponse["analysis
 
   // Maintenance tasks
   const maintenanceRegex = /<TASK\s+frequency="([^"]+)">([\s\S]*?)<\/TASK>/g;
-  const maintenanceTasks: NonNullable<DiagnosticResponse["analysis"]>["maintenanceTasks"] = [];
+  const maintenanceTasks: NonNullable<DiagnosticResponse['analysis']>['maintenanceTasks'] = [];
 
   let maintMatch;
   while ((maintMatch = maintenanceRegex.exec(response)) !== null) {
@@ -1032,23 +1055,37 @@ function parseDiagnosticResponse(response: string): DiagnosticResponse["analysis
   return {
     overallHealth,
     summary,
-    findings: findings.length > 0 ? findings : [{
-      category: "system",
-      status: "ok",
-      message: "Analyse en cours",
-    }],
-    recommendations: recommendations.length > 0 ? recommendations : [{
-      priority: "low",
-      title: "Surveillance continue",
-      description: "Continuer à monitorer les métriques système régulièrement.",
-    }],
-    maintenanceTasks: maintenanceTasks.length > 0 ? maintenanceTasks : [{
-      task: "Vérifier les logs d'erreur",
-      frequency: "daily",
-    }],
-    performanceInsights: performanceInsights.length > 0 ? performanceInsights : [
-      "Aucun insight spécifique détecté",
-    ],
+    findings:
+      findings.length > 0
+        ? findings
+        : [
+            {
+              category: 'system',
+              status: 'ok',
+              message: 'Analyse en cours',
+            },
+          ],
+    recommendations:
+      recommendations.length > 0
+        ? recommendations
+        : [
+            {
+              priority: 'low',
+              title: 'Surveillance continue',
+              description: 'Continuer à monitorer les métriques système régulièrement.',
+            },
+          ],
+    maintenanceTasks:
+      maintenanceTasks.length > 0
+        ? maintenanceTasks
+        : [
+            {
+              task: "Vérifier les logs d'erreur",
+              frequency: 'daily',
+            },
+          ],
+    performanceInsights:
+      performanceInsights.length > 0 ? performanceInsights : ['Aucun insight spécifique détecté'],
   };
 }
 
@@ -1069,11 +1106,11 @@ export async function GET(): Promise<NextResponse> {
       metrics,
     });
   } catch (error) {
-    console.error("[Server Diagnostic] Error collecting metrics:", error);
+    console.error('[Server Diagnostic] Error collecting metrics:', error);
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Erreur lors de la collecte des métriques",
+        error: error instanceof Error ? error.message : 'Erreur lors de la collecte des métriques',
       },
       { status: 500 }
     );
@@ -1096,7 +1133,7 @@ export async function POST(): Promise<NextResponse> {
     // Vérifier la clé API Anthropic
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
-      console.error("[Server Diagnostic] ANTHROPIC_API_KEY non configurée");
+      console.error('[Server Diagnostic] ANTHROPIC_API_KEY non configurée');
       return NextResponse.json(
         {
           success: false,
@@ -1114,25 +1151,23 @@ export async function POST(): Promise<NextResponse> {
     const anthropic = new Anthropic({ apiKey });
 
     const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-5-20250929",
+      model: 'claude-sonnet-4-5-20250929',
       max_tokens: 6000,
       temperature: 0.3,
       system: SERVER_DIAGNOSTIC_SYSTEM_PROMPT,
       messages: [
         {
-          role: "user",
+          role: 'user',
           content: analysisPrompt,
         },
       ],
     });
 
     // Extract response
-    const responseContent = message.content[0].type === "text"
-      ? message.content[0].text
-      : "";
+    const responseContent = message.content[0].type === 'text' ? message.content[0].text : '';
 
     if (!responseContent) {
-      throw new Error("Aucune réponse de Claude");
+      throw new Error('Aucune réponse de Claude');
     }
 
     // Parse structured response
@@ -1146,11 +1181,11 @@ export async function POST(): Promise<NextResponse> {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error("[Server Diagnostic] Error:", error);
+    console.error('[Server Diagnostic] Error:', error);
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Erreur lors du diagnostic",
+        error: error instanceof Error ? error.message : 'Erreur lors du diagnostic',
       },
       { status: 500 }
     );

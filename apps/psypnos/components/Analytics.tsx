@@ -6,27 +6,28 @@
  *
  * @see /lib/tracking pour l'implémentation complète
  */
-"use client";
+'use client';
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef } from 'react';
 
-import { initTracker, getTracker } from "@/lib/tracking";
+import { initTracker, getTracker } from '@/lib/tracking';
 
 /**
  * Composant Analytics principal
  *
  * Initialise le tracker au montage et gère le nettoyage.
  * Ce composant ne rend rien visuellement.
+ *
+ * Note: initTracker() is idempotent — the Tracker singleton guards against
+ * double-initialization via its own `isInitialized` flag. We intentionally
+ * call it on every mount so that:
+ *   1. If consent is given between unmount/remount cycles, tracking starts.
+ *   2. React StrictMode double-mounts don't break the flow.
  */
 export function Analytics() {
-  const initialized = useRef(false);
-
   useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
-
     initTracker({
-      debug: process.env.NODE_ENV === "development",
+      debug: process.env.NODE_ENV === 'development',
     });
   }, []);
 
@@ -45,10 +46,10 @@ export function SectionTracker() {
   useEffect(() => {
     const timer = setTimeout(() => {
       const tracker = getTracker();
-      const sections = document.querySelectorAll("[data-track-section]");
+      const sections = document.querySelectorAll('[data-track-section]');
       const observed: HTMLElement[] = [];
 
-      sections.forEach((section) => {
+      sections.forEach(section => {
         const element = section as HTMLElement;
         const sectionId = element.dataset.trackSection || element.id;
         if (!sectionId) return;
@@ -65,7 +66,7 @@ export function SectionTracker() {
       clearTimeout(timer);
       // Cleanup: unobserve all tracked sections to prevent memory leaks
       const tracker = getTracker();
-      observedElementsRef.current.forEach((element) => {
+      observedElementsRef.current.forEach(element => {
         tracker.unobserveSection(element);
       });
       observedElementsRef.current = [];
