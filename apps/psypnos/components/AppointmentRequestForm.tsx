@@ -39,11 +39,14 @@ const appointmentRequestSchema = z
     phone: z
       .string()
       .optional()
-      .transform(value => value?.trim() ?? '')
-      .refine(value => value.length === 0 || /^[+0-9\s().-]{6,}$/u.test(value), {
-        message:
-          'Format de téléphone invalide. Utilisez le format : 06 12 34 56 78 ou +33 6 12 34 56 78',
-      }),
+      .transform(value => (value?.trim() ?? '').replace(/[\s.\-()]/g, ''))
+      .refine(
+        value => value.length === 0 || /^(\+33|0)[1-9](\d{2}){4}$|^\+?\d{10,15}$/.test(value),
+        {
+          message:
+            'Format de téléphone invalide. Utilisez le format : 06 12 34 56 78 ou +33 6 12 34 56 78',
+        }
+      ),
     contact_preference: z.enum(contactPreferenceValues),
     reason: z
       .string()
@@ -85,7 +88,6 @@ const appointmentRequestSchema = z
     name: data.name.trim(),
     reason: data.reason.trim(),
     availability: data.availability?.trim?.() ?? data.availability,
-    phone: data.phone?.trim?.() ?? data.phone,
   }));
 
 type AppointmentRequestData = z.infer<typeof appointmentRequestSchema>;

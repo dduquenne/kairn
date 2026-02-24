@@ -221,6 +221,10 @@ function ContactModal({ isOpen, onClose }: ContactModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
   const firstFocusableRef = useRef<HTMLButtonElement>(null);
 
+  // Ref toujours à jour pour éviter les closures périmées dans handleBlur
+  const valuesRef = useRef(values);
+  valuesRef.current = values;
+
   // Reset form when modal closes
   useEffect(() => {
     if (!isOpen) {
@@ -287,29 +291,37 @@ function ContactModal({ isOpen, onClose }: ContactModalProps) {
 
         setValues(prev => ({ ...prev, [field]: value }));
 
-        // Clear error on change
-        if (errors[field]) {
-          setErrors(prev => {
-            const newErrors = { ...prev };
-            delete newErrors[field];
-            return newErrors;
-          });
-        }
+        // Toujours nettoyer l'erreur du champ modifié via le setter fonctionnel
+        // (évite de dépendre de la closure `errors` qui peut être périmée)
+        setErrors(prev => {
+          if (!prev[field]) return prev;
+          const newErrors = { ...prev };
+          delete newErrors[field];
+          return newErrors;
+        });
       },
-    [errors]
+    []
   );
 
   const handleBlur = useCallback(
     (field: keyof FormValues) => () => {
       setTouched(prev => ({ ...prev, [field]: true }));
 
-      // Validate single field
-      const fieldErrors = validateForm(values);
+      // Utiliser valuesRef pour toujours avoir les valeurs les plus récentes
+      const fieldErrors = validateForm(valuesRef.current);
       if (fieldErrors[field]) {
         setErrors(prev => ({ ...prev, [field]: fieldErrors[field] }));
+      } else {
+        // Nettoyer l'erreur si le champ est désormais valide
+        setErrors(prev => {
+          if (!prev[field]) return prev;
+          const newErrors = { ...prev };
+          delete newErrors[field];
+          return newErrors;
+        });
       }
     },
-    [values]
+    []
   );
 
   const handleSubmit = useCallback(

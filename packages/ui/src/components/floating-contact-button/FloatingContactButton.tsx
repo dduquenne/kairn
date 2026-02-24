@@ -313,6 +313,10 @@ function ContactModal({
   const modalRef = useRef<HTMLDivElement>(null);
   const firstFocusableRef = useRef<HTMLButtonElement>(null);
 
+  // Ref toujours à jour pour éviter les closures périmées dans handleBlur
+  const valuesRef = useRef(values);
+  valuesRef.current = values;
+
   // Reset form when modal closes
   useEffect(() => {
     if (!isOpen) {
@@ -375,30 +379,42 @@ function ContactModal({
 
         setValues(prev => ({ ...prev, [field]: value }));
 
-        if (errors[field as keyof FormValidationErrors]) {
-          setErrors(prev => {
-            const newErrors = { ...prev };
-            delete newErrors[field as keyof FormValidationErrors];
-            return newErrors;
-          });
-        }
+        // Toujours nettoyer l'erreur du champ modifié via le setter fonctionnel
+        // (évite de dépendre de la closure `errors` qui peut être périmée)
+        setErrors(prev => {
+          if (!prev[field as keyof FormValidationErrors]) return prev;
+          const newErrors = { ...prev };
+          delete newErrors[field as keyof FormValidationErrors];
+          return newErrors;
+        });
       },
-    [errors]
+    []
   );
 
   const handleBlur = useCallback(
     (field: keyof FormValues) => () => {
       setTouched(prev => ({ ...prev, [field]: true }));
 
-      const fieldErrors = validateForm(values, labels);
-      if (fieldErrors[field as keyof FormValidationErrors]) {
+      // Utiliser valuesRef pour toujours avoir les valeurs les plus récentes
+      // (la closure `values` peut être périmée si onChange et onBlur se suivent dans le même cycle)
+      const fieldErrors = validateForm(valuesRef.current, labels);
+      const fieldKey = field as keyof FormValidationErrors;
+      if (fieldErrors[fieldKey]) {
         setErrors(prev => ({
           ...prev,
-          [field]: fieldErrors[field as keyof FormValidationErrors],
+          [fieldKey]: fieldErrors[fieldKey],
         }));
+      } else {
+        // Nettoyer l'erreur si le champ est désormais valide
+        setErrors(prev => {
+          if (!prev[fieldKey]) return prev;
+          const newErrors = { ...prev };
+          delete newErrors[fieldKey];
+          return newErrors;
+        });
       }
     },
-    [values, labels]
+    [labels]
   );
 
   const handleSubmit = useCallback(

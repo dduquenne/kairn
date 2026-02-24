@@ -31,8 +31,11 @@ const referralValues = [
   'autre',
 ] as const;
 
-// Regex pour validation téléphone français ou international
+// Regex pour validation téléphone français ou international (chiffres contigus après normalisation)
 const phoneRegex = /^(\+33|0)[1-9](\d{2}){4}$|^\+?\d{10,15}$/;
+
+// Supprime espaces, tirets, points et parenthèses pour normaliser un numéro de téléphone
+const normalizePhone = (value: string) => value.replace(/[\s.\-()]/g, '');
 
 const requestSchema = z.object({
   name: z.string().trim().min(2).max(100),
@@ -40,7 +43,7 @@ const requestSchema = z.object({
   phone: z
     .string()
     .optional()
-    .transform(value => value?.trim() ?? '')
+    .transform(value => normalizePhone(value?.trim() ?? ''))
     .refine(value => !value || phoneRegex.test(value), {
       message: 'Format de téléphone invalide',
     }),
