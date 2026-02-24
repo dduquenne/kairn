@@ -254,10 +254,10 @@ export class ThreadsPublisher implements SocialPublisher {
       if (!response.ok) {
         return { success: false, error: `Threads API error: ${response.status}` };
       }
-      const data = await response.json();
+      const data = (await response.json()) as Record<string, unknown>;
       return {
         success: true,
-        followers: data.followers_count || 0,
+        followers: (data.followers_count as number) || 0,
         following: 0, // Threads API doesn't expose following count
         postsCount: 0,
         rawData: data,

@@ -231,13 +231,14 @@ export class TwitterPublisher implements SocialPublisher {
       if (!response.ok) {
         return { success: false, error: `Twitter API error: ${response.status}` };
       }
-      const data = await response.json();
-      const metrics = data.data?.public_metrics || {};
+      const data = (await response.json()) as Record<string, unknown>;
+      const innerData = data.data as Record<string, unknown> | undefined;
+      const metrics = (innerData?.public_metrics as Record<string, unknown>) || {};
       return {
         success: true,
-        followers: metrics.followers_count || 0,
-        following: metrics.following_count || 0,
-        postsCount: metrics.tweet_count || 0,
+        followers: (metrics.followers_count as number) || 0,
+        following: (metrics.following_count as number) || 0,
+        postsCount: (metrics.tweet_count as number) || 0,
         rawData: data,
       };
     } catch (error) {
