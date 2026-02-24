@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 
 import { Analytics, SectionTracker } from '@/components/Analytics';
 import { PsypnosChatWidget } from '@/components/ChatWidgetWrapper';
+import { CookieConsentBanner } from '@/components/CookieConsentBanner';
 import { PsypnosFloatingContactButton } from '@/components/FloatingContactButtonWrapper';
 import { WebVitalsReporter } from '@/components/WebVitalsReporter';
 import { CustomizationProvider } from '@/lib/customization-context';
@@ -486,6 +487,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               {children}
               <Analytics />
               <SectionTracker />
+              <CookieConsentBanner />
               <PsypnosChatWidget />
               <PsypnosFloatingContactButton />
               <WebVitalsReporter />
