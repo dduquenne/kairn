@@ -54,7 +54,7 @@ export function AdminHeader({
   return (
     <header
       className={cn(
-        "border-b border-night/50 bg-night/80 px-4 py-3 backdrop-blur sm:px-6 sm:py-4",
+        "sticky top-0 z-40 border-b border-night/50 bg-night/80 px-4 py-3 backdrop-blur sm:px-6 sm:py-4",
         className
       )}
     >

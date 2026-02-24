@@ -3,7 +3,8 @@
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 
 import { cn } from "../utils/cn";
 
@@ -42,6 +43,8 @@ export function MobileNav({
 }: MobileNavProps) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   const {
     primary = "gold",
@@ -54,6 +57,11 @@ export function MobileNav({
     setIsOpen(false);
   }, []);
 
+  // Ensure portal only renders on the client
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Close menu when route changes
   useEffect(() => {
     closeMenu();
@@ -64,12 +72,12 @@ export function MobileNav({
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         closeMenu();
+        triggerRef.current?.focus();
       }
     };
 
     if (isOpen) {
       document.addEventListener("keydown", handleEscape);
-      // Prevent body scroll when menu is open
       document.body.style.overflow = "hidden";
     }
 
@@ -79,10 +87,104 @@ export function MobileNav({
     };
   }, [isOpen, closeMenu]);
 
+  // Render overlay + drawer via portal to escape any parent stacking context
+  // (backdrop-blur, transform, etc. on ancestors create containing blocks for fixed elements)
+  const drawerContent = mounted
+    ? createPortal(
+        <div
+          className={cn("lg:hidden", isOpen ? "pointer-events-auto" : "pointer-events-none")}
+          aria-hidden={!isOpen}
+        >
+          {/* Overlay backdrop */}
+          <div
+            className={cn(
+              `fixed inset-0 z-[9998] bg-${background}/80 backdrop-blur-sm transition-opacity duration-300`,
+              isOpen ? "opacity-100" : "opacity-0"
+            )}
+            onClick={closeMenu}
+            aria-hidden="true"
+          />
+
+          {/* Drawer */}
+          <aside
+            className={cn(
+              `fixed inset-y-0 left-0 z-[9999] w-72 bg-${background}/95 shadow-2xl transition-transform duration-300 ease-in-out`,
+              isOpen ? "translate-x-0" : "-translate-x-full"
+            )}
+            aria-label="Menu de navigation"
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="flex h-full flex-col">
+              {/* Header */}
+              <div
+                className={`flex items-center justify-between border-b border-${border}/40 p-4`}
+              >
+                <div>
+                  <p className={`text-xs uppercase tracking-[0.3em] text-${primary}`}>
+                    {siteName}
+                  </p>
+                  <p className={`mt-1 text-lg font-semibold text-${text}`}>{title}</p>
+                </div>
+                <button
+                  onClick={closeMenu}
+                  className={`rounded-md p-2 text-${text}/70 transition hover:bg-${background}/60 hover:text-${text} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-${primary}/70`}
+                  aria-label="Fermer le menu"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Navigation */}
+              <nav className="flex-1 overflow-y-auto p-4">
+                <ul className="space-y-1">
+                  {navigation.map((item) => {
+                    const isActive = pathname?.startsWith(item.href);
+                    return (
+                      <li key={item.href}>
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            `flex items-center gap-3 rounded-md px-4 py-3 text-base transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-${primary}/70 focus-visible:ring-offset-2 focus-visible:ring-offset-${background}`,
+                            isActive
+                              ? `bg-${primary}/20 text-${primary}`
+                              : `text-${text}/70 hover:bg-${background}/60 hover:text-${text}`
+                          )}
+                          onClick={closeMenu}
+                        >
+                          <span className="flex-shrink-0 text-xl">
+                            {typeof item.icon === "string" ? item.icon : item.icon}
+                          </span>
+                          <span>{item.label}</span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </nav>
+
+              {/* Footer */}
+              <div className={`border-t border-${border}/40 p-4`}>
+                <Link
+                  href={backToSiteHref}
+                  className={`flex w-full items-center justify-center gap-2 rounded-md border border-${primary}/60 px-4 py-3 text-sm font-medium text-${primary} transition hover:bg-${primary}/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-${primary}/70`}
+                  onClick={closeMenu}
+                >
+                  <span>{backToSiteLabel}</span>
+                </Link>
+              </div>
+            </div>
+          </aside>
+        </div>,
+        document.body
+      )
+    : null;
+
   return (
     <div className={cn("lg:hidden", className)}>
-      {/* Hamburger button */}
+      {/* Hamburger button - stays in the DOM flow */}
       <button
+        ref={triggerRef}
         onClick={() => setIsOpen(true)}
         className={`rounded-md p-2 text-${text}/70 transition hover:bg-${background}/60 hover:text-${text} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-${primary}/70`}
         aria-label="Ouvrir le menu de navigation"
@@ -91,82 +193,8 @@ export function MobileNav({
         <Menu className="h-6 w-6" />
       </button>
 
-      {/* Overlay backdrop */}
-      <div
-        className={cn(
-          `fixed inset-0 z-[70] bg-${background}/80 backdrop-blur-sm transition-opacity duration-300`,
-          isOpen ? "opacity-100" : "pointer-events-none opacity-0"
-        )}
-        onClick={closeMenu}
-        aria-hidden="true"
-      />
-
-      {/* Drawer */}
-      <aside
-        className={cn(
-          `fixed inset-y-0 left-0 z-[80] w-72 bg-${background}/95 shadow-xl transition-transform duration-300 ease-in-out`,
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-        aria-label="Menu de navigation"
-      >
-        <div className="flex h-full flex-col">
-          {/* Header */}
-          <div className={`flex items-center justify-between border-b border-${border}/40 p-4`}>
-            <div>
-              <p className={`text-xs uppercase tracking-[0.3em] text-${primary}`}>
-                {siteName}
-              </p>
-              <p className={`mt-1 text-lg font-semibold text-${text}`}>{title}</p>
-            </div>
-            <button
-              onClick={closeMenu}
-              className={`rounded-md p-2 text-${text}/70 transition hover:bg-${background}/60 hover:text-${text} focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-${primary}/70`}
-              aria-label="Fermer le menu"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto p-4">
-            <ul className="space-y-1">
-              {navigation.map((item) => {
-                const isActive = pathname?.startsWith(item.href);
-                return (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        `flex items-center gap-3 rounded-md px-4 py-3 text-base transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-${primary}/70 focus-visible:ring-offset-2 focus-visible:ring-offset-${background}`,
-                        isActive
-                          ? `bg-${primary}/20 text-${primary}`
-                          : `text-${text}/70 hover:bg-${background}/60 hover:text-${text}`
-                      )}
-                      onClick={closeMenu}
-                    >
-                      <span className="flex-shrink-0 text-xl">
-                        {typeof item.icon === "string" ? item.icon : item.icon}
-                      </span>
-                      <span>{item.label}</span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
-
-          {/* Footer */}
-          <div className={`border-t border-${border}/40 p-4`}>
-            <Link
-              href={backToSiteHref}
-              className={`flex w-full items-center justify-center gap-2 rounded-md border border-${primary}/60 px-4 py-3 text-sm font-medium text-${primary} transition hover:bg-${primary}/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-${primary}/70`}
-              onClick={closeMenu}
-            >
-              <span>{backToSiteLabel}</span>
-            </Link>
-          </div>
-        </div>
-      </aside>
+      {/* Overlay + Drawer rendered via portal at document.body level */}
+      {drawerContent}
     </div>
   );
 }
