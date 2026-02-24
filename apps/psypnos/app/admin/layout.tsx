@@ -13,6 +13,7 @@ const psypnosAdminNavigation: NavigationItem[] = [
   { href: '/admin/customization', label: 'Personnalisation', icon: '🎨' },
   { href: '/admin/configuration', label: 'Configuration', icon: '⚙️' },
   { href: '/admin/blog', label: 'Blog', icon: '📝' },
+  { href: '/admin/chatbot', label: 'ChatBot IA', icon: '🤖' },
   { href: '/admin/social', label: 'Réseaux sociaux', icon: '📱' },
   { href: '/admin/seminars', label: 'Séminaires', icon: '🎓' },
   { href: '/admin/testimonials', label: 'Témoignages', icon: '⭐' },

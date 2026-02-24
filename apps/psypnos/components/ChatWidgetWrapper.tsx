@@ -1,6 +1,8 @@
 'use client';
 
 import { ChatWidget } from '@kairn/ui';
+import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 import { trackConversionEvent } from '../hooks/useAnalytics';
 
@@ -8,8 +10,33 @@ import { trackConversionEvent } from '../hooks/useAnalytics';
  * Psypnos-specific wrapper for the AI ChatWidget.
  *
  * Positioned bottom-left to avoid overlap with the FloatingContactButton (bottom-right).
+ * Respects the admin chatbot toggle setting and hides on admin pages.
  */
 export function PsypnosChatWidget() {
+  const pathname = usePathname();
+  const [enabled, setEnabled] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    async function checkStatus() {
+      try {
+        const response = await fetch('/api/chatbot-status');
+        if (response.ok) {
+          const data = await response.json();
+          setEnabled(data.enabled);
+        } else {
+          setEnabled(true);
+        }
+      } catch {
+        setEnabled(true);
+      }
+    }
+    void checkStatus();
+  }, []);
+
+  // Don't render on admin pages or while checking status
+  if (pathname?.startsWith('/admin') || pathname?.startsWith('/login')) return null;
+  if (enabled === null || !enabled) return null;
+
   const handleBookAppointment = () => {
     trackConversionEvent('appointment_request', 'chatbot_suggestion', false);
     window.location.href = '/contact';
