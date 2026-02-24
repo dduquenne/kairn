@@ -3,7 +3,10 @@ import { z } from 'zod';
 
 import { validateCSRFMiddleware } from '../common/csrf-middleware';
 import { sendToAssistant } from '../common/openai-assistant';
-import { recordAttempt, getClientIP } from '../common/rate-limiter';
+import { recordAttemptAsync, getClientIP } from '../common/rate-limiter';
+
+// Vercel serverless function timeout — OpenAI Assistant with polling
+export const maxDuration = 120;
 
 const assistantSchema = z.object({
   message: z.string().trim().min(1).max(10000),
@@ -22,7 +25,7 @@ type AssistantPayload = z.infer<typeof assistantSchema>;
 export async function POST(request: Request) {
   // PROTECTION : Rate limiting - 10 requêtes par heure par IP (API coûteuse)
   const clientIP = getClientIP(request);
-  const rateLimitResult = recordAttempt('assistant', clientIP);
+  const rateLimitResult = await recordAttemptAsync('assistant', clientIP);
 
   if (rateLimitResult.limited) {
     return NextResponse.json(

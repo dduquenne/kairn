@@ -17,6 +17,9 @@ import {
 
 import { withAdminAuth } from '../../auth/middleware';
 
+// Vercel serverless function timeout — call + correction loop
+export const maxDuration = 180;
+
 // Configuration timeout et retry
 // Délais augmentés pour mieux gérer les erreurs 529 (overloaded) de l'API Anthropic
 const API_TIMEOUT_MS = 60000; // 60 secondes

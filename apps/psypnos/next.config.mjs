@@ -13,7 +13,7 @@ const ContentSecurityPolicy = `
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   img-src 'self' data: https: blob:;
   font-src 'self' https://fonts.gstatic.com;
-  connect-src 'self' https://api.resend.com https://*.supabase.co https://www.google-analytics.com;
+  connect-src 'self' https://api.resend.com https://*.supabase.co https://www.google-analytics.com https://api.anthropic.com https://api.openai.com;
   frame-src 'self' https://www.google.com;
   frame-ancestors 'none';
   form-action 'self';

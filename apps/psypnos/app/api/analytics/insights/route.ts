@@ -9,6 +9,9 @@ import {
 
 export const dynamic = 'force-dynamic';
 
+// Vercel serverless function timeout — single Claude API call
+export const maxDuration = 60;
+
 interface Insight {
   type: 'positive' | 'negative' | 'neutral' | 'warning';
   title: string;

@@ -4,7 +4,10 @@ import { z } from 'zod';
 
 import { validateCSRFMiddleware } from '../../common/csrf-middleware';
 import { PSYPNOS_STYLE_SYSTEM_PROMPT } from '../../common/psypnos-system-prompt';
-import { recordAttempt, getClientIP } from '../../common/rate-limiter';
+import { recordAttemptAsync, getClientIP } from '../../common/rate-limiter';
+
+// Vercel serverless function timeout — single Claude API call
+export const maxDuration = 60;
 
 const improveTextSchema = z.object({
   selectedText: z.string().trim().min(1).max(10000),
@@ -25,7 +28,7 @@ type ImproveTextPayload = z.infer<typeof improveTextSchema>;
 export async function POST(request: Request) {
   // PROTECTION : Rate limiting - 20 requêtes par heure par IP (API coûteuse)
   const clientIP = getClientIP(request);
-  const rateLimitResult = recordAttempt('improveText', clientIP);
+  const rateLimitResult = await recordAttemptAsync('improveText', clientIP);
 
   if (rateLimitResult.limited) {
     return NextResponse.json(

@@ -1,13 +1,16 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Deployment model not available in Kairn schema
-import Anthropic from "@anthropic-ai/sdk";
-import { NextResponse } from "next/server";
+import Anthropic from '@anthropic-ai/sdk';
+import { NextResponse } from 'next/server';
 
-import { withAdminAuth } from "@/app/api/auth/middleware";
-import { prisma } from "@/lib/db/prisma";
+import { withAdminAuth } from '@/app/api/auth/middleware';
+import { prisma } from '@/lib/db/prisma';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
+
+// Vercel serverless function timeout — single Claude API call
+export const maxDuration = 60;
 
 /**
  * Prompt système pour l'analyse des logs de déploiement
@@ -59,7 +62,7 @@ interface AnalysisResponse {
       title: string;
       description: string;
       commands?: string[];
-      priority: "high" | "medium" | "low";
+      priority: 'high' | 'medium' | 'low';
     }>;
     prevention: string[];
     additionalNotes?: string;
@@ -82,7 +85,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     if (!deploymentId) {
       return NextResponse.json(
-        { success: false, error: "ID de déploiement requis" },
+        { success: false, error: 'ID de déploiement requis' },
         { status: 400 }
       );
     }
@@ -94,17 +97,17 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     if (!deployment) {
       return NextResponse.json(
-        { success: false, error: "Déploiement non trouvé" },
+        { success: false, error: 'Déploiement non trouvé' },
         { status: 404 }
       );
     }
 
     // Vérifier que c'est un déploiement échoué ou rollback
-    if (!["failed", "rolled_back"].includes(deployment.status)) {
+    if (!['failed', 'rolled_back'].includes(deployment.status)) {
       return NextResponse.json(
         {
           success: false,
-          error: "L'analyse n'est disponible que pour les déploiements échoués"
+          error: "L'analyse n'est disponible que pour les déploiements échoués",
         },
         { status: 400 }
       );
@@ -115,7 +118,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       return NextResponse.json(
         {
           success: false,
-          error: "Aucun log disponible pour l'analyse"
+          error: "Aucun log disponible pour l'analyse",
         },
         { status: 400 }
       );
@@ -124,11 +127,11 @@ export async function POST(request: Request): Promise<NextResponse> {
     // Vérifier la clé API Anthropic
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
-      console.error("[Deployment Analysis] ANTHROPIC_API_KEY non configurée");
+      console.error('[Deployment Analysis] ANTHROPIC_API_KEY non configurée');
       return NextResponse.json(
         {
           success: false,
-          error: "Configuration API Claude manquante"
+          error: 'Configuration API Claude manquante',
         },
         { status: 500 }
       );
@@ -141,25 +144,23 @@ export async function POST(request: Request): Promise<NextResponse> {
     const anthropic = new Anthropic({ apiKey });
 
     const message = await anthropic.messages.create({
-      model: "claude-sonnet-4-5-20250929",
+      model: 'claude-sonnet-4-5-20250929',
       max_tokens: 4000,
       temperature: 0.3, // Plus déterministe pour les analyses techniques
       system: DEPLOYMENT_ANALYSIS_SYSTEM_PROMPT,
       messages: [
         {
-          role: "user",
+          role: 'user',
           content: analysisPrompt,
         },
       ],
     });
 
     // Extraire la réponse
-    const responseContent = message.content[0].type === "text"
-      ? message.content[0].text
-      : "";
+    const responseContent = message.content[0].type === 'text' ? message.content[0].text : '';
 
     if (!responseContent) {
-      throw new Error("Aucune réponse de Claude");
+      throw new Error('Aucune réponse de Claude');
     }
 
     // Parser la réponse structurée
@@ -172,7 +173,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error("[Deployment Analysis] Error:", error);
+    console.error('[Deployment Analysis] Error:', error);
     return NextResponse.json(
       {
         success: false,
@@ -198,9 +199,10 @@ function buildAnalysisPrompt(deployment: {
   startedAt: Date | null;
   completedAt: Date | null;
 }): string {
-  const duration = deployment.startedAt && deployment.completedAt
-    ? Math.round((deployment.completedAt.getTime() - deployment.startedAt.getTime()) / 1000)
-    : null;
+  const duration =
+    deployment.startedAt && deployment.completedAt
+      ? Math.round((deployment.completedAt.getTime() - deployment.startedAt.getTime()) / 1000)
+      : null;
 
   return `Analyse ce déploiement échoué et fournis un diagnostic détaillé avec des solutions.
 
@@ -209,10 +211,10 @@ function buildAnalysisPrompt(deployment: {
 - **ID**: ${deployment.id}
 - **Statut**: ${deployment.status}
 - **Branche/Tag**: ${deployment.targetRef}
-- **Commit**: ${deployment.targetCommit || "Non disponible"}
-- **Phase d'échec**: ${deployment.currentPhase || "Non déterminée"}
+- **Commit**: ${deployment.targetCommit || 'Non disponible'}
+- **Phase d'échec**: ${deployment.currentPhase || 'Non déterminée'}
 - **Date**: ${deployment.triggeredAt.toISOString()}
-- **Durée avant échec**: ${duration ? `${duration}s` : "Non disponible"}
+- **Durée avant échec**: ${duration ? `${duration}s` : 'Non disponible'}
 
 ## Message d'erreur
 
@@ -221,7 +223,7 @@ ${deployment.errorMessage || "Aucun message d'erreur spécifique"}
 ## Logs complets
 
 \`\`\`
-${deployment.logs || "Aucun log disponible"}
+${deployment.logs || 'Aucun log disponible'}
 \`\`\`
 
 ---
@@ -256,7 +258,7 @@ commande2
 /**
  * Parse la réponse XML de Claude en objet structuré
  */
-function parseAnalysisResponse(response: string): AnalysisResponse["analysis"] {
+function parseAnalysisResponse(response: string): AnalysisResponse['analysis'] {
   // Extraire les différentes sections
   const summaryMatch = response.match(/<SUMMARY>([\s\S]*?)<\/SUMMARY>/);
   const errorTypeMatch = response.match(/<ERROR_TYPE>([\s\S]*?)<\/ERROR_TYPE>/);
@@ -265,17 +267,22 @@ function parseAnalysisResponse(response: string): AnalysisResponse["analysis"] {
   const notesMatch = response.match(/<NOTES>([\s\S]*?)<\/NOTES>/);
 
   // Extraire les solutions
-  const solutionsRegex = /<SOLUTION\s+priority="(high|medium|low)">\s*<TITLE>([\s\S]*?)<\/TITLE>\s*<DESCRIPTION>([\s\S]*?)<\/DESCRIPTION>\s*(?:<COMMANDS>([\s\S]*?)<\/COMMANDS>)?\s*<\/SOLUTION>/g;
-  const solutions: NonNullable<AnalysisResponse["analysis"]>["solutions"] = [];
+  const solutionsRegex =
+    /<SOLUTION\s+priority="(high|medium|low)">\s*<TITLE>([\s\S]*?)<\/TITLE>\s*<DESCRIPTION>([\s\S]*?)<\/DESCRIPTION>\s*(?:<COMMANDS>([\s\S]*?)<\/COMMANDS>)?\s*<\/SOLUTION>/g;
+  const solutions: NonNullable<AnalysisResponse['analysis']>['solutions'] = [];
 
   let solutionMatch;
   while ((solutionMatch = solutionsRegex.exec(response)) !== null) {
     const commands = solutionMatch[4]
-      ? solutionMatch[4].trim().split("\n").map(c => c.trim()).filter(c => c)
+      ? solutionMatch[4]
+          .trim()
+          .split('\n')
+          .map(c => c.trim())
+          .filter(c => c)
       : undefined;
 
     solutions.push({
-      priority: solutionMatch[1] as "high" | "medium" | "low",
+      priority: solutionMatch[1] as 'high' | 'medium' | 'low',
       title: solutionMatch[2].trim(),
       description: solutionMatch[3].trim(),
       commands: commands?.length ? commands : undefined,
@@ -292,19 +299,25 @@ function parseAnalysisResponse(response: string): AnalysisResponse["analysis"] {
   }
 
   return {
-    summary: summaryMatch?.[1]?.trim() || "Analyse non disponible",
-    errorType: errorTypeMatch?.[1]?.trim() || "Unknown",
-    phase: phaseMatch?.[1]?.trim() || "Unknown",
-    rootCause: rootCauseMatch?.[1]?.trim() || "Cause non déterminée",
-    solutions: solutions.length > 0 ? solutions : [{
-      title: "Vérification manuelle requise",
-      description: "Les logs ne permettent pas d'identifier clairement le problème. Une investigation manuelle est recommandée.",
-      priority: "high",
-    }],
-    prevention: prevention.length > 0 ? prevention : [
-      "Effectuer des tests avant le déploiement",
-      "Monitorer les ressources système",
-    ],
+    summary: summaryMatch?.[1]?.trim() || 'Analyse non disponible',
+    errorType: errorTypeMatch?.[1]?.trim() || 'Unknown',
+    phase: phaseMatch?.[1]?.trim() || 'Unknown',
+    rootCause: rootCauseMatch?.[1]?.trim() || 'Cause non déterminée',
+    solutions:
+      solutions.length > 0
+        ? solutions
+        : [
+            {
+              title: 'Vérification manuelle requise',
+              description:
+                "Les logs ne permettent pas d'identifier clairement le problème. Une investigation manuelle est recommandée.",
+              priority: 'high',
+            },
+          ],
+    prevention:
+      prevention.length > 0
+        ? prevention
+        : ['Effectuer des tests avant le déploiement', 'Monitorer les ressources système'],
     additionalNotes: notesMatch?.[1]?.trim() || undefined,
   };
 }
