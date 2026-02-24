@@ -378,16 +378,14 @@ export function extractDomain(url: string | null): string | undefined {
 }
 
 /**
- * Hash IP address for privacy
+ * Hash IP address for privacy using HMAC-SHA256
  */
 export function hashIP(ip: string): string {
-  let hash = 0;
-  for (let i = 0; i < ip.length; i++) {
-    const char = ip.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash;
-  }
-  return `ip_${Math.abs(hash).toString(16)}`;
+  // Use dynamic import to avoid bundling crypto in client
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { createHmac } = require('crypto') as typeof import('crypto');
+  const secret = process.env.IP_HASH_SECRET || process.env.JWT_SECRET || 'kairn-ip-hash-fallback';
+  return `ip_${createHmac('sha256', secret).update(ip).digest('hex').slice(0, 16)}`;
 }
 
 /**

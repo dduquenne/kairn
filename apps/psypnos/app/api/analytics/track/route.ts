@@ -11,6 +11,8 @@
  * @endpoint POST /api/analytics/track
  */
 
+import { createHmac } from 'crypto';
+
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 
@@ -444,17 +446,12 @@ async function trackGeolocation(
 }
 
 /**
- * Hash simple de l'IP pour la confidentialité
+ * Hash cryptographique de l'IP pour la confidentialité
+ * Utilise HMAC-SHA256 avec un secret pour empêcher la réversibilité par force brute
  */
 function hashIP(ip: string): string {
-  // Hash simple - en production utiliser une fonction de hash appropriée
-  let hash = 0;
-  for (let i = 0; i < ip.length; i++) {
-    const char = ip.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash; // Convertir en 32bit integer
-  }
-  return `ip_${Math.abs(hash).toString(16)}`;
+  const secret = process.env.IP_HASH_SECRET || process.env.JWT_SECRET || 'kairn-ip-hash-fallback';
+  return `ip_${createHmac('sha256', secret).update(ip).digest('hex').slice(0, 16)}`;
 }
 
 /**
