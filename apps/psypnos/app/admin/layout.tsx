@@ -45,7 +45,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     <div className="bg-night/95 text-ivory flex min-h-screen">
       <AdminSidebar navigation={psypnosAdminNavigation} siteName="Psypnos" />
       <div className="flex flex-1 flex-col">
-        <header className="border-night/50 bg-night/80 border-b px-4 py-3 backdrop-blur sm:px-6 sm:py-4">
+        <header className="sticky top-0 z-40 border-night/50 bg-night/80 border-b px-4 py-3 backdrop-blur sm:px-6 sm:py-4">
           <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <MobileNav navigation={psypnosAdminNavigation} siteName="Psypnos" />
