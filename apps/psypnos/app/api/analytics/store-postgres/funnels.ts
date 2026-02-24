@@ -53,7 +53,7 @@ export async function trackFunnelStep(step: {
   stepOrder: number;
   metadata?: Record<string, unknown>;
 }): Promise<FunnelStep> {
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
 
   // Build the data object for JSON storage
   const eventData = buildFunnelStepData({
@@ -86,7 +86,7 @@ export async function getFunnelSteps(
   startDate?: string,
   endDate?: string
 ): Promise<FunnelStep[]> {
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
   const dateFilter = buildDateFilter(startDate, endDate);
 
   const events = await prisma.analyticsEvent.findMany({

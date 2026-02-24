@@ -180,7 +180,7 @@ export async function createAlert(alert: {
   webhookUrl?: string;
   enabled: boolean;
 }): Promise<Alert> {
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
 
   const result = await prisma.analyticsAlert.create({
     data: {
@@ -207,7 +207,7 @@ export async function createAlert(alert: {
  * Get all alerts
  */
 export async function getAlerts(enabledOnly: boolean = false): Promise<Alert[]> {
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
 
   const alerts = await prisma.analyticsAlert.findMany({
     where: {

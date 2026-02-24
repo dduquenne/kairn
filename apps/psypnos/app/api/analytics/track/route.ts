@@ -412,7 +412,7 @@ async function trackGeolocation(
   const { prisma } = await import('@/lib/db/prisma');
   const { getCurrentSiteId } = await import('../store-postgres/utils');
 
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
 
   // Use upsert to avoid race conditions between concurrent requests
   // for the same session (findFirst + create is not atomic)

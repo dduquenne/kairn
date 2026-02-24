@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     // Real mode - fetch data from VisitorGeolocation table
     console.log("📊 [Geolocation Analytics] Using REAL data");
 
-    const siteId = getCurrentSiteId();
+    const siteId = await getCurrentSiteId();
 
     // Calculate date filters
     const endDate = endDateParam ? new Date(endDateParam) : new Date();

@@ -58,7 +58,7 @@ export async function trackConversionEvent(event: {
   completed: boolean;
   metadata?: Record<string, unknown>;
 }): Promise<ConversionEvent> {
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
 
   // Build the data object for JSON storage
   const eventData = buildConversionData({
@@ -92,7 +92,7 @@ export async function getConversionEvents(
   startDate?: string,
   endDate?: string
 ): Promise<ConversionEvent[]> {
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
   const dateFilter = buildDateFilter(startDate, endDate);
 
   const events = await prisma.analyticsEvent.findMany({
@@ -118,7 +118,7 @@ export async function getConversionStats(
   completed: number;
   byType: Record<string, { total: number; completed: number; rate: number }>;
 }> {
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
   const dateFilter = buildDateFilter(startDate, endDate);
 
   const events = await prisma.analyticsEvent.findMany({

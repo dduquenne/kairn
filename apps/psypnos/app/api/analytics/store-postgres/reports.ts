@@ -93,7 +93,7 @@ export async function createScheduledReport(report: {
   >;
   enabled: boolean;
 }): Promise<ScheduledReport> {
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
 
   // Store extended data in the metrics JSON field
   const metrics = {
@@ -125,7 +125,7 @@ export async function createScheduledReport(report: {
 export async function getScheduledReports(
   enabledOnly: boolean = false
 ): Promise<ScheduledReport[]> {
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
 
   const reports = await prisma.analyticsScheduledReport.findMany({
     where: {
