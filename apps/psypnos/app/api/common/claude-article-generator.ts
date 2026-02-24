@@ -15,12 +15,13 @@ import {
 import { PSYPNOS_STYLE_SYSTEM_PROMPT } from './psypnos-system-prompt';
 
 // Configuration des timeouts et retries
-const API_TIMEOUT_MS = 120000; // 2 minutes par appel
+// Per-call timeout aligned with Vercel maxDuration (300s for this route)
+const API_TIMEOUT_MS = 90000; // 90 secondes par appel
 const RETRY_OPTIONS = {
-  maxRetries: 3,
+  maxRetries: 2,
   initialDelayMs: 2000,
   backoffMultiplier: 2,
-  maxDelayMs: 30000,
+  maxDelayMs: 15000,
 };
 
 export interface ArticleGenerationOptions {

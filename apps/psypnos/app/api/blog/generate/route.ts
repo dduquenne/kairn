@@ -18,6 +18,9 @@ import {
   type ArticleGenerationOptions,
 } from '../../common/claude-article-generator';
 
+// Vercel serverless function timeout — single-step article generation with retries
+export const maxDuration = 300;
+
 /**
  * Zod schema for validating article generation requests
  *

@@ -17,23 +17,26 @@
  * 6. Génération du prompt image
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 
 import {
   generateArticleMultiStep,
   type GenerationStep,
   type MultiStepGenerationOptions,
-} from "../../common/claude-article-generator-multi-step";
+} from '../../common/claude-article-generator-multi-step';
+
+// Vercel serverless function timeout — 6 sequential Claude API calls
+export const maxDuration = 300;
 
 /**
  * Schéma de validation pour les requêtes de génération
  */
 const generateArticleSchema = z.object({
-  topic: z.string().trim().min(1, "Le sujet est requis"),
-  category: z.enum(["Comprendre", "Traverser", "Découvrir", "Cheminer"]),
-  targetLength: z.enum(["short", "medium", "long"]).optional().default("medium"),
-  editorialCategory: z.enum(["Comprendre", "Traverser", "Découvrir", "Cheminer"]).optional(),
+  topic: z.string().trim().min(1, 'Le sujet est requis'),
+  category: z.enum(['Comprendre', 'Traverser', 'Découvrir', 'Cheminer']),
+  targetLength: z.enum(['short', 'medium', 'long']).optional().default('medium'),
+  editorialCategory: z.enum(['Comprendre', 'Traverser', 'Découvrir', 'Cheminer']).optional(),
   preferredTones: z.array(z.string()).optional(),
   tones: z.array(z.string()).optional(), // Alias
   seoQuery: z.string().trim().optional(),
@@ -76,13 +79,13 @@ export async function POST(request: NextRequest) {
 
     if (!parsed.success) {
       const firstError = parsed.error.issues[0];
-      const message = firstError?.message ?? "Données invalides.";
+      const message = firstError?.message ?? 'Données invalides.';
       return NextResponse.json({ message }, { status: 400 });
     }
 
     payload = parsed.data;
   } catch (error) {
-    return NextResponse.json({ message: "Données invalides." }, { status: 400 });
+    return NextResponse.json({ message: 'Données invalides.' }, { status: 400 });
   }
 
   // Récupérer la clé API Anthropic
@@ -90,23 +93,20 @@ export async function POST(request: NextRequest) {
 
   if (!apiKey) {
     console.error("ANTHROPIC_API_KEY n'est pas configurée");
-    return NextResponse.json(
-      { message: "Le service n'est pas configuré." },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Le service n'est pas configuré." }, { status: 500 });
   }
 
   // Fusionner les champs pour rétrocompatibilité
   const allTones = payload.preferredTones || payload.tones || [];
 
   const options: MultiStepGenerationOptions = {
-    topic: payload.topic || payload.subject || "",
+    topic: payload.topic || payload.subject || '',
     category: payload.category,
     editorialCategory: payload.editorialCategory || payload.category,
     targetLength: payload.targetLength,
-    seoQuery: payload.seoQuery || payload.seoKeyword || "",
-    searchIntent: payload.searchIntent || payload.searchIntention || "",
-    readerPersona: payload.readerPersona || payload.persona || "",
+    seoQuery: payload.seoQuery || payload.seoKeyword || '',
+    searchIntent: payload.searchIntent || payload.searchIntention || '',
+    readerPersona: payload.readerPersona || payload.persona || '',
     preferredTones: allTones,
     usePsypnosStyle: payload.usePsypnosStyle,
   };
@@ -122,35 +122,39 @@ export async function POST(request: NextRequest) {
       try {
         // Callback de progression
         const onProgress = async (step: GenerationStep) => {
-          await writer.write(encoder.encode(encodeSSE("progress", step)));
+          await writer.write(encoder.encode(encodeSSE('progress', step)));
         };
 
-        const result = await generateArticleMultiStep(
-          { ...options, onProgress },
-          apiKey
-        );
+        const result = await generateArticleMultiStep({ ...options, onProgress }, apiKey);
 
         // Envoyer le résultat final
-        await writer.write(encoder.encode(encodeSSE("complete", {
-          success: result.success,
-          article: {
-            title: result.title,
-            description: result.description,
-            content: result.content,
-            category: result.category,
-            tags: result.tags,
-            faq: result.faq,
-            imagePrompt: result.imagePrompt,
-          },
-          generationMetadata: result.generationMetadata,
-          error: result.error,
-        })));
-
+        await writer.write(
+          encoder.encode(
+            encodeSSE('complete', {
+              success: result.success,
+              article: {
+                title: result.title,
+                description: result.description,
+                content: result.content,
+                category: result.category,
+                tags: result.tags,
+                faq: result.faq,
+                imagePrompt: result.imagePrompt,
+              },
+              generationMetadata: result.generationMetadata,
+              error: result.error,
+            })
+          )
+        );
       } catch (error) {
-        console.error("Erreur lors de la génération streaming:", error);
-        await writer.write(encoder.encode(encodeSSE("error", {
-          message: error instanceof Error ? error.message : "Erreur inconnue",
-        })));
+        console.error('Erreur lors de la génération streaming:', error);
+        await writer.write(
+          encoder.encode(
+            encodeSSE('error', {
+              message: error instanceof Error ? error.message : 'Erreur inconnue',
+            })
+          )
+        );
       } finally {
         await writer.close();
       }
@@ -158,9 +162,9 @@ export async function POST(request: NextRequest) {
 
     return new Response(stream.readable, {
       headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        "Connection": "keep-alive",
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        Connection: 'keep-alive',
       },
     });
   }
@@ -174,7 +178,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: result.error || "Erreur lors de la génération",
+          message: result.error || 'Erreur lors de la génération',
           generationMetadata: result.generationMetadata,
         },
         { status: 500 }
@@ -204,19 +208,19 @@ export async function POST(request: NextRequest) {
       // Métadonnées de génération
       generationMetadata: result.generationMetadata,
       // Avertissement si génération partielle
-      ...(result.success === false && result.content && {
-        warning: "Génération partielle - certaines étapes ont échoué",
-        error: result.error,
-      }),
+      ...(result.success === false &&
+        result.content && {
+          warning: 'Génération partielle - certaines étapes ont échoué',
+          error: result.error,
+        }),
     });
-
   } catch (error) {
     console.error("Erreur lors de la génération de l'article:", error);
     return NextResponse.json(
       {
         success: false,
-        message: "Une erreur est survenue lors de la génération. Veuillez réessayer.",
-        error: error instanceof Error ? error.message : "Erreur inconnue",
+        message: 'Une erreur est survenue lors de la génération. Veuillez réessayer.',
+        error: error instanceof Error ? error.message : 'Erreur inconnue',
       },
       { status: 500 }
     );

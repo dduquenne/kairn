@@ -6,6 +6,9 @@ import { uploadImage, BUCKETS } from '@/lib/supabase/storage';
 
 import { withAdminAuth } from '../../auth/middleware';
 
+// Vercel serverless function timeout — 3 parallel DALL-E calls + download + upload
+export const maxDuration = 120;
+
 const generateImageSchema = z.object({
   imagePrompt: z.string().trim().min(1, 'Le prompt image est requis'),
   slug: z.string().trim().min(1, 'Le slug est requis'),

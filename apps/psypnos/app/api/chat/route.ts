@@ -6,7 +6,10 @@ import { z } from 'zod';
 
 import { prisma } from '@/lib/db/prisma';
 
-import { recordAttempt, getClientIP } from '../common/rate-limiter';
+import { recordAttemptAsync, getClientIP } from '../common/rate-limiter';
+
+// Vercel serverless function timeout (Pro plan: max 300s)
+export const maxDuration = 60;
 
 // Validate API key at module load
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
@@ -139,9 +142,9 @@ export async function POST(request: Request) {
     );
   }
 
-  // Rate limiting
+  // Rate limiting (async for Redis support in serverless)
   const clientIP = getClientIP(request);
-  const rateLimitResult = recordAttempt('chat', clientIP);
+  const rateLimitResult = await recordAttemptAsync('chat', clientIP);
 
   if (rateLimitResult.limited) {
     const retryAfter = Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000);
