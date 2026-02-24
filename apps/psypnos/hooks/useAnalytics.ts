@@ -1,94 +1,19 @@
 /**
  * Analytics Tracking Hooks
  *
- * All tracking functions now delegate to the unified @kairn/analytics tracker
+ * All tracking functions delegate to the unified @kairn/analytics tracker
  * which batches events and sends them via /api/analytics/track.
  *
- * Legacy individual endpoints (/page-visit, /scroll-depth, /section-time, etc.)
- * are no longer used directly from client code.
+ * For page/section tracking hooks, use useTracker.ts instead.
+ * This module provides conversion, custom event, and funnel tracking.
  */
 
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { getTracker, type ConversionType } from '@/lib/tracking';
 
-import { initTracker, getTracker, type ConversionType } from '@/lib/tracking';
-
-// ============================================
-// Page Tracking
-// ============================================
-
-/**
- * Track page visits via the unified tracker.
- * The tracker handles UA parsing, UTM extraction, session management,
- * and batched sending automatically.
- */
-export function usePageTracking() {
-  const hasTrackedRef = useRef(false);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (process.env.NEXT_PUBLIC_ANALYTICS_ENABLED === 'false') return;
-    if (hasTrackedRef.current) return;
-    hasTrackedRef.current = true;
-
-    initTracker();
-  }, []);
-}
-
-// ============================================
-// Scroll Tracking
-// ============================================
-
-/**
- * Track scroll depth via the unified tracker.
- * The tracker already has built-in scroll tracking with threshold detection.
- */
-export function useScrollTracking() {
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    if (process.env.NEXT_PUBLIC_ANALYTICS_ENABLED === 'false') return;
-
-    // The unified tracker handles scroll tracking automatically
-    // when initialized via initTracker() in usePageTracking
-  }, []);
-}
-
-// ============================================
-// Section Time Tracking
-// ============================================
-
-/**
- * Track time spent on a section via the unified tracker's
- * IntersectionObserver-based section tracking.
- */
-export function useSectionTimeTracking(sectionId: string) {
-  const elementRef = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    if (process.env.NEXT_PUBLIC_ANALYTICS_ENABLED === 'false') return;
-
-    const sectionElement =
-      document.getElementById(sectionId) ||
-      document.querySelector(`[data-section="${sectionId}"]`) ||
-      elementRef.current;
-
-    if (sectionElement) {
-      const tracker = getTracker();
-      tracker.observeSection(sectionElement as HTMLElement, sectionId);
-      elementRef.current = sectionElement as HTMLElement;
-    }
-
-    return () => {
-      if (elementRef.current) {
-        const tracker = getTracker();
-        tracker.unobserveSection(elementRef.current);
-      }
-    };
-  }, [sectionId]);
-
-  return elementRef;
-}
+// Re-export page/section hooks from useTracker to avoid duplication
+export { usePageTracking, useSectionTracking as useSectionTimeTracking } from './useTracker';
 
 // ============================================
 // Conversion Tracking

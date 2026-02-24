@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Analytics Store Index
  * Phase 4: Scalability & Performance

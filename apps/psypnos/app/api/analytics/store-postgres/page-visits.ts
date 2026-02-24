@@ -5,7 +5,7 @@
  * Page visit data is stored in the `data` JSON field.
  */
 
-import { EventType } from "@prisma/client";
+import { EventType, Prisma } from "@prisma/client";
 
 import { invalidateDashboardCache } from "@/lib/cache/redis";
 import { prisma } from "@/lib/db/prisma";
@@ -20,9 +20,8 @@ import {
   getCurrentSiteId,
 } from "./utils";
 
-/**
- * Converts an AnalyticsEvent record to PageVisit type
- */
+const DEFAULT_PAGE_LIMIT = 10_000;
+
 function toPageVisit(record: {
   id: string;
   createdAt: Date;
@@ -30,7 +29,7 @@ function toPageVisit(record: {
   path: string;
   referrer: string | null;
   userAgent: string | null;
-  data: unknown;
+  data: Prisma.JsonValue;
 }): PageVisit {
   const data = (record.data as Record<string, unknown>) || {};
 
@@ -56,9 +55,6 @@ function toPageVisit(record: {
   };
 }
 
-/**
- * Track a page visit
- */
 export async function trackPageVisit(pageVisit: {
   timestamp: string;
   sessionId: string;
@@ -80,7 +76,6 @@ export async function trackPageVisit(pageVisit: {
 }): Promise<PageVisit> {
   const siteId = getCurrentSiteId();
 
-  // Build the data object for JSON storage
   const eventData = buildPageVisitData({
     referrer: pageVisit.referrer,
     utmSource: pageVisit.utmSource,
@@ -97,6 +92,11 @@ export async function trackPageVisit(pageVisit: {
     timeOnPage: pageVisit.timeOnPage,
   });
 
+  const createdAt = new Date(pageVisit.timestamp);
+  if (isNaN(createdAt.getTime())) {
+    throw new Error(`Invalid timestamp: ${pageVisit.timestamp}`);
+  }
+
   const result = await prisma.analyticsEvent.create({
     data: {
       type: EventType.PAGE_VIEW,
@@ -105,7 +105,7 @@ export async function trackPageVisit(pageVisit: {
       userAgent: pageVisit.userAgent,
       referrer: pageVisit.referrer,
       data: toPrismaJson(eventData),
-      createdAt: new Date(pageVisit.timestamp),
+      createdAt,
       siteId,
     },
   });
@@ -116,11 +116,12 @@ export async function trackPageVisit(pageVisit: {
 }
 
 /**
- * Get page visits within a date range
+ * Get page visits within a date range (with pagination)
  */
 export async function getPageVisits(
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  limit: number = DEFAULT_PAGE_LIMIT
 ): Promise<PageVisit[]> {
   const siteId = getCurrentSiteId();
   const dateFilter = buildDateFilter(startDate, endDate);
@@ -132,14 +133,12 @@ export async function getPageVisits(
       ...dateFilter,
     },
     orderBy: { createdAt: "desc" },
+    take: limit,
   });
 
   return visits.map(toPageVisit);
 }
 
-/**
- * Get page visits for a specific session
- */
 export async function getPageVisitsBySession(sessionId: string): Promise<PageVisit[]> {
   const siteId = getCurrentSiteId();
 
@@ -156,7 +155,7 @@ export async function getPageVisitsBySession(sessionId: string): Promise<PageVis
 }
 
 /**
- * Get unique page paths with visit counts
+ * Get unique page paths with visit counts using SQL aggregation
  */
 export async function getTopPages(
   startDate?: string,
@@ -164,41 +163,42 @@ export async function getTopPages(
   limit: number = 10
 ): Promise<Array<{ page: string; visits: number; uniqueSessions: number }>> {
   const siteId = getCurrentSiteId();
-  const dateFilter = buildDateFilter(startDate, endDate);
 
-  const visits = await prisma.analyticsEvent.findMany({
-    where: {
-      siteId,
-      type: EventType.PAGE_VIEW,
-      ...dateFilter,
-    },
-    select: {
-      path: true,
-      sessionId: true,
-    },
-  });
+  // Build parameterized SQL query for safe aggregation
+  const params: unknown[] = [siteId, 'PAGE_VIEW'];
+  const conditions: string[] = [
+    `"siteId" = $1`,
+    `"type"::"text" = $2`,
+  ];
 
-  // Aggregate by page
-  const pageStats = new Map<string, { visits: number; sessions: Set<string> }>();
-
-  for (const visit of visits) {
-    const stats = pageStats.get(visit.path) || { visits: 0, sessions: new Set<string>() };
-    stats.visits++;
-    if (visit.sessionId) {
-      stats.sessions.add(visit.sessionId);
-    }
-    pageStats.set(visit.path, stats);
+  if (startDate) {
+    params.push(new Date(startDate));
+    conditions.push(`"createdAt" >= $${params.length}`);
+  }
+  if (endDate) {
+    params.push(new Date(endDate));
+    conditions.push(`"createdAt" <= $${params.length}`);
   }
 
-  // Convert to array and sort
-  const result = Array.from(pageStats.entries())
-    .map(([page, stats]) => ({
-      page,
-      visits: stats.visits,
-      uniqueSessions: stats.sessions.size,
-    }))
-    .sort((a, b) => b.visits - a.visits)
-    .slice(0, limit);
+  params.push(limit);
 
-  return result;
+  const result = await prisma.$queryRawUnsafe<
+    Array<{ page: string; visits: bigint; unique_sessions: bigint }>
+  >(
+    `SELECT "path" as page,
+            COUNT(*) as visits,
+            COUNT(DISTINCT "sessionId") as unique_sessions
+     FROM "AnalyticsEvent"
+     WHERE ${conditions.join(' AND ')}
+     GROUP BY "path"
+     ORDER BY visits DESC
+     LIMIT $${params.length}`,
+    ...params
+  );
+
+  return result.map((row) => ({
+    page: row.page,
+    visits: Number(row.visits),
+    uniqueSessions: Number(row.unique_sessions),
+  }));
 }

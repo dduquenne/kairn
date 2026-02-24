@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
+import { createHmac } from 'crypto';
+
 import { NextRequest, NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/db/prisma';
@@ -10,32 +10,34 @@ import {
   logDataMode
 } from '@/lib/pwaDataMode';
 
-// Type for blog analytics record (workaround for ungenerated Prisma client)
+import { recordAttempt, getClientIP } from '../../common/rate-limiter';
+
 type BlogAnalyticsRecord = {
   id: string;
   articleSlug: string;
   sessionId: string;
   timestamp: Date;
-  scrollDepthPercent?: number | null;
-  timeOnPage?: number | null;
-  completed?: boolean;
+  scrollDepthPercent: number | null;
+  timeOnPage: number | null;
+  completed: boolean;
 };
 
 function hashVisitorId(userAgent: string, ip: string): string {
-  // Simple hash for visitor identification
-  const combined = `${userAgent}-${ip}`;
-  let hash = 0;
-  for (let i = 0; i < combined.length; i++) {
-    const char = combined.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-  return Math.abs(hash).toString(36);
+  const secret = process.env.IP_HASH_SECRET || process.env.JWT_SECRET || 'blog-visitor-hash';
+  return createHmac('sha256', secret)
+    .update(`${userAgent}-${ip}`)
+    .digest('hex')
+    .slice(0, 16);
 }
 
-// GET - Récupérer les statistiques des articles du blog
+// GET - Récupérer les statistiques des articles du blog (admin only)
 export async function GET(request: NextRequest) {
   try {
+    // Verify admin authentication
+    const { withAdminAuth } = await import('../../auth/middleware');
+    const authResult = await withAdminAuth();
+    if (authResult.error) return authResult.error;
+
     const searchParams = request.nextUrl.searchParams;
     const slug = searchParams.get('slug');
     const startDateParam = searchParams.get('startDate');
@@ -87,6 +89,7 @@ export async function GET(request: NextRequest) {
       const stats = await prisma.blogAnalytics.findMany({
         where: { articleSlug: slug, ...dateFilter },
         orderBy: { timestamp: 'desc' },
+        take: 10_000,
       }) as BlogAnalyticsRecord[];
 
       const views = stats.length;
@@ -127,6 +130,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Retourner toutes les stats triées par nombre de vues (filtrées par période)
+    // Limit to 50,000 records to prevent memory exhaustion
     const allAnalytics = await prisma.blogAnalytics.findMany({
       where: dateFilter,
       select: {
@@ -137,6 +141,8 @@ export async function GET(request: NextRequest) {
         timeOnPage: true,
         completed: true,
       },
+      take: 50_000,
+      orderBy: { timestamp: 'desc' },
     }) as Array<{
       articleSlug: string;
       sessionId: string;
@@ -250,27 +256,45 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Enregistrer une visite d'article
+// POST - Enregistrer une visite d'article (public, rate-limited)
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const clientIP = getClientIP(request);
+    const rateLimitResult = recordAttempt('analytics', clientIP);
+    if (rateLimitResult.limited) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)) } }
+      );
+    }
+
     const body = await request.json();
     const { slug, sessionId } = body;
 
-    if (!slug) {
+    if (!slug || typeof slug !== 'string') {
       return NextResponse.json(
-        { error: 'Slug is required' },
+        { error: 'Slug is required and must be a string' },
         { status: 400 }
       );
     }
 
-    // Générer un sessionId si non fourni
+    // Validate slug format (alphanumeric + hyphens, max 200 chars)
+    if (slug.length > 200 || !/^[a-z0-9][a-z0-9-]*[a-z0-9]$/i.test(slug)) {
+      return NextResponse.json(
+        { error: 'Invalid slug format' },
+        { status: 400 }
+      );
+    }
+
     const userAgent = request.headers.get('user-agent') || '';
     const ip = request.headers.get('x-forwarded-for') ||
                request.headers.get('x-real-ip') ||
                'unknown';
-    const finalSessionId = sessionId || hashVisitorId(userAgent, ip);
+    const finalSessionId = (typeof sessionId === 'string' && sessionId.length > 0)
+      ? sessionId
+      : hashVisitorId(userAgent, ip);
 
-    // Enregistrer la visite dans PostgreSQL
     await prisma.blogAnalytics.create({
       data: {
         articleSlug: slug,
@@ -279,19 +303,22 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Calculer les stats après insertion
-    const allViews = await prisma.blogAnalytics.findMany({
-      where: { articleSlug: slug },
-      select: { sessionId: true },
-    }) as Array<{ sessionId: string }>;
-
-    const views = allViews.length;
-    const uniqueVisitors = new Set(allViews.map(v => v.sessionId)).size;
+    // Use count() instead of fetching all records
+    const [viewCount, uniqueResult] = await Promise.all([
+      prisma.blogAnalytics.count({
+        where: { articleSlug: slug },
+      }),
+      prisma.blogAnalytics.findMany({
+        where: { articleSlug: slug },
+        select: { sessionId: true },
+        distinct: ['sessionId'],
+      }),
+    ]);
 
     return NextResponse.json({
       slug,
-      views,
-      uniqueVisitors,
+      views: viewCount,
+      uniqueVisitors: uniqueResult.length,
     });
   } catch (error) {
     console.error('Error tracking view:', error);
@@ -302,14 +329,18 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// DELETE - Réinitialiser les stats
+// DELETE - Réinitialiser les stats (admin only)
 export async function DELETE(request: NextRequest) {
   try {
+    // Verify admin authentication
+    const { withAdminAuth } = await import('../../auth/middleware');
+    const authResult = await withAdminAuth();
+    if (authResult.error) return authResult.error;
+
     const searchParams = request.nextUrl.searchParams;
     const slug = searchParams.get('slug');
 
     if (slug) {
-      // Réinitialiser les stats d'un article spécifique
       const result = await prisma.blogAnalytics.deleteMany({
         where: { articleSlug: slug },
       });
@@ -319,8 +350,6 @@ export async function DELETE(request: NextRequest) {
         deletedCount: result.count,
       });
     } else {
-      // Réinitialiser toutes les stats
-      // Cette action devrait être protégée en production
       const result = await prisma.blogAnalytics.deleteMany({});
 
       return NextResponse.json({
