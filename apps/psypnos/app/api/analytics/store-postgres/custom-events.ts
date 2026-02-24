@@ -55,7 +55,7 @@ export async function trackCustomEvent(event: {
   value?: number;
   metadata?: Record<string, unknown>;
 }): Promise<CustomEvent> {
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
 
   // Build the data object for JSON storage
   const eventData = buildCustomEventData({
@@ -90,7 +90,7 @@ export async function getCustomEvents(
   category?: string,
   action?: string
 ): Promise<CustomEvent[]> {
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
   const dateFilter = buildDateFilter(startDate, endDate);
 
   // Build base query

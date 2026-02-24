@@ -65,7 +65,7 @@ export async function createDashboardConfig(config: {
   isDefault: boolean;
   widgets: Widget[];
 }): Promise<DashboardConfig> {
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
 
   // If setting as default, unset other defaults for this user
   if (config.isDefault) {
@@ -92,7 +92,7 @@ export async function createDashboardConfig(config: {
  * Get dashboard configurations
  */
 export async function getDashboardConfigs(userId?: string): Promise<DashboardConfig[]> {
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
 
   const where: { siteId: string; userId?: string } = { siteId };
   if (userId) where.userId = userId;
@@ -124,7 +124,7 @@ export async function getDashboardConfig(id: string): Promise<DashboardConfig | 
 export async function getDefaultDashboardConfig(
   userId: string
 ): Promise<DashboardConfig | undefined> {
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
 
   const config = await prisma.analyticsDashboardConfig.findFirst({
     where: { userId, siteId, isDefault: true },
@@ -147,7 +147,7 @@ export async function updateDashboardConfig(
   }>
 ): Promise<DashboardConfig | null> {
   try {
-    const siteId = getCurrentSiteId();
+    const siteId = await getCurrentSiteId();
 
     // If setting as default, unset other defaults for this user
     if (updates.isDefault) {

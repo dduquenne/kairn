@@ -108,13 +108,78 @@ export function fromEventType(type: EventType): string {
 // =============================================================================
 
 /**
- * Gets the current site ID from environment or returns default.
- * In a multi-tenant setup, this would be resolved from the request context.
+ * Cached site ID — resolved once from the database, then reused for all
+ * subsequent calls within the same process lifetime.
  */
-export function getCurrentSiteId(): string {
-  // For now, use environment variable or default
-  // In production, this should come from request context/middleware
-  return process.env.SITE_ID || process.env.NEXT_PUBLIC_SITE_ID || "default";
+let cachedSiteId: string | null = null;
+
+/**
+ * Gets the current site ID.
+ *
+ * Resolution order:
+ * 1. In-memory cache (fastest — set after first DB lookup)
+ * 2. `SITE_ID` or `NEXT_PUBLIC_SITE_ID` environment variable
+ * 3. Database lookup by site slug (defaults to "psypnos")
+ *
+ * The result is cached in memory so subsequent calls are synchronous-speed.
+ * This function MUST be awaited because the first call may hit the database.
+ */
+export async function getCurrentSiteId(): Promise<string> {
+  // Fast path: already resolved
+  if (cachedSiteId) return cachedSiteId;
+
+  // Try environment variables
+  const envId = process.env.SITE_ID || process.env.NEXT_PUBLIC_SITE_ID;
+  if (envId && envId !== "default") {
+    cachedSiteId = envId;
+    return envId;
+  }
+
+  // Look up the site from the database by slug
+  try {
+    const { prisma } = await import("@/lib/db/prisma");
+    const slug = process.env.NEXT_PUBLIC_SITE_SLUG || "psypnos";
+
+    const site = await prisma.site.findFirst({
+      where: { slug, isActive: true },
+      select: { id: true },
+    });
+
+    if (site) {
+      cachedSiteId = site.id;
+      return site.id;
+    }
+
+    // Fallback: grab the first active site (single-tenant deployments)
+    const fallbackSite = await prisma.site.findFirst({
+      where: { isActive: true },
+      select: { id: true },
+    });
+
+    if (fallbackSite) {
+      cachedSiteId = fallbackSite.id;
+      console.warn(
+        `[Analytics] No site found for slug "${slug}", using fallback site ${fallbackSite.id}`
+      );
+      return fallbackSite.id;
+    }
+  } catch (error) {
+    console.error("[Analytics] Failed to resolve site ID from database:", error);
+  }
+
+  // Last resort — will cause FK errors but at least logs help debugging
+  console.error(
+    "[Analytics] CRITICAL: No site found in database. Analytics data will NOT be persisted. " +
+    "Ensure a Site record exists or set the SITE_ID environment variable."
+  );
+  return "default";
+}
+
+/**
+ * Resets the cached site ID (for tests).
+ */
+export function resetCachedSiteId(): void {
+  cachedSiteId = null;
 }
 
 // =============================================================================

@@ -24,7 +24,7 @@ export async function getAnalyticsSummary(startDate?: string, endDate?: string) 
   return getCached(
     cacheKey,
     async () => {
-      const siteId = getCurrentSiteId();
+      const siteId = await getCurrentSiteId();
       const dateFilter = buildDateFilter(startDate, endDate);
 
       // Count total page views (excluding bots) and unique sessions via SQL
@@ -204,7 +204,7 @@ export async function getVisitsByPeriod(
   return getCached(
     cacheKey,
     async () => {
-      const siteId = getCurrentSiteId();
+      const siteId = await getCurrentSiteId();
       const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       const end = endDate ? new Date(endDate) : new Date();
 
@@ -318,7 +318,7 @@ export async function getSectionHeatmap(startDate?: string, endDate?: string) {
   return getCached(
     cacheKey,
     async () => {
-      const siteId = getCurrentSiteId();
+      const siteId = await getCurrentSiteId();
       const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       const end = endDate ? new Date(endDate) : new Date();
 
@@ -384,7 +384,7 @@ export async function getTrafficSources(startDate?: string, endDate?: string) {
   return getCached(
     cacheKey,
     async () => {
-      const siteId = getCurrentSiteId();
+      const siteId = await getCurrentSiteId();
       const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       const end = endDate ? new Date(endDate) : new Date();
 
@@ -433,7 +433,7 @@ export async function getDeviceBreakdown(startDate?: string, endDate?: string) {
   return getCached(
     cacheKey,
     async () => {
-      const siteId = getCurrentSiteId();
+      const siteId = await getCurrentSiteId();
       const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       const end = endDate ? new Date(endDate) : new Date();
 

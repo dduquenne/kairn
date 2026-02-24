@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
     const startISO = startDate.toISOString();
     const endISO = endDate.toISOString();
 
-    const siteId = getCurrentSiteId();
+    const siteId = await getCurrentSiteId();
     const cacheTTL = isRealtimeMode ? CACHE_TTL.SHORT : CACHE_TTL.MEDIUM;
     const cacheKey = buildCacheKey(CACHE_KEYS.DASHBOARD, {
       siteId,
@@ -251,7 +251,7 @@ export async function GET(request: NextRequest) {
 
 async function fetchGeoData(startDate: Date, endDate: Date) {
   try {
-    const siteId = getCurrentSiteId();
+    const siteId = await getCurrentSiteId();
 
     const geolocations = await prisma.visitorGeolocation.findMany({
       where: {

@@ -59,7 +59,7 @@ export async function getAnomalies(
   endDate?: string,
   acknowledgedOnly?: boolean
 ): Promise<Anomaly[]> {
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
 
   const where: {
     siteId: string;
@@ -118,7 +118,7 @@ export async function recordAnomaly(anomaly: {
   deviation: number;
   severity: "low" | "medium" | "high";
 }): Promise<Anomaly> {
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
 
   const result = await prisma.analyticsAnomaly.create({
     data: {

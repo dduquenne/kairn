@@ -109,7 +109,7 @@ export async function createGoal(goal: {
   value?: number;
   enabled: boolean;
 }): Promise<Goal> {
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
 
   const result = await prisma.analyticsGoal.create({
     data: {
@@ -135,7 +135,7 @@ export async function createGoal(goal: {
  * Get all goals
  */
 export async function getGoals(): Promise<Goal[]> {
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
 
   const goals = await prisma.analyticsGoal.findMany({
     where: { siteId },

@@ -74,7 +74,7 @@ export async function trackPageVisit(pageVisit: {
   timeOnPage?: number;
   isBot?: boolean;
 }): Promise<PageVisit> {
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
 
   const eventData = buildPageVisitData({
     referrer: pageVisit.referrer,
@@ -123,7 +123,7 @@ export async function getPageVisits(
   endDate?: string,
   limit: number = DEFAULT_PAGE_LIMIT
 ): Promise<PageVisit[]> {
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
   const dateFilter = buildDateFilter(startDate, endDate);
 
   const visits = await prisma.analyticsEvent.findMany({
@@ -140,7 +140,7 @@ export async function getPageVisits(
 }
 
 export async function getPageVisitsBySession(sessionId: string): Promise<PageVisit[]> {
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
 
   const visits = await prisma.analyticsEvent.findMany({
     where: {
@@ -162,7 +162,7 @@ export async function getTopPages(
   endDate?: string,
   limit: number = 10
 ): Promise<Array<{ page: string; visits: number; uniqueSessions: number }>> {
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
 
   // Build parameterized SQL query for safe aggregation
   const params: unknown[] = [siteId, 'PAGE_VIEW'];

@@ -49,7 +49,7 @@ export async function trackSectionTime(sectionTime: {
   section: string;
   timeSpent: number;
 }): Promise<SectionTime> {
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
 
   // Build the data object for JSON storage
   const eventData = buildSectionTimeData({
@@ -79,7 +79,7 @@ export async function getSectionTimes(
   startDate?: string,
   endDate?: string
 ): Promise<SectionTime[]> {
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
   const dateFilter = buildDateFilter(startDate, endDate);
 
   const times = await prisma.analyticsEvent.findMany({
@@ -107,7 +107,7 @@ export async function getSectionTimeStats(
   viewCount: number;
   uniqueSessions: number;
 }>> {
-  const siteId = getCurrentSiteId();
+  const siteId = await getCurrentSiteId();
   const dateFilter = buildDateFilter(startDate, endDate);
 
   const events = await prisma.analyticsEvent.findMany({
