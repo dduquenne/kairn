@@ -23,6 +23,7 @@ import {
   getBestPostingTimes,
   getPostTypeStats,
 } from '@/lib/social/analytics';
+import { getTotalFollowersByPlatform } from '@/lib/social/snapshots';
 
 // Platform display config
 const PLATFORM_CONFIG: Record<
@@ -78,6 +79,7 @@ export async function GET(request: NextRequest) {
       comparison,
       bestTimes,
       postTypes,
+      followersByPlatform,
     ] = await Promise.all([
       getDashboardStats(startDate, endDate),
       getStatsByPlatform(startDate, endDate),
@@ -88,6 +90,7 @@ export async function GET(request: NextRequest) {
         : Promise.resolve({ postsChange: 0, reachChange: 0, engagementChange: 0, engagementRateChange: 0 }),
       getBestPostingTimes(startDate, endDate),
       getPostTypeStats(startDate, endDate),
+      getTotalFollowersByPlatform(),
     ]);
 
     // Format platform stats for PostsPanel
@@ -97,11 +100,12 @@ export async function GET(request: NextRequest) {
         icon: p.platform.toLowerCase(),
         color: '#666',
       };
+      const followerData = followersByPlatform.get(p.platform) || { followers: 0, change: 0 };
       return {
         platform: config.name,
         icon: config.icon,
-        followers: 0, // Requires SocialAccountSnapshot — 0 until implemented
-        followersChange: 0,
+        followers: followerData.followers,
+        followersChange: followerData.change,
         posts: p.postsCount,
         reach: p.reach,
         engagement: p.engagements,
@@ -143,8 +147,8 @@ export async function GET(request: NextRequest) {
       engagementChange: comparison.engagementChange,
       avgEngagementRate: stats.averageEngagementRate,
       engagementRateChange: comparison.engagementRateChange,
-      totalFollowers: 0, // Requires SocialAccountSnapshot
-      followersChange: 0,
+      totalFollowers: platforms.reduce((sum, p) => sum + p.followers, 0),
+      followersChange: platforms.reduce((sum, p) => sum + p.followersChange, 0),
       platforms,
       topPosts: formattedTopPosts,
       postTypes: postTypes.map((pt) => ({
