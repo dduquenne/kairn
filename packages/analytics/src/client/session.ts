@@ -247,14 +247,40 @@ export class SessionManager {
   }
 
   /**
-   * Marks user as visitor (to detect returns)
+   * Visitor ID TTL: 13 months (CNIL recommendation)
+   */
+  private static readonly VISITOR_ID_TTL_MS = 13 * 30 * 24 * 60 * 60 * 1000;
+
+  /**
+   * Marks user as visitor (to detect returns).
+   * Visitor ID includes creation timestamp for expiration enforcement.
    */
   private markAsVisitor(): void {
     try {
-      if (!localStorage.getItem(this.config.visitorIdKey)) {
-        const visitorId = `v_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 9)}`;
-        localStorage.setItem(this.config.visitorIdKey, visitorId);
+      const raw = localStorage.getItem(this.config.visitorIdKey);
+
+      if (raw) {
+        // Check expiration on existing visitor ID
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed.createdAt) {
+            const age = Date.now() - new Date(parsed.createdAt).getTime();
+            if (age <= SessionManager.VISITOR_ID_TTL_MS) {
+              return; // Still valid
+            }
+          }
+        } catch {
+          // Legacy format (plain string) — treat as expired
+        }
+        localStorage.removeItem(this.config.visitorIdKey);
       }
+
+      // Create new visitor ID with creation timestamp
+      const visitorData = {
+        id: `v_${Date.now().toString(36)}_${Math.random().toString(36).substring(2, 9)}`,
+        createdAt: new Date().toISOString(),
+      };
+      localStorage.setItem(this.config.visitorIdKey, JSON.stringify(visitorData));
     } catch {
       // localStorage not available
     }

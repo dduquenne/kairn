@@ -29,6 +29,7 @@ import {
   ConversionType,
 } from '../types';
 
+import { getConsentLevel, isTrackingAllowed } from './consent';
 import { SessionManager, getSessionManager } from './session';
 
 // ============================================
@@ -151,6 +152,13 @@ export class Tracker {
   init(): void {
     if (isServer() || this.isInitialized) return;
 
+    // Check consent — at minimum 'essential' is required
+    const consentLevel = getConsentLevel();
+    if (!consentLevel) {
+      this.log('No consent given, tracking disabled');
+      return;
+    }
+
     // Ignore bots
     if (isBot()) {
       this.log('Bot detected, tracking disabled');
@@ -268,7 +276,7 @@ export class Tracker {
    * Tracks scroll depth
    */
   trackScrollDepth(depth: number): void {
-    if (!this.isInitialized) return;
+    if (!this.isInitialized || !isTrackingAllowed('scroll')) return;
 
     // Update max
     if (depth > this.maxScrollDepth) {
@@ -305,7 +313,7 @@ export class Tracker {
     value?: number,
     metadata?: Record<string, unknown>
   ): void {
-    if (!this.isInitialized) return;
+    if (!this.isInitialized || !isTrackingAllowed('conversions')) return;
 
     const event: ConversionTrackingEvent = {
       type: 'conversion',
@@ -356,7 +364,7 @@ export class Tracker {
    * Observes a section to track visibility and time spent
    */
   observeSection(element: HTMLElement, sectionId: string, sectionName?: string): void {
-    if (!this.isInitialized || !this.sectionObserver) return;
+    if (!this.isInitialized || !this.sectionObserver || !isTrackingAllowed('sections')) return;
 
     // Reject invalid section IDs
     if (!sectionId || sectionId.toLowerCase() === 'unknown') {
@@ -816,18 +824,23 @@ export class Tracker {
    * Gets client info
    */
   private getClientInfo(): TrackingPayload['clientInfo'] {
-    const connection = (navigator as Navigator & { connection?: { effectiveType?: string } }).connection;
+    // Fingerprinting data only collected with marketing consent
+    const canFingerprint = isTrackingAllowed('fingerprint');
+
+    const connection = canFingerprint
+      ? (navigator as Navigator & { connection?: { effectiveType?: string } }).connection
+      : undefined;
 
     return {
-      userAgent: navigator.userAgent,
+      userAgent: canFingerprint ? navigator.userAgent : 'redacted',
       language: navigator.language,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       screenWidth: window.screen.width,
       screenHeight: window.screen.height,
-      colorDepth: window.screen.colorDepth,
-      pixelRatio: window.devicePixelRatio || 1,
-      touchSupport: 'ontouchstart' in window,
-      connectionType: connection?.effectiveType,
+      colorDepth: canFingerprint ? window.screen.colorDepth : 0,
+      pixelRatio: canFingerprint ? (window.devicePixelRatio || 1) : 0,
+      touchSupport: canFingerprint ? ('ontouchstart' in window) : false,
+      connectionType: canFingerprint ? connection?.effectiveType : undefined,
     };
   }
 

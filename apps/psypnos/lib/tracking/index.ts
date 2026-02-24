@@ -59,3 +59,13 @@ export {
   initTracker,
   resetTracker,
 } from '@kairn/analytics';
+
+// Re-export consent management
+export {
+  getConsentLevel,
+  setConsentLevel,
+  isTrackingAllowed,
+  revokeConsent,
+  hasConsent,
+  type ConsentLevel,
+} from '@kairn/analytics';
