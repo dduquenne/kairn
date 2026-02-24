@@ -20,11 +20,11 @@
  * Security: QStash signature or CRON_SECRET
  */
 
+import { verifyCronAuth } from '@kairn/core/scheduler';
 import { EventType } from '@prisma/client';
-import { verifyCronAuth } from "@kairn/core/scheduler";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
 
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from '@/lib/db/prisma';
 
 // Retention configuration (in days) by event type
 const UNIFIED_RETENTION: Record<string, { types: EventType[]; days: number }> = {
@@ -73,7 +73,7 @@ function daysToCutoff(days: number): Date {
 export async function GET(request: NextRequest) {
   const authResult = await verifyCronAuth(request);
   if (!authResult.valid) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const startTime = Date.now();
@@ -103,24 +103,50 @@ export async function GET(request: NextRequest) {
     const geoResult = await prisma.visitorGeolocation.deleteMany({
       where: { timestamp: { lt: geoCutoff } },
     });
-    results.push({ table: "VisitorGeolocation", deleted: geoResult.count, retentionDays: LEGACY_RETENTION.visitorGeolocation });
+    results.push({
+      table: 'VisitorGeolocation',
+      deleted: geoResult.count,
+      retentionDays: LEGACY_RETENTION.visitorGeolocation,
+    });
     totalDeleted += geoResult.count;
 
     // 3. Clean up legacy tables (graceful — catch errors for models that may not exist)
     const legacyTables = [
-      { name: 'PageVisit', model: 'pageVisit', field: 'timestamp', days: LEGACY_RETENTION.pageVisit },
-      { name: 'BlogAnalytics', model: 'blogAnalytics', field: 'timestamp', days: LEGACY_RETENTION.blogAnalytics },
-      { name: 'BlogCtaClick', model: 'blogCtaClick', field: 'timestamp', days: LEGACY_RETENTION.blogCtaClick },
-      { name: 'BlogFaqClick', model: 'blogFaqClick', field: 'timestamp', days: LEGACY_RETENTION.blogFaqClick },
+      {
+        name: 'PageVisit',
+        model: 'pageVisit',
+        field: 'timestamp',
+        days: LEGACY_RETENTION.pageVisit,
+      },
+      {
+        name: 'BlogAnalytics',
+        model: 'blogAnalytics',
+        field: 'timestamp',
+        days: LEGACY_RETENTION.blogAnalytics,
+      },
+      {
+        name: 'BlogCtaClick',
+        model: 'blogCtaClick',
+        field: 'timestamp',
+        days: LEGACY_RETENTION.blogCtaClick,
+      },
+      {
+        name: 'BlogFaqClick',
+        model: 'blogFaqClick',
+        field: 'timestamp',
+        days: LEGACY_RETENTION.blogFaqClick,
+      },
       { name: 'BotVisit', model: 'botVisit', field: 'timestamp', days: LEGACY_RETENTION.botVisit },
     ];
 
     for (const table of legacyTables) {
       try {
         const cutoff = daysToCutoff(table.days);
-        const model = (prisma as Record<string, unknown>)[table.model] as {
-          deleteMany: (args: { where: Record<string, unknown> }) => Promise<{ count: number }>;
-        } | undefined;
+        const model = (prisma as unknown as Record<string, unknown>)[table.model] as
+          | {
+              deleteMany: (args: { where: Record<string, unknown> }) => Promise<{ count: number }>;
+            }
+          | undefined;
 
         if (model) {
           const result = await model.deleteMany({
@@ -138,7 +164,7 @@ export async function GET(request: NextRequest) {
 
     if (totalDeleted > 0) {
       console.log(`[Cron:cleanup-data] ${totalDeleted} records deleted in ${duration}s`);
-      results.forEach((r) => {
+      results.forEach(r => {
         if (r.deleted > 0) {
           console.log(`  - ${r.table}: ${r.deleted} (>${r.retentionDays} days)`);
         }
@@ -153,11 +179,11 @@ export async function GET(request: NextRequest) {
       results,
     });
   } catch (error) {
-    console.error("[Cron:cleanup-data] Error:", error);
+    console.error('[Cron:cleanup-data] Error:', error);
     return NextResponse.json(
       {
-        error: "Cleanup failed",
-        message: error instanceof Error ? error.message : "Unknown error",
+        error: 'Cleanup failed',
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
