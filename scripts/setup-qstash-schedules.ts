@@ -42,6 +42,9 @@ const DEFAULT_CRON_SCHEDULES: Record<string, string> = {
   /** Nettoyage des jobs - 4h00 chaque jour */
   'cleanup-jobs': '0 4 * * *',
 
+  /** Snapshot quotidien des comptes sociaux - 6h00 chaque jour */
+  'snapshot-social-accounts': '0 6 * * *',
+
   /** Agrégation des analytics - toutes les heures à :30 */
   aggregate: '30 * * * *',
 

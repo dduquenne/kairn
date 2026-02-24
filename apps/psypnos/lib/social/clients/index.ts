@@ -13,6 +13,7 @@ import type { SocialPlatform } from '../types';
 export interface SocialClient {
   publish(input: PublishPostInput): Promise<PublishResult>;
   getAnalytics?(input: GetAnalyticsInput): Promise<AnalyticsResult>;
+  getAccountMetrics?(input: GetAccountMetricsInput): Promise<AccountMetricsResult>;
 }
 
 export interface PublishPostInput {
@@ -49,6 +50,21 @@ export interface AnalyticsResult {
     saves?: number;
     clicks?: number;
   };
+  error?: string;
+}
+
+export interface GetAccountMetricsInput {
+  accessToken: string;
+  accountMetadata?: Record<string, unknown>;
+  platformId: string;
+}
+
+export interface AccountMetricsResult {
+  success: boolean;
+  followers?: number;
+  following?: number;
+  postsCount?: number;
+  rawData?: Record<string, unknown>;
   error?: string;
 }
 
@@ -93,6 +109,17 @@ class PublisherAdapter implements SocialClient {
       externalPostId: input.externalPostId,
       accessToken: input.accessToken,
       accountMetadata: input.accountMetadata || {},
+    });
+  }
+
+  async getAccountMetrics(input: GetAccountMetricsInput): Promise<AccountMetricsResult> {
+    if (!this.publisher.getAccountMetrics) {
+      return { success: false, error: 'Account metrics not supported for this platform' };
+    }
+    return this.publisher.getAccountMetrics({
+      accessToken: input.accessToken,
+      accountMetadata: input.accountMetadata ?? null,
+      platformId: input.platformId,
     });
   }
 }

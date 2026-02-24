@@ -99,6 +99,40 @@ export interface ContentValidationResult {
 }
 
 // ===========================================
+// Account Metrics (followers, following, etc.)
+// ===========================================
+
+/**
+ * Input for retrieving account-level metrics
+ */
+export interface GetAccountMetricsInput {
+  /** Decrypted access token */
+  accessToken: string;
+  /** Account-specific metadata */
+  accountMetadata: SocialAccountMetadata | null;
+  /** Platform-specific account ID */
+  platformId: string;
+}
+
+/**
+ * Account metrics result
+ */
+export interface AccountMetricsResult {
+  /** Whether retrieval succeeded */
+  success: boolean;
+  /** Follower count */
+  followers?: number;
+  /** Following count */
+  following?: number;
+  /** Total posts on platform */
+  postsCount?: number;
+  /** Raw API data */
+  rawData?: Record<string, unknown>;
+  /** Error message if failed */
+  error?: string;
+}
+
+// ===========================================
 // Publisher Interface
 // ===========================================
 
@@ -119,6 +153,12 @@ export interface SocialPublisher {
    * Retrieve analytics for a published post
    */
   getAnalytics(input: GetAnalyticsInput): Promise<AnalyticsResult>;
+
+  /**
+   * Retrieve account-level metrics (followers, following, etc.)
+   * Optional — returns not-supported error if not implemented.
+   */
+  getAccountMetrics?(input: GetAccountMetricsInput): Promise<AccountMetricsResult>;
 
   /**
    * Validate content against platform limits
