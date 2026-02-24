@@ -14,6 +14,8 @@ import type {
   PublishResult,
   GetAnalyticsInput,
   AnalyticsResult,
+  GetAccountMetricsInput,
+  AccountMetricsResult,
   ContentValidationResult,
 } from './types';
 
@@ -208,6 +210,34 @@ export class TwitterPublisher implements SocialPublisher {
           (publicMetrics.reply_count || 0) +
           (publicMetrics.retweet_count || 0) +
           (publicMetrics.quote_count || 0),
+        rawData: data,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  async getAccountMetrics(input: GetAccountMetricsInput): Promise<AccountMetricsResult> {
+    const { accessToken, platformId } = input;
+    try {
+      // Twitter API v2 — user lookup with public metrics
+      const url = `${TWITTER_API_BASE}/users/${platformId}?user.fields=public_metrics`;
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!response.ok) {
+        return { success: false, error: `Twitter API error: ${response.status}` };
+      }
+      const data = await response.json();
+      const metrics = data.data?.public_metrics || {};
+      return {
+        success: true,
+        followers: metrics.followers_count || 0,
+        following: metrics.following_count || 0,
+        postsCount: metrics.tweet_count || 0,
         rawData: data,
       };
     } catch (error) {

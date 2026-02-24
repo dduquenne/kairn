@@ -14,6 +14,8 @@ import type {
   PublishResult,
   GetAnalyticsInput,
   AnalyticsResult,
+  GetAccountMetricsInput,
+  AccountMetricsResult,
   ContentValidationResult,
 } from './types';
 
@@ -252,6 +254,31 @@ export class FacebookPublisher implements SocialPublisher {
         comments: engagementData.comments?.summary?.total_count || 0,
         shares: engagementData.shares?.count || 0,
         rawData: { insights: data, engagement: engagementData },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  async getAccountMetrics(input: GetAccountMetricsInput): Promise<AccountMetricsResult> {
+    const { accessToken, platformId } = input;
+    try {
+      // Facebook Page insights: followers_count, fan_count
+      const url = `${GRAPH_API_BASE}/${platformId}?fields=followers_count,fan_count,name&access_token=${accessToken}`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        return { success: false, error: `Facebook API error: ${response.status}` };
+      }
+      const data = await response.json();
+      return {
+        success: true,
+        followers: data.followers_count || data.fan_count || 0,
+        following: 0, // Pages don't have a "following" count
+        postsCount: 0, // Requires separate paginated call
+        rawData: data,
       };
     } catch (error) {
       return {

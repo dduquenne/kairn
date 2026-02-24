@@ -22,7 +22,9 @@ import {
   getComparisonStats,
   getBestPostingTimes,
   getPostTypeStats,
+  getHashtagPerformance,
 } from '@/lib/social/analytics';
+import { getTotalFollowersByPlatform } from '@/lib/social/snapshots';
 
 // Platform display config
 const PLATFORM_CONFIG: Record<
@@ -78,6 +80,8 @@ export async function GET(request: NextRequest) {
       comparison,
       bestTimes,
       postTypes,
+      followersByPlatform,
+      hashtagPerformance,
     ] = await Promise.all([
       getDashboardStats(startDate, endDate),
       getStatsByPlatform(startDate, endDate),
@@ -88,6 +92,8 @@ export async function GET(request: NextRequest) {
         : Promise.resolve({ postsChange: 0, reachChange: 0, engagementChange: 0, engagementRateChange: 0 }),
       getBestPostingTimes(startDate, endDate),
       getPostTypeStats(startDate, endDate),
+      getTotalFollowersByPlatform(),
+      getHashtagPerformance(startDate, endDate, 20),
     ]);
 
     // Format platform stats for PostsPanel
@@ -97,11 +103,12 @@ export async function GET(request: NextRequest) {
         icon: p.platform.toLowerCase(),
         color: '#666',
       };
+      const followerData = followersByPlatform.get(p.platform) || { followers: 0, change: 0 };
       return {
         platform: config.name,
         icon: config.icon,
-        followers: 0, // Requires SocialAccountSnapshot — 0 until implemented
-        followersChange: 0,
+        followers: followerData.followers,
+        followersChange: followerData.change,
         posts: p.postsCount,
         reach: p.reach,
         engagement: p.engagements,
@@ -114,7 +121,7 @@ export async function GET(request: NextRequest) {
     const formattedTopPosts = topPosts.map((p) => ({
       id: p.id,
       platform: p.platform.toLowerCase(),
-      type: 'text', // Default — enriched when mediaUrls type field is added
+      type: p.mediaType,
       content: p.content,
       publishedAt: p.publishedAt ? p.publishedAt.toISOString() : new Date().toISOString(),
       reach: p.reach,
@@ -122,14 +129,14 @@ export async function GET(request: NextRequest) {
       likes: p.likes,
       comments: p.comments,
       shares: p.shares,
-      saves: 0,
+      saves: p.saves,
       engagementRate: p.engagementRate,
     }));
 
-    // Format trend data
+    // Format trend data — use real reach when available, fallback to impressions
     const engagementTrends = trendData.map((t) => ({
       label: t.date,
-      reach: t.impressions, // Using impressions as reach proxy
+      reach: t.reach > 0 ? t.reach : t.impressions,
       engagement: t.engagements,
       posts: t.posts,
     }));
@@ -143,8 +150,8 @@ export async function GET(request: NextRequest) {
       engagementChange: comparison.engagementChange,
       avgEngagementRate: stats.averageEngagementRate,
       engagementRateChange: comparison.engagementRateChange,
-      totalFollowers: 0, // Requires SocialAccountSnapshot
-      followersChange: 0,
+      totalFollowers: platforms.reduce((sum, p) => sum + p.followers, 0),
+      followersChange: platforms.reduce((sum, p) => sum + p.followersChange, 0),
       platforms,
       topPosts: formattedTopPosts,
       postTypes: postTypes.map((pt) => ({
@@ -158,6 +165,13 @@ export async function GET(request: NextRequest) {
         day: bt.day,
         hour: bt.hour,
         engagement: bt.engagement,
+      })),
+      hashtagPerformance: hashtagPerformance.map((h) => ({
+        hashtag: h.hashtag,
+        usageCount: h.usageCount,
+        avgEngagementRate: h.avgEngagementRate,
+        totalReach: h.totalReach,
+        totalEngagements: h.totalEngagements,
       })),
     };
 

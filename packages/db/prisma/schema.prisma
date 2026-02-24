@@ -1020,7 +1020,8 @@ model SocialAccount {
   updatedAt     DateTime       @updatedAt
 
   // Relations
-  posts SocialPost[]
+  posts     SocialPost[]
+  snapshots SocialAccountSnapshot[]
 
   @@unique([platform, platformId])
   @@index([platform])
@@ -1106,6 +1107,30 @@ model SocialPostAnalytics {
   updatedAt   DateTime   @updatedAt
 
   @@index([lastSyncAt])
+}
+
+/// Daily snapshot of social account metrics (followers, following, etc.)
+model SocialAccountSnapshot {
+  id          String         @id @default(cuid())
+  accountId   String
+  account     SocialAccount  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  /// Platform for quick filtering without join
+  platform    SocialPlatform
+  /// Follower count at snapshot time
+  followers   Int            @default(0)
+  /// Following count at snapshot time
+  following   Int            @default(0)
+  /// Total posts count on the platform
+  postsCount  Int            @default(0)
+  /// Raw platform-specific metrics as JSON
+  rawMetrics  Json?
+  /// Snapshot date (truncated to day for dedup)
+  snapshotDate DateTime
+  createdAt    DateTime      @default(now())
+
+  @@unique([accountId, snapshotDate])
+  @@index([platform, snapshotDate])
+  @@index([accountId, snapshotDate])
 }
 
 // =============================================================================

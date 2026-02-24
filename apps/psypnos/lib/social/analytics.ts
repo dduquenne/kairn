@@ -56,13 +56,20 @@ export interface PostPerformance {
   likes: number;
   comments: number;
   shares: number;
+  saves: number;
   engagementRate: number;
+  mediaType: 'text' | 'image' | 'video' | 'carousel' | 'reel' | 'story';
+  mediaUrls: string[];
 }
 
 export interface TrendDataPoint {
   date: string;
   impressions: number;
+  reach: number;
   engagements: number;
+  likes: number;
+  comments: number;
+  shares: number;
   posts: number;
 }
 
@@ -77,6 +84,55 @@ export interface RecentPost {
   externalPostId: string | null;
   errorMessage: string | null;
   accountName: string;
+}
+
+// ===========================================
+// Media Type Classification
+// ===========================================
+
+type MediaType = 'text' | 'image' | 'video' | 'carousel' | 'reel' | 'story';
+
+const VIDEO_EXTENSIONS = /\.(mp4|mov|avi|webm|mkv|m4v|3gp)(\?|$)/i;
+const IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|gif|webp|bmp|svg|avif|heic)(\?|$)/i;
+
+/**
+ * Classifie le type de média d'un post à partir de ses mediaUrls
+ * et de sa plateforme (pour détecter reels/stories).
+ */
+export function classifyMediaType(
+  mediaUrls: unknown,
+  platform?: string,
+  content?: string
+): MediaType {
+  const urls = Array.isArray(mediaUrls) ? mediaUrls.map(String) : [];
+
+  if (urls.length === 0) return 'text';
+  if (urls.length > 1) return 'carousel';
+
+  const url = urls[0] || '';
+
+  // Check if it's a video
+  if (VIDEO_EXTENSIONS.test(url)) {
+    // Instagram reels detection: short-form video on Instagram
+    if (platform === 'INSTAGRAM' || platform === 'instagram') {
+      // Heuristic: if URL contains "reel" or content mentions reel
+      if (/reel/i.test(url) || (content && /\breel\b/i.test(content))) {
+        return 'reel';
+      }
+    }
+    return 'video';
+  }
+
+  if (IMAGE_EXTENSIONS.test(url)) {
+    // Story detection: ephemeral content (typically indicated in metadata/URL)
+    if (/story|stories/i.test(url)) {
+      return 'story';
+    }
+    return 'image';
+  }
+
+  // Fallback: if URL exists but no extension match, try content-type heuristic
+  return 'image';
 }
 
 // ===========================================
@@ -229,6 +285,7 @@ export async function getTopPerformingPosts(
     content: string;
     blogTitle: string | null;
     publishedAt: Date | null;
+    mediaUrls: unknown;
     analytics: {
       impressions: number;
       reach: number;
@@ -236,6 +293,7 @@ export async function getTopPerformingPosts(
       likes: number;
       comments: number;
       shares: number;
+      saves: number;
     } | null;
   }> = await prisma.socialPost.findMany({
     where: {
@@ -256,6 +314,7 @@ export async function getTopPerformingPosts(
   return posts.map((post: typeof posts[number]) => {
     const impressions = post.analytics?.impressions || 0;
     const engagements = post.analytics?.engagements || 0;
+    const mediaUrls = Array.isArray(post.mediaUrls) ? post.mediaUrls.map(String) : [];
 
     return {
       id: post.id,
@@ -269,7 +328,10 @@ export async function getTopPerformingPosts(
       likes: post.analytics?.likes || 0,
       comments: post.analytics?.comments || 0,
       shares: post.analytics?.shares || 0,
+      saves: post.analytics?.saves || 0,
       engagementRate: impressions > 0 ? (engagements / impressions) * 100 : 0,
+      mediaType: classifyMediaType(post.mediaUrls, post.platform, post.content),
+      mediaUrls,
     };
   });
 }
@@ -316,7 +378,11 @@ export async function getTrendData(
     dataByDate.set(dateKey, {
       date: dateKey,
       impressions: 0,
+      reach: 0,
       engagements: 0,
+      likes: 0,
+      comments: 0,
+      shares: 0,
       posts: 0,
     });
     currentDate.setDate(currentDate.getDate() + 1);
@@ -331,7 +397,11 @@ export async function getTrendData(
 
     if (existing) {
       existing.impressions += post.analytics?.impressions || 0;
+      existing.reach += post.analytics?.reach || 0;
       existing.engagements += post.analytics?.engagements || 0;
+      existing.likes += post.analytics?.likes || 0;
+      existing.comments += post.analytics?.comments || 0;
+      existing.shares += post.analytics?.shares || 0;
       existing.posts += 1;
     }
   }
@@ -625,6 +695,7 @@ export async function getPostTypeStats(
   const dateFilter = buildDateFilter(startDate, endDate);
 
   const posts: Array<{
+    platform: string;
     mediaUrls: unknown;
     content: string;
     analytics: { engagements: number; impressions: number } | null;
@@ -634,6 +705,7 @@ export async function getPostTypeStats(
       status: 'PUBLISHED',
     },
     select: {
+      platform: true,
       mediaUrls: true,
       content: true,
       analytics: {
@@ -645,14 +717,7 @@ export async function getPostTypeStats(
   const typeBuckets: Map<string, { count: number; totalEngRate: number }> = new Map();
 
   for (const post of posts) {
-    const mediaArr = Array.isArray(post.mediaUrls) ? post.mediaUrls : [];
-    let type = 'text';
-    if (mediaArr.length > 1) type = 'carousel';
-    else if (mediaArr.length === 1) {
-      const url = String(mediaArr[0] || '');
-      if (/\.(mp4|mov|avi|webm)/i.test(url)) type = 'video';
-      else type = 'image';
-    }
+    const type = classifyMediaType(post.mediaUrls, post.platform, post.content);
 
     const impressions = post.analytics?.impressions || 0;
     const engagements = post.analytics?.engagements || 0;
@@ -679,6 +744,109 @@ export async function getPostTypeStats(
   // Sort by count descending
   results.sort((a, b) => b.count - a.count);
   return results;
+}
+
+// ===========================================
+// Hashtag Performance Analysis
+// ===========================================
+
+export interface HashtagPerformance {
+  hashtag: string;
+  usageCount: number;
+  avgEngagementRate: number;
+  totalReach: number;
+  totalEngagements: number;
+}
+
+/**
+ * Extrait les hashtags d'un contenu textuel
+ */
+function extractHashtags(content: string): string[] {
+  const matches = content.match(/#[\w\u00C0-\u024F]+/g);
+  if (!matches) return [];
+  return [...new Set(matches.map((h) => h.toLowerCase()))];
+}
+
+/**
+ * Analyse la performance des hashtags utilisés dans les posts.
+ * Retourne les hashtags triés par taux d'engagement moyen décroissant.
+ */
+export async function getHashtagPerformance(
+  startDate?: Date,
+  endDate?: Date,
+  limit = 20
+): Promise<HashtagPerformance[]> {
+  const dateFilter = buildDateFilter(startDate, endDate);
+
+  const posts: Array<{
+    content: string;
+    analytics: {
+      impressions: number;
+      reach: number;
+      engagements: number;
+    } | null;
+  }> = await prisma.socialPost.findMany({
+    where: {
+      ...dateFilter,
+      status: 'PUBLISHED',
+    },
+    select: {
+      content: true,
+      analytics: {
+        select: { impressions: true, reach: true, engagements: true },
+      },
+    },
+  });
+
+  const hashtagBuckets: Map<
+    string,
+    { count: number; totalEngRate: number; totalReach: number; totalEngagements: number }
+  > = new Map();
+
+  for (const post of posts) {
+    const hashtags = extractHashtags(post.content);
+    if (hashtags.length === 0) continue;
+
+    const impressions = post.analytics?.impressions || 0;
+    const reach = post.analytics?.reach || 0;
+    const engagements = post.analytics?.engagements || 0;
+    const engRate = impressions > 0 ? (engagements / impressions) * 100 : 0;
+
+    for (const tag of hashtags) {
+      const existing = hashtagBuckets.get(tag) || {
+        count: 0,
+        totalEngRate: 0,
+        totalReach: 0,
+        totalEngagements: 0,
+      };
+      existing.count += 1;
+      existing.totalEngRate += engRate;
+      existing.totalReach += reach;
+      existing.totalEngagements += engagements;
+      hashtagBuckets.set(tag, existing);
+    }
+  }
+
+  const results: HashtagPerformance[] = [];
+
+  for (const [hashtag, bucket] of hashtagBuckets) {
+    results.push({
+      hashtag,
+      usageCount: bucket.count,
+      avgEngagementRate: bucket.count > 0 ? bucket.totalEngRate / bucket.count : 0,
+      totalReach: bucket.totalReach,
+      totalEngagements: bucket.totalEngagements,
+    });
+  }
+
+  // Sort by avgEngagementRate descending, then by usage count
+  results.sort((a, b) => {
+    const rateCompare = b.avgEngagementRate - a.avgEngagementRate;
+    if (Math.abs(rateCompare) < 0.01) return b.usageCount - a.usageCount;
+    return rateCompare;
+  });
+
+  return results.slice(0, limit);
 }
 
 // ===========================================
