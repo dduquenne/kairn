@@ -99,11 +99,22 @@ export class Tracker {
   private isInitialized = false;
   private isSending = false;
 
+  // Retry / circuit breaker state
+  private consecutiveFailures = 0;
+  private circuitOpen = false;
+  private circuitResetTimeout: ReturnType<typeof setTimeout> | null = null;
+  private static readonly MAX_QUEUE_SIZE = 500;
+  private static readonly MAX_CONSECUTIVE_FAILURES = 10;
+  private static readonly CIRCUIT_RESET_MS = 5 * 60 * 1000; // 5 minutes
+  private static readonly FETCH_TIMEOUT_MS = 10_000; // 10 seconds
+
   // Page tracking state
   private currentPage: string = '';
   private pageStartTime: number = 0;
   private maxScrollDepth: number = 0;
   private scrollTrackedThresholds: Set<number> = new Set();
+  private pageExitSent = false;
+  private sectionTimesFlushed = false;
 
   // Section tracking
   private sectionObserver: IntersectionObserver | null = null;
@@ -198,6 +209,12 @@ export class Tracker {
     // Stop batch interval
     this.stopBatchInterval();
 
+    // Clear circuit breaker timeout
+    if (this.circuitResetTimeout) {
+      clearTimeout(this.circuitResetTimeout);
+      this.circuitResetTimeout = null;
+    }
+
     this.isInitialized = false;
     this.log('Tracker destroyed');
   }
@@ -224,6 +241,8 @@ export class Tracker {
     this.pageStartTime = Date.now();
     this.maxScrollDepth = 0;
     this.scrollTrackedThresholds.clear();
+    this.pageExitSent = false;
+    this.sectionTimesFlushed = false;
 
     // Increment page counter
     this.sessionManager.incrementPageViews();
@@ -388,7 +407,8 @@ export class Tracker {
    * Tracks page exit (called automatically)
    */
   private trackPageExit(): void {
-    if (!this.currentPage) return;
+    if (!this.currentPage || this.pageExitSent) return;
+    this.pageExitSent = true;
 
     const timeOnPage = Date.now() - this.pageStartTime;
 
@@ -447,6 +467,12 @@ export class Tracker {
    * Adds an event to the queue
    */
   private queueEvent(event: TrackingEvent): void {
+    // Enforce max queue size — drop oldest events if queue is too large
+    if (this.eventQueue.length >= Tracker.MAX_QUEUE_SIZE) {
+      this.eventQueue = this.eventQueue.slice(-Math.floor(Tracker.MAX_QUEUE_SIZE / 2));
+      this.log('Queue overflow, oldest events dropped');
+    }
+
     this.eventQueue.push(event);
 
     // Send if queue is full
@@ -460,6 +486,12 @@ export class Tracker {
    */
   private async sendBatch(): Promise<void> {
     if (this.isSending || this.eventQueue.length === 0) return;
+
+    // Circuit breaker: skip sending if circuit is open
+    if (this.circuitOpen) {
+      this.log('Circuit breaker open, skipping send');
+      return;
+    }
 
     this.isSending = true;
     const eventsToSend = [...this.eventQueue];
@@ -486,27 +518,59 @@ export class Tracker {
         navigator.sendBeacon(this.config.apiEndpoint, blob);
         this.log('Batch sent via sendBeacon:', eventsToSend.length, 'events');
       } else {
-        // Otherwise, use fetch
-        const response = await fetch(this.config.apiEndpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-          keepalive: true, // Important for requests during page close
-        });
+        // Use fetch with AbortController for timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(
+          () => controller.abort(),
+          Tracker.FETCH_TIMEOUT_MS
+        );
 
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
+        try {
+          const response = await fetch(this.config.apiEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            keepalive: true,
+            signal: controller.signal,
+          });
+
+          clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          const result: TrackingResponse = await response.json();
+          this.log('Batch sent:', result.processed, 'events processed');
+        } catch (error) {
+          clearTimeout(timeoutId);
+          throw error;
         }
-
-        const result: TrackingResponse = await response.json();
-        this.log('Batch sent:', result.processed, 'events processed');
       }
+
+      // Success: reset failure counter
+      this.consecutiveFailures = 0;
     } catch (error) {
-      // Put events back in queue on error
-      this.eventQueue = [...eventsToSend, ...this.eventQueue];
-      this.log('Batch send error:', error);
+      this.consecutiveFailures++;
+
+      // Put events back in queue (bounded)
+      const combined = [...eventsToSend, ...this.eventQueue];
+      this.eventQueue = combined.slice(0, Tracker.MAX_QUEUE_SIZE);
+
+      // Circuit breaker: open after too many failures
+      if (this.consecutiveFailures >= Tracker.MAX_CONSECUTIVE_FAILURES) {
+        this.circuitOpen = true;
+        this.log('Circuit breaker opened after', this.consecutiveFailures, 'failures');
+
+        // Auto-reset after cooldown
+        this.circuitResetTimeout = setTimeout(() => {
+          this.circuitOpen = false;
+          this.consecutiveFailures = 0;
+          this.log('Circuit breaker reset');
+        }, Tracker.CIRCUIT_RESET_MS);
+      }
+
+      this.log('Batch send error (failure #' + this.consecutiveFailures + '):', error);
     } finally {
       this.isSending = false;
     }
@@ -724,6 +788,9 @@ export class Tracker {
    * Sends all accumulated section times
    */
   private flushSectionTimes(): void {
+    if (this.sectionTimesFlushed) return;
+    this.sectionTimesFlushed = true;
+
     this.visibleSections.forEach((sectionId) => {
       const element = document.querySelector(`[data-section-id="${sectionId}"]`) as HTMLElement;
       const sectionName = element?.dataset.sectionName || sectionId;
