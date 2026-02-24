@@ -606,14 +606,20 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       }
 
       // Build goals from API
-      const goals: Goal[] = (goalsData.goals || []).map((goal: any) => ({
-        id: goal.id || String(Math.random()),
-        name: goal.name || 'Objectif',
-        type: goal.type || 'event',
-        current: goal.completions || 0,
-        target: goal.target || 100,
-        progress: goal.target > 0 ? (goal.completions / goal.target) * 100 : 0,
-      }));
+      // Each entry from getGoalsSummary is { goal: GoalObj, completions, completionRate, ... }
+      const goals: Goal[] = (goalsData.goals || []).map((entry: any) => {
+        const g = entry.goal || entry;
+        const completions = entry.completions ?? 0;
+        const target = g.target || g.value || 100;
+        return {
+          id: g.id || String(Math.random()),
+          name: g.name || 'Objectif',
+          type: g.type || 'event',
+          current: completions,
+          target,
+          progress: target > 0 ? (completions / target) * 100 : 0,
+        };
+      });
 
       // Build geo data - combine countries and cities
       const totalGeoVisitors = (geoData.byCountry || []).reduce(
