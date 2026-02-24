@@ -15,6 +15,8 @@ import type {
   PublishResult,
   GetAnalyticsInput,
   AnalyticsResult,
+  GetAccountMetricsInput,
+  AccountMetricsResult,
   ContentValidationResult,
 } from './types';
 
@@ -249,6 +251,31 @@ export class InstagramPublisher implements SocialPublisher {
         saves: metricsMap['saved'] || 0,
         shares: 0, // Instagram doesn't provide this metric
         rawData: { insights: insightsData, media: mediaData },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  async getAccountMetrics(input: GetAccountMetricsInput): Promise<AccountMetricsResult> {
+    const { accessToken, platformId } = input;
+    try {
+      // Instagram Business/Creator account metrics via Graph API
+      const url = `${GRAPH_API_BASE}/${platformId}?fields=followers_count,follows_count,media_count,name&access_token=${accessToken}`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        return { success: false, error: `Instagram API error: ${response.status}` };
+      }
+      const data = await response.json();
+      return {
+        success: true,
+        followers: data.followers_count || 0,
+        following: data.follows_count || 0,
+        postsCount: data.media_count || 0,
+        rawData: data,
       };
     } catch (error) {
       return {

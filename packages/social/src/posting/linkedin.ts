@@ -14,6 +14,8 @@ import type {
   PublishResult,
   GetAnalyticsInput,
   AnalyticsResult,
+  GetAccountMetricsInput,
+  AccountMetricsResult,
   ContentValidationResult,
 } from './types';
 
@@ -273,6 +275,62 @@ export class LinkedInPublisher implements SocialPublisher {
       clicks: stats.clickCount || 0,
       rawData: data,
     };
+  }
+
+  async getAccountMetrics(input: GetAccountMetricsInput): Promise<AccountMetricsResult> {
+    const { accessToken, accountMetadata } = input;
+    try {
+      const isOrganization = accountMetadata?.type === 'ORGANIZATION';
+
+      if (isOrganization) {
+        const orgId = accountMetadata?.organizationId;
+        if (!orgId) {
+          return { success: false, error: 'Organization ID required for org account metrics' };
+        }
+        // Organization follower statistics
+        const url = `${LINKEDIN_API_BASE}/organizationalEntityFollowerStatistics?q=organizationalEntity&organizationalEntity=urn:li:organization:${orgId}`;
+        const response = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'X-Restli-Protocol-Version': '2.0.0',
+          },
+        });
+        if (!response.ok) {
+          return { success: false, error: `LinkedIn API error: ${response.status}` };
+        }
+        const data = await response.json();
+        const followerStats = data.elements?.[0] || {};
+        return {
+          success: true,
+          followers: followerStats.followerCounts?.organicFollowerCount || 0,
+          following: 0,
+          postsCount: 0,
+          rawData: data,
+        };
+      }
+
+      // Personal profile — limited metrics
+      const url = `${LINKEDIN_API_BASE}/me?projection=(id,vanityName)`;
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      if (!response.ok) {
+        return { success: false, error: `LinkedIn API error: ${response.status}` };
+      }
+      const data = await response.json();
+      return {
+        success: true,
+        followers: 0, // Personal profile follower count not available via API
+        following: 0,
+        postsCount: 0,
+        rawData: data,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
   }
 
   validateContent(content: string, hashtags: string[]): ContentValidationResult {

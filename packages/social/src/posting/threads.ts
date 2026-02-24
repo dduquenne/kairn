@@ -15,6 +15,8 @@ import type {
   PublishResult,
   GetAnalyticsInput,
   AnalyticsResult,
+  GetAccountMetricsInput,
+  AccountMetricsResult,
   ContentValidationResult,
 } from './types';
 
@@ -234,6 +236,31 @@ export class ThreadsPublisher implements SocialPublisher {
           (metricsMap['reposts'] || 0) +
           (metricsMap['quotes'] || 0),
         rawData: insightsData,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  async getAccountMetrics(input: GetAccountMetricsInput): Promise<AccountMetricsResult> {
+    const { accessToken, platformId } = input;
+    try {
+      // Threads API — profile insights
+      const url = `${THREADS_API_BASE}/${THREADS_API_VERSION}/${platformId}?fields=threads_profile_picture_url,threads_biography,followers_count&access_token=${accessToken}`;
+      const response = await fetch(url);
+      if (!response.ok) {
+        return { success: false, error: `Threads API error: ${response.status}` };
+      }
+      const data = await response.json();
+      return {
+        success: true,
+        followers: data.followers_count || 0,
+        following: 0, // Threads API doesn't expose following count
+        postsCount: 0,
+        rawData: data,
       };
     } catch (error) {
       return {
