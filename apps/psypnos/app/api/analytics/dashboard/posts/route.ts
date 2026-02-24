@@ -114,7 +114,7 @@ export async function GET(request: NextRequest) {
     const formattedTopPosts = topPosts.map((p) => ({
       id: p.id,
       platform: p.platform.toLowerCase(),
-      type: 'text', // Default — enriched when mediaUrls type field is added
+      type: p.mediaType,
       content: p.content,
       publishedAt: p.publishedAt ? p.publishedAt.toISOString() : new Date().toISOString(),
       reach: p.reach,
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
       likes: p.likes,
       comments: p.comments,
       shares: p.shares,
-      saves: 0,
+      saves: p.saves,
       engagementRate: p.engagementRate,
     }));
 

@@ -56,7 +56,10 @@ export interface PostPerformance {
   likes: number;
   comments: number;
   shares: number;
+  saves: number;
   engagementRate: number;
+  mediaType: 'text' | 'image' | 'video' | 'carousel' | 'reel' | 'story';
+  mediaUrls: string[];
 }
 
 export interface TrendDataPoint {
@@ -77,6 +80,55 @@ export interface RecentPost {
   externalPostId: string | null;
   errorMessage: string | null;
   accountName: string;
+}
+
+// ===========================================
+// Media Type Classification
+// ===========================================
+
+type MediaType = 'text' | 'image' | 'video' | 'carousel' | 'reel' | 'story';
+
+const VIDEO_EXTENSIONS = /\.(mp4|mov|avi|webm|mkv|m4v|3gp)(\?|$)/i;
+const IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|gif|webp|bmp|svg|avif|heic)(\?|$)/i;
+
+/**
+ * Classifie le type de média d'un post à partir de ses mediaUrls
+ * et de sa plateforme (pour détecter reels/stories).
+ */
+export function classifyMediaType(
+  mediaUrls: unknown,
+  platform?: string,
+  content?: string
+): MediaType {
+  const urls = Array.isArray(mediaUrls) ? mediaUrls.map(String) : [];
+
+  if (urls.length === 0) return 'text';
+  if (urls.length > 1) return 'carousel';
+
+  const url = urls[0] || '';
+
+  // Check if it's a video
+  if (VIDEO_EXTENSIONS.test(url)) {
+    // Instagram reels detection: short-form video on Instagram
+    if (platform === 'INSTAGRAM' || platform === 'instagram') {
+      // Heuristic: if URL contains "reel" or content mentions reel
+      if (/reel/i.test(url) || (content && /\breel\b/i.test(content))) {
+        return 'reel';
+      }
+    }
+    return 'video';
+  }
+
+  if (IMAGE_EXTENSIONS.test(url)) {
+    // Story detection: ephemeral content (typically indicated in metadata/URL)
+    if (/story|stories/i.test(url)) {
+      return 'story';
+    }
+    return 'image';
+  }
+
+  // Fallback: if URL exists but no extension match, try content-type heuristic
+  return 'image';
 }
 
 // ===========================================
@@ -229,6 +281,7 @@ export async function getTopPerformingPosts(
     content: string;
     blogTitle: string | null;
     publishedAt: Date | null;
+    mediaUrls: unknown;
     analytics: {
       impressions: number;
       reach: number;
@@ -236,6 +289,7 @@ export async function getTopPerformingPosts(
       likes: number;
       comments: number;
       shares: number;
+      saves: number;
     } | null;
   }> = await prisma.socialPost.findMany({
     where: {
@@ -256,6 +310,7 @@ export async function getTopPerformingPosts(
   return posts.map((post: typeof posts[number]) => {
     const impressions = post.analytics?.impressions || 0;
     const engagements = post.analytics?.engagements || 0;
+    const mediaUrls = Array.isArray(post.mediaUrls) ? post.mediaUrls.map(String) : [];
 
     return {
       id: post.id,
@@ -269,7 +324,10 @@ export async function getTopPerformingPosts(
       likes: post.analytics?.likes || 0,
       comments: post.analytics?.comments || 0,
       shares: post.analytics?.shares || 0,
+      saves: post.analytics?.saves || 0,
       engagementRate: impressions > 0 ? (engagements / impressions) * 100 : 0,
+      mediaType: classifyMediaType(post.mediaUrls, post.platform, post.content),
+      mediaUrls,
     };
   });
 }
@@ -625,6 +683,7 @@ export async function getPostTypeStats(
   const dateFilter = buildDateFilter(startDate, endDate);
 
   const posts: Array<{
+    platform: string;
     mediaUrls: unknown;
     content: string;
     analytics: { engagements: number; impressions: number } | null;
@@ -634,6 +693,7 @@ export async function getPostTypeStats(
       status: 'PUBLISHED',
     },
     select: {
+      platform: true,
       mediaUrls: true,
       content: true,
       analytics: {
@@ -645,14 +705,7 @@ export async function getPostTypeStats(
   const typeBuckets: Map<string, { count: number; totalEngRate: number }> = new Map();
 
   for (const post of posts) {
-    const mediaArr = Array.isArray(post.mediaUrls) ? post.mediaUrls : [];
-    let type = 'text';
-    if (mediaArr.length > 1) type = 'carousel';
-    else if (mediaArr.length === 1) {
-      const url = String(mediaArr[0] || '');
-      if (/\.(mp4|mov|avi|webm)/i.test(url)) type = 'video';
-      else type = 'image';
-    }
+    const type = classifyMediaType(post.mediaUrls, post.platform, post.content);
 
     const impressions = post.analytics?.impressions || 0;
     const engagements = post.analytics?.engagements || 0;
