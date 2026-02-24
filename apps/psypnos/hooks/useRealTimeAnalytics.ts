@@ -44,23 +44,35 @@ export function useRealTimeAnalytics(options: UseRealTimeAnalyticsOptions = {}) 
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [consecutiveErrors, setConsecutiveErrors] = useState(0);
 
-  // Refs for stable references
+  // Refs for stable references — avoids recreating fetchRealTimeData
+  // on every state change, which would restart the polling effect.
   const onUpdateRef = useRef(onUpdate);
   onUpdateRef.current = onUpdate;
+  const consecutiveErrorsRef = useRef(0);
   const pollingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isMountedRef = useRef(true);
 
   // Calculate effective polling interval with backoff on errors
   const getEffectiveInterval = useCallback(() => {
-    if (consecutiveErrors === 0) {
+    const errors = consecutiveErrorsRef.current;
+    if (errors === 0) {
       return Math.max(POLLING_CONFIG.minInterval, Math.min(pollingInterval, POLLING_CONFIG.maxInterval));
     }
     // Exponential backoff on errors
-    const backoffInterval = POLLING_CONFIG.retryDelay * Math.pow(2, consecutiveErrors - 1);
+    const backoffInterval = POLLING_CONFIG.retryDelay * Math.pow(2, errors - 1);
     return Math.min(backoffInterval, POLLING_CONFIG.maxInterval);
-  }, [consecutiveErrors, pollingInterval]);
+  }, [pollingInterval]);
 
-  // Fetch real-time data
+  // Restart polling with the current effective interval
+  const restartPolling = useCallback(() => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+    // fetchRef will be set before this is called
+  }, []);
+
+  // Fetch real-time data — stable callback (no state dependencies)
   const fetchRealTimeData = useCallback(async () => {
     if (!isMountedRef.current) return;
 
@@ -81,6 +93,7 @@ export function useRealTimeAnalytics(options: UseRealTimeAnalyticsOptions = {}) 
       if (!isMountedRef.current) return;
 
       // Successfully fetched - reset error state
+      consecutiveErrorsRef.current = 0;
       setIsConnected(true);
       setConnectionError(null);
       setConsecutiveErrors(0);
@@ -103,22 +116,37 @@ export function useRealTimeAnalytics(options: UseRealTimeAnalyticsOptions = {}) 
       if (!isMountedRef.current) return;
 
       const errorMessage = error instanceof Error ? error.message : 'Erreur de connexion';
-      console.error('❌ Polling error:', errorMessage);
+      console.error('Polling error:', errorMessage);
 
-      setConsecutiveErrors(prev => prev + 1);
+      const newErrorCount = consecutiveErrorsRef.current + 1;
+      consecutiveErrorsRef.current = newErrorCount;
+      setConsecutiveErrors(newErrorCount);
 
       // Only mark as disconnected after multiple consecutive errors
-      if (consecutiveErrors >= POLLING_CONFIG.maxRetries) {
+      if (newErrorCount >= POLLING_CONFIG.maxRetries) {
         setIsConnected(false);
         setConnectionError('Connexion instable. Nouvelle tentative...');
       } else {
         // Keep connected status during temporary errors
-        setConnectionError(`Erreur temporaire (${consecutiveErrors + 1}/${POLLING_CONFIG.maxRetries})`);
+        setConnectionError(`Erreur temporaire (${newErrorCount}/${POLLING_CONFIG.maxRetries})`);
+      }
+
+      // Adjust polling interval on error (exponential backoff)
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        const newInterval = Math.min(
+          POLLING_CONFIG.retryDelay * Math.pow(2, newErrorCount - 1),
+          POLLING_CONFIG.maxInterval
+        );
+        pollingIntervalRef.current = setInterval(() => {
+          fetchRealTimeData();
+        }, newInterval);
       }
     }
-  }, [consecutiveErrors]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Start/stop polling
+  // Single effect to start/stop polling
   useEffect(() => {
     isMountedRef.current = true;
 
@@ -131,22 +159,15 @@ export function useRealTimeAnalytics(options: UseRealTimeAnalyticsOptions = {}) 
     fetchRealTimeData();
 
     // Set up polling interval
-    const startPolling = () => {
-      const interval = getEffectiveInterval();
+    const interval = getEffectiveInterval();
 
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current);
-      }
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+    }
 
-      pollingIntervalRef.current = setInterval(() => {
-        fetchRealTimeData();
-      }, interval);
-
-      return interval;
-    };
-
-    const initialInterval = startPolling();
-    console.log(`📊 Real-time polling started (interval: ${initialInterval}ms)`);
+    pollingIntervalRef.current = setInterval(() => {
+      fetchRealTimeData();
+    }, interval);
 
     // Cleanup
     return () => {
@@ -155,23 +176,8 @@ export function useRealTimeAnalytics(options: UseRealTimeAnalyticsOptions = {}) 
         clearInterval(pollingIntervalRef.current);
         pollingIntervalRef.current = null;
       }
-      console.log('📊 Real-time polling stopped');
     };
   }, [enabled, fetchRealTimeData, getEffectiveInterval]);
-
-  // Update polling interval when error state changes
-  useEffect(() => {
-    if (!enabled || !pollingIntervalRef.current) return;
-
-    const newInterval = getEffectiveInterval();
-
-    // Clear and restart with new interval
-    clearInterval(pollingIntervalRef.current);
-    pollingIntervalRef.current = setInterval(() => {
-      fetchRealTimeData();
-    }, newInterval);
-
-  }, [consecutiveErrors, enabled, fetchRealTimeData, getEffectiveInterval]);
 
   // Manual refresh function
   const refresh = useCallback(() => {
@@ -180,6 +186,7 @@ export function useRealTimeAnalytics(options: UseRealTimeAnalyticsOptions = {}) 
 
   // Reconnect function (reset error state and fetch)
   const reconnect = useCallback(() => {
+    consecutiveErrorsRef.current = 0;
     setConsecutiveErrors(0);
     setConnectionError(null);
     fetchRealTimeData();

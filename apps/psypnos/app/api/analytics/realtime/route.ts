@@ -21,7 +21,11 @@ export async function GET(request: NextRequest) {
     const now = new Date();
 
     // Calculate time windows
-    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+    // Use a 15-minute window for "active" visitors.
+    // Page views are only recorded on navigation, so a user reading a page
+    // generates no new events. A 5-minute window causes visitors to
+    // "disappear" too quickly.
+    const recentWindowStart = new Date(now.getTime() - 15 * 60 * 1000);
     const todayStart = new Date(now);
     todayStart.setHours(0, 0, 0, 0);
     const todayEnd = new Date(now);
@@ -37,15 +41,15 @@ export async function GET(request: NextRequest) {
 
     // Fetch data in parallel
     const [recentVisits, todaySummary, yesterdaySummary] = await Promise.all([
-      // Get visits from last 5 minutes for "active" count
-      getPageVisits(fiveMinutesAgo.toISOString(), now.toISOString()),
+      // Get visits from last 15 minutes for "active" count
+      getPageVisits(recentWindowStart.toISOString(), now.toISOString()),
       // Get today's summary
       getAnalyticsSummary(todayStart.toISOString(), todayEnd.toISOString()),
       // Get yesterday's summary for trend
       getAnalyticsSummary(yesterdayStart.toISOString(), yesterdayEnd.toISOString()),
     ]);
 
-    // Count unique sessions in last 5 minutes as "active visitors"
+    // Count unique sessions in last 15 minutes as "active visitors"
     const uniqueSessions = new Set(
       recentVisits.map((v: { sessionId?: string }) => v.sessionId).filter(Boolean)
     );
