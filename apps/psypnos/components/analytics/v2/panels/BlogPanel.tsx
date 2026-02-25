@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useMemo } from 'react';
+
 import { motion } from 'framer-motion';
 import {
   Eye,
@@ -12,6 +14,8 @@ import {
   TrendingUp,
   ArrowUpRight,
   ArrowDownRight,
+  ChevronUp,
+  ChevronDown,
 } from 'lucide-react';
 
 export interface BlogArticleStats {
@@ -57,6 +61,10 @@ interface BlogPanelProps {
   isLoading?: boolean;
 }
 
+/**
+ * Blog analytics panel with summary KPIs, sortable articles table,
+ * CTA and FAQ statistics. Articles are sorted by score descending by default.
+ */
 export function BlogPanel({ data, isLoading = false }: BlogPanelProps) {
   const formatDuration = (ms: number | null): string => {
     if (ms === null || ms === 0) return '—';
@@ -73,6 +81,67 @@ export function BlogPanel({ data, isLoading = false }: BlogPanelProps) {
       hour: '2-digit',
       minute: '2-digit',
     });
+  };
+
+  // -- Column sorting state (default: score descending) --
+  type SortColumn = 'score' | 'views' | 'uniqueVisitors' | 'avgTimeOnPage' | 'avgScrollDepth';
+  type SortDirection = 'asc' | 'desc';
+
+  const [sortColumn, setSortColumn] = useState<SortColumn>('score');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
+  /** Toggles sort direction if same column, otherwise sets new column descending. */
+  const handleSort = (column: SortColumn) => {
+    if (column === sortColumn) {
+      setSortDirection(prev => (prev === 'desc' ? 'asc' : 'desc'));
+    } else {
+      setSortColumn(column);
+      setSortDirection('desc');
+    }
+  };
+
+  const sortedArticles = useMemo(() => {
+    if (!data?.articles) return [];
+    const dir = sortDirection === 'desc' ? -1 : 1;
+    return [...data.articles].sort((a, b) => {
+      let aVal: number;
+      let bVal: number;
+      switch (sortColumn) {
+        case 'score':
+          aVal = a.score;
+          bVal = b.score;
+          break;
+        case 'views':
+          aVal = a.views;
+          bVal = b.views;
+          break;
+        case 'uniqueVisitors':
+          aVal = a.uniqueVisitors;
+          bVal = b.uniqueVisitors;
+          break;
+        case 'avgTimeOnPage':
+          aVal = a.avgTimeOnPage ?? 0;
+          bVal = b.avgTimeOnPage ?? 0;
+          break;
+        case 'avgScrollDepth':
+          aVal = a.avgScrollDepth ?? 0;
+          bVal = b.avgScrollDepth ?? 0;
+          break;
+        default:
+          return 0;
+      }
+      return (aVal - bVal) * dir;
+    });
+  }, [data?.articles, sortColumn, sortDirection]);
+
+  /** Renders the sort indicator chevron for a column header. */
+  const SortIcon = ({ column }: { column: SortColumn }) => {
+    if (sortColumn !== column) return null;
+    return sortDirection === 'desc' ? (
+      <ChevronDown size={14} className="inline-block" />
+    ) : (
+      <ChevronUp size={14} className="inline-block" />
+    );
   };
 
   return (
@@ -283,19 +352,44 @@ export function BlogPanel({ data, isLoading = false }: BlogPanelProps) {
               <thead>
                 <tr className="border-gold/20 border-b">
                   <th className="text-ivory/70 px-4 py-3 text-left font-semibold">#</th>
-                  <th className="text-ivory/70 px-4 py-3 text-center font-semibold">Score</th>
+                  <th
+                    className="text-ivory/70 hover:text-gold cursor-pointer select-none px-4 py-3 text-center font-semibold transition-colors"
+                    onClick={() => handleSort('score')}
+                  >
+                    Score <SortIcon column="score" />
+                  </th>
                   <th className="text-ivory/70 px-4 py-3 text-left font-semibold">Article</th>
-                  <th className="text-ivory/70 px-4 py-3 text-center font-semibold">Vues</th>
-                  <th className="text-ivory/70 px-4 py-3 text-center font-semibold">Visiteurs</th>
-                  <th className="text-ivory/70 px-4 py-3 text-center font-semibold">Durée moy.</th>
-                  <th className="text-ivory/70 px-4 py-3 text-center font-semibold">% Lecture</th>
+                  <th
+                    className="text-ivory/70 hover:text-gold cursor-pointer select-none px-4 py-3 text-center font-semibold transition-colors"
+                    onClick={() => handleSort('views')}
+                  >
+                    Vues <SortIcon column="views" />
+                  </th>
+                  <th
+                    className="text-ivory/70 hover:text-gold cursor-pointer select-none px-4 py-3 text-center font-semibold transition-colors"
+                    onClick={() => handleSort('uniqueVisitors')}
+                  >
+                    Visiteurs <SortIcon column="uniqueVisitors" />
+                  </th>
+                  <th
+                    className="text-ivory/70 hover:text-gold cursor-pointer select-none px-4 py-3 text-center font-semibold transition-colors"
+                    onClick={() => handleSort('avgTimeOnPage')}
+                  >
+                    Durée moy. <SortIcon column="avgTimeOnPage" />
+                  </th>
+                  <th
+                    className="text-ivory/70 hover:text-gold cursor-pointer select-none px-4 py-3 text-center font-semibold transition-colors"
+                    onClick={() => handleSort('avgScrollDepth')}
+                  >
+                    % Lecture <SortIcon column="avgScrollDepth" />
+                  </th>
                   <th className="text-ivory/70 px-4 py-3 text-left font-semibold">
                     Dernière visite
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {data.articles.slice(0, 10).map((article, index) => (
+                {sortedArticles.slice(0, 10).map((article, index) => (
                   <motion.tr
                     key={article.slug}
                     initial={{ opacity: 0, x: -10 }}
