@@ -65,13 +65,13 @@ export async function GET(request: NextRequest) {
         if (timeRange === 'hour') {
           startDate = new Date(endDate.getTime() - 60 * 60 * 1000);
         } else if (timeRange === 'day') {
-          startDate.setDate(endDate.getDate() - 6);
+          startDate.setUTCDate(endDate.getUTCDate() - 6);
         } else if (timeRange === 'week') {
-          startDate.setDate(endDate.getDate() - 27);
+          startDate.setUTCDate(endDate.getUTCDate() - 27);
         } else if (timeRange === 'month') {
-          startDate = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+          startDate = new Date(Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth(), 1));
         } else if (timeRange === 'year') {
-          startDate = new Date(endDate.getFullYear(), 0, 1);
+          startDate = new Date(Date.UTC(endDate.getUTCFullYear(), 0, 1));
         }
       }
 
@@ -105,19 +105,23 @@ export async function GET(request: NextRequest) {
       if (isRealtimeMode) {
         startDate = new Date(endDate.getTime() - 60 * 60 * 1000);
       } else if (timeRange === 'day') {
-        startDate.setDate(endDate.getDate() - 6);
+        startDate.setUTCDate(endDate.getUTCDate() - 6);
       } else if (timeRange === 'week') {
-        startDate.setDate(endDate.getDate() - 27);
+        startDate.setUTCDate(endDate.getUTCDate() - 27);
       } else if (timeRange === 'month') {
-        startDate = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+        startDate = new Date(Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth(), 1));
       } else if (timeRange === 'year') {
-        startDate = new Date(endDate.getFullYear(), 0, 1);
+        startDate = new Date(Date.UTC(endDate.getUTCFullYear(), 0, 1));
       }
     }
 
+    // Normalize date boundaries to UTC to match PostgreSQL's date_trunc()
+    // and the frontend's UTC-based bucket generation.
+    // IMPORTANT: use setUTCHours (not setHours) to avoid server-timezone
+    // dependent shifts that desynchronise the query range from the chart buckets.
     if (!isRealtimeMode) {
-      startDate.setHours(0, 0, 0, 0);
-      endDate.setHours(23, 59, 59, 999);
+      startDate.setUTCHours(0, 0, 0, 0);
+      endDate.setUTCHours(23, 59, 59, 999);
     }
 
     const comparisonTimeRange = isRealtimeMode
