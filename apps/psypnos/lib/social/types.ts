@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * Types TypeScript pour le système d'automatisation des réseaux sociaux
  *
@@ -18,12 +15,7 @@
 /**
  * Plateformes sociales supportées
  */
-export type SocialPlatform =
-  | 'FACEBOOK'
-  | 'LINKEDIN'
-  | 'INSTAGRAM'
-  | 'TWITTER'
-  | 'THREADS';
+export type SocialPlatform = 'FACEBOOK' | 'LINKEDIN' | 'INSTAGRAM' | 'TWITTER' | 'THREADS';
 
 /**
  * Plateformes actuellement implémentées
@@ -55,12 +47,7 @@ export type GenerationSource = 'ai' | 'manual';
 /**
  * Tons de génération pour le contenu
  */
-export type ContentTone =
-  | 'informatif'
-  | 'inspirant'
-  | 'promotionnel'
-  | 'educatif'
-  | 'personnel';
+export type ContentTone = 'informatif' | 'inspirant' | 'promotionnel' | 'educatif' | 'personnel';
 
 /**
  * Angles de contenu pour la génération
@@ -152,44 +139,44 @@ export type LinkedInExpertiseLevel = 1 | 2 | 3 | 4 | 5;
  * Formats de posts Instagram pour la promotion de séminaires
  */
 export type SeminarInstagramFormat =
-  | 'compte_rebours'      // Urgence avec décompte des jours/places
-  | 'apercu_experience'   // Prévisualisation de l'expérience
-  | 'temoignage_passe'    // Retour sur un séminaire précédent
-  | 'question_reflexive'  // Question qui fait réfléchir sur le besoin
-  | 'liste_benefices'     // Liste des bénéfices de participation
-  | 'coulisses';          // Behind-the-scenes de la préparation
+  | 'compte_rebours' // Urgence avec décompte des jours/places
+  | 'apercu_experience' // Prévisualisation de l'expérience
+  | 'temoignage_passe' // Retour sur un séminaire précédent
+  | 'question_reflexive' // Question qui fait réfléchir sur le besoin
+  | 'liste_benefices' // Liste des bénéfices de participation
+  | 'coulisses'; // Behind-the-scenes de la préparation
 
 /**
  * Formats de posts LinkedIn pour la promotion de séminaires
  */
 export type SeminarLinkedInFormat =
-  | 'annonce_expert'      // Annonce avec positionnement d'expertise
-  | 'probleme_solution'   // Problème courant + séminaire comme solution
+  | 'annonce_expert' // Annonce avec positionnement d'expertise
+  | 'probleme_solution' // Problème courant + séminaire comme solution
   | 'observation_terrain' // Observation qui justifie le séminaire
-  | 'invitation_reflexion'// Question pro + invitation au séminaire
-  | 'programme_detaille'  // Présentation structurée du programme
-  | 'derniere_chance';    // Urgence professionnelle
+  | 'invitation_reflexion' // Question pro + invitation au séminaire
+  | 'programme_detaille' // Présentation structurée du programme
+  | 'derniere_chance'; // Urgence professionnelle
 
 /**
  * Formats de posts Facebook pour la promotion de séminaires
  */
 export type SeminarFacebookFormat =
-  | 'invitation_chaleureuse'  // Ton conversationnel et accueillant
+  | 'invitation_chaleureuse' // Ton conversationnel et accueillant
   | 'histoire_transformation' // Récit d'un participant passé
-  | 'question_engagement'     // Question + invitation
-  | 'details_pratiques'       // Infos concrètes avec CTA
-  | 'derniers_jours'          // Urgence bienveillante
-  | 'partage_vision';         // Pourquoi ce séminaire existe
+  | 'question_engagement' // Question + invitation
+  | 'details_pratiques' // Infos concrètes avec CTA
+  | 'derniers_jours' // Urgence bienveillante
+  | 'partage_vision'; // Pourquoi ce séminaire existe
 
 /**
  * Formats de posts Threads pour la promotion de séminaires
  */
 export type SeminarThreadsFormat =
-  | 'pensee_spontanee'    // Réflexion naturelle sur le séminaire
-  | 'micro_confession'    // Partage personnel du praticien
-  | 'question_ouverte'    // Question sans réponse directe
+  | 'pensee_spontanee' // Réflexion naturelle sur le séminaire
+  | 'micro_confession' // Partage personnel du praticien
+  | 'question_ouverte' // Question sans réponse directe
   | 'fragment_anticipation' // Évocation poétique de l'expérience
-  | 'rappel_humain';      // Rappel simple et authentique
+  | 'rappel_humain'; // Rappel simple et authentique
 
 /**
  * Niveau d'urgence pour les posts de séminaires
@@ -337,7 +324,7 @@ export interface SocialPostMetadata {
   instagramFormat?: InstagramPostFormat;
   authenticityLevel?: AuthenticityLevel;
 
-// Options spécifiques Threads
+  // Options spécifiques Threads
   threadsFormat?: ThreadsPostFormat;
   threadsAuthenticityLevel?: ThreadsAuthenticityLevel;
 
@@ -539,7 +526,7 @@ export interface GenerationOptions {
   // Options spécifiques Instagram
   instagramFormat?: InstagramPostFormat;
   authenticityLevel?: AuthenticityLevel;
-// Options spécifiques Threads
+  // Options spécifiques Threads
   threadsFormat?: ThreadsPostFormat;
   threadsAuthenticityLevel?: ThreadsAuthenticityLevel;
 

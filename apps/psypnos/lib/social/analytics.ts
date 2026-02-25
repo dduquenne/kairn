@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - SocialPost model not available in Kairn schema
+// @ts-nocheck — pre-existing type issues in refreshPostAnalytics (social client interface)
 /**
  * Service d'analytics pour les réseaux sociaux
  *
@@ -146,13 +145,16 @@ export async function getDashboardStats(
   startDate?: Date,
   endDate?: Date
 ): Promise<SocialDashboardStats> {
-  const dateFilter = buildDateFilter(startDate, endDate);
+  // Post counts use createdAt (includes drafts/scheduled without publishedAt)
+  const createdFilter = buildDateFilter(startDate, endDate, 'createdAt');
+  // Analytics aggregate uses publishedAt (only published posts have analytics)
+  const publishedFilter = buildDateFilter(startDate, endDate);
 
   // Compter les posts par statut
   const postCounts = await prisma.socialPost.groupBy({
     by: ['status'],
     _count: { _all: true },
-    where: dateFilter,
+    where: createdFilter,
   });
 
   const countByStatus = Object.fromEntries(
@@ -170,7 +172,7 @@ export async function getDashboardStats(
       shares: true,
     },
     where: {
-      post: dateFilter,
+      post: publishedFilter,
     },
   });
 
@@ -196,8 +198,7 @@ export async function getDashboardStats(
     totalLikes: analyticsAgg._sum.likes || 0,
     totalComments: analyticsAgg._sum.comments || 0,
     totalShares: analyticsAgg._sum.shares || 0,
-    averageEngagementRate:
-      totalImpressions > 0 ? (totalEngagements / totalImpressions) * 100 : 0,
+    averageEngagementRate: totalImpressions > 0 ? (totalEngagements / totalImpressions) * 100 : 0,
   };
 }
 
@@ -311,7 +312,7 @@ export async function getTopPerformingPosts(
     take: limit,
   });
 
-  return posts.map((post: typeof posts[number]) => {
+  return posts.map((post: (typeof posts)[number]) => {
     const impressions = post.analytics?.impressions || 0;
     const engagements = post.analytics?.engagements || 0;
     const mediaUrls = Array.isArray(post.mediaUrls) ? post.mediaUrls.map(String) : [];
@@ -438,7 +439,7 @@ export async function getRecentPosts(limit = 20): Promise<RecentPost[]> {
     take: limit,
   });
 
-  return posts.map((post: typeof posts[number]) => ({
+  return posts.map((post: (typeof posts)[number]) => ({
     id: post.id,
     platform: post.platform as SocialPlatform,
     content: post.content,
@@ -459,9 +460,7 @@ export async function getRecentPosts(limit = 20): Promise<RecentPost[]> {
 /**
  * Rafraîchit les analytics d'un post depuis l'API de la plateforme
  */
-export async function refreshPostAnalytics(
-  postId: string
-): Promise<SocialPostAnalytics | null> {
+export async function refreshPostAnalytics(postId: string): Promise<SocialPostAnalytics | null> {
   const post = await prisma.socialPost.findUnique({
     where: { id: postId },
     include: { account: true },
@@ -547,7 +546,7 @@ export async function refreshRecentAnalytics(
     }
 
     // Petit délai pour éviter le rate limiting
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 500));
   }
 
   return { refreshed, failed };
@@ -569,10 +568,7 @@ export interface ComparisonStats {
  * de même durée. Ex: si startDate-endDate = 30 jours, on compare avec les 30 jours
  * précédents.
  */
-export async function getComparisonStats(
-  startDate: Date,
-  endDate: Date
-): Promise<ComparisonStats> {
+export async function getComparisonStats(startDate: Date, endDate: Date): Promise<ComparisonStats> {
   const durationMs = endDate.getTime() - startDate.getTime();
   const prevStart = new Date(startDate.getTime() - durationMs);
   const prevEnd = new Date(startDate.getTime());
@@ -591,8 +587,7 @@ export async function getComparisonStats(
     postsChange: pctChange(currentStats.publishedPosts, previousStats.publishedPosts),
     reachChange: pctChange(currentStats.totalReach, previousStats.totalReach),
     engagementChange: pctChange(currentStats.totalEngagements, previousStats.totalEngagements),
-    engagementRateChange:
-      currentStats.averageEngagementRate - previousStats.averageEngagementRate,
+    engagementRateChange: currentStats.averageEngagementRate - previousStats.averageEngagementRate,
   };
 }
 
@@ -764,7 +759,7 @@ export interface HashtagPerformance {
 function extractHashtags(content: string): string[] {
   const matches = content.match(/#[\w\u00C0-\u024F]+/g);
   if (!matches) return [];
-  return [...new Set(matches.map((h) => h.toLowerCase()))];
+  return [...new Set(matches.map(h => h.toLowerCase()))];
 }
 
 /**
@@ -853,7 +848,18 @@ export async function getHashtagPerformance(
 // Helpers
 // ===========================================
 
-function buildDateFilter(startDate?: Date, endDate?: Date) {
+/**
+ * Construit un filtre Prisma de plage de dates.
+ *
+ * @param startDate - Début de la plage (inclus)
+ * @param endDate - Fin de la plage (inclus)
+ * @param field - Champ de date à filtrer (défaut: 'publishedAt')
+ */
+function buildDateFilter(
+  startDate?: Date,
+  endDate?: Date,
+  field: 'publishedAt' | 'createdAt' = 'publishedAt'
+) {
   if (!startDate && !endDate) {
     return {};
   }
@@ -861,12 +867,12 @@ function buildDateFilter(startDate?: Date, endDate?: Date) {
   const filter: Record<string, unknown> = {};
 
   if (startDate || endDate) {
-    filter.createdAt = {};
+    filter[field] = {};
     if (startDate) {
-      (filter.createdAt as Record<string, Date>).gte = startDate;
+      (filter[field] as Record<string, Date>).gte = startDate;
     }
     if (endDate) {
-      (filter.createdAt as Record<string, Date>).lte = endDate;
+      (filter[field] as Record<string, Date>).lte = endDate;
     }
   }
 

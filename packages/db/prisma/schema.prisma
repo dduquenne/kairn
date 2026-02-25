@@ -1050,6 +1050,10 @@ model SocialPost {
   blogSlug       String?
   /// Media URLs as JSON array
   mediaUrls      Json?
+  /// Hashtags as JSON array
+  hashtags       Json?
+  /// Link URL included in the post
+  linkUrl        String?
   /// Post status
   status         SocialPostStatus @default(DRAFT)
   /// Scheduled publication time
@@ -1058,12 +1062,20 @@ model SocialPost {
   publishedAt    DateTime?
   /// Platform-specific post ID after publishing
   externalPostId String?
-  /// External post URL
-  externalUrl    String?
+  /// Direct link to view published post on the platform
+  platformUrl    String?
   /// Error message if failed
   errorMessage   String?
   /// Retry count for failed posts
   retryCount     Int              @default(0)
+  /// Content generation source ('ai' or 'manual')
+  generatedBy    String?
+  /// AI prompt used for generation
+  aiPrompt       String?          @db.Text
+  /// AI model used for generation
+  aiModel        String?
+  /// Platform-specific metadata as JSON
+  metadata       Json?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 
