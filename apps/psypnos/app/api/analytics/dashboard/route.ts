@@ -340,6 +340,11 @@ async function fetchGeoData(startDate: Date, endDate: Date) {
   }
 }
 
+/**
+ * Fetches blog analytics for the given period, groups by article slug and
+ * computes a normalised composite performance score (0–100) per article.
+ * Score = (views/max × 25) + (visitors/max × 20) + (time/max × 25) + (scroll/100 × 30)
+ */
 async function fetchBlogAnalytics(startDate: Date, endDate: Date) {
   try {
     const allAnalytics = await prisma.blogAnalytics.findMany({
@@ -387,7 +392,7 @@ async function fetchBlogAnalytics(startDate: Date, endDate: Date) {
       if (r.completed) entry.completedReads++;
     }
 
-    const articles = Array.from(grouped.entries()).map(([slug, d]) => ({
+    const articlesRaw = Array.from(grouped.entries()).map(([slug, d]) => ({
       slug,
       views: d.views,
       uniqueVisitors: d.sessions.size,
@@ -402,8 +407,24 @@ async function fetchBlogAnalytics(startDate: Date, endDate: Date) {
             ? Math.round(d.timesOnPage.reduce((a, b) => a + b, 0) / d.timesOnPage.length)
             : null,
       },
-      score: 0,
     }));
+
+    // Compute normalised composite score per article
+    // Score = (views/max × 25) + (visitors/max × 20) + (time/max × 25) + (scroll/100 × 30)
+    const maxViews = Math.max(...articlesRaw.map(a => a.views), 1);
+    const maxVisitors = Math.max(...articlesRaw.map(a => a.uniqueVisitors), 1);
+    const maxTime = Math.max(...articlesRaw.map(a => a.engagement.avgTimeOnPage || 0), 1);
+
+    const articles = articlesRaw
+      .map(a => {
+        const viewsScore = (a.views / maxViews) * 25;
+        const visitorsScore = (a.uniqueVisitors / maxVisitors) * 20;
+        const timeScore = ((a.engagement.avgTimeOnPage || 0) / maxTime) * 25;
+        const readScore = ((a.engagement.avgScrollDepth || 0) / 100) * 30;
+
+        return { ...a, score: Math.round(viewsScore + visitorsScore + timeScore + readScore) };
+      })
+      .sort((a, b) => b.score - a.score);
 
     const totalViews = articles.reduce((s, a) => s + a.views, 0);
     const allSessions = new Set(allAnalytics.map(a => a.sessionId));
