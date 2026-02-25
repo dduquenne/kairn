@@ -1,26 +1,24 @@
-"use client";
+'use client';
 
-export const dynamic = "force-dynamic";
+import { useCallback, useEffect, useState } from 'react';
 
-import { useCallback, useEffect, useState } from "react";
+import { useToast } from '@/lib/toast-context';
 
-import { useToast } from "@/lib/toast-context";
+import { DeleteConfirmation } from '../_components/DeleteConfirmation';
 
-import { DeleteConfirmation } from "../_components/DeleteConfirmation";
-
-import { ChatbotStatsCards } from "./_components/ChatbotStats";
-import { ChatbotToggle } from "./_components/ChatbotToggle";
-import { ChatbotSkeleton } from "./_components/ChatbotSkeleton";
-import { ConversationFilters } from "./_components/ConversationFilters";
-import { ConversationsTable } from "./_components/ConversationsTable";
-import { ConversationDrawer } from "./_components/ConversationDrawer";
-import { Pagination } from "./_components/Pagination";
+import { ChatbotSkeleton } from './_components/ChatbotSkeleton';
+import { ChatbotStatsCards } from './_components/ChatbotStats';
+import { ChatbotToggle } from './_components/ChatbotToggle';
+import { ConversationDrawer } from './_components/ConversationDrawer';
+import { ConversationFilters } from './_components/ConversationFilters';
+import { ConversationsTable } from './_components/ConversationsTable';
+import { Pagination } from './_components/Pagination';
 import type {
   ConversationPreview,
   ConversationsResponse,
   ChatbotStats,
   PaginationInfo,
-} from "./types";
+} from './types';
 
 const DEFAULT_STATS: ChatbotStats = {
   totalConversations: 0,
@@ -59,13 +57,13 @@ export default function ChatbotAdminPage() {
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Filters
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
-  const [satisfactionFilter, setSatisfactionFilter] = useState("");
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [satisfactionFilter, setSatisfactionFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
   // Debounced search
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState('');
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 400);
@@ -82,14 +80,14 @@ export default function ChatbotAdminPage() {
     setIsRefreshing(true);
     try {
       const params = new URLSearchParams();
-      params.set("page", String(currentPage));
-      params.set("limit", "20");
-      if (debouncedSearch) params.set("search", debouncedSearch);
-      if (statusFilter) params.set("status", statusFilter);
-      if (satisfactionFilter) params.set("satisfaction", satisfactionFilter);
+      params.set('page', String(currentPage));
+      params.set('limit', '20');
+      if (debouncedSearch) params.set('search', debouncedSearch);
+      if (statusFilter) params.set('status', statusFilter);
+      if (satisfactionFilter) params.set('satisfaction', satisfactionFilter);
 
       const response = await fetch(`/api/admin/chatbot/conversations?${params}`);
-      if (!response.ok) throw new Error("Erreur lors du chargement");
+      if (!response.ok) throw new Error('Erreur lors du chargement');
 
       const data: ConversationsResponse = await response.json();
       setConversations(data.conversations);
@@ -97,10 +95,10 @@ export default function ChatbotAdminPage() {
       setPagination(data.pagination);
     } catch (error) {
       addToast({
-        title: "Erreur de chargement",
+        title: 'Erreur de chargement',
         description:
-          error instanceof Error ? error.message : "Impossible de charger les conversations",
-        variant: "error",
+          error instanceof Error ? error.message : 'Impossible de charger les conversations',
+        variant: 'error',
       });
     } finally {
       setIsInitialLoading(false);
@@ -114,7 +112,7 @@ export default function ChatbotAdminPage() {
 
   // Selection handlers
   function toggleSelect(id: string) {
-    setSelectedIds((prev) => {
+    setSelectedIds(prev => {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
@@ -126,10 +124,10 @@ export default function ChatbotAdminPage() {
   }
 
   function toggleSelectAll() {
-    if (conversations.every((c) => selectedIds.has(c.id))) {
+    if (conversations.every(c => selectedIds.has(c.id))) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(conversations.map((c) => c.id)));
+      setSelectedIds(new Set(conversations.map(c => c.id)));
     }
   }
 
@@ -138,30 +136,30 @@ export default function ChatbotAdminPage() {
     setIsDeleting(true);
     try {
       const response = await fetch(`/api/admin/chatbot/conversations/${id}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
-      if (!response.ok) throw new Error("Erreur lors de la suppression");
+      if (!response.ok) throw new Error('Erreur lors de la suppression');
 
-      setConversations((prev) => prev.filter((c) => c.id !== id));
+      setConversations(prev => prev.filter(c => c.id !== id));
       selectedIds.delete(id);
       setSelectedIds(new Set(selectedIds));
       setDeleteTarget(null);
       setDrawerConversation(null);
 
       addToast({
-        title: "Conversation supprimée",
-        description: "La conversation a été supprimée avec succès",
-        variant: "success",
+        title: 'Conversation supprimée',
+        description: 'La conversation a été supprimée avec succès',
+        variant: 'success',
       });
 
       // Refresh stats
       void fetchConversations();
     } catch (error) {
       addToast({
-        title: "Erreur de suppression",
+        title: 'Erreur de suppression',
         description:
-          error instanceof Error ? error.message : "Impossible de supprimer la conversation",
-        variant: "error",
+          error instanceof Error ? error.message : 'Impossible de supprimer la conversation',
+        variant: 'error',
       });
     } finally {
       setIsDeleting(false);
@@ -174,30 +172,30 @@ export default function ChatbotAdminPage() {
 
     setIsDeleting(true);
     try {
-      const response = await fetch("/api/admin/chatbot/conversations/bulk", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/admin/chatbot/conversations/bulk', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ids: Array.from(selectedIds) }),
       });
-      if (!response.ok) throw new Error("Erreur lors de la suppression");
+      if (!response.ok) throw new Error('Erreur lors de la suppression');
 
       const data = await response.json();
       setSelectedIds(new Set());
       setBulkDeleteConfirm(false);
 
       addToast({
-        title: "Conversations supprimées",
+        title: 'Conversations supprimées',
         description: `${data.deleted} conversation(s) supprimée(s)`,
-        variant: "success",
+        variant: 'success',
       });
 
       void fetchConversations();
     } catch (error) {
       addToast({
-        title: "Erreur de suppression",
+        title: 'Erreur de suppression',
         description:
-          error instanceof Error ? error.message : "Impossible de supprimer les conversations",
-        variant: "error",
+          error instanceof Error ? error.message : 'Impossible de supprimer les conversations',
+        variant: 'error',
       });
     } finally {
       setIsDeleting(false);
@@ -213,8 +211,8 @@ export default function ChatbotAdminPage() {
       {/* Page header */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-semibold text-ivory">ChatBot IA</h2>
-          <p className="text-sm text-ivory/60">
+          <h2 className="text-ivory text-2xl font-semibold">ChatBot IA</h2>
+          <p className="text-ivory/60 text-sm">
             Historique des conversations et gestion du chatbot.
           </p>
         </div>
@@ -222,21 +220,21 @@ export default function ChatbotAdminPage() {
           type="button"
           onClick={() => void fetchConversations()}
           disabled={isRefreshing}
-          className="inline-flex items-center justify-center rounded-md border border-gold/40 px-4 py-2 text-sm font-medium text-gold transition hover:bg-gold/10 disabled:opacity-50"
+          className="border-gold/40 text-gold hover:bg-gold/10 inline-flex items-center justify-center rounded-md border px-4 py-2 text-sm font-medium transition disabled:opacity-50"
         >
-          {isRefreshing ? "Actualisation..." : "Actualiser"}
+          {isRefreshing ? 'Actualisation...' : 'Actualiser'}
         </button>
       </div>
 
       {/* Chatbot toggle */}
       <ChatbotToggle
-        onStatusChange={(enabled) => {
+        onStatusChange={enabled => {
           addToast({
-            title: enabled ? "ChatBot IA activé" : "ChatBot IA désactivé",
+            title: enabled ? 'ChatBot IA activé' : 'ChatBot IA désactivé',
             description: enabled
-              ? "Le chatbot est maintenant visible sur le site"
-              : "Le chatbot est masqué pour les visiteurs",
-            variant: "success",
+              ? 'Le chatbot est maintenant visible sur le site'
+              : 'Le chatbot est masqué pour les visiteurs',
+            variant: 'success',
           });
         }}
       />
@@ -256,20 +254,20 @@ export default function ChatbotAdminPage() {
 
       {/* Bulk actions */}
       {selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 rounded-lg border border-gold/20 bg-gold/5 px-4 py-2">
-          <span className="text-sm text-gold">
-            {selectedIds.size} conversation{selectedIds.size > 1 ? "s" : ""} sélectionnée
-            {selectedIds.size > 1 ? "s" : ""}
+        <div className="border-gold/20 bg-gold/5 flex items-center gap-3 rounded-lg border px-4 py-2">
+          <span className="text-gold text-sm">
+            {selectedIds.size} conversation{selectedIds.size > 1 ? 's' : ''} sélectionnée
+            {selectedIds.size > 1 ? 's' : ''}
           </span>
           <button
             onClick={() => setBulkDeleteConfirm(true)}
-            className="rounded-md bg-rose-500/80 px-3 py-1 text-xs font-semibold text-ivory transition hover:bg-rose-500"
+            className="text-ivory rounded-md bg-rose-500/80 px-3 py-1 text-xs font-semibold transition hover:bg-rose-500"
           >
             Supprimer la sélection
           </button>
           <button
             onClick={() => setSelectedIds(new Set())}
-            className="text-xs text-ivory/50 transition hover:text-ivory"
+            className="text-ivory/50 hover:text-ivory text-xs transition"
           >
             Tout désélectionner
           </button>
@@ -294,7 +292,7 @@ export default function ChatbotAdminPage() {
         conversation={drawerConversation}
         open={Boolean(drawerConversation)}
         onClose={() => setDrawerConversation(null)}
-        onDelete={(conv) => {
+        onDelete={conv => {
           setDrawerConversation(null);
           setDeleteTarget(conv);
         }}
@@ -307,7 +305,7 @@ export default function ChatbotAdminPage() {
         description={
           deleteTarget
             ? `Êtes-vous sûr de vouloir supprimer cette conversation (${deleteTarget.messageCount} messages) ? Cette action est irréversible.`
-            : ""
+            : ''
         }
         loading={isDeleting}
         onCancel={() => setDeleteTarget(null)}
@@ -322,7 +320,7 @@ export default function ChatbotAdminPage() {
       <DeleteConfirmation
         open={bulkDeleteConfirm}
         title="Supprimer les conversations sélectionnées"
-        description={`Êtes-vous sûr de vouloir supprimer ${selectedIds.size} conversation${selectedIds.size > 1 ? "s" : ""} ? Cette action est irréversible.`}
+        description={`Êtes-vous sûr de vouloir supprimer ${selectedIds.size} conversation${selectedIds.size > 1 ? 's' : ''} ? Cette action est irréversible.`}
         loading={isDeleting}
         onCancel={() => setBulkDeleteConfirm(false)}
         onConfirm={() => void handleBulkDelete()}

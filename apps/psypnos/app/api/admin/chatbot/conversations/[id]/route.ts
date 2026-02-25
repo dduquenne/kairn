@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/db/prisma';
+import { getSiteId } from '@/lib/db/site';
 
 import { withAdminAuth } from '../../../../auth/middleware';
 
@@ -15,8 +16,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const { id } = await params;
 
   try {
-    const conversation = await prisma.chatConversation.findUnique({
-      where: { id },
+    const siteId = await getSiteId();
+    const conversation = await prisma.chatConversation.findFirst({
+      where: { id, siteId },
       include: {
         messages: {
           orderBy: { createdAt: 'asc' },
@@ -74,8 +76,9 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   const { id } = await params;
 
   try {
-    const conversation = await prisma.chatConversation.findUnique({
-      where: { id },
+    const siteId = await getSiteId();
+    const conversation = await prisma.chatConversation.findFirst({
+      where: { id, siteId },
     });
 
     if (!conversation) {

@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { prisma } from '@/lib/db/prisma';
+import { getSiteId } from '@/lib/db/site';
 
 import { recordAttemptAsync, getClientIP } from '../common/rate-limiter';
 
@@ -85,6 +86,17 @@ IMPORTANT : À la fin de ta réponse, si une action est pertinente, ajoute sur u
 
 const FALLBACK_ERROR_MESSAGE =
   'Désolé, je rencontre des difficultés techniques. Vous pouvez nous contacter directement via le formulaire de contact.';
+
+/**
+ * Parse the User-Agent header to determine device type (mobile, tablet, desktop).
+ */
+function parseDeviceType(userAgent: string | null): string {
+  if (!userAgent) return 'unknown';
+  const ua = userAgent.toLowerCase();
+  if (/tablet|ipad|playbook|silk/.test(ua)) return 'tablet';
+  if (/mobile|iphone|ipod|android.*phone|windows phone|blackberry/.test(ua)) return 'mobile';
+  return 'desktop';
+}
 
 /**
  * Sanitize message history for Anthropic API:
@@ -179,6 +191,22 @@ export async function POST(request: Request) {
 
   const { message, conversationId: existingConversationId, sessionId, context } = parsed.data;
 
+  // Resolve site ID for multi-tenancy
+  let siteId: string;
+  try {
+    siteId = await getSiteId();
+  } catch (siteError) {
+    console.error('[Chat] Failed to resolve siteId:', siteError);
+    return NextResponse.json(
+      {
+        error: 'database_error',
+        message: FALLBACK_ERROR_MESSAGE,
+        suggestedActions: [{ type: 'contact', label: 'Nous contacter', url: '/contact' }],
+      },
+      { status: 500 }
+    );
+  }
+
   // Get or create conversation
   let conversation;
   let conversationId = existingConversationId;
@@ -198,11 +226,14 @@ export async function POST(request: Request) {
 
     if (!conversation) {
       const ipHash = crypto.createHash('sha256').update(clientIP).digest('hex').slice(0, 16);
+      const deviceType = parseDeviceType(request.headers.get('user-agent'));
       conversation = await prisma.chatConversation.create({
         data: {
           sessionId: sessionId || `chat-${Date.now()}`,
           ipHash,
           referrer: context?.currentPage,
+          deviceType,
+          siteId,
         },
         include: { messages: true },
       });

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/db/prisma';
+import { getSiteId } from '@/lib/db/site';
 
 import { withAdminAuth } from '../../../auth/middleware';
 
@@ -22,8 +23,10 @@ export async function GET(request: Request) {
   const sortOrder = searchParams.get('sortOrder') === 'asc' ? 'asc' : 'desc';
 
   try {
-    // Build where clause
-    const where: Record<string, unknown> = {};
+    const siteId = await getSiteId();
+
+    // Build where clause — always scoped to current site
+    const where: Record<string, unknown> = { siteId };
 
     if (status && ['active', 'ended', 'transferred'].includes(status)) {
       where.status = status;
@@ -73,7 +76,8 @@ export async function GET(request: Request) {
       prisma.chatConversation.count({ where }),
     ]);
 
-    // Get overall stats
+    // Get overall stats — scoped to current site
+    const siteFilter = { siteId };
     const [
       totalConversations,
       activeConversations,
@@ -84,14 +88,20 @@ export async function GET(request: Request) {
       todayConversations,
       weekConversations,
     ] = await Promise.all([
-      prisma.chatConversation.count(),
-      prisma.chatConversation.count({ where: { status: 'active' } }),
-      prisma.chatConversation.count({ where: { satisfied: true } }),
-      prisma.chatConversation.count({ where: { satisfied: false } }),
-      prisma.chatMessage.count(),
-      prisma.chatConversation.aggregate({ _avg: { messageCount: true } }),
+      prisma.chatConversation.count({ where: siteFilter }),
+      prisma.chatConversation.count({ where: { ...siteFilter, status: 'active' } }),
+      prisma.chatConversation.count({ where: { ...siteFilter, satisfied: true } }),
+      prisma.chatConversation.count({ where: { ...siteFilter, satisfied: false } }),
+      prisma.chatMessage.count({
+        where: { conversation: { siteId } },
+      }),
+      prisma.chatConversation.aggregate({
+        where: siteFilter,
+        _avg: { messageCount: true },
+      }),
       prisma.chatConversation.count({
         where: {
+          ...siteFilter,
           createdAt: {
             gte: new Date(new Date().setHours(0, 0, 0, 0)),
           },
@@ -99,6 +109,7 @@ export async function GET(request: Request) {
       }),
       prisma.chatConversation.count({
         where: {
+          ...siteFilter,
           createdAt: {
             gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
           },

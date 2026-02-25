@@ -1,10 +1,8 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Type incompatibilities to fix
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { prisma } from '@/lib/db/prisma';
+import { getSiteId } from '@/lib/db/site';
 
 const feedbackSchema = z.object({
   conversationId: z.string(),
@@ -25,6 +23,17 @@ export async function POST(request: Request) {
     }
 
     const { conversationId, satisfied } = parsed.data;
+    const siteId = await getSiteId();
+
+    // Verify the conversation belongs to this site before updating
+    const conversation = await prisma.chatConversation.findFirst({
+      where: { id: conversationId, siteId },
+      select: { id: true },
+    });
+
+    if (!conversation) {
+      return NextResponse.json({ error: 'Conversation introuvable' }, { status: 404 });
+    }
 
     // Update conversation with feedback
     await prisma.chatConversation.update({
@@ -41,7 +50,7 @@ export async function POST(request: Request) {
       message: 'Merci pour votre retour !',
     });
   } catch (error) {
-    console.error('Feedback error:', error);
+    console.error('[Chat] Feedback error:', error);
     return NextResponse.json(
       { error: "Erreur lors de l'enregistrement du feedback" },
       { status: 500 }
@@ -51,10 +60,13 @@ export async function POST(request: Request) {
 
 /**
  * GET /api/chat/feedback
- * Get chat statistics (admin only)
+ * Get chat statistics (scoped to current site)
  */
 export async function GET() {
   try {
+    const siteId = await getSiteId();
+    const siteFilter = { siteId };
+
     const [
       totalConversations,
       satisfiedConversations,
@@ -62,18 +74,19 @@ export async function GET() {
       totalMessages,
       averageMessagesPerConversation,
     ] = await Promise.all([
-      prisma.chatConversation.count(),
-      prisma.chatConversation.count({ where: { satisfied: true } }),
-      prisma.chatConversation.count({ where: { satisfied: false } }),
-      prisma.chatMessage.count(),
+      prisma.chatConversation.count({ where: siteFilter }),
+      prisma.chatConversation.count({ where: { ...siteFilter, satisfied: true } }),
+      prisma.chatConversation.count({ where: { ...siteFilter, satisfied: false } }),
+      prisma.chatMessage.count({ where: { conversation: { siteId } } }),
       prisma.chatConversation.aggregate({
+        where: siteFilter,
         _avg: { messageCount: true },
       }),
     ]);
 
     // Recent conversations with feedback
     const recentFeedback = await prisma.chatConversation.findMany({
-      where: { satisfied: { not: null } },
+      where: { ...siteFilter, satisfied: { not: null } },
       take: 10,
       orderBy: { endedAt: 'desc' },
       select: {
@@ -101,7 +114,7 @@ export async function GET() {
       recentFeedback,
     });
   } catch (error) {
-    console.error('Stats error:', error);
+    console.error('[Chat] Stats error:', error);
     return NextResponse.json(
       { error: 'Erreur lors de la récupération des statistiques' },
       { status: 500 }

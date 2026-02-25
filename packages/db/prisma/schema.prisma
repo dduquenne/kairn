@@ -51,6 +51,9 @@ model Site {
   analyticsDashboardConfigs AnalyticsDashboardConfig[]
   analyticsScheduledReports AnalyticsScheduledReport[]
 
+  // Relations - Chat
+  chatConversations ChatConversation[]
+
   @@index([slug])
   @@index([domain])
 }
@@ -1302,9 +1305,14 @@ model ChatConversation {
   updatedAt  DateTime      @updatedAt
   endedAt    DateTime?
 
+  // Multi-tenancy
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
   // Relations
   messages   ChatMessage[]
 
+  @@index([siteId])
   @@index([sessionId])
   @@index([createdAt])
   @@index([status])

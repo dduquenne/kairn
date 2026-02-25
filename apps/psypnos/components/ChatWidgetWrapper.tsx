@@ -1,10 +1,25 @@
 'use client';
 
 import { ChatWidget } from '@kairn/ui';
-import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 import { trackConversionEvent } from '../hooks/useAnalytics';
+
+/**
+ * Get or create a persistent session ID for chatbot conversation tracking.
+ * Stored in sessionStorage so it persists across page navigations within
+ * the same browser session.
+ */
+function getChatSessionId(): string {
+  if (typeof window === 'undefined') return '';
+  let id = sessionStorage.getItem('psypnos_chat_session');
+  if (!id) {
+    id = `chat_${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    sessionStorage.setItem('psypnos_chat_session', id);
+  }
+  return id;
+}
 
 /**
  * Psypnos-specific wrapper for the AI ChatWidget.
@@ -64,6 +79,7 @@ export function PsypnosChatWidget() {
       secondaryColor="#1a1a2e"
       position="bottom-left"
       contactUrl="/contact"
+      sessionId={getChatSessionId()}
       onBookAppointment={handleBookAppointment}
       onConversationEnd={handleConversationEnd}
     />

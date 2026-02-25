@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { withAdminAuth } from '../../../../auth/middleware';
 import { prisma } from '@/lib/db/prisma';
+import { getSiteId } from '@/lib/db/site';
+
+import { withAdminAuth } from '../../../../auth/middleware';
 
 const bulkDeleteSchema = z.object({
   ids: z.array(z.string()).min(1).max(100),
@@ -25,9 +27,10 @@ export async function DELETE(request: Request) {
     }
 
     const { ids } = parsed.data;
+    const siteId = await getSiteId();
 
     const result = await prisma.chatConversation.deleteMany({
-      where: { id: { in: ids } },
+      where: { id: { in: ids }, siteId },
     });
 
     return NextResponse.json({
