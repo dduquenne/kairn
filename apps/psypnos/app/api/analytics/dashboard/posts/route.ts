@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
 /**
  * API pour les analytics des réseaux sociaux formatées pour le PostsPanel
  *
@@ -27,10 +25,7 @@ import {
 import { getTotalFollowersByPlatform } from '@/lib/social/snapshots';
 
 // Platform display config
-const PLATFORM_CONFIG: Record<
-  string,
-  { name: string; icon: string; color: string }
-> = {
+const PLATFORM_CONFIG: Record<string, { name: string; icon: string; color: string }> = {
   FACEBOOK: { name: 'Facebook', icon: 'facebook', color: '#1877F2' },
   INSTAGRAM: { name: 'Instagram', icon: 'instagram', color: '#E4405F' },
   LINKEDIN: { name: 'LinkedIn', icon: 'linkedin', color: '#0A66C2' },
@@ -89,7 +84,12 @@ export async function GET(request: NextRequest) {
       getTrendData(30, startDate, endDate),
       startDate && endDate
         ? getComparisonStats(startDate, endDate)
-        : Promise.resolve({ postsChange: 0, reachChange: 0, engagementChange: 0, engagementRateChange: 0 }),
+        : Promise.resolve({
+            postsChange: 0,
+            reachChange: 0,
+            engagementChange: 0,
+            engagementRateChange: 0,
+          }),
       getBestPostingTimes(startDate, endDate),
       getPostTypeStats(startDate, endDate),
       getTotalFollowersByPlatform(),
@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Format platform stats for PostsPanel
-    const platforms = platformStats.map((p) => {
+    const platforms = platformStats.map(p => {
       const config = PLATFORM_CONFIG[p.platform] || {
         name: p.platform,
         icon: p.platform.toLowerCase(),
@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Format top posts for PostsPanel
-    const formattedTopPosts = topPosts.map((p) => ({
+    const formattedTopPosts = topPosts.map(p => ({
       id: p.id,
       platform: p.platform.toLowerCase(),
       type: p.mediaType,
@@ -134,7 +134,7 @@ export async function GET(request: NextRequest) {
     }));
 
     // Format trend data — use real reach when available, fallback to impressions
-    const engagementTrends = trendData.map((t) => ({
+    const engagementTrends = trendData.map(t => ({
       label: t.date,
       reach: t.reach > 0 ? t.reach : t.impressions,
       engagement: t.engagements,
@@ -154,19 +154,19 @@ export async function GET(request: NextRequest) {
       followersChange: platforms.reduce((sum, p) => sum + p.followersChange, 0),
       platforms,
       topPosts: formattedTopPosts,
-      postTypes: postTypes.map((pt) => ({
+      postTypes: postTypes.map(pt => ({
         type: pt.type,
         count: pt.count,
         avgEngagement: pt.avgEngagement,
         percentage: pt.percentage,
       })),
       engagementTrends,
-      bestPostingTimes: bestTimes.map((bt) => ({
+      bestPostingTimes: bestTimes.map(bt => ({
         day: bt.day,
         hour: bt.hour,
         engagement: bt.engagement,
       })),
-      hashtagPerformance: hashtagPerformance.map((h) => ({
+      hashtagPerformance: hashtagPerformance.map(h => ({
         hashtag: h.hashtag,
         usageCount: h.usageCount,
         avgEngagementRate: h.avgEngagementRate,

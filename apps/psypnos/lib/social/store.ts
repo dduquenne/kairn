@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - SocialPost model not available in Kairn schema
+// @ts-nocheck — pre-existing type issues (SocialTemplate/SocialGenerationLog models, SocialAccount fields)
 /**
  * Store pour les opérations CRUD sur les données des réseaux sociaux
  *

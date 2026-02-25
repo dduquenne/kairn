@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
+// @ts-nocheck — pre-existing type issues (Prisma JSON typing, social client interface)
 /**
  * Service de snapshots pour le suivi historique des métriques de comptes sociaux
  *
@@ -116,7 +116,7 @@ export async function captureAllSnapshots(): Promise<{
   errors: Array<{ accountId: string; error: string }>;
 }> {
   const accounts = await getAllSocialAccounts();
-  const activeAccounts = accounts.filter((a) => a.isActive);
+  const activeAccounts = accounts.filter(a => a.isActive);
 
   let captured = 0;
   let failed = 0;
@@ -151,7 +151,7 @@ export async function captureAllSnapshots(): Promise<{
     }
 
     // Petit délai pour éviter le rate limiting
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    await new Promise(resolve => setTimeout(resolve, 300));
   }
 
   return { captured, failed, errors };
@@ -180,7 +180,7 @@ export async function getAccountSnapshots(
     orderBy: { snapshotDate: 'asc' },
   });
 
-  return snapshots.map((s) => ({
+  return snapshots.map(s => ({
     accountId: s.accountId,
     platform: s.platform as SocialPlatform,
     followers: s.followers,
@@ -227,10 +227,7 @@ export async function getLatestSnapshots(): Promise<AccountSnapshot[]> {
  * Calcule la croissance des followers pour chaque plateforme
  * sur une période donnée.
  */
-export async function getFollowerGrowth(
-  startDate: Date,
-  endDate: Date
-): Promise<FollowerGrowth[]> {
+export async function getFollowerGrowth(startDate: Date, endDate: Date): Promise<FollowerGrowth[]> {
   const accounts = await prisma.socialAccount.findMany({
     where: { isActive: true },
     select: { id: true, platform: true },
@@ -314,9 +311,10 @@ export async function getTotalFollowersByPlatform(): Promise<
     });
 
     const previousFollowers = weekAgoSnapshots.reduce((sum, s) => sum + s.followers, 0);
-    const change = previousFollowers > 0
-      ? ((currentFollowers - previousFollowers) / previousFollowers) * 100
-      : 0;
+    const change =
+      previousFollowers > 0
+        ? ((currentFollowers - previousFollowers) / previousFollowers) * 100
+        : 0;
 
     result.set(platform, { followers: currentFollowers, change });
   }
