@@ -631,6 +631,10 @@ export interface Visit {
  *
  * Uses UTC normalization to match PostgreSQL's date_trunc() and the
  * UTC-based bucket timestamps.
+ *
+ * If exact timestamp matching fails (due to serialisation quirks, timezone
+ * drift, or millisecond rounding), a nearest-bucket fallback is used to
+ * guarantee that visits are never silently dropped.
  */
 export const aggregateVisitsIntoBuckets = (
   buckets: ChartBucket[],
@@ -646,11 +650,16 @@ export const aggregateVisitsIntoBuckets = (
   // Clone buckets to avoid mutation
   const result = buckets.map(b => ({ ...b }));
 
+  if (result.length === 0) return result;
+
   // Create a timestamp-to-index map for O(1) lookups
   const timestampToIndex = new Map<number, number>();
   result.forEach((bucket, index) => {
     timestampToIndex.set(bucket.timestamp, index);
   });
+
+  // Pre-sort bucket timestamps for nearest-bucket binary search fallback
+  const sortedBucketTimestamps = Array.from(timestampToIndex.keys()).sort((a, b) => a - b);
 
   // Aggregate visits
   visits.forEach(visit => {
@@ -667,7 +676,43 @@ export const aggregateVisitsIntoBuckets = (
       customStartDate,
       customEndDate
     );
-    const bucketIndex = timestampToIndex.get(normalizedDate.getTime());
+    let bucketIndex = timestampToIndex.get(normalizedDate.getTime());
+
+    // Fallback: find nearest bucket if exact match fails.
+    // This handles edge cases such as minor timestamp discrepancies from
+    // serialisation (Date ↔ string round-trips) or timezone offsets.
+    if (bucketIndex === undefined && sortedBucketTimestamps.length > 0) {
+      const ts = normalizedDate.getTime();
+      let lo = 0;
+      let hi = sortedBucketTimestamps.length - 1;
+
+      while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (sortedBucketTimestamps[mid]! <= ts) {
+          lo = mid + 1;
+        } else {
+          hi = mid;
+        }
+      }
+
+      // lo is the index of the first bucket timestamp > ts.
+      // The best candidate is either lo-1 (bucket ≤ ts) or lo.
+      const candidates = [lo - 1, lo].filter(
+        i => i >= 0 && i < sortedBucketTimestamps.length
+      );
+      let bestTs = sortedBucketTimestamps[candidates[0]!]!;
+      let bestDist = Math.abs(ts - bestTs);
+      for (const c of candidates) {
+        const candidateTs = sortedBucketTimestamps[c]!;
+        const dist = Math.abs(ts - candidateTs);
+        if (dist < bestDist) {
+          bestDist = dist;
+          bestTs = candidateTs;
+        }
+      }
+
+      bucketIndex = timestampToIndex.get(bestTs);
+    }
 
     if (bucketIndex !== undefined && result[bucketIndex]) {
       result[bucketIndex].value += visit.visits || 1;

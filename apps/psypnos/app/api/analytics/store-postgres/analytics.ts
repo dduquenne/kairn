@@ -12,6 +12,9 @@ import { prisma } from '@/lib/db/prisma';
 
 import { buildDateFilter, getCurrentSiteId } from './utils';
 
+/** Whitelist of valid PostgreSQL date_trunc precision values */
+const VALID_DATE_TRUNC_PERIODS = new Set(['microseconds', 'milliseconds', 'second', 'minute', 'hour', 'day', 'week', 'month', 'quarter', 'year', 'decade', 'century', 'millennium']);
+
 /**
  * Get analytics summary for a date range using SQL aggregations
  */
@@ -189,13 +192,40 @@ export async function getAnalyticsSummary(startDate?: string, endDate?: string) 
 }
 
 /**
- * Get visits aggregated by time period using SQL date_trunc
+ * Get visits aggregated by time period using SQL date_trunc.
+ *
+ * IMPORTANT: The `period` parameter is injected as a raw SQL literal (via
+ * Prisma.raw) rather than as a parameterised value.  This is necessary
+ * because Prisma's tagged-template $queryRaw creates a SEPARATE positional
+ * parameter ($N) for every interpolation, even when the same JS variable is
+ * referenced twice.  Using ${period} in both the SELECT and GROUP BY clauses
+ * produced `date_trunc($1, …)` vs `date_trunc($5, …)` — two distinct
+ * parameter references that PostgreSQL could not prove equivalent at parse
+ * time, causing:
+ *   ERROR: column "…" must appear in the GROUP BY clause or be used in an
+ *          aggregate function
+ * The error was silently swallowed by the dashboard route's .catch() handler,
+ * resulting in an empty visits array and an all-zeros chart.
+ *
+ * Safety: the value is validated against a strict whitelist before injection.
+ *
+ * Additionally, GROUP BY 1 is used (positional reference to the first SELECT
+ * expression) to guarantee structural equivalence in all PostgreSQL versions.
+ *
+ * The returned `period` field is normalised to an ISO-8601 string so that
+ * downstream consumers (Redis cache, JSON serialisation, frontend Date
+ * parsing) all receive a consistent, unambiguous format.
  */
 export async function getVisitsByPeriod(
   period: 'hour' | 'day' | 'week' | 'month' | 'year',
   startDate?: string,
   endDate?: string
 ) {
+  // Validate period against whitelist to prevent SQL injection
+  if (!VALID_DATE_TRUNC_PERIODS.has(period)) {
+    throw new Error(`Invalid date_trunc period: "${period}"`);
+  }
+
   const cacheKey = buildCacheKey(CACHE_KEYS.VISITS_BY_PERIOD, {
     period,
     start: startDate,
@@ -211,10 +241,13 @@ export async function getVisitsByPeriod(
         : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       const end = endDate ? new Date(endDate) : new Date();
 
-      // Use raw SQL for date_trunc aggregation
-      const results = await prisma.$queryRaw<Array<{ period: string; visits: bigint }>>`
+      // Inject the period as a raw SQL literal — safe because we validated
+      // it against VALID_DATE_TRUNC_PERIODS above.
+      const periodLiteral = Prisma.raw(`'${period}'`);
+
+      const results = await prisma.$queryRaw<Array<{ period: Date; visits: bigint }>>`
         SELECT
-          date_trunc(${period}, "createdAt") as period,
+          date_trunc(${periodLiteral}, "createdAt") as period,
           COUNT(*) as visits
         FROM "AnalyticsEvent"
         WHERE "siteId" = ${siteId}
@@ -222,12 +255,16 @@ export async function getVisitsByPeriod(
           AND "createdAt" >= ${start}
           AND "createdAt" <= ${end}
           AND (data->>'isBot' IS NULL OR data->>'isBot' != 'true')
-        GROUP BY date_trunc(${period}, "createdAt")
-        ORDER BY period ASC
+        GROUP BY 1
+        ORDER BY 1 ASC
       `;
 
+      // Normalise period to ISO-8601 string for consistent serialisation.
+      // Prisma returns timestamp columns as Date objects; after Redis
+      // round-tripping they become strings — normalising here removes the
+      // ambiguity.
       return results.map(r => ({
-        period: r.period,
+        period: (r.period instanceof Date ? r.period : new Date(r.period)).toISOString(),
         visits: Number(r.visits),
       }));
     },
