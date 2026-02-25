@@ -93,7 +93,12 @@ export function SeminarsSection({ initialData }: SeminarsSectionProps) {
   }
 
   return (
-    <section id="seminaires" className="bg-night/60 px-6 py-20 sm:px-10 lg:px-16">
+    <section
+      id="seminaires"
+      className="bg-night/60 px-6 py-20 sm:px-10 lg:px-16"
+      data-track-section="seminaires"
+      data-track-section-name="Séminaires"
+    >
       <div className="mx-auto max-w-6xl space-y-12">
         <SectionTitle
           eyebrow="Séminaires à venir"

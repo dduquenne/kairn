@@ -1,12 +1,17 @@
-"use client";
+'use client';
 
-import { CTAButton } from "../../../components/CTAButton";
-import { SectionTitle } from "../../../components/SectionTitle";
+import { CTAButton } from '../../../components/CTAButton';
+import { SectionTitle } from '../../../components/SectionTitle';
 
 export function TherapySections() {
   return (
     <>
-      <section id="psychotherapie" className="px-6 py-20 sm:px-10 lg:px-16">
+      <section
+        id="psychotherapie"
+        className="px-6 py-20 sm:px-10 lg:px-16"
+        data-track-section="psychotherapie"
+        data-track-section-name="Psychothérapie"
+      >
         <div className="mx-auto max-w-6xl space-y-12 text-center">
           <SectionTitle
             eyebrow="Psychothérapie"
@@ -21,7 +26,7 @@ export function TherapySections() {
               animationProps={{
                 initial: { opacity: 0, y: 24 },
                 animate: { opacity: 1, y: 0 },
-                transition: { duration: 0.8, delay: 0.7, ease: "easeOut" },
+                transition: { duration: 0.8, delay: 0.7, ease: 'easeOut' },
               }}
             >
               Demander un rendez-vous
@@ -33,7 +38,7 @@ export function TherapySections() {
               animationProps={{
                 initial: { opacity: 0, y: 24 },
                 animate: { opacity: 1, y: 0 },
-                transition: { duration: 0.8, delay: 0.8, ease: "easeOut" },
+                transition: { duration: 0.8, delay: 0.8, ease: 'easeOut' },
               }}
             >
               En savoir plus
@@ -41,7 +46,12 @@ export function TherapySections() {
           </div>
         </div>
       </section>
-      <section id="hypnose" className="px-6 py-20 sm:px-10 lg:px-16">
+      <section
+        id="hypnose"
+        className="px-6 py-20 sm:px-10 lg:px-16"
+        data-track-section="hypnose"
+        data-track-section-name="Hypnose"
+      >
         <div className="mx-auto max-w-6xl space-y-12 text-center">
           <SectionTitle
             eyebrow="Hypnose"
@@ -56,7 +66,7 @@ export function TherapySections() {
               animationProps={{
                 initial: { opacity: 0, y: 24 },
                 animate: { opacity: 1, y: 0 },
-                transition: { duration: 0.8, delay: 0.9, ease: "easeOut" },
+                transition: { duration: 0.8, delay: 0.9, ease: 'easeOut' },
               }}
             >
               Demander un rendez-vous
@@ -68,7 +78,7 @@ export function TherapySections() {
               animationProps={{
                 initial: { opacity: 0, y: 24 },
                 animate: { opacity: 1, y: 0 },
-                transition: { duration: 0.8, delay: 1.0, ease: "easeOut" },
+                transition: { duration: 0.8, delay: 1.0, ease: 'easeOut' },
               }}
             >
               En savoir plus

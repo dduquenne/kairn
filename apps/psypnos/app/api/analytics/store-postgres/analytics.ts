@@ -13,7 +13,21 @@ import { prisma } from '@/lib/db/prisma';
 import { buildDateFilter, getCurrentSiteId } from './utils';
 
 /** Whitelist of valid PostgreSQL date_trunc precision values */
-const VALID_DATE_TRUNC_PERIODS = new Set(['microseconds', 'milliseconds', 'second', 'minute', 'hour', 'day', 'week', 'month', 'quarter', 'year', 'decade', 'century', 'millennium']);
+const VALID_DATE_TRUNC_PERIODS = new Set([
+  'microseconds',
+  'milliseconds',
+  'second',
+  'minute',
+  'hour',
+  'day',
+  'week',
+  'month',
+  'quarter',
+  'year',
+  'decade',
+  'century',
+  'millennium',
+]);
 
 /**
  * Get analytics summary for a date range using SQL aggregations
@@ -31,64 +45,78 @@ export async function getAnalyticsSummary(startDate?: string, endDate?: string) 
       const dateFilter = buildDateFilter(startDate, endDate);
 
       // Count total page views (excluding bots) and unique sessions via SQL
-      const [pageViewStats, bounceStats, sectionTimeStats, conversionStats] = await Promise.all([
-        // 1. Page view counts + unique sessions (SQL aggregation)
-        prisma.analyticsEvent.groupBy({
-          by: ['sessionId'],
-          where: {
-            siteId,
-            type: EventType.PAGE_VIEW,
-            ...dateFilter,
-            NOT: {
-              data: {
-                path: ['isBot'],
-                equals: true,
+      const [pageViewStats, bounceStats, pageExitStats, sectionTimeStats, conversionStats] =
+        await Promise.all([
+          // 1. Page view counts + unique sessions (SQL aggregation)
+          prisma.analyticsEvent.groupBy({
+            by: ['sessionId'],
+            where: {
+              siteId,
+              type: EventType.PAGE_VIEW,
+              ...dateFilter,
+              NOT: {
+                data: {
+                  path: ['isBot'],
+                  equals: true,
+                },
               },
             },
-          },
-          _count: { id: true },
-        }),
+            _count: { id: true },
+          }),
 
-        // 2. Total page views count (for total)
-        prisma.analyticsEvent.count({
-          where: {
-            siteId,
-            type: EventType.PAGE_VIEW,
-            ...dateFilter,
-            NOT: {
-              data: {
-                path: ['isBot'],
-                equals: true,
+          // 2. Total page views count (for total)
+          prisma.analyticsEvent.count({
+            where: {
+              siteId,
+              type: EventType.PAGE_VIEW,
+              ...dateFilter,
+              NOT: {
+                data: {
+                  path: ['isBot'],
+                  equals: true,
+                },
               },
             },
-          },
-        }),
+          }),
 
-        // 3. Section times grouped by session (for avg time on site)
-        prisma.analyticsEvent.findMany({
-          where: {
-            siteId,
-            type: EventType.SECTION_TIME,
-            ...dateFilter,
-          },
-          select: {
-            sessionId: true,
-            name: true,
-            data: true,
-          },
-        }),
+          // 3. Page exit events (primary source for session duration & scroll depth)
+          prisma.analyticsEvent.findMany({
+            where: {
+              siteId,
+              type: EventType.PAGE_EXIT,
+              ...dateFilter,
+            },
+            select: {
+              sessionId: true,
+              data: true,
+            },
+          }),
 
-        // 4. Conversion counts grouped by name
-        prisma.analyticsEvent.groupBy({
-          by: ['name'],
-          where: {
-            siteId,
-            type: EventType.CONVERSION,
-            ...dateFilter,
-          },
-          _count: { id: true },
-        }),
-      ]);
+          // 4. Section times grouped by session (for topSections & fallback duration)
+          prisma.analyticsEvent.findMany({
+            where: {
+              siteId,
+              type: EventType.SECTION_TIME,
+              ...dateFilter,
+            },
+            select: {
+              sessionId: true,
+              name: true,
+              data: true,
+            },
+          }),
+
+          // 5. Conversion counts grouped by name
+          prisma.analyticsEvent.groupBy({
+            by: ['name'],
+            where: {
+              siteId,
+              type: EventType.CONVERSION,
+              ...dateFilter,
+            },
+            _count: { id: true },
+          }),
+        ]);
 
       // Compute summary from grouped results
       const totalVisits = bounceStats;
@@ -98,8 +126,31 @@ export async function getAnalyticsSummary(startDate?: string, endDate?: string) 
       const bouncedSessions = pageViewStats.filter(s => s._count.id === 1).length;
       const bounceRate = uniqueSessions > 0 ? (bouncedSessions / uniqueSessions) * 100 : 0;
 
-      // Average time on site from section times
-      const sessionDurations = new Map<string, number>();
+      // ── Session duration from PAGE_EXIT events (primary) ──────────
+      const pageExitSessionTimes = new Map<string, number>();
+      let totalScrollDepth = 0;
+      let scrollDepthCount = 0;
+
+      for (const pe of pageExitStats) {
+        const data = (pe.data as Record<string, unknown>) || {};
+        const timeOnPage = typeof data.timeOnPage === 'number' ? data.timeOnPage : 0;
+        const scrollPct = typeof data.scrollDepthPercent === 'number' ? data.scrollDepthPercent : 0;
+
+        if (pe.sessionId && timeOnPage > 0) {
+          pageExitSessionTimes.set(
+            pe.sessionId,
+            (pageExitSessionTimes.get(pe.sessionId) || 0) + timeOnPage
+          );
+        }
+
+        if (scrollPct > 0) {
+          totalScrollDepth += scrollPct;
+          scrollDepthCount++;
+        }
+      }
+
+      // ── Session duration from SECTION_TIME events (fallback) ──────
+      const sectionSessionDurations = new Map<string, number>();
       const sectionStats = new Map<string, { totalTime: number; count: number }>();
 
       for (const st of sectionTimeStats) {
@@ -107,7 +158,10 @@ export async function getAnalyticsSummary(startDate?: string, endDate?: string) 
         const timeSpent = typeof data.timeSpent === 'number' ? data.timeSpent : 0;
 
         if (st.sessionId) {
-          sessionDurations.set(st.sessionId, (sessionDurations.get(st.sessionId) || 0) + timeSpent);
+          sectionSessionDurations.set(
+            st.sessionId,
+            (sectionSessionDurations.get(st.sessionId) || 0) + timeSpent
+          );
         }
 
         const section = st.name || 'unknown';
@@ -117,10 +171,15 @@ export async function getAnalyticsSummary(startDate?: string, endDate?: string) 
         sectionStats.set(section, current);
       }
 
+      // Use PAGE_EXIT as primary source; fall back to SECTION_TIME
+      const durationSource =
+        pageExitSessionTimes.size > 0 ? pageExitSessionTimes : sectionSessionDurations;
       const averageTimeOnSite =
-        sessionDurations.size > 0
-          ? Array.from(sessionDurations.values()).reduce((a, b) => a + b, 0) / sessionDurations.size
+        durationSource.size > 0
+          ? Array.from(durationSource.values()).reduce((a, b) => a + b, 0) / durationSource.size
           : 0;
+
+      const averageScrollDepth = scrollDepthCount > 0 ? totalScrollDepth / scrollDepthCount : 0;
 
       const topSections = Array.from(sectionStats.entries())
         .filter(([section]) => section.toLowerCase() !== 'unknown')
@@ -181,6 +240,7 @@ export async function getAnalyticsSummary(startDate?: string, endDate?: string) 
         totalVisits,
         uniqueSessions,
         averageTimeOnSite,
+        averageScrollDepth,
         conversionRate,
         bounceRate,
         topSections,
@@ -498,7 +558,10 @@ export async function getTrafficSources(startDate?: string, endDate?: string) {
 }
 
 /**
- * Get device breakdown using SQL aggregation
+ * Get device breakdown using SQL aggregation.
+ *
+ * Computes avgTimeOnSite per device type by joining PAGE_VIEW (which stores
+ * deviceType) with PAGE_EXIT (which stores timeOnPage) on sessionId.
  */
 export async function getDeviceBreakdown(startDate?: string, endDate?: string) {
   const cacheKey = buildCacheKey(CACHE_KEYS.DEVICE_BREAKDOWN, {
@@ -515,32 +578,66 @@ export async function getDeviceBreakdown(startDate?: string, endDate?: string) {
         : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       const end = endDate ? new Date(endDate) : new Date();
 
-      const results = await prisma.$queryRaw<
-        Array<{
-          device_type: string;
-          visits: bigint;
-          unique_sessions: bigint;
-        }>
-      >`
-        SELECT
-          COALESCE(data->>'deviceType', 'unknown') as device_type,
-          COUNT(*) as visits,
-          COUNT(DISTINCT "sessionId") as unique_sessions
-        FROM "AnalyticsEvent"
-        WHERE "siteId" = ${siteId}
-          AND "type" = 'PAGE_VIEW'
-          AND "createdAt" >= ${start}
-          AND "createdAt" <= ${end}
-          AND (data->>'isBot' IS NULL OR data->>'isBot' != 'true')
-        GROUP BY device_type
-        ORDER BY visits DESC
-      `;
+      const [deviceStats, avgTimeByDevice] = await Promise.all([
+        // Visit counts per device type from PAGE_VIEW
+        prisma.$queryRaw<
+          Array<{
+            device_type: string;
+            visits: bigint;
+            unique_sessions: bigint;
+          }>
+        >`
+          SELECT
+            COALESCE(data->>'deviceType', 'unknown') as device_type,
+            COUNT(*) as visits,
+            COUNT(DISTINCT "sessionId") as unique_sessions
+          FROM "AnalyticsEvent"
+          WHERE "siteId" = ${siteId}
+            AND "type" = 'PAGE_VIEW'
+            AND "createdAt" >= ${start}
+            AND "createdAt" <= ${end}
+            AND (data->>'isBot' IS NULL OR data->>'isBot' != 'true')
+          GROUP BY device_type
+          ORDER BY visits DESC
+        `,
 
-      return results.map(row => ({
+        // Avg time on site per device type via PAGE_EXIT + PAGE_VIEW join
+        prisma.$queryRaw<
+          Array<{
+            device_type: string;
+            avg_time: number;
+          }>
+        >`
+          SELECT
+            COALESCE(sv.device_type, 'unknown') as device_type,
+            AVG(CAST(pe.data->>'timeOnPage' AS DOUBLE PRECISION)) as avg_time
+          FROM "AnalyticsEvent" pe
+          INNER JOIN (
+            SELECT DISTINCT ON ("sessionId")
+              "sessionId",
+              COALESCE(data->>'deviceType', 'unknown') as device_type
+            FROM "AnalyticsEvent"
+            WHERE "siteId" = ${siteId}
+              AND "type" = 'PAGE_VIEW'
+              AND "createdAt" >= ${start}
+              AND "createdAt" <= ${end}
+            ORDER BY "sessionId", "createdAt" ASC
+          ) sv ON pe."sessionId" = sv."sessionId"
+          WHERE pe."siteId" = ${siteId}
+            AND pe."type" = 'PAGE_EXIT'
+            AND pe."createdAt" >= ${start}
+            AND pe."createdAt" <= ${end}
+          GROUP BY sv.device_type
+        `,
+      ]);
+
+      const avgTimeMap = new Map(avgTimeByDevice.map(r => [r.device_type, r.avg_time || 0]));
+
+      return deviceStats.map(row => ({
         deviceType: row.device_type,
         visits: Number(row.visits),
         uniqueSessions: Number(row.unique_sessions),
-        avgTimeOnSite: 0,
+        avgTimeOnSite: avgTimeMap.get(row.device_type) || 0,
       }));
     },
     CACHE_TTL.MEDIUM

@@ -1,14 +1,19 @@
-"use client";
+'use client';
 
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion';
 
-import { CTAButton } from "../../../components/CTAButton";
-import GoldGlowImage from "../../../components/GoldGlowImage";
-import { SectionTitle } from "../../../components/SectionTitle";
+import { CTAButton } from '../../../components/CTAButton';
+import GoldGlowImage from '../../../components/GoldGlowImage';
+import { SectionTitle } from '../../../components/SectionTitle';
 
 export function RespirationSection() {
   return (
-    <section id="respiration-holotropique" className="bg-gradient-to-br from-night via-night/95 to-night px-6 py-20 sm:px-10 lg:px-16">
+    <section
+      id="respiration-holotropique"
+      className="from-night via-night/95 to-night bg-gradient-to-br px-6 py-20 sm:px-10 lg:px-16"
+      data-track-section="respiration"
+      data-track-section-name="Respiration holotropique"
+    >
       <div className="mx-auto max-w-5xl space-y-12">
         <SectionTitle
           eyebrow="Respiration holotropique"
@@ -18,26 +23,34 @@ Avec sécurité et bienveillance, nous vous offrons l'opportunité de vous accom
 "
         />
         <div className="grid gap-8 sm:grid-cols-2">
-          <div className="space-y-6 text-left" style={{ display: "flex", alignItems: "normal", justifyContent: "center", height: "100%", flexDirection: "column" }} >
+          <div
+            className="space-y-6 text-left"
+            style={{
+              display: 'flex',
+              alignItems: 'normal',
+              justifyContent: 'center',
+              height: '100%',
+              flexDirection: 'column',
+            }}
+          >
             {[
-              "Un lieu magique dans un magnifique moulin bourguignon",
-              "Un accompagnement bienveillant et respectueux",
-              "Une préparation personnalisée pour définir vos intentions",
-              "Une musique immersive et un support corporel sécurisant",
-              "Une exploration intérieure et une libération des blocages",
+              'Un lieu magique dans un magnifique moulin bourguignon',
+              'Un accompagnement bienveillant et respectueux',
+              'Une préparation personnalisée pour définir vos intentions',
+              'Une musique immersive et un support corporel sécurisant',
+              'Une exploration intérieure et une libération des blocages',
               "Un temps d'intégration avec dessin, écriture et partage",
-              "Une expérience immersive et transformante",
-            ].map((item) => (
+              'Une expérience immersive et transformante',
+            ].map(item => (
               <motion.div
                 key={item}
                 initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.3 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
                 className="flex items-start gap-4"
               >
-
-                <span className="mt-1 inline-flex h-4 w-4 flex-none items-center justify-center rounded-full bg-gold/20 text-gold">
+                <span className="bg-gold/20 text-gold mt-1 inline-flex h-4 w-4 flex-none items-center justify-center rounded-full">
                   <span className="text-lg font-bold">+</span>
                 </span>
                 <p className="text-ivory/80">{item}</p>
@@ -47,7 +60,7 @@ Avec sécurité et bienveillance, nous vous offrons l'opportunité de vous accom
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.5, ease: "easeOut", delay: 0.3 }}
+              transition={{ duration: 0.5, ease: 'easeOut', delay: 0.3 }}
               className="flex flex-col gap-3 pt-4 sm:flex-row"
             >
               <CTAButton variant="primary" href="/inscription-seminaire">
@@ -62,7 +75,7 @@ Avec sécurité et bienveillance, nous vous offrons l'opportunité de vous accom
             initial={{ opacity: 0, x: 40 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, amount: 0.3 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
             className="relative overflow-hidden"
           >
             <GoldGlowImage
@@ -74,7 +87,10 @@ Avec sécurité et bienveillance, nous vous offrons l'opportunité de vous accom
               shadowOpacity={0.92}
               className="rounded-full"
             />
-            <div className="absolute inset-0 bg-gradient-to-tr from-night/80 via-night/30 to-transparent" aria-hidden />
+            <div
+              className="from-night/80 via-night/30 absolute inset-0 bg-gradient-to-tr to-transparent"
+              aria-hidden
+            />
           </motion.div>
         </div>
       </div>

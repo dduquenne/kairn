@@ -20,16 +20,19 @@ export type {
   DashboardConfig,
   ScheduledReport,
   Anomaly,
-} from "../store/types";
+} from '../store/types';
 
 // Page Visits
-export { trackPageVisit, getPageVisits } from "./page-visits";
+export { trackPageVisit, getPageVisits } from './page-visits';
+
+// Page Exits & Scroll Depth
+export { trackPageExit, trackScrollDepth } from './page-exits';
 
 // Section Times
-export { trackSectionTime, getSectionTimes } from "./section-times";
+export { trackSectionTime, getSectionTimes } from './section-times';
 
 // Conversions
-export { trackConversionEvent, getConversionEvents } from "./conversions";
+export { trackConversionEvent, getConversionEvents } from './conversions';
 
 // Analytics
 export {
@@ -39,14 +42,10 @@ export {
   getSectionHeatmap,
   getTrafficSources,
   getDeviceBreakdown,
-} from "./analytics";
+} from './analytics';
 
 // Custom Events
-export {
-  trackCustomEvent,
-  getCustomEvents,
-  getCustomEventsSummary,
-} from "./custom-events";
+export { trackCustomEvent, getCustomEvents, getCustomEventsSummary } from './custom-events';
 
 // Goals
 export {
@@ -58,21 +57,16 @@ export {
   trackGoalCompletion,
   getGoalCompletions,
   getGoalsSummary,
-} from "./goals";
+} from './goals';
 
 // Funnels
-export {
-  trackFunnelStep,
-  getFunnelSteps,
-  getFunnelAnalysis,
-  getAvailableFunnels,
-} from "./funnels";
+export { trackFunnelStep, getFunnelSteps, getFunnelAnalysis, getAvailableFunnels } from './funnels';
 
 // Cohorts
-export { getCohortAnalysis } from "./cohorts";
+export { getCohortAnalysis } from './cohorts';
 
 // Attribution
-export { getMarketingAttribution } from "./attribution";
+export { getMarketingAttribution } from './attribution';
 
 // Alerts
 export {
@@ -83,7 +77,7 @@ export {
   deleteAlert,
   addAlertHistory,
   getAlertHistory,
-} from "./alerts";
+} from './alerts';
 
 // Anomalies
 export {
@@ -94,7 +88,7 @@ export {
   calculateBaseline,
   detectAnomaly,
   runAnomalyDetection,
-} from "./anomalies";
+} from './anomalies';
 
 // Reports
 export {
@@ -103,7 +97,7 @@ export {
   getScheduledReport,
   updateScheduledReport,
   deleteScheduledReport,
-} from "./reports";
+} from './reports';
 
 // Dashboard
 export {
@@ -113,7 +107,7 @@ export {
   getDefaultDashboardConfig,
   updateDashboardConfig,
   deleteDashboardConfig,
-} from "./dashboard";
+} from './dashboard';
 
 // Re-export getDefaultWidgets from main store (it's a pure function)
-export { getDefaultWidgets } from "../store/dashboard";
+export { getDefaultWidgets } from '../store/dashboard';
