@@ -508,14 +508,22 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
 
       trafficSources.forEach((source: any) => {
         const medium = source.medium?.toLowerCase() || '';
-        if (medium === 'direct' || medium === '(none)') {
+        const sourceName = source.source?.toLowerCase() || '';
+        if (medium === 'direct' || medium === '(none)' || medium === 'none' || (medium === '' && sourceName === 'direct')) {
           directTraffic += source.visits || 0;
         } else if (medium === 'organic') {
           organicTraffic += source.visits || 0;
-        } else if (medium === 'referral') {
+        } else if (medium === 'referral' || medium === 'email' || medium === 'cpc' || medium === 'cpm') {
           referralTraffic += source.visits || 0;
         } else if (medium === 'social') {
           socialTraffic += source.visits || 0;
+        } else {
+          // Any other unrecognized medium: classify based on source name
+          if (sourceName === 'direct' || sourceName === '') {
+            directTraffic += source.visits || 0;
+          } else {
+            referralTraffic += source.visits || 0;
+          }
         }
       });
 

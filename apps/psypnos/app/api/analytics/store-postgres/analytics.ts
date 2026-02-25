@@ -532,7 +532,18 @@ export async function getTrafficSources(startDate?: string, endDate?: string) {
       >`
         SELECT
           COALESCE(data->>'utmSource', data->>'referrerDomain', 'direct') as source,
-          COALESCE(data->>'utmMedium', 'none') as medium,
+          COALESCE(
+            NULLIF(data->>'utmMedium', ''),
+            CASE
+              WHEN data->>'referrerDomain' IS NOT NULL THEN
+                CASE
+                  WHEN data->>'referrerDomain' ~* '(google|bing|yahoo|duckduckgo|baidu|yandex|ecosia|qwant)\.' THEN 'organic'
+                  WHEN data->>'referrerDomain' ~* '(facebook|instagram|twitter|x\.com|linkedin|tiktok|pinterest|reddit|threads|mastodon|youtube)\.' THEN 'social'
+                  ELSE 'referral'
+                END
+              ELSE 'direct'
+            END
+          ) as medium,
           COUNT(*) as visits,
           COUNT(DISTINCT "sessionId") as unique_sessions
         FROM "AnalyticsEvent"
