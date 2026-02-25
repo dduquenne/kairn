@@ -49,7 +49,9 @@ export const getPeriodDateRange = (
 
     case 'yesterday':
       startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1));
-      endDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1, 23, 59, 59, 999));
+      endDate = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1, 23, 59, 59, 999)
+      );
       break;
 
     case 'last7days':
@@ -57,7 +59,9 @@ export const getPeriodDateRange = (
       break;
 
     case 'last30days':
-      startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 29));
+      startDate = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 29)
+      );
       break;
 
     case 'thisMonth':
@@ -70,7 +74,9 @@ export const getPeriodDateRange = (
       break;
 
     case 'last3months':
-      startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 90));
+      startDate = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 90)
+      );
       break;
 
     case 'thisYear':
@@ -440,7 +446,9 @@ export const generateChartBuckets = (
     case 'today':
     case 'yesterday': {
       // 24 hourly buckets (UTC)
-      const baseDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+      const baseDate = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+      );
       if (period === 'yesterday') baseDate.setUTCDate(baseDate.getUTCDate() - 1);
 
       for (let i = 0; i < 24; i++) {
@@ -458,7 +466,9 @@ export const generateChartBuckets = (
     case 'last7days': {
       // Last 7 days (UTC)
       for (let i = 6; i >= 0; i--) {
-        const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - i));
+        const date = new Date(
+          Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - i)
+        );
         buckets.push({
           label: formatShortDate(date),
           timestamp: date.getTime(),
@@ -471,7 +481,9 @@ export const generateChartBuckets = (
     case 'last30days': {
       // Last 30 days — ALL days returned, no forced sampling
       for (let i = 29; i >= 0; i--) {
-        const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - i));
+        const date = new Date(
+          Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - i)
+        );
         buckets.push({
           label: formatDayMonth(date),
           timestamp: date.getTime(),
@@ -553,7 +565,9 @@ export const generateChartBuckets = (
     default: {
       // Fallback: last 7 days (UTC)
       for (let i = 6; i >= 0; i--) {
-        const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - i));
+        const date = new Date(
+          Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - i)
+        );
         buckets.push({
           label: formatShortDate(date),
           timestamp: date.getTime(),
@@ -697,9 +711,7 @@ export const aggregateVisitsIntoBuckets = (
 
       // lo is the index of the first bucket timestamp > ts.
       // The best candidate is either lo-1 (bucket ≤ ts) or lo.
-      const candidates = [lo - 1, lo].filter(
-        i => i >= 0 && i < sortedBucketTimestamps.length
-      );
+      const candidates = [lo - 1, lo].filter(i => i >= 0 && i < sortedBucketTimestamps.length);
       let bestTs = sortedBucketTimestamps[candidates[0]!]!;
       let bestDist = Math.abs(ts - bestTs);
       for (const c of candidates) {
@@ -714,8 +726,9 @@ export const aggregateVisitsIntoBuckets = (
       bucketIndex = timestampToIndex.get(bestTs);
     }
 
-    if (bucketIndex !== undefined && result[bucketIndex]) {
-      result[bucketIndex].value += visit.visits || 1;
+    const bucket = bucketIndex !== undefined ? result[bucketIndex] : undefined;
+    if (bucket) {
+      bucket.value += visit.visits || 1;
     }
   });
 
