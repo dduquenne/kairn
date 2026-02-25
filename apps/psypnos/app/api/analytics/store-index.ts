@@ -14,7 +14,7 @@
  */
 
 // Page Visits
-export { trackPageVisit, getPageVisits } from './store-postgres/page-visits';
+export { trackPageVisit, getPageVisits, getTopPages } from './store-postgres/page-visits';
 
 // Section Times
 export { trackSectionTime, getSectionTimes } from './store-postgres/section-times';

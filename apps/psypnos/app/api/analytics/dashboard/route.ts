@@ -16,6 +16,7 @@ import {
   getSectionHeatmap,
   getVisitsByPeriod,
   getPageVisits,
+  getTopPages,
   getTrafficSources,
   getDeviceBreakdown,
   getGoalsSummary,
@@ -161,6 +162,7 @@ export async function GET(request: NextRequest) {
           comparison,
           heatmap,
           visits,
+          topPages,
           trafficSources,
           deviceBreakdown,
           geoData,
@@ -174,10 +176,12 @@ export async function GET(request: NextRequest) {
             console.error('[Dashboard] getAnalyticsSummary failed:', err);
             return defaultSummary;
           }),
-          getAnalyticsSummaryWithComparison(comparisonTimeRange).catch((err: unknown) => {
-            console.error('[Dashboard] getAnalyticsSummaryWithComparison failed:', err);
-            return { current: defaultSummary, previous: defaultSummary, comparison: {} };
-          }),
+          getAnalyticsSummaryWithComparison(comparisonTimeRange, startISO, endISO).catch(
+            (err: unknown) => {
+              console.error('[Dashboard] getAnalyticsSummaryWithComparison failed:', err);
+              return { current: defaultSummary, previous: defaultSummary, comparison: {} };
+            }
+          ),
           getSectionHeatmap(startISO, endISO).catch((err: unknown) => {
             console.error('[Dashboard] getSectionHeatmap failed:', err);
             return [];
@@ -187,6 +191,10 @@ export async function GET(request: NextRequest) {
             : getVisitsByPeriod(comparisonTimeRange, startISO, endISO)
           ).catch((err: unknown) => {
             console.error('[Dashboard] getVisits failed:', err);
+            return [];
+          }),
+          getTopPages(startISO, endISO, 10).catch((err: unknown) => {
+            console.error('[Dashboard] getTopPages failed:', err);
             return [];
           }),
           getTrafficSources(startISO, endISO).catch((err: unknown) => {
@@ -218,6 +226,7 @@ export async function GET(request: NextRequest) {
           comparison,
           heatmap,
           visits,
+          topPages,
           trafficSources,
           deviceBreakdown,
           geoData,

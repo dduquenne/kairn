@@ -101,7 +101,7 @@ export async function getAnalyticsSummary(startDate?: string, endDate?: string) 
 
       for (const st of sectionTimeStats) {
         const data = (st.data as Record<string, unknown>) || {};
-        const timeSpent = (typeof data.timeSpent === 'number' ? data.timeSpent : 0);
+        const timeSpent = typeof data.timeSpent === 'number' ? data.timeSpent : 0;
 
         if (st.sessionId) {
           sessionDurations.set(st.sessionId, (sessionDurations.get(st.sessionId) || 0) + timeSpent);
@@ -130,7 +130,8 @@ export async function getAnalyticsSummary(startDate?: string, endDate?: string) 
         .slice(0, 5);
 
       // Conversion summary from groupBy
-      const conversionByType: Record<string, { clicks: number; completed: number; rate: number }> = {};
+      const conversionByType: Record<string, { clicks: number; completed: number; rate: number }> =
+        {};
       let totalClicks = 0;
 
       for (const group of conversionStats) {
@@ -205,7 +206,9 @@ export async function getVisitsByPeriod(
     cacheKey,
     async () => {
       const siteId = await getCurrentSiteId();
-      const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const start = startDate
+        ? new Date(startDate)
+        : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       const end = endDate ? new Date(endDate) : new Date();
 
       // Use raw SQL for date_trunc aggregation
@@ -233,47 +236,68 @@ export async function getVisitsByPeriod(
 }
 
 /**
- * Get analytics summary with comparison to previous period
+ * Get analytics summary with comparison to the previous period.
+ *
+ * When explicit startDate / endDate are provided (the normal case from the
+ * dashboard route), the "current" period is exactly [startDate, endDate] and
+ * the "previous" period is the same-length window immediately before it.
+ * This keeps the KPIs aligned with the chart data.
+ *
+ * The legacy `timeRange`-only signature (no dates) is kept as a fallback
+ * but should no longer be used by new code.
+ *
+ * All date arithmetic uses UTC to stay consistent with PostgreSQL date_trunc().
  */
 export async function getAnalyticsSummaryWithComparison(
-  timeRange: 'day' | 'week' | 'month' | 'year'
+  timeRange: 'day' | 'week' | 'month' | 'year',
+  startDateISO?: string,
+  endDateISO?: string
 ) {
-  const now = new Date();
-  let currentStart = new Date();
-  const currentEnd = new Date(now);
-  currentEnd.setHours(23, 59, 59, 999);
+  let currentStart: Date;
+  let currentEnd: Date;
+  let previousStart: Date;
+  let previousEnd: Date;
 
-  let previousStart = new Date();
-  let previousEnd = new Date();
+  if (startDateISO && endDateISO) {
+    // ── Explicit date range from the dashboard query ──────────────
+    // Mirror the exact same duration for the previous period.
+    currentStart = new Date(startDateISO);
+    currentEnd = new Date(endDateISO);
 
-  if (timeRange === 'day') {
-    currentStart = new Date(now);
-    currentStart.setHours(0, 0, 0, 0);
-    previousEnd = new Date(currentStart);
-    previousEnd.setDate(previousEnd.getDate() - 1);
-    previousEnd.setHours(23, 59, 59, 999);
-    previousStart = new Date(previousEnd);
-    previousStart.setHours(0, 0, 0, 0);
-  } else if (timeRange === 'week') {
-    const dayOfWeek = now.getDay();
-    const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
-    currentStart = new Date(now.setDate(diff));
-    currentStart.setHours(0, 0, 0, 0);
-    previousStart = new Date(currentStart);
-    previousStart.setDate(previousStart.getDate() - 7);
-    previousEnd = new Date(currentStart);
-    previousEnd.setDate(previousEnd.getDate() - 1);
-    previousEnd.setHours(23, 59, 59, 999);
-  } else if (timeRange === 'month') {
-    currentStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    previousStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    previousEnd = new Date(now.getFullYear(), now.getMonth(), 0);
-    previousEnd.setHours(23, 59, 59, 999);
-  } else if (timeRange === 'year') {
-    currentStart = new Date(now.getFullYear(), 0, 1);
-    previousStart = new Date(now.getFullYear() - 1, 0, 1);
-    previousEnd = new Date(now.getFullYear() - 1, 11, 31);
-    previousEnd.setHours(23, 59, 59, 999);
+    const durationMs = currentEnd.getTime() - currentStart.getTime();
+    previousEnd = new Date(currentStart.getTime() - 1); // 1 ms before current start
+    previousStart = new Date(previousEnd.getTime() - durationMs);
+  } else {
+    // ── Legacy fallback: derive dates from timeRange ─────────────
+    const now = new Date();
+    currentEnd = new Date(now);
+    currentEnd.setUTCHours(23, 59, 59, 999);
+
+    if (timeRange === 'day') {
+      currentStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+      previousEnd = new Date(currentStart.getTime() - 1);
+      previousStart = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1)
+      );
+    } else if (timeRange === 'week') {
+      const dayOfWeek = now.getUTCDay();
+      const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      currentStart = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + diff)
+      );
+      previousEnd = new Date(currentStart.getTime() - 1);
+      previousStart = new Date(currentStart);
+      previousStart.setUTCDate(previousStart.getUTCDate() - 7);
+    } else if (timeRange === 'month') {
+      currentStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+      previousStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+      previousEnd = new Date(currentStart.getTime() - 1);
+    } else {
+      // year
+      currentStart = new Date(Date.UTC(now.getUTCFullYear(), 0, 1));
+      previousStart = new Date(Date.UTC(now.getUTCFullYear() - 1, 0, 1));
+      previousEnd = new Date(currentStart.getTime() - 1);
+    }
   }
 
   const [currentSummary, previousSummary] = await Promise.all([
@@ -299,8 +323,14 @@ export async function getAnalyticsSummaryWithComparison(
     },
     comparison: {
       totalVisitsChange: calcChange(currentSummary.totalVisits, previousSummary.totalVisits),
-      uniqueSessionsChange: calcChange(currentSummary.uniqueSessions, previousSummary.uniqueSessions),
-      averageTimeOnSiteChange: calcChange(currentSummary.averageTimeOnSite, previousSummary.averageTimeOnSite),
+      uniqueSessionsChange: calcChange(
+        currentSummary.uniqueSessions,
+        previousSummary.uniqueSessions
+      ),
+      averageTimeOnSiteChange: calcChange(
+        currentSummary.averageTimeOnSite,
+        previousSummary.averageTimeOnSite
+      ),
       conversionRateChange: currentSummary.conversionRate - previousSummary.conversionRate,
     },
   };
@@ -319,7 +349,9 @@ export async function getSectionHeatmap(startDate?: string, endDate?: string) {
     cacheKey,
     async () => {
       const siteId = await getCurrentSiteId();
-      const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const start = startDate
+        ? new Date(startDate)
+        : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       const end = endDate ? new Date(endDate) : new Date();
 
       // Get total unique sessions for scroll rate calculation
@@ -335,12 +367,14 @@ export async function getSectionHeatmap(startDate?: string, endDate?: string) {
       const totalSessionCount = totalSessions.length;
 
       // Get section stats using raw SQL for JSON extraction + aggregation
-      const sectionResults = await prisma.$queryRaw<Array<{
-        section: string;
-        visitors: bigint;
-        avg_time_ms: number;
-        view_count: bigint;
-      }>>`
+      const sectionResults = await prisma.$queryRaw<
+        Array<{
+          section: string;
+          visitors: bigint;
+          avg_time_ms: number;
+          view_count: bigint;
+        }>
+      >`
         SELECT
           "name" as section,
           COUNT(DISTINCT "sessionId") as visitors,
@@ -361,9 +395,10 @@ export async function getSectionHeatmap(startDate?: string, endDate?: string) {
         section: row.section,
         visitors: Number(row.visitors),
         avgTimeSeconds: Math.round((row.avg_time_ms || 0) / 1000),
-        scrollRate: totalSessionCount > 0
-          ? parseFloat(((Number(row.visitors) / totalSessionCount) * 100).toFixed(1))
-          : 0,
+        scrollRate:
+          totalSessionCount > 0
+            ? parseFloat(((Number(row.visitors) / totalSessionCount) * 100).toFixed(1))
+            : 0,
         conversionsFromSection: 0,
         conversionsByType: {},
       }));
@@ -385,15 +420,19 @@ export async function getTrafficSources(startDate?: string, endDate?: string) {
     cacheKey,
     async () => {
       const siteId = await getCurrentSiteId();
-      const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const start = startDate
+        ? new Date(startDate)
+        : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       const end = endDate ? new Date(endDate) : new Date();
 
-      const results = await prisma.$queryRaw<Array<{
-        source: string;
-        medium: string;
-        visits: bigint;
-        unique_sessions: bigint;
-      }>>`
+      const results = await prisma.$queryRaw<
+        Array<{
+          source: string;
+          medium: string;
+          visits: bigint;
+          unique_sessions: bigint;
+        }>
+      >`
         SELECT
           COALESCE(data->>'utmSource', data->>'referrerDomain', 'direct') as source,
           COALESCE(data->>'utmMedium', 'none') as medium,
@@ -434,14 +473,18 @@ export async function getDeviceBreakdown(startDate?: string, endDate?: string) {
     cacheKey,
     async () => {
       const siteId = await getCurrentSiteId();
-      const start = startDate ? new Date(startDate) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const start = startDate
+        ? new Date(startDate)
+        : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       const end = endDate ? new Date(endDate) : new Date();
 
-      const results = await prisma.$queryRaw<Array<{
-        device_type: string;
-        visits: bigint;
-        unique_sessions: bigint;
-      }>>`
+      const results = await prisma.$queryRaw<
+        Array<{
+          device_type: string;
+          visits: bigint;
+          unique_sessions: bigint;
+        }>
+      >`
         SELECT
           COALESCE(data->>'deviceType', 'unknown') as device_type,
           COUNT(*) as visits,
