@@ -120,7 +120,18 @@ export function generateMockRawVisits(
 }
 
 /**
- * Génère des données de visites mockées pour une période donnée
+ * Génère des données de visites mockées pour une période donnée.
+ *
+ * IMPORTANT: Le champ `period` DOIT être un timestamp ISO-8601 complet
+ * (ex: "2026-02-19T00:00:00.000Z") pour être compatible avec le frontend
+ * (chartDateUtils.ts) qui le parse via `new Date(visit.period)`.
+ *
+ * Les anciens formats ("2026-W08", "2026-02", "2026") ne sont PAS parsables
+ * par `new Date()` et provoquaient des graphiques à zéro en mode simulation.
+ *
+ * Le format doit correspondre exactement à ce que retourne PostgreSQL via
+ * `date_trunc()` : un timestamp tronqué au début de la période (jour, lundi
+ * de la semaine, 1er du mois, 1er janvier).
  */
 export function generateMockVisits(
   timeRange: 'day' | 'week' | 'month' | 'year',
@@ -131,48 +142,50 @@ export function generateMockVisits(
   const data: Array<{ period: string; visits: number; sessions: number }> = [];
 
   if (timeRange === 'day') {
+    // Daily buckets: midnight UTC for each of the last 7 days
     for (let i = 6; i >= 0; i--) {
-      const date = new Date(now);
-      date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
+      const date = new Date(Date.UTC(
+        now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - i
+      ));
       data.push({
-        period: dateStr,
+        period: date.toISOString(),
         visits: randomInRange(80, 150),
         sessions: randomInRange(60, 120)
       });
     }
   } else if (timeRange === 'week') {
+    // Weekly buckets: Monday at midnight UTC (ISO week start, matches date_trunc('week'))
     for (let i = 11; i >= 0; i--) {
-      const date = new Date(now);
-      date.setDate(date.getDate() - (i * 7));
-      const tempDate = new Date(date);
-      tempDate.setDate(tempDate.getDate() + 4 - (tempDate.getDay() || 7));
-      const yearStart = new Date(tempDate.getFullYear(), 0, 1);
-      const weekNum = Math.ceil((((tempDate.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-      const year = date.getFullYear();
-      const weekKey = `${year}-W${weekNum.toString().padStart(2, '0')}`;
+      const date = new Date(Date.UTC(
+        now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - (i * 7)
+      ));
+      // Align to Monday (ISO week start)
+      const dayOfWeek = date.getUTCDay();
+      const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+      date.setUTCDate(date.getUTCDate() + diff);
+      date.setUTCHours(0, 0, 0, 0);
       data.push({
-        period: weekKey,
+        period: date.toISOString(),
         visits: randomInRange(400, 800),
         sessions: randomInRange(300, 650)
       });
     }
   } else if (timeRange === 'month') {
+    // Monthly buckets: 1st of each month at midnight UTC (matches date_trunc('month'))
     for (let i = 11; i >= 0; i--) {
-      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
       data.push({
-        period: monthKey,
+        period: date.toISOString(),
         visits: randomInRange(1500, 3000),
         sessions: randomInRange(1200, 2500)
       });
     }
   } else {
+    // Yearly buckets: January 1st at midnight UTC (matches date_trunc('year'))
     for (let i = 9; i >= 0; i--) {
-      const date = new Date(now.getFullYear() - i, 0, 1);
-      const yearKey = `${date.getFullYear()}`;
+      const date = new Date(Date.UTC(now.getUTCFullYear() - i, 0, 1));
       data.push({
-        period: yearKey,
+        period: date.toISOString(),
         visits: randomInRange(15000, 30000),
         sessions: randomInRange(12000, 25000)
       });
