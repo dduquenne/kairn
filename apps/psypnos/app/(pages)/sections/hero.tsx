@@ -56,6 +56,8 @@ export function HeroSection() {
       ref={heroRef}
       className="bg-night relative overflow-hidden px-6 pb-24 pt-24 sm:px-8 lg:px-16"
       aria-label="Introduction"
+      data-track-section="hero"
+      data-track-section-name="Accueil"
     >
       {/* Gradient glow effects */}
       <motion.div

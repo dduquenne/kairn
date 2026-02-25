@@ -282,28 +282,22 @@ async function processEvents(
           break;
 
         case 'page_exit':
-          await store.trackCustomEvent({
+          await store.trackPageExit({
             timestamp: event.timestamp,
             sessionId: event.sessionId,
-            category: 'Engagement',
-            action: 'page_exit',
-            label: event.url,
-            value: event.timeOnPage,
-            metadata: {
-              scrollDepthPercent: event.scrollDepthPercent,
-              engagementScore: event.engagementScore,
-            },
+            page: event.url,
+            timeOnPage: event.timeOnPage || 0,
+            scrollDepthPercent: event.scrollDepthPercent || 0,
+            engagementScore: event.engagementScore,
           });
           break;
 
         case 'scroll_depth':
-          await store.trackCustomEvent({
+          await store.trackScrollDepth({
             timestamp: event.timestamp,
             sessionId: event.sessionId,
-            category: 'Engagement',
-            action: 'scroll_depth',
-            label: event.url,
-            value: event.depth,
+            page: event.url,
+            depth: event.depth || 0,
           });
           break;
 

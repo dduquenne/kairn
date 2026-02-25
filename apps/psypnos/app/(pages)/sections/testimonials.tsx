@@ -194,7 +194,11 @@ export function TestimonialsSection({ initialData }: TestimonialsSectionProps) {
   }
 
   return (
-    <section className="bg-night/60 overflow-hidden py-20">
+    <section
+      className="bg-night/60 overflow-hidden py-20"
+      data-track-section="temoignages"
+      data-track-section-name="Témoignages"
+    >
       {/* Title with constrained width */}
       <div className="mx-auto max-w-6xl px-6 sm:px-10 lg:px-16">
         <motion.div

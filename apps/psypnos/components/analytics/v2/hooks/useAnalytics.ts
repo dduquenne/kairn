@@ -782,7 +782,7 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
           heatmapData.length > 0
             ? heatmapData.reduce((sum: number, h: any) => sum + (h.scrollRate || 0), 0) /
               heatmapData.length
-            : 0,
+            : (dashboardData.summary?.averageScrollDepth ?? 0),
         sectionEngagement,
         deviceBreakdown,
         totalConversions: conversionTypes.reduce((sum, c) => sum + c.completed, 0),

@@ -16,6 +16,9 @@
 // Page Visits
 export { trackPageVisit, getPageVisits, getTopPages } from './store-postgres/page-visits';
 
+// Page Exits & Scroll Depth
+export { trackPageExit, trackScrollDepth } from './store-postgres/page-exits';
+
 // Section Times
 export { trackSectionTime, getSectionTimes } from './store-postgres/section-times';
 

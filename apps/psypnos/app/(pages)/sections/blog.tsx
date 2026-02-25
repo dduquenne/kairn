@@ -128,7 +128,12 @@ export function BlogSection({ initialData }: BlogSectionProps) {
   }
 
   return (
-    <section id="blog" className="bg-night/60 px-6 py-20 sm:px-10 lg:px-16">
+    <section
+      id="blog"
+      className="bg-night/60 px-6 py-20 sm:px-10 lg:px-16"
+      data-track-section="blog"
+      data-track-section-name="Blog"
+    >
       <div className="mx-auto max-w-6xl space-y-12">
         <SectionTitle
           eyebrow="Ressources & Articles"
@@ -167,7 +172,7 @@ export function BlogSection({ initialData }: BlogSectionProps) {
                 >
                   {/* Vignette */}
                   {hasMounted && imageExists[post.slug] && (
-                    <div className="relative h-48 overflow-hidden bg-night/80">
+                    <div className="bg-night/80 relative h-48 overflow-hidden">
                       <Image
                         src={post.image || `/images/blog/${post.slug}.webp`}
                         alt={post.title}
@@ -180,75 +185,75 @@ export function BlogSection({ initialData }: BlogSectionProps) {
                   )}
 
                   <div className="flex flex-1 flex-col p-6 pl-8">
-                  {/* Badge catégorie */}
-                  <div className="mb-3">
-                    <span
-                      className={`inline-flex items-center gap-1.5 rounded-full ${colors.bg} px-3 py-1 text-xs font-medium ${colors.text}`}
-                    >
-                      <svg
-                        className="h-3 w-3"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
+                    {/* Badge catégorie */}
+                    <div className="mb-3">
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full ${colors.bg} px-3 py-1 text-xs font-medium ${colors.text}`}
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                        />
-                      </svg>
-                      {post.category}
-                    </span>
-                  </div>
-
-                  {/* Titre */}
-                  <h3 className="text-ivory group-hover:text-gold mb-3 text-xl font-semibold transition-colors">
-                    {post.title}
-                  </h3>
-
-                  {/* Description */}
-                  <p className="text-ivory/70 mb-4 line-clamp-3 flex-1 text-sm">
-                    {post.description}
-                  </p>
-
-                  {/* Métadonnées */}
-                  <div className="text-ivory/60 flex flex-wrap items-center gap-3 text-xs">
-                    <div className="flex items-center gap-1">
-                      <svg
-                        className="h-3.5 w-3.5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={2}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
-                      <time dateTime={post.date}>{formattedDate}</time>
+                        <svg
+                          className="h-3 w-3"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                          />
+                        </svg>
+                        {post.category}
+                      </span>
                     </div>
-                  </div>
 
-                  {/* Indicateur "Lire" */}
-                  <div className="text-gold mt-4 flex items-center gap-2 text-sm font-medium opacity-0 transition-opacity group-hover:opacity-100">
-                    <span>Lire l'article</span>
-                    <svg
-                      className="h-4 w-4 transition-transform group-hover:translate-x-1"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M14 5l7 7m0 0l-7 7m7-7H3"
-                      />
-                    </svg>
-                  </div>
+                    {/* Titre */}
+                    <h3 className="text-ivory group-hover:text-gold mb-3 text-xl font-semibold transition-colors">
+                      {post.title}
+                    </h3>
+
+                    {/* Description */}
+                    <p className="text-ivory/70 mb-4 line-clamp-3 flex-1 text-sm">
+                      {post.description}
+                    </p>
+
+                    {/* Métadonnées */}
+                    <div className="text-ivory/60 flex flex-wrap items-center gap-3 text-xs">
+                      <div className="flex items-center gap-1">
+                        <svg
+                          className="h-3.5 w-3.5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                        <time dateTime={post.date}>{formattedDate}</time>
+                      </div>
+                    </div>
+
+                    {/* Indicateur "Lire" */}
+                    <div className="text-gold mt-4 flex items-center gap-2 text-sm font-medium opacity-0 transition-opacity group-hover:opacity-100">
+                      <span>Lire l'article</span>
+                      <svg
+                        className="h-4 w-4 transition-transform group-hover:translate-x-1"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M14 5l7 7m0 0l-7 7m7-7H3"
+                        />
+                      </svg>
+                    </div>
                   </div>
 
                   {/* Barre de progression au hover */}
