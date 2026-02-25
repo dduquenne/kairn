@@ -519,17 +519,14 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
         }
       });
 
-      // Build top pages from section data
-      const topSections = dashboardData.summary?.topSections || [];
-      const totalSectionVisits = topSections.reduce(
-        (sum: number, s: any) => sum + (s.visits || 0),
-        0
-      );
-      const topPages: TopPage[] = topSections.map((section: any) => ({
-        path: section.section || 'Unknown',
-        views: section.visits || 0,
-        uniqueVisitors: section.uniqueSessions ?? section.visitors ?? section.visits ?? 0,
-        percentage: totalSectionVisits > 0 ? ((section.visits || 0) / totalSectionVisits) * 100 : 0,
+      // Build top pages from actual PAGE_VIEW aggregation (getTopPages)
+      const rawTopPages = dashboardData.topPages || [];
+      const totalPageVisits = rawTopPages.reduce((sum: number, p: any) => sum + (p.visits || 0), 0);
+      const topPages: TopPage[] = rawTopPages.map((page: any) => ({
+        path: page.page || 'Unknown',
+        views: page.visits || 0,
+        uniqueVisitors: page.uniqueSessions ?? page.visits ?? 0,
+        percentage: totalPageVisits > 0 ? ((page.visits || 0) / totalPageVisits) * 100 : 0,
       }));
 
       // Build section engagement data
@@ -757,22 +754,16 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       const analyticsData: AnalyticsData = {
         healthScore,
         kpis: {
-          visitors:
-            dashboardData.comparison?.current?.totalVisits ||
-            dashboardData.summary?.totalVisits ||
-            0,
+          // Use summary (covers the actual selected period) as the primary
+          // source for current values. comparison.comparison provides the
+          // percentage change vs the mirror previous period.
+          visitors: dashboardData.summary?.totalVisits || 0,
           visitorsChange: dashboardData.comparison?.comparison?.totalVisitsChange || 0,
-          conversionRate:
-            dashboardData.comparison?.current?.conversionRate ||
-            dashboardData.summary?.conversionRate ||
-            0,
+          conversionRate: dashboardData.summary?.conversionRate || 0,
           conversionChange: dashboardData.comparison?.comparison?.conversionRateChange || 0,
-          avgDuration:
-            (dashboardData.comparison?.current?.averageTimeOnSite ||
-              dashboardData.summary?.averageTimeOnSite ||
-              0) / 1000,
+          avgDuration: (dashboardData.summary?.averageTimeOnSite || 0) / 1000,
           durationChange:
-            ((dashboardData.comparison?.comparison?.averageTimeOnSiteChange || 0) / 100) * 60, // convert % to seconds estimate
+            ((dashboardData.comparison?.comparison?.averageTimeOnSiteChange || 0) / 100) * 60,
         },
         trafficChart: chartData,
         topPages,
