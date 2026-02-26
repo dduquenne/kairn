@@ -251,6 +251,21 @@ describe('POST /api/chat', () => {
     expect(data.message).not.toContain('[ACTION:');
   });
 
+  it('devrait accepter conversationId: null et créer une nouvelle conversation', async () => {
+    const request = createChatRequest({ message: 'Bonjour', conversationId: null });
+    const response = await POST(request);
+    expect(response.status).toBe(200);
+
+    // null est traité comme absent — une nouvelle conversation est créée
+    expect(prisma.chatConversation.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          siteId: 'site-123',
+        }),
+      })
+    );
+  });
+
   it('devrait créer une nouvelle conversation si aucun conversationId fourni', async () => {
     const request = createChatRequest({ message: 'Bonjour' });
     await POST(request);

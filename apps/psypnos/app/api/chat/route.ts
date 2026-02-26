@@ -37,7 +37,7 @@ function getAnthropicClient(): Anthropic {
 
 const chatRequestSchema = z.object({
   message: z.string().min(1).max(1000),
-  conversationId: z.string().optional(),
+  conversationId: z.string().nullish(),
   sessionId: z.string().optional(),
   context: z
     .object({
