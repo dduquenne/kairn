@@ -10,22 +10,22 @@
  * @endpoint GET /api/analytics/bots
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
 
-import { withAdminAuth } from "@/app/api/auth/middleware";
-import { getAllPosts } from "@/lib/blog";
+import { withAdminAuth } from '@/app/api/auth/middleware';
+import { getAllPostsAsync } from '@/lib/blog';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 // Pages statiques du site (correspondant au sitemap)
 const STATIC_PAGES = [
-  "/",
-  "/a-propos",
-  "/demande-rendez-vous",
-  "/inscription-seminaire",
-  "/politique-de-confidentialite",
-  "/conditions-utilisation",
-  "/blog",
+  '/',
+  '/a-propos',
+  '/demande-rendez-vous',
+  '/inscription-seminaire',
+  '/politique-de-confidentialite',
+  '/conditions-utilisation',
+  '/blog',
 ];
 
 // Type for BotVisit record from database
@@ -92,11 +92,11 @@ interface BotStats {
 }
 
 const BOT_TYPE_LABELS: Record<string, string> = {
-  search_engine: "Moteurs de recherche",
-  social: "Réseaux sociaux",
-  seo_tool: "Outils SEO",
-  monitor: "Monitoring",
-  other: "Autres",
+  search_engine: 'Moteurs de recherche',
+  social: 'Réseaux sociaux',
+  seo_tool: 'Outils SEO',
+  monitor: 'Monitoring',
+  other: 'Autres',
 };
 
 export async function GET(request: NextRequest): Promise<Response> {
@@ -108,9 +108,9 @@ export async function GET(request: NextRequest): Promise<Response> {
 
   try {
     const { searchParams } = new URL(request.url);
-    const timeRange = searchParams.get("timeRange") || "30d";
-    const startDate = searchParams.get("startDate");
-    const endDate = searchParams.get("endDate");
+    const timeRange = searchParams.get('timeRange') || '30d';
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
 
     // Calculate date range
     let dateFrom: Date;
@@ -121,16 +121,16 @@ export async function GET(request: NextRequest): Promise<Response> {
       dateTo = new Date(endDate);
     } else {
       switch (timeRange) {
-        case "24h":
+        case '24h':
           dateFrom = new Date(Date.now() - 24 * 60 * 60 * 1000);
           break;
-        case "7d":
+        case '7d':
           dateFrom = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
           break;
-        case "30d":
+        case '30d':
           dateFrom = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
           break;
-        case "90d":
+        case '90d':
           dateFrom = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
           break;
         default:
@@ -138,7 +138,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       }
     }
 
-    const { prisma } = await import("@/lib/db/prisma");
+    const { prisma } = await import('@/lib/db/prisma');
 
     // Fetch all visits in the date range
     const visits: BotVisitRecord[] = await prisma.botVisit.findMany({
@@ -148,17 +148,17 @@ export async function GET(request: NextRequest): Promise<Response> {
           lte: dateTo,
         },
       },
-      orderBy: { timestamp: "desc" },
+      orderBy: { timestamp: 'desc' },
     });
 
     // Calculate summary stats
-    const uniqueBots = new Set(visits.map((v) => v.botName)).size;
-    const uniquePages = new Set(visits.map((v) => v.page)).size;
+    const uniqueBots = new Set(visits.map(v => v.botName)).size;
+    const uniquePages = new Set(visits.map(v => v.page)).size;
     const lastVisit = visits.length > 0 ? visits[0].timestamp.toISOString() : null;
 
     // Group by bot type
     const byTypeMap = new Map<string, number>();
-    visits.forEach((v) => {
+    visits.forEach(v => {
       byTypeMap.set(v.botType, (byTypeMap.get(v.botType) || 0) + 1);
     });
 
@@ -174,7 +174,7 @@ export async function GET(request: NextRequest): Promise<Response> {
 
     // Group by bot name
     const byBotMap = new Map<string, { type: string; count: number; lastVisit: Date }>();
-    visits.forEach((v) => {
+    visits.forEach(v => {
       const existing = byBotMap.get(v.botName);
       if (existing) {
         existing.count++;
@@ -202,7 +202,7 @@ export async function GET(request: NextRequest): Promise<Response> {
 
     // Group by page
     const byPageMap = new Map<string, { visits: number; bots: Set<string> }>();
-    visits.forEach((v) => {
+    visits.forEach(v => {
       const existing = byPageMap.get(v.page);
       if (existing) {
         existing.visits++;
@@ -234,8 +234,8 @@ export async function GET(request: NextRequest): Promise<Response> {
       }
     >();
 
-    visits.forEach((v) => {
-      const dateKey = v.timestamp.toISOString().split("T")[0];
+    visits.forEach(v => {
+      const dateKey = v.timestamp.toISOString().split('T')[0];
       const existing = timelineMap.get(dateKey) || {
         count: 0,
         searchEngine: 0,
@@ -247,16 +247,16 @@ export async function GET(request: NextRequest): Promise<Response> {
 
       existing.count++;
       switch (v.botType) {
-        case "search_engine":
+        case 'search_engine':
           existing.searchEngine++;
           break;
-        case "social":
+        case 'social':
           existing.social++;
           break;
-        case "seo_tool":
+        case 'seo_tool':
           existing.seoTool++;
           break;
-        case "monitor":
+        case 'monitor':
           existing.monitor++;
           break;
         default:
@@ -271,7 +271,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       .sort((a, b) => a.date.localeCompare(b.date));
 
     // Get recent visits
-    const recentVisits = visits.slice(0, 50).map((v) => ({
+    const recentVisits = visits.slice(0, 50).map(v => ({
       id: v.id,
       timestamp: v.timestamp.toISOString(),
       botName: v.botName,
@@ -281,17 +281,16 @@ export async function GET(request: NextRequest): Promise<Response> {
     }));
 
     // Calculate crawl coverage (pages crawled vs total site pages)
-    const blogPosts = getAllPosts();
-    const blogPages = blogPosts.map((post) => `/blog/${post.slug}`);
+    const blogPosts = await getAllPostsAsync();
+    const blogPages = blogPosts.map(post => `/blog/${post.slug}`);
     const allSitePages = [...STATIC_PAGES, ...blogPages];
     const totalSitePages = allSitePages.length;
 
     // Get unique pages that have been crawled
-    const crawledPages = new Set(visits.map((v) => v.page));
-    const crawledSitePages = allSitePages.filter((page) => crawledPages.has(page));
-    const crawlCoverage = totalSitePages > 0
-      ? Math.round((crawledSitePages.length / totalSitePages) * 100)
-      : 0;
+    const crawledPages = new Set(visits.map(v => v.page));
+    const crawledSitePages = allSitePages.filter(page => crawledPages.has(page));
+    const crawlCoverage =
+      totalSitePages > 0 ? Math.round((crawledSitePages.length / totalSitePages) * 100) : 0;
 
     const stats: BotStats = {
       summary: {
@@ -311,9 +310,9 @@ export async function GET(request: NextRequest): Promise<Response> {
 
     return Response.json(stats);
   } catch (error) {
-    console.error("[Bot Analytics API] Error:", error);
+    console.error('[Bot Analytics API] Error:', error);
     return Response.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
+      { error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }
     );
   }
