@@ -12,9 +12,22 @@ import { recordAttemptAsync, getClientIP } from '../common/rate-limiter';
 // Vercel serverless function timeout (Pro plan: max 300s)
 export const maxDuration = 60;
 
-// Validate API key at module load
+// Validate API key at module load — log once per cold start
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 
+if (!ANTHROPIC_API_KEY) {
+  console.error(
+    '[Chat] ANTHROPIC_API_KEY manquante — le chatbot ne pourra pas répondre. ' +
+      'Vérifier la configuration dans Vercel Dashboard (Production/Preview/Development).'
+  );
+} else {
+  console.info('[Chat] ANTHROPIC_API_KEY configurée — chatbot opérationnel');
+}
+
+/**
+ * Create an Anthropic client instance.
+ * @throws if ANTHROPIC_API_KEY is not set
+ */
 function getAnthropicClient(): Anthropic {
   if (!ANTHROPIC_API_KEY) {
     throw new Error('ANTHROPIC_API_KEY is not configured');
@@ -138,12 +151,15 @@ function sanitizeMessageHistory(
 
 /**
  * POST /api/chat
- * Handle chat messages with Claude
+ * Handle chat messages with Claude.
+ * Logging structuré pour diagnostic Vercel.
  */
 export async function POST(request: Request) {
+  const requestStartTime = Date.now();
+
   // Check API key availability early
   if (!ANTHROPIC_API_KEY) {
-    console.error('[Chat] ANTHROPIC_API_KEY is not configured');
+    console.error('[Chat] ERREUR CRITIQUE : ANTHROPIC_API_KEY manquante — HTTP 503');
     return NextResponse.json(
       {
         error: 'service_unavailable',
@@ -306,7 +322,13 @@ export async function POST(request: Request) {
       ? response.usage.input_tokens + response.usage.output_tokens
       : undefined;
   } catch (apiError) {
-    console.error('[Chat] Anthropic API error:', apiError);
+    const errorMessage = apiError instanceof Error ? apiError.message : String(apiError);
+    console.error(
+      `[Chat] Anthropic API error: ${errorMessage}`,
+      apiError instanceof Error && 'status' in apiError
+        ? `(HTTP ${(apiError as Error & { status: number }).status})`
+        : ''
+    );
     processingTime = 0;
 
     // CRITICAL FIX: Store a fallback assistant message in DB to maintain message alternation.
@@ -398,6 +420,12 @@ export async function POST(request: Request) {
     // Non-fatal: response was generated successfully, just DB storage failed
     console.error('[Chat] Database error (store assistant message):', dbError);
   }
+
+  const totalDuration = Date.now() - requestStartTime;
+  console.info(
+    `[Chat] OK — ${totalDuration}ms total, ${processingTime}ms API, ` +
+      `${tokensUsed ?? '?'} tokens, conversation=${conversationId}`
+  );
 
   return NextResponse.json({
     message: responseText,
