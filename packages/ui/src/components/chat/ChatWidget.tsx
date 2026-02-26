@@ -149,7 +149,7 @@ export function ChatWidget({
           },
           body: JSON.stringify({
             message: content.trim(),
-            conversationId,
+            conversationId: conversationId ?? undefined,
             sessionId,
             context: {
               siteName,
