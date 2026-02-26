@@ -83,7 +83,7 @@ export function HeroSection() {
           className="bg-night/40 flex flex-col items-center justify-center"
         >
           <motion.svg
-            initial={hasMounted ? { scale: 0.5, rotate: -360 } : { scale: 1, rotate: 0 }}
+            initial={hasMounted ? { scale: 0.25, rotate: -360 } : { scale: 0.75, rotate: 0 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={hasMounted ? { duration: 2.2, ease: 'easeOut' } : { duration: 0 }}
             width="100"
