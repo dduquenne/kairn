@@ -36,7 +36,7 @@ import {
 // Types
 export interface SocialPost {
   id: string;
-  platform: 'instagram' | 'facebook' | 'linkedin' | 'twitter' | 'tiktok';
+  platform: 'instagram' | 'facebook' | 'linkedin' | 'twitter' | 'threads';
   type: 'image' | 'video' | 'carousel' | 'story' | 'reel' | 'text';
   content: string;
   publishedAt: string;
@@ -52,7 +52,7 @@ export interface SocialPost {
 
 export interface PlatformStats {
   platform: string;
-  icon: 'instagram' | 'facebook' | 'linkedin' | 'twitter' | 'tiktok';
+  icon: 'instagram' | 'facebook' | 'linkedin' | 'twitter' | 'threads';
   followers: number;
   followersChange: number;
   posts: number;
@@ -93,6 +93,10 @@ export interface PostsPanelData {
   engagementRateChange: number;
   totalFollowers: number;
   followersChange: number;
+  totalLikes: number;
+  totalComments: number;
+  totalShares: number;
+  totalSaves: number;
   platforms: PlatformStats[];
   topPosts: SocialPost[];
   postTypes: PostTypeStats[];
@@ -144,7 +148,7 @@ const PlatformIcon = ({
           <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
         </svg>
       );
-    case 'tiktok':
+    case 'threads':
       return (
         <svg
           viewBox="0 0 24 24"
@@ -153,7 +157,7 @@ const PlatformIcon = ({
           className={className}
           fill="currentColor"
         >
-          <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.33 6.33 0 005 20.1a6.34 6.34 0 0010.86-4.43v-7a8.16 8.16 0 004.77 1.52v-3.4a4.85 4.85 0 01-1-.1z" />
+          <path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017C1.5 8.418 2.35 5.564 3.995 3.516 5.845 1.205 8.598.024 12.179 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.96-.065-1.187.408-2.26 1.33-3.017.88-.724 2.107-1.127 3.461-1.137.96-.007 1.83.137 2.594.432 0-.497-.016-.949-.048-1.357h2.044c.105 1.028.105 2.201.043 3.08.397.202.783.42 1.217.606 1.06.587 1.886 1.416 2.378 2.445.716 1.502.813 4.157-1.248 6.173-1.794 1.755-4.02 2.545-7.205 2.57z" />
         </svg>
       );
     default:
@@ -186,7 +190,7 @@ const platformColors: Record<string, string> = {
   facebook: '#1877F2',
   linkedin: '#0A66C2',
   twitter: '#1DA1F2',
-  tiktok: '#000000',
+  threads: '#000000',
 };
 
 // Custom tooltip for charts
@@ -867,7 +871,7 @@ export function PostsPanel({ data, isLoading = false }: PostsPanelProps) {
             {[
               {
                 label: "J'aime",
-                value: data?.topPosts?.reduce((sum, p) => sum + p.likes, 0) || 0,
+                value: data?.totalLikes ?? 0,
                 icon: Heart,
                 color: 'text-pink-400',
                 bgColor: 'bg-pink-500/10',
@@ -875,7 +879,7 @@ export function PostsPanel({ data, isLoading = false }: PostsPanelProps) {
               },
               {
                 label: 'Commentaires',
-                value: data?.topPosts?.reduce((sum, p) => sum + p.comments, 0) || 0,
+                value: data?.totalComments ?? 0,
                 icon: MessageCircle,
                 color: 'text-blue-400',
                 bgColor: 'bg-blue-500/10',
@@ -883,7 +887,7 @@ export function PostsPanel({ data, isLoading = false }: PostsPanelProps) {
               },
               {
                 label: 'Partages',
-                value: data?.topPosts?.reduce((sum, p) => sum + p.shares, 0) || 0,
+                value: data?.totalShares ?? 0,
                 icon: Repeat2,
                 color: 'text-green-400',
                 bgColor: 'bg-green-500/10',
@@ -891,7 +895,7 @@ export function PostsPanel({ data, isLoading = false }: PostsPanelProps) {
               },
               {
                 label: 'Enregistrements',
-                value: data?.topPosts?.reduce((sum, p) => sum + (p.saves || 0), 0) || 0,
+                value: data?.totalSaves ?? 0,
                 icon: Calendar,
                 color: 'text-purple-400',
                 bgColor: 'bg-purple-500/10',

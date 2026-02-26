@@ -235,7 +235,7 @@ export function GeoPage({
                 <section
                   className={`border-${border}/10 bg-${background}/30 rounded-2xl border p-6`}
                 >
-                  <h3 className="font-display mb-4 text-xl font-semibold">Why choose us?</h3>
+                  <h3 className="font-display mb-4 text-xl font-semibold">Pourquoi consulter ?</h3>
                   <ul className="grid gap-3 sm:grid-cols-2">
                     {benefits.map((benefit, index) => (
                       <li key={index} className="flex items-start gap-3">

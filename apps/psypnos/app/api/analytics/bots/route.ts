@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - BotVisit model not available in Kairn schema
 /**
  * Bot Analytics API
  *
@@ -154,7 +151,8 @@ export async function GET(request: NextRequest): Promise<Response> {
     // Calculate summary stats
     const uniqueBots = new Set(visits.map(v => v.botName)).size;
     const uniquePages = new Set(visits.map(v => v.page)).size;
-    const lastVisit = visits.length > 0 ? visits[0].timestamp.toISOString() : null;
+    const lastVisit =
+      visits.length > 0 ? (visits[0] as BotVisitRecord).timestamp.toISOString() : null;
 
     // Group by bot type
     const byTypeMap = new Map<string, number>();
@@ -173,11 +171,15 @@ export async function GET(request: NextRequest): Promise<Response> {
       .sort((a, b) => b.count - a.count);
 
     // Group by bot name
-    const byBotMap = new Map<string, { type: string; count: number; lastVisit: Date }>();
+    const byBotMap = new Map<
+      string,
+      { type: string; count: number; lastVisit: Date; pages: Set<string> }
+    >();
     visits.forEach(v => {
       const existing = byBotMap.get(v.botName);
       if (existing) {
         existing.count++;
+        existing.pages.add(v.page);
         if (v.timestamp > existing.lastVisit) {
           existing.lastVisit = v.timestamp;
         }
@@ -186,6 +188,7 @@ export async function GET(request: NextRequest): Promise<Response> {
           type: v.botType,
           count: 1,
           lastVisit: v.timestamp,
+          pages: new Set([v.page]),
         });
       }
     });
@@ -196,19 +199,32 @@ export async function GET(request: NextRequest): Promise<Response> {
         type: data.type,
         count: data.count,
         lastVisit: data.lastVisit.toISOString(),
+        pages: data.pages.size,
       }))
       .sort((a, b) => b.count - a.count)
       .slice(0, 20);
 
     // Group by page
-    const byPageMap = new Map<string, { visits: number; bots: Set<string> }>();
+    const byPageMap = new Map<
+      string,
+      { visits: number; bots: Set<string>; botTypes: Set<string>; lastCrawled: Date }
+    >();
     visits.forEach(v => {
       const existing = byPageMap.get(v.page);
       if (existing) {
         existing.visits++;
         existing.bots.add(v.botName);
+        existing.botTypes.add(v.botType);
+        if (v.timestamp > existing.lastCrawled) {
+          existing.lastCrawled = v.timestamp;
+        }
       } else {
-        byPageMap.set(v.page, { visits: 1, bots: new Set([v.botName]) });
+        byPageMap.set(v.page, {
+          visits: 1,
+          bots: new Set([v.botName]),
+          botTypes: new Set([v.botType]),
+          lastCrawled: v.timestamp,
+        });
       }
     });
 
@@ -217,6 +233,8 @@ export async function GET(request: NextRequest): Promise<Response> {
         page,
         visits: data.visits,
         uniqueBots: data.bots.size,
+        lastCrawled: data.lastCrawled.toISOString(),
+        botTypes: Array.from(data.botTypes),
       }))
       .sort((a, b) => b.visits - a.visits)
       .slice(0, 20);
@@ -235,7 +253,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     >();
 
     visits.forEach(v => {
-      const dateKey = v.timestamp.toISOString().split('T')[0];
+      const dateKey = v.timestamp.toISOString().split('T')[0] ?? '';
       const existing = timelineMap.get(dateKey) || {
         count: 0,
         searchEngine: 0,

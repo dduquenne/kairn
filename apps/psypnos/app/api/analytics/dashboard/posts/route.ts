@@ -152,6 +152,10 @@ export async function GET(request: NextRequest) {
       engagementRateChange: comparison.engagementRateChange,
       totalFollowers: platforms.reduce((sum, p) => sum + p.followers, 0),
       followersChange: platforms.reduce((sum, p) => sum + p.followersChange, 0),
+      totalLikes: stats.totalLikes,
+      totalComments: stats.totalComments,
+      totalShares: stats.totalShares,
+      totalSaves: stats.totalSaves,
       platforms,
       topPosts: formattedTopPosts,
       postTypes: postTypes.map(pt => ({

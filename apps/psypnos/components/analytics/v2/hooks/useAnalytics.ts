@@ -101,7 +101,7 @@ interface BotVisit {
 
 interface BotType {
   name: string;
-  type: 'search_engine' | 'social' | 'seo_tool' | 'monitoring' | 'other';
+  type: 'search_engine' | 'social' | 'seo_tool' | 'monitor' | 'other';
   visits: number;
   lastSeen: string;
   pages: number;
@@ -174,7 +174,7 @@ interface BlogPanelData {
 // Posts Panel Types (Social Media)
 interface SocialPost {
   id: string;
-  platform: 'instagram' | 'facebook' | 'linkedin' | 'twitter' | 'tiktok';
+  platform: 'instagram' | 'facebook' | 'linkedin' | 'twitter' | 'threads';
   type: 'image' | 'video' | 'carousel' | 'story' | 'reel' | 'text';
   content: string;
   publishedAt: string;
@@ -189,7 +189,7 @@ interface SocialPost {
 
 interface PlatformStats {
   platform: string;
-  icon: 'instagram' | 'facebook' | 'linkedin' | 'twitter' | 'tiktok';
+  icon: 'instagram' | 'facebook' | 'linkedin' | 'twitter' | 'threads';
   followers: number;
   followersChange: number;
   posts: number;
@@ -230,6 +230,10 @@ interface PostsPanelData {
   engagementRateChange: number;
   totalFollowers: number;
   followersChange: number;
+  totalLikes: number;
+  totalComments: number;
+  totalShares: number;
+  totalSaves: number;
   platforms: PlatformStats[];
   topPosts: SocialPost[];
   postTypes: PostTypeStats[];
@@ -480,7 +484,7 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       const blogFaqData = dashboardData.blogFaqData || { summary: {}, clicks: [] };
 
       const botsData =
-        botsRes && botsRes.ok ? await botsRes.json() : { bots: [], timeline: [], pages: [] };
+        botsRes && botsRes.ok ? await botsRes.json() : { byBot: [], timeline: [], byPage: [] };
 
       // Social media posts data — null if API fails (graceful degradation)
       const postsData: PostsPanelData | null =
@@ -509,11 +513,21 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       trafficSources.forEach((source: any) => {
         const medium = source.medium?.toLowerCase() || '';
         const sourceName = source.source?.toLowerCase() || '';
-        if (medium === 'direct' || medium === '(none)' || medium === 'none' || (medium === '' && sourceName === 'direct')) {
+        if (
+          medium === 'direct' ||
+          medium === '(none)' ||
+          medium === 'none' ||
+          (medium === '' && sourceName === 'direct')
+        ) {
           directTraffic += source.visits || 0;
         } else if (medium === 'organic') {
           organicTraffic += source.visits || 0;
-        } else if (medium === 'referral' || medium === 'email' || medium === 'cpc' || medium === 'cpm') {
+        } else if (
+          medium === 'referral' ||
+          medium === 'email' ||
+          medium === 'cpc' ||
+          medium === 'cpm'
+        ) {
           referralTraffic += source.visits || 0;
         } else if (medium === 'social') {
           socialTraffic += source.visits || 0;
@@ -654,11 +668,11 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       }));
 
       // Build bot data
-      const botTypes: BotType[] = (botsData.bots || []).map((bot: any) => ({
+      const botTypes: BotType[] = (botsData.byBot || []).map((bot: any) => ({
         name: bot.name || 'Unknown',
         type: bot.type || 'other',
-        visits: bot.visits || 0,
-        lastSeen: bot.lastSeen || new Date().toISOString(),
+        visits: bot.count || 0,
+        lastSeen: bot.lastVisit || new Date().toISOString(),
         pages: bot.pages || 0,
       }));
 
@@ -679,9 +693,9 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
         };
       });
 
-      const crawledPages: CrawledPage[] = (botsData.pages || []).map((p: any) => ({
-        path: p.path || '',
-        crawlCount: p.crawlCount || 0,
+      const crawledPages: CrawledPage[] = (botsData.byPage || []).map((p: any) => ({
+        path: p.page || '',
+        crawlCount: p.visits || 0,
         lastCrawled: p.lastCrawled || new Date().toISOString(),
         botTypes: p.botTypes || [],
       }));
@@ -806,9 +820,10 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
         organicTraffic,
         referralTraffic,
         socialTraffic,
-        totalBotVisits: botTypes.reduce((sum, b) => sum + b.visits, 0),
-        uniqueBots: botTypes.length,
-        crawledPages: crawledPages.length,
+        totalBotVisits:
+          botsData.summary?.totalVisits ?? botTypes.reduce((sum, b) => sum + b.visits, 0),
+        uniqueBots: botsData.summary?.uniqueBots ?? botTypes.length,
+        crawledPages: botsData.summary?.uniquePages ?? crawledPages.length,
         avgCrawlRate:
           botTimeline.length > 0
             ? botTimeline.reduce((sum, t) => sum + t.visits, 0) / botTimeline.length
