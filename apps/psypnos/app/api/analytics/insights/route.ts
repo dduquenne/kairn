@@ -76,6 +76,10 @@ interface AnalyticsComparison {
  * Analyzes trends, anomalies, and provides actionable recommendations
  */
 export async function GET(request: NextRequest) {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return Response.json({ error: 'ANTHROPIC_API_KEY non configurée' }, { status: 500 });
+  }
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const timeRange = (searchParams.get('timeRange') || 'week') as
