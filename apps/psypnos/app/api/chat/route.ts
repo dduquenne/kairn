@@ -199,6 +199,10 @@ export async function POST(request: Request) {
 
   const parsed = chatRequestSchema.safeParse(body);
   if (!parsed.success) {
+    console.warn(
+      '[Chat] Validation échouée:',
+      parsed.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join(', ')
+    );
     return NextResponse.json(
       { error: 'validation_error', message: 'Message invalide' },
       { status: 400 }
