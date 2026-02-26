@@ -200,7 +200,17 @@ export function EngagementPanel({
                     }
                   />
                   <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="avgTime" radius={[0, 4, 4, 0]} maxBarSize={30}>
+                  <Bar
+                    dataKey="avgTime"
+                    radius={[0, 4, 4, 0]}
+                    maxBarSize={30}
+                    activeBar={{
+                      fill: "#E5C158",
+                      stroke: "rgba(212,175,55,0.4)",
+                      strokeWidth: 1.5,
+                      fillOpacity: 0.9,
+                    }}
+                  >
                     {sectionEngagement.slice(0, 6).map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}

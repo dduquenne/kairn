@@ -168,11 +168,7 @@ export function BarChart({
             fill={color}
             radius={finalRadius}
             animationDuration={chartTheme.animation.duration}
-            activeBar={{
-              fill: "#E5C158",
-              stroke: "#F5F1E6",
-              strokeWidth: 1,
-            }}
+            activeBar={chartTheme.activeBar}
           >
             {colorPerBar &&
               chartData.map((entry, index) => (

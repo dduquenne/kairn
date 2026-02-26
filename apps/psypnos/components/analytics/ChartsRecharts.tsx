@@ -280,8 +280,9 @@ export function BarChart({
             animationDuration={800}
             activeBar={{
               fill: "#E5C158",
-              stroke: "#F5F1E6",
-              strokeWidth: 1,
+              stroke: "rgba(212,175,55,0.4)",
+              strokeWidth: 1.5,
+              fillOpacity: 0.9,
             }}
           />
         </RechartsBarChart>

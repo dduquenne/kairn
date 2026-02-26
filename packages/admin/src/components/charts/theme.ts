@@ -60,6 +60,13 @@ export const chartTheme = {
       strokeWidth: 2,
     },
   },
+  // Active bar (hover state)
+  activeBar: {
+    fill: "#E5C158",
+    stroke: "rgba(212,175,55,0.4)",
+    strokeWidth: 1.5,
+    fillOpacity: 0.9,
+  },
   // Animations
   animation: {
     duration: 800,

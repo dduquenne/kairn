@@ -47,6 +47,12 @@ export function MobileBarChart({ data, color = "#C9A961", height = 200 }: Mobile
           dataKey="value"
           fill={color}
           radius={[4, 4, 0, 0]}
+          activeBar={{
+            fill: "#E5C158",
+            stroke: "rgba(212,175,55,0.4)",
+            strokeWidth: 1.5,
+            fillOpacity: 0.9,
+          }}
         />
       </BarChart>
     </ResponsiveContainer>
