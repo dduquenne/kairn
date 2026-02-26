@@ -20,6 +20,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
+import { withAdminAuth } from '../../auth/middleware';
 import {
   generateArticleMultiStep,
   type GenerationStep,
@@ -71,6 +72,9 @@ function encodeSSE(event: string, data: unknown): string {
  * 2. Mode streaming (useStreaming: true): Utilise SSE pour les mises à jour en temps réel
  */
 export async function POST(request: NextRequest) {
+  const authResult = await withAdminAuth();
+  if (authResult.error) return authResult.error;
+
   let payload: GenerateArticlePayload;
 
   try {
