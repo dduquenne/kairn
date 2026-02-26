@@ -25,9 +25,7 @@ Tu disposes de connecteurs **MCP (Model Context Protocol)** configurés dans
 `.mcp.json`. Utilise-les activement pour investiguer et diagnostiquer :
 
 ### Supabase (base de données PostgreSQL)
-Deux projets connectés :
 - **`supabase-kairn`** — projet principal Kairn
-- **`supabase-psypnos`** — projet Psypnos
 
 Via le MCP Supabase tu peux :
 - Lister les tables, colonnes et relations (schema introspection)
