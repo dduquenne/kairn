@@ -121,7 +121,7 @@ export function HeroSection() {
               y="50%"
               fill="#E5C78E"
               textAnchor="middle"
-              fontFamily="Georgia,Times,serif"
+              fontFamily="'Playfair Display',serif"
               fontSize="180"
               fontWeight="bold"
             >
