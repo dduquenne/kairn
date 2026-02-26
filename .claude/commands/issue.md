@@ -4,7 +4,7 @@ description: Corriger un problème (saisie libre), lister les issues GitHub ou r
 disable-model-invocation: true
 user-invocable: true
 allowed-tools: Read, Grep, Glob, Bash, Edit, Write, Task, TodoWrite, AskUserQuestion
-argument-hint: "#numéro | list | (vide)"
+argument-hint: "[continue] #numéro [#numéro...] | list | (vide)"
 ---
 
 ## LANGUE
@@ -122,16 +122,19 @@ Plateforme SaaS multi-tenant pour praticiens bien-être.
 
 ## ROUTAGE DE LA COMMANDE
 
-La commande `/issue` fonctionne selon trois modes :
+La commande `/issue` fonctionne selon les modes suivants :
 
 | Invocation | Mode | Comportement |
 |---|---|---|
 | `/issue` | Saisie libre | Demande une description du problème à l'utilisateur |
 | `/issue list` | Liste | Affiche les issues GitHub ouvertes |
 | `/issue #N` | Issue spécifique | Récupère et traite l'issue GitHub #N |
+| `/issue continue #N` | Issue spécifique (continu) | Traite l'issue #N sans interaction utilisateur |
+| `/issue #N1 #N2 ...` | Issues multiples | Traite les issues dans l'ordre indiqué |
+| `/issue continue #N1 #N2 ...` | Issues multiples (continu) | Traite toutes les issues sans interaction |
 
 ### Données récupérées :
-!`ARG=$(echo "$ARGUMENTS" | xargs 2>/dev/null || echo ""); if [ -z "$ARG" ]; then echo "MODE: SAISIE_LIBRE"; elif [ "$ARG" = "list" ]; then echo "MODE: LISTE_ISSUES"; REPO=$(git remote get-url origin | sed 's|\.git$||' | awk -F'[/:]' '{print $(NF-1)"/"$NF}'); curl -sf -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$REPO/issues?state=open&per_page=30" | jq -r '.[] | "| #\(.number) | \(.title) | \([.labels[].name] | join(", ")) | \(.created_at[:10]) |"'; else echo "MODE: ISSUE_SPECIFIQUE"; ISSUE_NUM=$(echo "$ARG" | tr -d '# '); REPO=$(git remote get-url origin | sed 's|\.git$||' | awk -F'[/:]' '{print $(NF-1)"/"$NF}'); curl -sf -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$REPO/issues/$ISSUE_NUM"; fi`
+!`ARG=$(echo "$ARGUMENTS" | xargs 2>/dev/null || echo ""); CONTINUE=false; if echo "$ARG" | grep -qiw 'continue'; then CONTINUE=true; ARG=$(echo "$ARG" | sed 's/[Cc][Oo][Nn][Tt][Ii][Nn][Uu][Ee]//g' | xargs 2>/dev/null || echo ""); fi; if [ -z "$ARG" ]; then echo "MODE: SAISIE_LIBRE"; echo "CONTINUE: $CONTINUE"; elif [ "$ARG" = "list" ]; then echo "MODE: LISTE_ISSUES"; REPO=$(git remote get-url origin | sed 's|\.git$||' | awk -F'[/:]' '{print $(NF-1)"/"$NF}'); curl -sf -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$REPO/issues?state=open&per_page=30" | jq -r '.[] | "| #\(.number) | \(.title) | \([.labels[].name] | join(", ")) | \(.created_at[:10]) |"'; else ISSUES=$(echo "$ARG" | grep -oE '[0-9]+'); REPO=$(git remote get-url origin | sed 's|\.git$||' | awk -F'[/:]' '{print $(NF-1)"/"$NF}'); SECOND=$(echo "$ISSUES" | sed -n '2p'); if [ -n "$SECOND" ]; then echo "MODE: ISSUES_MULTIPLES"; echo "CONTINUE: $CONTINUE"; for NUM in $ISSUES; do echo ""; echo "=== ISSUE #$NUM ==="; curl -sf -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$REPO/issues/$NUM"; done; else echo "MODE: ISSUE_SPECIFIQUE"; echo "CONTINUE: $CONTINUE"; ISSUE_NUM=$(echo "$ISSUES" | head -1); curl -sf -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$REPO/issues/$ISSUE_NUM"; fi; fi`
 
 ### Instructions selon le mode détecté :
 
@@ -149,6 +152,22 @@ La commande `/issue` fonctionne selon trois modes :
 **MODE: ISSUE_SPECIFIQUE**
 → Suis les **étapes 1 à 6** avec l'issue GitHub récupérée ci-dessus
   comme problème à résoudre.
+
+**MODE: ISSUES_MULTIPLES**
+→ Pour chaque issue récupérée ci-dessus, **dans l'ordre indiqué** :
+  suis les **étapes 1 à 6** complètes avant de passer à l'issue suivante.
+→ Affiche un séparateur clair entre chaque issue traitée
+  (ex. `--- Traitement de l'issue #N ---`).
+
+### Comportement du mode `CONTINUE` (`CONTINUE: true`)
+
+Applicable à tous les modes sauf `LISTE_ISSUES` :
+→ **Saute les points d'arrêt** (`STOP`) aux étapes 1 et 2.
+→ À l'étape 2, **sélectionne automatiquement l'approche préconisée**
+  (première option proposée) sans attendre la validation de l'utilisateur.
+→ Enchaîne directement les étapes 1 → 2 → 3 → 4 → 5 → 6 sans interaction.
+→ En mode `ISSUES_MULTIPLES`, le paramètre `continue` s'applique à
+  **toutes** les issues de la liste.
 
 ---
 
@@ -175,7 +194,10 @@ La commande `/issue` fonctionne selon trois modes :
    - Utiliser `curl` + API GitHub (`/commits/<sha>/check-runs`,
      `/actions/runs`) pour consulter les logs d'exécution et identifier
      les étapes en échec
-7. **STOP** — Résume ce que tu as lu et attends ma confirmation
+7. Si `CONTINUE: false` : **STOP** — Résume ce que tu as lu et attends
+   ma confirmation.
+   Si `CONTINUE: true` : résume brièvement ce que tu as lu puis passe
+   directement à l'étape 2.
 
 ## ÉTAPE 2 — ANALYSE (après confirmation de lecture)
 1. Cause racine (pas le symptôme)
@@ -197,7 +219,10 @@ La commande `/issue` fonctionne selon trois modes :
    - Index manquants causant des lenteurs (timeout Serverless) ?
 6. 2 ou 3 approches de correction avec trade-offs
    (performance / maintenabilité / sécurité / compatibilité Vercel)
-7. **STOP** — Présente les options et attends mon choix
+7. Si `CONTINUE: false` : **STOP** — Présente les options et attends
+   mon choix.
+   Si `CONTINUE: true` : sélectionne l'approche préconisée (première
+   option) et passe directement à l'étape 3.
 
 ## ÉTAPE 3 — IMPLÉMENTATION (après validation de l'approche)
 
