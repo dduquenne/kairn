@@ -16,10 +16,10 @@
  * Security: QStash signature or CRON_SECRET
  */
 
-import { verifyCronAuth } from "@kairn/core/scheduler";
-import { NextRequest, NextResponse } from "next/server";
+import { verifyCronAuth } from '@kairn/core/scheduler';
+import { NextRequest, NextResponse } from 'next/server';
 
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from '@/lib/db/prisma';
 
 // Configuration
 const ORPHAN_TIMEOUT_MINUTES = 30;
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
   // Verify authentication (QStash signature or CRON_SECRET)
   const authResult = await verifyCronAuth(request);
   if (!authResult.valid) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const startTime = Date.now();
@@ -46,13 +46,13 @@ export async function GET(request: NextRequest) {
 
     const orphanedJobs = await prisma.blogGenerationJob.updateMany({
       where: {
-        status: "PROCESSING",
+        status: 'PROCESSING',
         startedAt: {
           lt: orphanCutoff,
         },
       },
       data: {
-        status: "FAILED",
+        status: 'FAILED',
         error: `Job orphelin - timeout après ${ORPHAN_TIMEOUT_MINUTES} minutes sans activité`,
         completedAt: new Date(),
       },
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
     const deletedJobs = await prisma.blogGenerationJob.deleteMany({
       where: {
         status: {
-          in: ["COMPLETED", "FAILED"],
+          in: ['COMPLETED', 'FAILED'],
         },
         completedAt: {
           lt: retentionCutoff,
@@ -79,7 +79,9 @@ export async function GET(request: NextRequest) {
     results.deletedJobs = deletedJobs.count;
 
     if (deletedJobs.count > 0) {
-      console.log(`[Cron:cleanup-jobs] ${deletedJobs.count} vieux jobs supprimés (>${RETENTION_DAYS} jours)`);
+      console.log(
+        `[Cron:cleanup-jobs] ${deletedJobs.count} vieux jobs supprimés (>${RETENTION_DAYS} jours)`
+      );
     }
 
     // 3. Supprimer les anciens logs de génération sociale
@@ -95,26 +97,31 @@ export async function GET(request: NextRequest) {
     results.deletedSocialLogs = deletedSocialLogs.count;
 
     if (deletedSocialLogs.count > 0) {
-      console.log(`[Cron:cleanup-jobs] ${deletedSocialLogs.count} logs de génération sociale supprimés (>${SOCIAL_LOG_RETENTION_DAYS} jours)`);
+      console.log(
+        `[Cron:cleanup-jobs] ${deletedSocialLogs.count} logs de génération sociale supprimés (>${SOCIAL_LOG_RETENTION_DAYS} jours)`
+      );
     }
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
 
     return NextResponse.json({
       success: true,
-      message: "Nettoyage des jobs terminé",
+      message: 'Nettoyage des jobs terminé',
       duration: `${duration}s`,
       processed: orphanedJobs.count + deletedJobs.count + deletedSocialLogs.count,
       results,
     });
   } catch (error) {
-    console.error("[Cron:cleanup-jobs] Erreur:", error);
+    console.error('[Cron:cleanup-jobs] Erreur:', error);
     return NextResponse.json(
       {
-        error: "Cleanup failed",
-        message: error instanceof Error ? error.message : "Unknown error",
+        error: 'Cleanup failed',
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
   }
 }
+
+// Accepter aussi POST car QStash envoie POST par défaut
+export { GET as POST };

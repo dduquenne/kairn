@@ -160,6 +160,7 @@ async function main() {
         destination,
         cron,
         retries: 3,
+        method: 'GET',
       });
 
       results.push({

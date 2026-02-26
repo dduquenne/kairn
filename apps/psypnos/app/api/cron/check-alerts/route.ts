@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
-import { verifyCronAuth } from "@kairn/core/scheduler";
-import { NextRequest, NextResponse } from "next/server";
+import { verifyCronAuth } from '@kairn/core/scheduler';
+import { NextRequest, NextResponse } from 'next/server';
 
 import {
   getAlerts,
@@ -12,9 +12,9 @@ import {
   addAlertHistory,
   type Alert,
   type AlertHistory,
-} from "../../analytics/store-index";
+} from '../../analytics/store-index';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 // GET - Check all enabled alerts (called by QStash)
 export async function GET(request: NextRequest) {
@@ -22,10 +22,7 @@ export async function GET(request: NextRequest) {
     // Verify authentication (QStash signature or CRON_SECRET)
     const authResult = await verifyCronAuth(request);
     if (!authResult.valid) {
-      return NextResponse.json(
-        { error: "Non autorise" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Non autorise' }, { status: 401 });
     }
 
     const alerts = await getAlerts(true); // Get only enabled alerts
@@ -66,7 +63,7 @@ export async function GET(request: NextRequest) {
           const notificationResults = await sendAlertNotifications(normalizedAlert, currentValue);
 
           // Record in history
-          const historyEntry: Omit<AlertHistory, "id"> = {
+          const historyEntry: Omit<AlertHistory, 'id'> = {
             alertId: normalizedAlert.id,
             alertName: normalizedAlert.name,
             triggeredAt: new Date().toISOString(),
@@ -106,12 +103,12 @@ export async function GET(request: NextRequest) {
           alertId: alert.id,
           alertName: alert.name,
           triggered: false,
-          error: error instanceof Error ? error.message : "Erreur inconnue",
+          error: error instanceof Error ? error.message : 'Erreur inconnue',
         });
       }
     }
 
-    const triggeredCount = results.filter((r) => r.triggered).length;
+    const triggeredCount = results.filter(r => r.triggered).length;
 
     return NextResponse.json({
       checked: alerts.length,
@@ -120,9 +117,9 @@ export async function GET(request: NextRequest) {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("Error checking alerts:", error);
+    console.error('Error checking alerts:', error);
     return NextResponse.json(
-      { error: "Erreur lors de la verification des alertes" },
+      { error: 'Erreur lors de la verification des alertes' },
       { status: 500 }
     );
   }
@@ -131,26 +128,26 @@ export async function GET(request: NextRequest) {
 // Generate alert message
 function generateAlertMessage(alert: Alert, currentValue: number): string {
   const metricLabels: Record<string, string> = {
-    visits: "visites",
-    sessions: "sessions",
-    conversions: "conversions",
-    conversion_rate: "taux de conversion",
-    avg_time: "temps moyen (secondes)",
-    bounce_rate: "taux de rebond",
+    visits: 'visites',
+    sessions: 'sessions',
+    conversions: 'conversions',
+    conversion_rate: 'taux de conversion',
+    avg_time: 'temps moyen (secondes)',
+    bounce_rate: 'taux de rebond',
   };
 
   const conditionLabels: Record<string, string> = {
-    greater_than: "superieur a",
-    less_than: "inferieur a",
-    equals: "egal a",
-    change_percent: "varie de plus de",
+    greater_than: 'superieur a',
+    less_than: 'inferieur a',
+    equals: 'egal a',
+    change_percent: 'varie de plus de',
   };
 
   const timeWindowLabels: Record<string, string> = {
-    hour: "derniere heure",
-    day: "dernieres 24h",
-    week: "derniere semaine",
-    month: "dernier mois",
+    hour: 'derniere heure',
+    day: 'dernieres 24h',
+    week: 'derniere semaine',
+    month: 'dernier mois',
   };
 
   const metric = metricLabels[alert.metric] || alert.metric;
@@ -158,9 +155,9 @@ function generateAlertMessage(alert: Alert, currentValue: number): string {
   const timeWindow = timeWindowLabels[alert.timeWindow] || alert.timeWindow;
 
   let thresholdDisplay = alert.threshold.toString();
-  if (alert.condition === "change_percent") {
+  if (alert.condition === 'change_percent') {
     thresholdDisplay = `${alert.threshold}%`;
-  } else if (alert.metric === "conversion_rate" || alert.metric === "bounce_rate") {
+  } else if (alert.metric === 'conversion_rate' || alert.metric === 'bounce_rate') {
     thresholdDisplay = `${alert.threshold}%`;
   }
 
@@ -178,32 +175,32 @@ async function sendAlertNotifications(
   for (const channel of alert.channels) {
     try {
       switch (channel) {
-        case "email":
+        case 'email':
           if (alert.emailRecipients && alert.emailRecipients.length > 0) {
             await sendEmailNotification(alert.emailRecipients, alert.name, message);
-            results.push({ channel: "email", success: true });
+            results.push({ channel: 'email', success: true });
           } else {
-            results.push({ channel: "email", success: false, error: "Pas de destinataires" });
+            results.push({ channel: 'email', success: false, error: 'Pas de destinataires' });
           }
           break;
 
-        case "webhook":
+        case 'webhook':
           if (alert.webhookUrl) {
             await sendWebhookNotification(alert.webhookUrl, alert, currentValue, message);
-            results.push({ channel: "webhook", success: true });
+            results.push({ channel: 'webhook', success: true });
           } else {
-            results.push({ channel: "webhook", success: false, error: "Pas d'URL webhook" });
+            results.push({ channel: 'webhook', success: false, error: "Pas d'URL webhook" });
           }
           break;
 
         default:
-          results.push({ channel, success: false, error: "Canal non supporte" });
+          results.push({ channel, success: false, error: 'Canal non supporte' });
       }
     } catch (error) {
       results.push({
         channel,
         success: false,
-        error: error instanceof Error ? error.message : "Erreur inconnue",
+        error: error instanceof Error ? error.message : 'Erreur inconnue',
       });
     }
   }
@@ -221,18 +218,18 @@ async function sendEmailNotification(
   const resendApiKey = process.env.RESEND_API_KEY;
 
   if (!resendApiKey) {
-    console.warn("RESEND_API_KEY not configured, skipping email notification");
-    throw new Error("Service email non configure");
+    console.warn('RESEND_API_KEY not configured, skipping email notification');
+    throw new Error('Service email non configure');
   }
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
     headers: {
       Authorization: `Bearer ${resendApiKey}`,
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: process.env.ALERT_EMAIL_FROM || "Psypnos Analytics <analytics@psypnos.fr>",
+      from: process.env.ALERT_EMAIL_FROM || 'Psypnos Analytics <analytics@psypnos.fr>',
       to: recipients,
       subject: `[Alerte] ${alertName} - Psypnos Analytics`,
       html: `
@@ -245,9 +242,9 @@ async function sendEmailNotification(
             <p style="color: #333; font-size: 16px; line-height: 1.6;">${message}</p>
             <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
             <p style="color: #666; font-size: 14px;">
-              Date: ${new Date().toLocaleString("fr-FR", { timeZone: "Europe/Paris" })}
+              Date: ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}
             </p>
-            <a href="${process.env.NEXT_PUBLIC_SITE_URL || "https://psypnos.fr"}/admin/analytics"
+            <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://psypnos.fr'}/admin/analytics"
                style="display: inline-block; padding: 10px 20px; background-color: #D4AF37; color: #1a1a2e; text-decoration: none; border-radius: 5px; margin-top: 15px;">
               Voir le Dashboard
             </a>
@@ -276,7 +273,7 @@ async function sendWebhookNotification(
   message: string
 ): Promise<void> {
   const payload = {
-    type: "alert_triggered",
+    type: 'alert_triggered',
     alert: {
       id: alert.id,
       name: alert.name,
@@ -294,9 +291,9 @@ async function sendWebhookNotification(
   };
 
   const response = await fetch(webhookUrl, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify(payload),
   });
@@ -305,3 +302,6 @@ async function sendWebhookNotification(
     throw new Error(`Webhook returned ${response.status}`);
   }
 }
+
+// Accepter aussi POST car QStash envoie POST par défaut
+export { GET as POST };

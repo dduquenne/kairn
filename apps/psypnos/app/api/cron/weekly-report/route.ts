@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
-import { verifyCronAuth } from "@kairn/core/scheduler";
-import { NextRequest, NextResponse } from "next/server";
+import { verifyCronAuth } from '@kairn/core/scheduler';
+import { NextRequest, NextResponse } from 'next/server';
 
 import {
   getAnalyticsSummary,
@@ -14,9 +14,12 @@ import {
   getAnomalies,
   getScheduledReports,
   updateScheduledReport,
-} from "../../analytics/store-index";
+} from '../../analytics/store-index';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
+
+// Accepter aussi POST car QStash envoie POST par défaut
+export { GET as POST };
 
 // GET - Generate and send weekly reports (called by QStash)
 export async function GET(request: NextRequest) {
@@ -24,14 +27,14 @@ export async function GET(request: NextRequest) {
     // Verify authentication (QStash signature or CRON_SECRET)
     const authResult = await verifyCronAuth(request);
     if (!authResult.valid) {
-      return NextResponse.json({ error: "Non autorise" }, { status: 401 });
+      return NextResponse.json({ error: 'Non autorise' }, { status: 401 });
     }
 
     // Get scheduled reports that need to run
     const reports = await getScheduledReports(true);
     const now = new Date();
-    const weeklyReports = reports.filter((r) => {
-      if (r.frequency !== "weekly") return false;
+    const weeklyReports = reports.filter(r => {
+      if (r.frequency !== 'weekly') return false;
       if (!r.nextScheduled) return true;
       return new Date(r.nextScheduled) <= now;
     });
@@ -52,32 +55,24 @@ export async function GET(request: NextRequest) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const reportData = await generateWeeklyReportData(
-      weekAgo.toISOString(),
-      today.toISOString()
-    );
+    const reportData = await generateWeeklyReportData(weekAgo.toISOString(), today.toISOString());
 
     for (const report of weeklyReports) {
       try {
         // Generate HTML email
-        const emailHtml = generateWeeklyReportEmailHtml(
-          report.name,
-          reportData,
-          weekAgo,
-          today
-        );
+        const emailHtml = generateWeeklyReportEmailHtml(report.name, reportData, weekAgo, today);
 
         // Send email
         await sendReportEmail(
           report.recipients,
-          `Rapport Hebdomadaire - Semaine du ${weekAgo.toLocaleDateString("fr-FR")}`,
+          `Rapport Hebdomadaire - Semaine du ${weekAgo.toLocaleDateString('fr-FR')}`,
           emailHtml
         );
 
         // Update next scheduled time (next week, same day)
         const nextScheduled = new Date();
         nextScheduled.setDate(nextScheduled.getDate() + 7);
-        const [hours, minutes] = report.timeOfDay.split(":").map(Number);
+        const [hours, minutes] = report.timeOfDay.split(':').map(Number);
         nextScheduled.setHours(hours, minutes, 0, 0);
 
         await updateScheduledReport(report.id, {
@@ -98,21 +93,21 @@ export async function GET(request: NextRequest) {
           reportName: report.name,
           sent: false,
           recipients: 0,
-          error: error instanceof Error ? error.message : "Erreur inconnue",
+          error: error instanceof Error ? error.message : 'Erreur inconnue',
         });
       }
     }
 
     return NextResponse.json({
       processed: weeklyReports.length,
-      sent: results.filter((r) => r.sent).length,
+      sent: results.filter(r => r.sent).length,
       results,
       timestamp: now.toISOString(),
     });
   } catch (error) {
-    console.error("Error generating weekly reports:", error);
+    console.error('Error generating weekly reports:', error);
     return NextResponse.json(
-      { error: "Erreur lors de la generation des rapports" },
+      { error: 'Erreur lors de la generation des rapports' },
       { status: 500 }
     );
   }
@@ -120,15 +115,16 @@ export async function GET(request: NextRequest) {
 
 // Generate weekly report data
 async function generateWeeklyReportData(startDate: string, endDate: string) {
-  const [summary, comparison, trafficSources, devices, heatmap, cohorts, anomalies] = await Promise.all([
-    getAnalyticsSummary(startDate, endDate),
-    getAnalyticsSummaryWithComparison("week"),
-    getTrafficSources(startDate, endDate),
-    getDeviceBreakdown(startDate, endDate),
-    getSectionHeatmap(startDate, endDate),
-    getCohortAnalysis("week", startDate, endDate),
-    getAnomalies(startDate, endDate),
-  ]);
+  const [summary, comparison, trafficSources, devices, heatmap, cohorts, anomalies] =
+    await Promise.all([
+      getAnalyticsSummary(startDate, endDate),
+      getAnalyticsSummaryWithComparison('week'),
+      getTrafficSources(startDate, endDate),
+      getDeviceBreakdown(startDate, endDate),
+      getSectionHeatmap(startDate, endDate),
+      getCohortAnalysis('week', startDate, endDate),
+      getAnomalies(startDate, endDate),
+    ]);
 
   return {
     summary,
@@ -148,7 +144,7 @@ function generateWeeklyReportEmailHtml(
   startDate: Date,
   endDate: Date
 ): string {
-  const formatNumber = (n: number) => n.toLocaleString("fr-FR");
+  const formatNumber = (n: number) => n.toLocaleString('fr-FR');
   const formatPercent = (n: number) => `${n.toFixed(1)}%`;
   const formatTime = (ms: number) => {
     const seconds = Math.round(ms / 1000);
@@ -157,8 +153,8 @@ function generateWeeklyReportEmailHtml(
     return `${minutes}m ${remainingSeconds}s`;
   };
 
-  const changeArrow = (change: number) => (change >= 0 ? "↑" : "↓");
-  const changeColor = (change: number) => (change >= 0 ? "#28a745" : "#dc3545");
+  const changeArrow = (change: number) => (change >= 0 ? '↑' : '↓');
+  const changeColor = (change: number) => (change >= 0 ? '#28a745' : '#dc3545');
 
   return `
     <!DOCTYPE html>
@@ -172,7 +168,7 @@ function generateWeeklyReportEmailHtml(
         <h1 style="color: #D4AF37; margin: 0; font-size: 28px;">Psypnos Analytics</h1>
         <p style="color: #fff; margin: 10px 0 0 0; font-size: 16px;">Rapport Hebdomadaire</p>
         <p style="color: #aaa; margin: 5px 0 0 0; font-size: 14px;">
-          ${startDate.toLocaleDateString("fr-FR")} - ${endDate.toLocaleDateString("fr-FR")}
+          ${startDate.toLocaleDateString('fr-FR')} - ${endDate.toLocaleDateString('fr-FR')}
         </p>
       </div>
 
@@ -210,7 +206,9 @@ function generateWeeklyReportEmailHtml(
         </div>
 
         <!-- Conversions Detail -->
-        ${Object.keys(data.summary.conversionByType).length > 0 ? `
+        ${
+          Object.keys(data.summary.conversionByType).length > 0
+            ? `
         <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
           <h2 style="color: #1a1a2e; margin-top: 0;">Performance des Conversions</h2>
           <table style="width: 100%; border-collapse: collapse;">
@@ -223,21 +221,29 @@ function generateWeeklyReportEmailHtml(
               </tr>
             </thead>
             <tbody>
-              ${Object.entries(data.summary.conversionByType).map(([type, conv]) => `
+              ${Object.entries(data.summary.conversionByType)
+                .map(
+                  ([type, conv]) => `
               <tr>
-                <td style="padding: 12px; border-bottom: 1px solid #eee; text-transform: capitalize;">${type.replace(/_/g, " ")}</td>
+                <td style="padding: 12px; border-bottom: 1px solid #eee; text-transform: capitalize;">${type.replace(/_/g, ' ')}</td>
                 <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee;">${formatNumber(conv.clicks)}</td>
                 <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee; font-weight: bold;">${formatNumber(conv.completed)}</td>
                 <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee; color: #D4AF37; font-weight: bold;">${formatPercent(conv.rate)}</td>
               </tr>
-              `).join("")}
+              `
+                )
+                .join('')}
             </tbody>
           </table>
         </div>
-        ` : ""}
+        `
+            : ''
+        }
 
         <!-- Top Traffic Sources -->
-        ${data.trafficSources.length > 0 ? `
+        ${
+          data.trafficSources.length > 0
+            ? `
         <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
           <h2 style="color: #1a1a2e; margin-top: 0;">Top 10 Sources de Trafic</h2>
           <table style="width: 100%; border-collapse: collapse;">
@@ -250,23 +256,31 @@ function generateWeeklyReportEmailHtml(
               </tr>
             </thead>
             <tbody>
-              ${data.trafficSources.map((source, i) => `
-              <tr style="background: ${i % 2 === 0 ? "white" : "#f8f9fa"};">
+              ${data.trafficSources
+                .map(
+                  (source, i) => `
+              <tr style="background: ${i % 2 === 0 ? 'white' : '#f8f9fa'};">
                 <td style="padding: 12px; border-bottom: 1px solid #eee;">
                   <strong>${source.source}</strong> / ${source.medium}
                 </td>
                 <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee;">${formatNumber(source.visits)}</td>
                 <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee;">${formatNumber(source.uniqueSessions)}</td>
-                <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee; color: ${source.conversionRate > 0 ? "#28a745" : "#666"};">${formatPercent(source.conversionRate)}</td>
+                <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee; color: ${source.conversionRate > 0 ? '#28a745' : '#666'};">${formatPercent(source.conversionRate)}</td>
               </tr>
-              `).join("")}
+              `
+                )
+                .join('')}
             </tbody>
           </table>
         </div>
-        ` : ""}
+        `
+            : ''
+        }
 
         <!-- Top Sections -->
-        ${data.sections.length > 0 ? `
+        ${
+          data.sections.length > 0
+            ? `
         <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
           <h2 style="color: #1a1a2e; margin-top: 0;">Performance des Sections</h2>
           <table style="width: 100%; border-collapse: collapse;">
@@ -279,27 +293,39 @@ function generateWeeklyReportEmailHtml(
               </tr>
             </thead>
             <tbody>
-              ${data.sections.map((section) => `
+              ${data.sections
+                .map(
+                  section => `
               <tr>
                 <td style="padding: 12px; border-bottom: 1px solid #eee;">${section.section}</td>
                 <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee;">${formatNumber(section.visitors)}</td>
                 <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee;">${section.avgTimeSeconds}s</td>
                 <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee; font-weight: bold; color: #D4AF37;">${formatNumber(section.conversionsFromSection)}</td>
               </tr>
-              `).join("")}
+              `
+                )
+                .join('')}
             </tbody>
           </table>
         </div>
-        ` : ""}
+        `
+            : ''
+        }
 
         <!-- Device Breakdown -->
-        ${data.devices.length > 0 ? `
+        ${
+          data.devices.length > 0
+            ? `
         <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 25px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
           <h2 style="color: #1a1a2e; margin-top: 0;">Repartition par Appareil</h2>
           <table style="width: 100%; border-collapse: collapse;">
-            ${data.devices.map((device) => {
-              const percentage = data.summary.totalVisits > 0 ? (device.visits / data.summary.totalVisits) * 100 : 0;
-              return `
+            ${data.devices
+              .map(device => {
+                const percentage =
+                  data.summary.totalVisits > 0
+                    ? (device.visits / data.summary.totalVisits) * 100
+                    : 0;
+                return `
               <tr>
                 <td style="padding: 15px 12px; border-bottom: 1px solid #eee; width: 120px; text-transform: capitalize; font-weight: bold;">${device.deviceType}</td>
                 <td style="padding: 15px 12px; border-bottom: 1px solid #eee;">
@@ -312,28 +338,40 @@ function generateWeeklyReportEmailHtml(
                 </td>
               </tr>
               `;
-            }).join("")}
+              })
+              .join('')}
           </table>
         </div>
-        ` : ""}
+        `
+            : ''
+        }
 
         <!-- Anomalies Alert -->
-        ${data.anomalies.length > 0 ? `
+        ${
+          data.anomalies.length > 0
+            ? `
         <div style="background: #fff3cd; border: 1px solid #ffc107; padding: 20px; border-radius: 10px; margin-bottom: 25px;">
           <h2 style="color: #856404; margin-top: 0;">⚠️ ${data.anomalies.length} Anomalie(s) Detectee(s)</h2>
-          ${data.anomalies.slice(0, 5).map((anomaly) => `
-          <div style="background: white; padding: 12px; border-radius: 5px; margin-bottom: 10px; border-left: 4px solid ${anomaly.severity === "high" ? "#dc3545" : anomaly.severity === "medium" ? "#ffc107" : "#6c757d"};">
-            <span style="display: inline-block; padding: 2px 8px; background: ${anomaly.severity === "high" ? "#dc3545" : anomaly.severity === "medium" ? "#ffc107" : "#6c757d"}; color: white; border-radius: 4px; font-size: 11px; margin-right: 8px; text-transform: uppercase;">${anomaly.severity}</span>
+          ${data.anomalies
+            .slice(0, 5)
+            .map(
+              anomaly => `
+          <div style="background: white; padding: 12px; border-radius: 5px; margin-bottom: 10px; border-left: 4px solid ${anomaly.severity === 'high' ? '#dc3545' : anomaly.severity === 'medium' ? '#ffc107' : '#6c757d'};">
+            <span style="display: inline-block; padding: 2px 8px; background: ${anomaly.severity === 'high' ? '#dc3545' : anomaly.severity === 'medium' ? '#ffc107' : '#6c757d'}; color: white; border-radius: 4px; font-size: 11px; margin-right: 8px; text-transform: uppercase;">${anomaly.severity}</span>
             <span style="color: #333;">${anomaly.message}</span>
-            <div style="color: #666; font-size: 12px; margin-top: 5px;">${new Date(anomaly.timestamp).toLocaleString("fr-FR")}</div>
+            <div style="color: #666; font-size: 12px; margin-top: 5px;">${new Date(anomaly.timestamp).toLocaleString('fr-FR')}</div>
           </div>
-          `).join("")}
+          `
+            )
+            .join('')}
         </div>
-        ` : ""}
+        `
+            : ''
+        }
 
         <!-- Call to Action -->
         <div style="text-align: center; padding: 25px 0;">
-          <a href="${process.env.NEXT_PUBLIC_SITE_URL || "https://psypnos.fr"}/admin/analytics"
+          <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://psypnos.fr'}/admin/analytics"
              style="display: inline-block; padding: 15px 40px; background: linear-gradient(135deg, #D4AF37, #f0d78c); color: #1a1a2e; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             Voir le Dashboard Complet
           </a>
@@ -353,26 +391,22 @@ function generateWeeklyReportEmailHtml(
 }
 
 // Send report email
-async function sendReportEmail(
-  recipients: string[],
-  subject: string,
-  html: string
-): Promise<void> {
+async function sendReportEmail(recipients: string[], subject: string, html: string): Promise<void> {
   const resendApiKey = process.env.RESEND_API_KEY;
 
   if (!resendApiKey) {
-    console.warn("RESEND_API_KEY not configured, skipping report email");
-    throw new Error("Service email non configure");
+    console.warn('RESEND_API_KEY not configured, skipping report email');
+    throw new Error('Service email non configure');
   }
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
     headers: {
       Authorization: `Bearer ${resendApiKey}`,
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: process.env.REPORT_EMAIL_FROM || "Psypnos Analytics <analytics@psypnos.fr>",
+      from: process.env.REPORT_EMAIL_FROM || 'Psypnos Analytics <analytics@psypnos.fr>',
       to: recipients,
       subject: `[Psypnos] ${subject}`,
       html,

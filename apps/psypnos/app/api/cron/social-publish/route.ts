@@ -111,8 +111,8 @@ async function publishPostWithRetry(post: SocialPost): Promise<{
     const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
 
     // Vérifier si c'est une erreur retryable
-    const isRetryable = DEFAULT_RETRY_CONFIG.retryableErrors.some(
-      (retryableError) => errorMessage.includes(retryableError)
+    const isRetryable = DEFAULT_RETRY_CONFIG.retryableErrors.some(retryableError =>
+      errorMessage.includes(retryableError)
     );
 
     await incrementRetryCount(post.id);
@@ -136,12 +136,11 @@ async function publishPostWithRetry(post: SocialPost): Promise<{
 // Notification par email
 // ===========================================
 
-async function sendFailureNotification(
-  post: SocialPost,
-  error: string
-): Promise<void> {
+async function sendFailureNotification(post: SocialPost, error: string): Promise<void> {
   if (!RESEND_API_KEY) {
-    console.warn('[Cron Social Publish] RESEND_API_KEY not configured - skipping email notification');
+    console.warn(
+      '[Cron Social Publish] RESEND_API_KEY not configured - skipping email notification'
+    );
     return;
   }
 
@@ -184,7 +183,7 @@ ${error}
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        Authorization: `Bearer ${RESEND_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -234,8 +233,8 @@ export async function GET(request: NextRequest) {
     const posts = await getScheduledPosts(now);
 
     // Compter les posts par statut pour le logging
-    const scheduledPosts = posts.filter((p) => p.status === 'SCHEDULED');
-    const stuckPosts = posts.filter((p) => p.status === 'PUBLISHING');
+    const scheduledPosts = posts.filter(p => p.status === 'SCHEDULED');
+    const stuckPosts = posts.filter(p => p.status === 'PUBLISHING');
 
     console.log(
       `[Cron Social Publish] Found ${posts.length} posts to publish ` +
@@ -245,7 +244,7 @@ export async function GET(request: NextRequest) {
     if (stuckPosts.length > 0) {
       console.warn(
         `[Cron Social Publish] Recovering ${stuckPosts.length} stuck posts: ` +
-          stuckPosts.map((p) => `${p.id} (${p.platform})`).join(', ')
+          stuckPosts.map(p => `${p.id} (${p.platform})`).join(', ')
       );
     }
 
@@ -278,16 +277,14 @@ export async function GET(request: NextRequest) {
       }
 
       // Petit délai entre les publications pour éviter le rate limiting
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
     // Résumé
-    const successCount = results.filter((r) => r.success).length;
-    const failCount = results.filter((r) => !r.success).length;
+    const successCount = results.filter(r => r.success).length;
+    const failCount = results.filter(r => !r.success).length;
 
-    console.log(
-      `[Cron Social Publish] Completed: ${successCount} success, ${failCount} failed`
-    );
+    console.log(`[Cron Social Publish] Completed: ${successCount} success, ${failCount} failed`);
 
     return NextResponse.json({
       success: true,
@@ -312,6 +309,9 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+// Accepter aussi POST car QStash envoie POST par défaut
+export { GET as POST };
 
 // Configuration pour Vercel Cron
 export const runtime = 'nodejs';
