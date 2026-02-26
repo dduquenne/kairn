@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * Redis Client & Cache Utilities
  * Phase 4: Scalability & Performance
@@ -9,24 +6,27 @@
  * Falls back gracefully when Redis is not available.
  */
 
-import Redis from "ioredis";
+import Redis from 'ioredis';
+
+// Flag to log missing REDIS_URL only once per cold start
+let hasLoggedMissingUrl = false;
 
 // Cache key prefixes
 export const CACHE_KEYS = {
-  DASHBOARD: "analytics:dashboard",
-  SUMMARY: "analytics:summary",
-  HEATMAP: "analytics:heatmap",
-  TRAFFIC_SOURCES: "analytics:traffic-sources",
-  DEVICE_BREAKDOWN: "analytics:device-breakdown",
-  VISITS_BY_PERIOD: "analytics:visits-by-period",
-  COHORTS: "analytics:cohorts",
-  ATTRIBUTION: "analytics:attribution",
-  GOALS: "analytics:goals",
-  FUNNELS: "analytics:funnels",
-  ALERTS: "analytics:alerts",
-  ANOMALIES: "analytics:anomalies",
-  INSIGHTS: "analytics:insights",
-  DAILY_SUMMARY: "analytics:daily-summary",
+  DASHBOARD: 'analytics:dashboard',
+  SUMMARY: 'analytics:summary',
+  HEATMAP: 'analytics:heatmap',
+  TRAFFIC_SOURCES: 'analytics:traffic-sources',
+  DEVICE_BREAKDOWN: 'analytics:device-breakdown',
+  VISITS_BY_PERIOD: 'analytics:visits-by-period',
+  COHORTS: 'analytics:cohorts',
+  ATTRIBUTION: 'analytics:attribution',
+  GOALS: 'analytics:goals',
+  FUNNELS: 'analytics:funnels',
+  ALERTS: 'analytics:alerts',
+  ANOMALIES: 'analytics:anomalies',
+  INSIGHTS: 'analytics:insights',
+  DAILY_SUMMARY: 'analytics:daily-summary',
 } as const;
 
 // Default TTL values in seconds
@@ -42,47 +42,51 @@ let redisClient: Redis | null = null;
 let isRedisAvailable = false;
 
 /**
- * Initialize Redis client with connection handling
+ * Initialize Redis client with connection handling.
+ * Returns null when REDIS_URL is not configured (graceful degradation).
  */
 function createRedisClient(): Redis | null {
   const redisUrl = process.env.REDIS_URL;
 
   if (!redisUrl) {
-    console.warn("[Redis] REDIS_URL not configured, caching disabled");
+    if (!hasLoggedMissingUrl) {
+      hasLoggedMissingUrl = true;
+      console.info('[Redis] REDIS_URL non configuré — cache désactivé (fallback mémoire actif)');
+    }
     return null;
   }
 
   try {
     const client = new Redis(redisUrl, {
       maxRetriesPerRequest: 3,
-      retryStrategy(times) {
+      retryStrategy(times: number) {
         if (times > 3) {
-          console.warn("[Redis] Max retries reached, disabling cache");
-          return null; // Stop retrying
+          console.warn('[Redis] Max retries reached, disabling cache');
+          return null;
         }
         return Math.min(times * 100, 3000);
       },
       lazyConnect: true,
     });
 
-    client.on("connect", () => {
-      console.log("[Redis] Connected successfully");
+    client.on('connect', () => {
+      console.log('[Redis] Connected successfully');
       isRedisAvailable = true;
     });
 
-    client.on("error", (err) => {
-      console.error("[Redis] Connection error:", err.message);
+    client.on('error', (err: Error) => {
+      console.error('[Redis] Connection error:', err.message);
       isRedisAvailable = false;
     });
 
-    client.on("close", () => {
-      console.warn("[Redis] Connection closed");
+    client.on('close', () => {
+      console.warn('[Redis] Connection closed');
       isRedisAvailable = false;
     });
 
     return client;
   } catch (error) {
-    console.error("[Redis] Failed to create client:", error);
+    console.error('[Redis] Failed to create client:', error);
     return null;
   }
 }
@@ -148,8 +152,8 @@ export async function setCache<T>(
 }
 
 /**
- * Get cached data or fetch from source if not cached
- * This is the main caching utility
+ * Get cached data or fetch from source if not cached.
+ * This is the main caching utility.
  */
 export async function getCached<T>(
   key: string,
@@ -216,7 +220,7 @@ export async function invalidateCache(pattern: string): Promise<number> {
  * Invalidate all analytics cache
  */
 export async function invalidateAllAnalyticsCache(): Promise<void> {
-  await invalidateCache("analytics:*");
+  await invalidateCache('analytics:*');
 }
 
 /**
@@ -252,7 +256,7 @@ export function buildCacheKey(
     }
   }
 
-  return parts.join(":");
+  return parts.join(':');
 }
 
 /**
@@ -277,7 +281,7 @@ export async function checkRedisHealth(): Promise<{
   const client = getRedisClient();
 
   if (!client) {
-    return { available: false, error: "Redis client not initialized" };
+    return { available: false, error: 'Redis client not initialized' };
   }
 
   try {
@@ -289,7 +293,7 @@ export async function checkRedisHealth(): Promise<{
   } catch (error) {
     return {
       available: false,
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }

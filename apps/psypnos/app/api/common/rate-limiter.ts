@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * Rate limiter générique avec support Redis et fallback en mémoire
  *
@@ -325,7 +322,8 @@ export function getClientIP(request: Request): string {
   const realIP = request.headers.get('x-real-ip');
 
   if (forwarded) {
-    return forwarded.split(',')[0].trim();
+    const first = forwarded.split(',')[0];
+    return first ? first.trim() : 'unknown';
   }
 
   if (realIP) {
