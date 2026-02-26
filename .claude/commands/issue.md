@@ -1,10 +1,10 @@
 ---
 name: issue
-description: Lire une issue GitHub, corriger le bug et valider le déploiement Vercel
+description: Corriger un problème (saisie libre), lister les issues GitHub ou résoudre une issue spécifique
 disable-model-invocation: true
 user-invocable: true
-allowed-tools: Read, Grep, Glob, Bash, Edit, Write, Task, TodoWrite
-argument-hint: "#numéro"
+allowed-tools: Read, Grep, Glob, Bash, Edit, Write, Task, TodoWrite, AskUserQuestion
+argument-hint: "#numéro | list | (vide)"
 ---
 
 ## LANGUE
@@ -120,8 +120,35 @@ Plateforme SaaS multi-tenant pour praticiens bien-être.
 > - Les Serverless Functions sont en mode cold start plus fréquent en
 >   preview (moins de trafic).
 
-## PROBLÈME À RÉSOUDRE
-!`ISSUE_NUM=$(echo "$ARGUMENTS" | tr -d '# '); REPO=$(git remote get-url origin | sed 's|\.git$||' | awk -F'[/:]' '{print $(NF-1)"/"$NF}'); curl -sf -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$REPO/issues/$ISSUE_NUM"`
+## ROUTAGE DE LA COMMANDE
+
+La commande `/issue` fonctionne selon trois modes :
+
+| Invocation | Mode | Comportement |
+|---|---|---|
+| `/issue` | Saisie libre | Demande une description du problème à l'utilisateur |
+| `/issue list` | Liste | Affiche les issues GitHub ouvertes |
+| `/issue #N` | Issue spécifique | Récupère et traite l'issue GitHub #N |
+
+### Données récupérées :
+!`ARG=$(echo "$ARGUMENTS" | xargs 2>/dev/null || echo ""); if [ -z "$ARG" ]; then echo "MODE: SAISIE_LIBRE"; elif [ "$ARG" = "list" ]; then echo "MODE: LISTE_ISSUES"; REPO=$(git remote get-url origin | sed 's|\.git$||' | awk -F'[/:]' '{print $(NF-1)"/"$NF}'); curl -sf -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$REPO/issues?state=open&per_page=30" | jq -r '.[] | "| #\(.number) | \(.title) | \([.labels[].name] | join(", ")) | \(.created_at[:10]) |"'; else echo "MODE: ISSUE_SPECIFIQUE"; ISSUE_NUM=$(echo "$ARG" | tr -d '# '); REPO=$(git remote get-url origin | sed 's|\.git$||' | awk -F'[/:]' '{print $(NF-1)"/"$NF}'); curl -sf -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$REPO/issues/$ISSUE_NUM"; fi`
+
+### Instructions selon le mode détecté :
+
+**MODE: SAISIE_LIBRE**
+→ Utilise l'outil `AskUserQuestion` pour poser la question :
+  « Veuillez décrire le problème à corriger : »
+→ Puis suis les **étapes 1 à 6** en utilisant la description de l'utilisateur
+  comme problème à résoudre (pas d'issue GitHub associée).
+
+**MODE: LISTE_ISSUES**
+→ Affiche les issues ouvertes ci-dessus sous forme de tableau lisible :
+  `| # | Titre | Labels | Créée le |`
+→ **Arrête-toi après l'affichage** — aucune correction à effectuer.
+
+**MODE: ISSUE_SPECIFIQUE**
+→ Suis les **étapes 1 à 6** avec l'issue GitHub récupérée ci-dessus
+  comme problème à résoudre.
 
 ---
 
@@ -176,8 +203,9 @@ Plateforme SaaS multi-tenant pour praticiens bien-être.
 
 ### Git workflow
 ```bash
-# Créer la branche (nommage obligatoire)
-git checkout -b claude/<slug-du-problème>
+# Travailler directement sur la branche main
+git checkout main
+git pull origin main
 ```
 
 > ⚠️ **NE PAS push immédiatement** après le commit.
@@ -307,15 +335,15 @@ Si **n'importe quelle étape** échoue :
    - Pas de `.skip` sur un test qui échoue
    - Pas de `--no-verify` sur le commit ou le push
 
-### 4.4 — Commit et push (uniquement après validation complète)
+### 4.4 — Commit et push vers main (uniquement après validation complète)
 
 ```bash
 # Commit conventionnel (si pas déjà fait)
 git add <fichiers modifiés — jamais git add .>
 git commit -m "fix(<scope>): <description concise à l'impératif>"
 
-# Push — uniquement après que TOUTES les validations passent
-git push -u origin claude/<slug-du-problème>
+# Push vers main — uniquement après que TOUTES les validations passent
+git push origin main
 ```
 
 > **Résumé de validation pré-push** — Confirme à l'utilisateur :
@@ -323,16 +351,16 @@ git push -u origin claude/<slug-du-problème>
 > - ✅ Type-check : passé
 > - ✅ Tests : passés (couverture ≥ 60%)
 > - ✅ Build : passé
-> - Puis procède au push.
+> - Puis procède au push vers `main`.
 
-## ÉTAPE 5 — VÉRIFICATION POST-PUSH & DÉPLOIEMENT
+## ÉTAPE 5 — VÉRIFICATION POST-PUSH & DÉPLOIEMENT PRODUCTION
 
-> Cette étape vérifie que le push a bien déclenché la CI distante et que
-> le déploiement preview Vercel fonctionne correctement.
+> Le push vers `main` déclenche automatiquement la CI GitHub **et** le
+> déploiement **production** sur Vercel. Cette étape vérifie les deux.
 
 ### 5.1 — Surveillance des checks CI GitHub
 
-Après le push, vérifier le statut des checks CI via l'API GitHub :
+Après le push vers `main`, vérifier le statut des checks CI via l'API GitHub :
 
 ```bash
 REPO=$(git remote get-url origin | sed 's|\.git$||' | awk -F'[/:]' '{print $(NF-1)"/"$NF}')
@@ -340,7 +368,7 @@ GH_API="https://api.github.com/repos/$REPO"
 AUTH=(-H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json")
 SHA=$(git rev-parse HEAD)
 
-# Consulter les check-runs du dernier commit pushé
+# Consulter les check-runs du dernier commit pushé sur main
 curl -s "${AUTH[@]}" "$GH_API/commits/$SHA/check-runs" | \
   jq '.check_runs[] | {name, status, conclusion}'
 ```
@@ -364,75 +392,117 @@ Interpréter les résultats :
   - Dépendance à un fichier `.env.local` non commité
   - Test flaky (relancer le workflow via l'API si pertinent)
 
-### 5.2 — Vérification du déploiement preview Vercel
+### 5.2 — Vérification du déploiement production Vercel
 
-Utiliser le **MCP Vercel** pour vérifier le déploiement preview :
+Utiliser le **MCP Vercel** pour vérifier le déploiement **production**
+(déclenché par le push sur `main`) :
 
 1. **Statut du déploiement** — Via MCP Vercel, consulter les déploiements
    récents du projet et vérifier que le commit pushé a déclenché un build
-2. **Build Vercel** — Vérifier que le build Vercel a réussi :
+   **production** (pas preview)
+2. **Build Vercel** — Vérifier que le build Vercel production a réussi :
    - Si échec : lire les **build logs** via MCP Vercel
    - Causes fréquentes d'échec du build Vercel (différent de la CI) :
      - Import d'un module Node.js non disponible en Edge Runtime
      - `dynamic = 'force-dynamic'` manquant sur une route qui utilise
        `headers()` / `cookies()`
      - Taille du bundle Serverless > 50 Mo (vérifier les imports lourds)
-     - Variable `NEXT_PUBLIC_*` manquante dans l'environnement Preview
+     - Variable `NEXT_PUBLIC_*` manquante dans l'environnement Production
      - Erreur de sérialisation dans un Server Component (Date, Map, Set)
      - Middleware qui importe un package incompatible Edge
-3. **Runtime preview** — Si le build est réussi, vérifier sur l'URL de
-   preview que l'application fonctionne :
+3. **Runtime production** — Si le build est réussi, vérifier que
+   l'application fonctionne en production :
    - Les pages concernées par le fix se chargent correctement
-   - Pas d'erreur dans les logs Serverless (onglet Logs du dashboard Vercel)
+   - Pas d'erreur dans les logs Serverless (via MCP Vercel)
    - Les API routes répondent correctement (vérifier via `curl` ou MCP)
 
 ### 5.3 — Gestion des échecs post-push
 
-Si la CI distante ou le déploiement Vercel échoue :
+Si la CI distante ou le déploiement Vercel production échoue :
 
 1. **Diagnostiquer** l'erreur (logs CI via API GitHub, logs Vercel via MCP)
 2. **Corriger** localement
 3. **Relancer l'étape 4** (validation locale complète)
-4. **Pousser** le commit de correction
+4. **Pousser** le commit de correction vers `main`
 5. **Re-vérifier** l'étape 5 jusqu'à ce que tout soit vert
 
 > ⚠️ Ne jamais considérer le travail comme terminé si un check CI est
-> en échec ou si le déploiement preview Vercel a échoué.
+> en échec ou si le déploiement production Vercel a échoué.
 
-## ÉTAPE 6 — LIVRAISON
+## ÉTAPE 6 — LIVRAISON & REPORTING FINAL
+
+> Le reporting final doit fournir une **description complète de l'exécution**
+> de chaque étape, permettant de comprendre exactement ce qui a été fait,
+> pourquoi, et avec quel résultat.
 
 Structure de réponse finale :
-1. **Fichiers modifiés** — chemin complet depuis la racine du monorepo
-   + diff ou code complet (nouveau fichier uniquement)
-2. **Fichiers de test** — chemin complet + code complet
-3. **Résultat de la validation locale** (étape 4)
-   - Lint : ✅ / ❌ (+ détail si corrections effectuées)
-   - Type-check : ✅ / ❌
-   - Tests : ✅ / ❌ (couverture : X%)
-   - Build : ✅ / ❌
-4. **Résultat de la CI distante** (étape 5.1)
-   - Job `lint` : ✅ / ❌
-   - Job `type-check` : ✅ / ❌
-   - Job `test` : ✅ / ❌
-   - Job `build` : ✅ / ❌
-   - Job `e2e` : ✅ / ❌ (si applicable)
-   - Job `security` : ✅ / ❌
-5. **Résultat du déploiement Vercel** (étape 5.2)
-   - Build Vercel : ✅ / ❌
-   - URL de preview : `<url>`
-   - Runtime vérifié : ✅ / ❌
-6. **Vérification base de données** (si le fix touche Prisma / les données)
-   - [ ] Via MCP Supabase : vérifier que le schéma est cohérent après
-     `prisma migrate deploy`
-   - [ ] Via MCP Supabase : requête SQL de validation sur les données
-     impactées
-   - [ ] Politiques RLS toujours fonctionnelles après la modification
-7. **Checklist de validation avant merge**
-   - [ ] Validation locale complète (lint + type-check + test + build)
-   - [ ] CI distante : tous les jobs passent
-   - [ ] Déploiement preview Vercel : build réussi + runtime fonctionnel
-   - [ ] Isolation multi-tenant vérifiée sur chaque requête DB modifiée
-   - [ ] Aucune donnée sensible exposée côté client
-   - [ ] Consommateurs des packages partagés modifiés non régressés
-   - [ ] Nouvelles variables d'environnement documentées dans `.env.example`
-     et ajoutées dans les settings Vercel (Production / Preview / Development)
+
+### 1. Résumé exécutif
+- **Problème traité** : description concise du problème (issue GitHub #N
+  ou description libre de l'utilisateur)
+- **Cause racine** : explication technique de la cause identifiée
+- **Solution appliquée** : résumé de l'approche choisie et pourquoi
+
+### 2. Fichiers modifiés
+- Chemin complet depuis la racine du monorepo
+- Diff ou code complet (nouveau fichier uniquement)
+- Justification de chaque modification
+
+### 3. Fichiers de test
+- Chemin complet + code complet
+- Couverture des cas : nominal, erreur, edge cases
+
+### 4. Résultat de la validation locale (étape 4)
+| Étape | Résultat | Détail |
+|---|---|---|
+| Lint | ✅ / ❌ | corrections effectuées le cas échéant |
+| Type-check | ✅ / ❌ | |
+| Tests | ✅ / ❌ | couverture : X% |
+| Build | ✅ / ❌ | |
+
+### 5. Push vers `main`
+- Commit SHA : `<sha>`
+- Message de commit : `<message>`
+- Branche : `main`
+- Horodatage du push
+
+### 6. Résultat de la CI distante (étape 5.1)
+| Job | Résultat | Détail |
+|---|---|---|
+| `lint` | ✅ / ❌ | |
+| `type-check` | ✅ / ❌ | |
+| `test` | ✅ / ❌ | |
+| `build` | ✅ / ❌ | |
+| `e2e` | ✅ / ❌ | (si applicable) |
+| `security` | ✅ / ❌ | |
+
+### 7. Résultat du déploiement production Vercel (étape 5.2)
+- Build Vercel : ✅ / ❌
+- URL de production : `<url>`
+- Runtime vérifié : ✅ / ❌
+- Logs Serverless : aucune erreur / détail des erreurs
+
+### 8. Vérification base de données (si le fix touche Prisma / les données)
+- [ ] Via MCP Supabase : schéma cohérent après `prisma migrate deploy`
+- [ ] Via MCP Supabase : requête SQL de validation sur les données impactées
+- [ ] Politiques RLS toujours fonctionnelles après la modification
+
+### 9. Checklist de validation finale
+- [ ] Validation locale complète (lint + type-check + test + build)
+- [ ] Push vers `main` effectué
+- [ ] CI distante : tous les jobs passent
+- [ ] Déploiement production Vercel : build réussi + runtime fonctionnel
+- [ ] Isolation multi-tenant vérifiée sur chaque requête DB modifiée
+- [ ] Aucune donnée sensible exposée côté client
+- [ ] Consommateurs des packages partagés modifiés non régressés
+- [ ] Nouvelles variables d'environnement documentées dans `.env.example`
+  et ajoutées dans les settings Vercel (Production / Preview / Development)
+
+### 10. Chronologie d'exécution
+Résumé chronologique des actions effectuées :
+1. Investigation : fichiers lus, dépendances analysées
+2. Analyse : cause racine identifiée, approche choisie
+3. Implémentation : modifications effectuées, tests écrits
+4. Validation locale : résultats de chaque étape du pipeline
+5. Push vers `main` : commit et push
+6. CI & déploiement : résultats de la CI et du déploiement production
