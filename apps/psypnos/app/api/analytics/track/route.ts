@@ -56,12 +56,14 @@ const VALID_EVENT_TYPES = [
   'session_end',
 ] as const;
 
-const BaseEventSchema = z.object({
-  type: z.enum(VALID_EVENT_TYPES),
-  timestamp: z.string().refine(s => !isNaN(Date.parse(s)), { message: 'Invalid timestamp' }),
-  sessionId: z.string().min(1),
-  url: z.string().min(1),
-});
+const BaseEventSchema = z
+  .object({
+    type: z.enum(VALID_EVENT_TYPES),
+    timestamp: z.string().refine(s => !isNaN(Date.parse(s)), { message: 'Invalid timestamp' }),
+    sessionId: z.string().min(1),
+    url: z.string().min(1),
+  })
+  .passthrough();
 
 const TrackingPayloadSchema = z.object({
   events: z.array(BaseEventSchema).min(1).max(100),

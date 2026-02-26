@@ -44,7 +44,11 @@ export function SectionTracker() {
   const observedElementsRef = useRef<HTMLElement[]>([]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    /**
+     * Finds all [data-track-section] elements in the DOM and registers
+     * them with the analytics tracker for visibility / time tracking.
+     */
+    const observeAllSections = () => {
       const tracker = getTracker();
       const sections = document.querySelectorAll('[data-track-section]');
       const observed: HTMLElement[] = [];
@@ -60,10 +64,20 @@ export function SectionTracker() {
       });
 
       observedElementsRef.current = observed;
-    }, 100);
+    };
+
+    // Initial attempt — works for returning visitors who already have consent.
+    const timer = setTimeout(observeAllSections, 100);
+
+    // Listen for deferred consent: on first visit the tracker isn't
+    // initialized until the user interacts with the cookie banner.
+    // CookieConsentBanner dispatches this event after calling initTracker().
+    const onTrackerReady = () => observeAllSections();
+    window.addEventListener('kairn:tracker-ready', onTrackerReady);
 
     return () => {
       clearTimeout(timer);
+      window.removeEventListener('kairn:tracker-ready', onTrackerReady);
       // Cleanup: unobserve all tracked sections to prevent memory leaks
       const tracker = getTracker();
       observedElementsRef.current.forEach(element => {
