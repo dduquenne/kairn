@@ -20,6 +20,8 @@ const branding = getEmailBranding(siteConfig);
 const contactSchema = z.object({
   name: z.string().trim().min(2).max(100),
   email: z.string().email().max(255),
+  phone: z.string().max(20).optional(),
+  subject: z.string().max(200).optional(),
   message: z.string().trim().min(10).max(5000),
   meta: z
     .object({
@@ -45,9 +47,11 @@ const formatAdminEmail = (payload: ContactPayload): EmailContent => {
         fields: [
           { label: 'Nom', value: payload.name },
           { label: 'Email', value: payload.email, emailLink: true },
+          ...(payload.phone ? [{ label: 'Téléphone', value: payload.phone }] : []),
         ],
       },
     ],
+    ...(payload.subject ? { subject: payload.subject } : {}),
     messageBlock: {
       label: 'Message',
       content: payload.message,
@@ -65,7 +69,9 @@ const formatAdminEmail = (payload: ContactPayload): EmailContent => {
   };
 
   return {
-    subject: `[${branding.siteName}] Message de contact — ${payload.name}`,
+    subject: payload.subject
+      ? `[${branding.siteName}] ${payload.subject} — ${payload.name}`
+      : `[${branding.siteName}] Message de contact — ${payload.name}`,
     text: buildAdminEmailText(options),
     html: buildAdminEmailHtml(options, branding),
   };
