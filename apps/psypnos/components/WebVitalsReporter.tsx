@@ -65,8 +65,7 @@ export function WebVitalsReporter({
 
       // Debug logging
       if (debug) {
-        const ratingEmoji =
-          rating === 'good' ? '✅' : rating === 'needs-improvement' ? '⚠️' : '❌';
+        const ratingEmoji = rating === 'good' ? '✅' : rating === 'needs-improvement' ? '⚠️' : '❌';
         console.log(
           `[WebVitals] ${ratingEmoji} ${name}: ${value.toFixed(2)}${name === 'CLS' ? '' : 'ms'} (${rating})`
         );
@@ -77,56 +76,29 @@ export function WebVitalsReporter({
         const tracker = getTracker();
 
         // Track as custom event with all metric details
-        tracker.trackEvent('web_vitals', name.toLowerCase(), JSON.stringify({
-          metric: name,
-          value: Math.round(value * 100) / 100,
-          rating,
-          delta: Math.round(delta * 100) / 100,
-          navigationType,
-          id,
-          url: window.location.pathname,
-          timestamp: Date.now(),
-        }));
+        tracker.trackEvent(
+          'web_vitals',
+          name.toLowerCase(),
+          JSON.stringify({
+            metric: name,
+            value: Math.round(value * 100) / 100,
+            rating,
+            delta: Math.round(delta * 100) / 100,
+            navigationType,
+            id,
+            url: window.location.pathname,
+            timestamp: Date.now(),
+          })
+        );
 
         // Also track poor performance as conversion events for alerting
         if (rating === 'poor') {
-          tracker.trackConversion(
-            'performance_issue',
-            `poor_${name.toLowerCase()}`,
-            value,
-            false
-          );
+          tracker.trackConversion('performance_issue', `poor_${name.toLowerCase()}`, value, false);
         }
       } catch (error) {
         // Tracker might not be initialized yet
         if (debug) {
           console.warn('[WebVitals] Failed to send metric to tracker:', error);
-        }
-      }
-
-      // Send to analytics endpoint if available
-      if (typeof navigator.sendBeacon === 'function') {
-        const data = {
-          name,
-          value,
-          rating,
-          delta,
-          id,
-          navigationType,
-          url: window.location.pathname,
-          referrer: document.referrer,
-          userAgent: navigator.userAgent,
-          timestamp: Date.now(),
-        };
-
-        // Use sendBeacon for reliable delivery even on page unload
-        try {
-          navigator.sendBeacon(
-            '/api/analytics/vitals',
-            JSON.stringify(data)
-          );
-        } catch {
-          // Silently fail if beacon fails
         }
       }
     };
