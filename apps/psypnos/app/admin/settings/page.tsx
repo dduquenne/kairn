@@ -120,7 +120,7 @@ export default function SettingsPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="grid grid-cols-2 gap-4 rounded-2xl bg-gradient-to-r from-night/80 to-night/60 p-6 border border-ivory/10 lg:grid-cols-4"
+        className="grid grid-cols-2 gap-3 rounded-2xl bg-gradient-to-r from-night/80 to-night/60 p-4 border border-ivory/10 sm:gap-4 sm:p-6 sm:grid-cols-4"
       >
         <QuickStat
           icon={Bell}
@@ -279,13 +279,13 @@ function QuickStat({
   color: string;
 }) {
   return (
-    <div className="flex items-center gap-3">
-      <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-night/60 ${color}`}>
-        <Icon className="h-5 w-5" />
+    <div className="flex items-center gap-2 sm:gap-3">
+      <div className={`flex h-8 w-8 items-center justify-center rounded-lg bg-night/60 sm:h-10 sm:w-10 sm:rounded-xl ${color}`}>
+        <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
       </div>
-      <div>
-        <p className="text-xl font-bold text-ivory">{value}</p>
-        <p className="text-xs text-ivory/50">{label}</p>
+      <div className="min-w-0">
+        <p className="text-lg font-bold text-ivory sm:text-xl">{value}</p>
+        <p className="truncate text-[11px] text-ivory/50 sm:text-xs">{label}</p>
       </div>
     </div>
   );
