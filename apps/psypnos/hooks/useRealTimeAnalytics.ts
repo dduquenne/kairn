@@ -24,19 +24,15 @@ interface UseRealTimeAnalyticsOptions {
 
 // Polling configuration
 const POLLING_CONFIG = {
-  defaultInterval: 30000,    // 30 seconds
-  minInterval: 10000,        // 10 seconds minimum
-  maxInterval: 120000,       // 2 minutes maximum
-  retryDelay: 5000,          // 5 seconds on error
-  maxRetries: 5,             // Max consecutive errors before backing off
+  defaultInterval: 30000, // 30 seconds
+  minInterval: 10000, // 10 seconds minimum
+  maxInterval: 120000, // 2 minutes maximum
+  retryDelay: 5000, // 5 seconds on error
+  maxRetries: 5, // Max consecutive errors before backing off
 };
 
 export function useRealTimeAnalytics(options: UseRealTimeAnalyticsOptions = {}) {
-  const {
-    enabled = true,
-    onUpdate,
-    pollingInterval = POLLING_CONFIG.defaultInterval,
-  } = options;
+  const { enabled = true, onUpdate, pollingInterval = POLLING_CONFIG.defaultInterval } = options;
 
   const [isConnected, setIsConnected] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<RealTimeUpdate | null>(null);
@@ -56,7 +52,10 @@ export function useRealTimeAnalytics(options: UseRealTimeAnalyticsOptions = {}) 
   const getEffectiveInterval = useCallback(() => {
     const errors = consecutiveErrorsRef.current;
     if (errors === 0) {
-      return Math.max(POLLING_CONFIG.minInterval, Math.min(pollingInterval, POLLING_CONFIG.maxInterval));
+      return Math.max(
+        POLLING_CONFIG.minInterval,
+        Math.min(pollingInterval, POLLING_CONFIG.maxInterval)
+      );
     }
     // Exponential backoff on errors
     const backoffInterval = POLLING_CONFIG.retryDelay * Math.pow(2, errors - 1);
@@ -111,7 +110,6 @@ export function useRealTimeAnalytics(options: UseRealTimeAnalyticsOptions = {}) 
       setLastUpdate(update);
       setUpdateCount(prev => prev + 1);
       onUpdateRef.current?.(update);
-
     } catch (error) {
       if (!isMountedRef.current) return;
 
@@ -143,7 +141,6 @@ export function useRealTimeAnalytics(options: UseRealTimeAnalyticsOptions = {}) 
         }, newInterval);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Single effect to start/stop polling
@@ -202,6 +199,6 @@ export function useRealTimeAnalytics(options: UseRealTimeAnalyticsOptions = {}) 
     reconnect,
     // Legacy compatibility - no socket in polling mode
     sendEvent: () => {},
-    socket: null
+    socket: null,
   };
 }
