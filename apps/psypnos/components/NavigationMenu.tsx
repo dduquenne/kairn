@@ -204,7 +204,9 @@ export function NavigationMenu({ forceVisible = false }: NavigationMenuProps) {
               <div className="relative transition-transform duration-300 group-hover:scale-110">
                 <PsypnosLogo size={36} />
               </div>
-              <span className="text-gold-accessible hidden text-xl font-semibold sm:block">Psypnos</span>
+              <span className="font-display text-gold-accessible hidden text-xl font-semibold sm:block">
+                Psypnos
+              </span>
             </Link>
 
             {/* Liens de navigation au centre - Desktop */}
@@ -232,7 +234,7 @@ export function NavigationMenu({ forceVisible = false }: NavigationMenuProps) {
               </Link>
               <Link
                 href="/demande-rendez-vous"
-                className="text-night hover:shadow-gold/25 focus:ring-gold focus:ring-offset-night inline-flex items-center gap-2 rounded-lg bg-gold-accessible px-5 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-105 hover:bg-gold-hover hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2"
+                className="text-night hover:shadow-gold/25 focus:ring-gold focus:ring-offset-night bg-gold-accessible hover:bg-gold-hover inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold transition-all duration-200 hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2"
               >
                 <svg
                   className="h-4 w-4"
@@ -282,7 +284,7 @@ export function NavigationMenu({ forceVisible = false }: NavigationMenuProps) {
         role="dialog"
         aria-modal="true"
         aria-label="Menu de navigation"
-        className={`fixed bottom-0 right-0 top-0 z-40 flex w-80 max-w-[85vw] flex-col bg-night-light shadow-2xl transition-transform duration-300 ease-out md:hidden ${
+        className={`bg-night-light fixed bottom-0 right-0 top-0 z-40 flex w-80 max-w-[85vw] flex-col shadow-2xl transition-transform duration-300 ease-out md:hidden ${
           isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
@@ -315,7 +317,7 @@ export function NavigationMenu({ forceVisible = false }: NavigationMenuProps) {
           <Link
             href="/demande-rendez-vous"
             onClick={closeMenu}
-            className="text-night focus:ring-gold flex items-center justify-center gap-2 rounded-lg bg-gold-accessible px-5 py-3.5 text-base font-semibold transition-all duration-200 hover:bg-gold-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-night-light"
+            className="text-night focus:ring-gold bg-gold-accessible hover:bg-gold-hover focus:ring-offset-night-light flex items-center justify-center gap-2 rounded-lg px-5 py-3.5 text-base font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2"
           >
             <svg
               className="h-5 w-5"
@@ -335,7 +337,7 @@ export function NavigationMenu({ forceVisible = false }: NavigationMenuProps) {
           <Link
             href="/inscription-seminaire"
             onClick={closeMenu}
-            className="border-gold-accessible text-gold-accessible hover:bg-gold/10 focus:ring-gold flex items-center justify-center gap-2 rounded-lg border-2 bg-transparent px-5 py-3 text-base font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-night-light"
+            className="border-gold-accessible text-gold-accessible hover:bg-gold/10 focus:ring-gold focus:ring-offset-night-light flex items-center justify-center gap-2 rounded-lg border-2 bg-transparent px-5 py-3 text-base font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2"
           >
             <svg
               className="h-5 w-5"
