@@ -56,31 +56,37 @@ Via le MCP Vercel tu peux :
 - Consulter les domaines et DNS configurés
 - Vérifier les analytics et métriques de performance
 
-### GitHub (via CLI `gh`)
-Pour les interactions GitHub, utilise la **CLI `gh`** (GitHub CLI) :
+### GitHub (via API REST + `curl`)
+La CLI `gh` n'est pas disponible. Utilise **`curl`** avec `$GITHUB_TOKEN` :
 
 ```bash
+# Variable commune (détection automatique du dépôt)
+REPO=$(git remote get-url origin | sed 's|\.git$||' | awk -F'[/:]' '{print $(NF-1)"/"$NF}')
+GH_API="https://api.github.com/repos/$REPO"
+AUTH=(-H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json")
+
 # Issues
-gh issue list                          # lister les issues ouvertes
-gh issue view <n>                      # détail d'une issue
-gh issue create --title "…" --body "…" # créer une issue
+curl -s "${AUTH[@]}" "$GH_API/issues"                        # lister les issues ouvertes
+curl -s "${AUTH[@]}" "$GH_API/issues/<n>"                    # détail d'une issue
+curl -s "${AUTH[@]}" "$GH_API/issues/<n>/comments"           # commentaires d'une issue
+curl -s -X POST "${AUTH[@]}" -d '{"title":"…","body":"…"}' \
+  "$GH_API/issues"                                           # créer une issue
 
 # Pull Requests
-gh pr list                             # lister les PR ouvertes
-gh pr view <n>                         # détail d'une PR
-gh pr create --title "…" --body "…"    # créer une PR
-gh pr checks <n>                       # statut des checks CI
-gh pr diff <n>                         # diff de la PR
+curl -s "${AUTH[@]}" "$GH_API/pulls"                         # lister les PR ouvertes
+curl -s "${AUTH[@]}" "$GH_API/pulls/<n>"                     # détail d'une PR
+curl -s "${AUTH[@]}" "$GH_API/pulls/<n>/comments"            # commentaires d'une PR
+curl -s "${AUTH[@]}" "$GH_API/commits/<sha>/check-runs"      # statut des checks CI
+curl -s "${AUTH[@]}" "$GH_API/pulls/<n>/files"               # diff de la PR
 
-# API générique (pour tout endpoint GitHub REST/GraphQL)
-gh api repos/<owner>/<repo>/pulls/<n>/comments
-gh api repos/<owner>/<repo>/actions/runs --jq '.workflow_runs[:5]'
+# Workflow runs (CI)
+curl -s "${AUTH[@]}" "$GH_API/actions/runs?per_page=5"       # derniers runs CI
 ```
 
 > **Bonnes pratiques GitHub :**
 > - Toujours lier les PR aux issues concernées (`Fixes #<n>`)
 > - Vérifier le statut des checks CI avant de demander une review
-> - Utiliser `gh pr checks` pour diagnostiquer les échecs de CI
+> - Utiliser l'endpoint `/commits/<sha>/check-runs` pour diagnostiquer les échecs de CI
 
 ## CONTEXTE PROJET — Monorepo Kairn
 Plateforme SaaS multi-tenant pour praticiens bien-être.
@@ -117,7 +123,7 @@ Plateforme SaaS multi-tenant pour praticiens bien-être.
 >   preview (moins de trafic).
 
 ## PROBLÈME À RÉSOUDRE
-!`gh issue view $ARGUMENTS`
+!`ISSUE_NUM=$(echo "$ARGUMENTS" | tr -d '# '); REPO=$(git remote get-url origin | sed 's|\.git$||' | awk -F'[/:]' '{print $(NF-1)"/"$NF}'); curl -sf -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/$REPO/issues/$ISSUE_NUM"`
 
 ---
 
@@ -141,8 +147,9 @@ Plateforme SaaS multi-tenant pour praticiens bien-être.
      données concernées
    - Vérifier les politiques RLS et les contraintes d'intégrité
 6. Si le bug est lié à la CI ou à une PR :
-   - Utiliser `gh pr checks` ou `gh api` pour consulter les logs
-     d'exécution et identifier les étapes en échec
+   - Utiliser `curl` + API GitHub (`/commits/<sha>/check-runs`,
+     `/actions/runs`) pour consulter les logs d'exécution et identifier
+     les étapes en échec
 7. **STOP** — Résume ce que tu as lu et attends ma confirmation
 
 ## ÉTAPE 2 — ANALYSE (après confirmation de lecture)
@@ -259,7 +266,7 @@ Structure de réponse :
      impactées
    - [ ] Politiques RLS toujours fonctionnelles après la modification
 6. **Vérification GitHub / CI**
-   - [ ] `gh pr checks` : tous les checks passent sur la PR
+   - [ ] Checks CI : tous les checks passent sur la PR (via `/commits/<sha>/check-runs`)
    - [ ] Si nouvelle variable d'environnement : vérifier qu'elle est
      configurée dans les secrets GitHub Actions (`TURBO_TOKEN`, etc.)
 7. **Checklist de validation avant merge**
