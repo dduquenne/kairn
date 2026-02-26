@@ -1,9 +1,9 @@
 ---
 name: issue
-description: Lire une issue GitHub et appliquer le workflow de correction de bug
+description: Lire une issue GitHub, corriger le bug et valider le déploiement Vercel
 disable-model-invocation: true
 user-invocable: true
-allowed-tools: Read, Grep, Glob, Bash, Edit, Write
+allowed-tools: Read, Grep, Glob, Bash, Edit, Write, Task, TodoWrite
 argument-hint: "#numéro"
 ---
 
@@ -178,19 +178,10 @@ Plateforme SaaS multi-tenant pour praticiens bien-être.
 ```bash
 # Créer la branche (nommage obligatoire)
 git checkout -b claude/<slug-du-problème>
-
-# Vérifier le type-check et les tests sur le périmètre ciblé uniquement
-pnpm turbo run type-check --filter=<app-ou-package>
-pnpm turbo run test --filter=<app-ou-package>
-
-# Si package partagé modifié : vérifier aussi les apps consommatrices
-pnpm turbo run type-check --filter=...<package-modifié>
-
-# Commit conventionnel et push
-git add <fichiers modifiés — jamais git add .>
-git commit -m "fix(<scope>): <description concise à l'impératif>"
-git push -u origin claude/<slug-du-problème>
 ```
+
+> ⚠️ **NE PAS push immédiatement** après le commit.
+> L'étape 4 (Validation CI & Build) est **obligatoire** avant tout push.
 
 ### Contraintes de code
 **TypeScript**
@@ -243,37 +234,205 @@ git push -u origin claude/<slug-du-problème>
 - Commentaire inline uniquement si la logique n'est pas auto-explicite
 - Aucun commentaire redondant avec le code
 
-## ÉTAPE 4 — LIVRAISON
+## ÉTAPE 4 — VALIDATION CI & BUILD (obligatoire avant push)
 
-Structure de réponse :
+> **Cette étape est bloquante.** Aucun push ne doit être effectué tant que
+> toutes les validations ne passent pas. Elle reproduit localement le pipeline
+> CI de `.github/workflows/ci.yml` et valide la compatibilité Vercel.
+
+### 4.1 — Détermination du périmètre (scope)
+
+Détermine le filtre Turborepo à utiliser en fonction des fichiers modifiés :
+```bash
+# Identifier les packages/apps modifiés
+SCOPE=$(git diff --name-only HEAD~1 | awk -F'/' '
+  /^apps\// { print "@kairn/"$2 }
+  /^packages\// { print "@kairn/"$2 }
+' | sort -u | paste -sd',' -)
+
+# Si un package partagé est modifié, inclure ses consommateurs
+# Utiliser le filtre étendu `...` pour propager aux dépendants
+HAS_SHARED_PKG=$(git diff --name-only HEAD~1 | grep -c '^packages/' || true)
+```
+
+### 4.2 — Pipeline de validation locale (reproduit la CI)
+
+Exécuter **dans cet ordre exact** — chaque étape doit réussir avant de
+passer à la suivante :
+
+```bash
+# ── 1. Lint (miroir du job CI "lint") ──
+pnpm turbo run lint --filter='...[HEAD~1]'
+
+# ── 2. Type-check (miroir du job CI "type-check") ──
+pnpm turbo run type-check --filter='...[HEAD~1]'
+
+# ── 3. Tests unitaires + couverture (miroir du job CI "test") ──
+pnpm test:coverage
+pnpm test:ui
+
+# ── 4. Build complet (miroir du job CI "build") ──
+# C'est le build identique à celui exécuté par Vercel
+pnpm turbo run build --filter='...[HEAD~1]' --env-mode=loose
+```
+
+> **Pourquoi `--filter='...[HEAD~1]'` ?**
+> Ce filtre reproduit exactement le comportement de la CI qui utilise
+> `--filter='...[origin/main]'`. Il cible les packages modifiés **et**
+> tous leurs dépendants (l'opérateur `...` de Turborepo).
+
+### 4.3 — Gestion des échecs (boucle de correction)
+
+Si **n'importe quelle étape** échoue :
+
+1. **Analyser l'erreur** — lire attentivement la sortie complète
+2. **Corriger** le code (revenir à l'étape 3 si nécessaire)
+3. **Amender le commit** ou créer un commit de correction :
+   ```bash
+   # Si le commit n'a pas encore été pushé, amender :
+   git add <fichiers corrigés>
+   git commit --amend --no-edit
+
+   # Sinon, créer un commit de correction :
+   git add <fichiers corrigés>
+   git commit -m "fix(<scope>): corriger <description de l'erreur>"
+   ```
+4. **Relancer la validation depuis l'étape 4.2** — en entier, pas
+   uniquement l'étape qui a échoué (un fix peut introduire une régression
+   dans une autre étape)
+5. **Ne jamais contourner un échec** :
+   - Pas de `// @ts-ignore` ou `// @ts-expect-error` pour masquer une
+     erreur de type
+   - Pas de `// eslint-disable` sans justification documentée
+   - Pas de `.skip` sur un test qui échoue
+   - Pas de `--no-verify` sur le commit ou le push
+
+### 4.4 — Commit et push (uniquement après validation complète)
+
+```bash
+# Commit conventionnel (si pas déjà fait)
+git add <fichiers modifiés — jamais git add .>
+git commit -m "fix(<scope>): <description concise à l'impératif>"
+
+# Push — uniquement après que TOUTES les validations passent
+git push -u origin claude/<slug-du-problème>
+```
+
+> **Résumé de validation pré-push** — Confirme à l'utilisateur :
+> - ✅ Lint : passé
+> - ✅ Type-check : passé
+> - ✅ Tests : passés (couverture ≥ 60%)
+> - ✅ Build : passé
+> - Puis procède au push.
+
+## ÉTAPE 5 — VÉRIFICATION POST-PUSH & DÉPLOIEMENT
+
+> Cette étape vérifie que le push a bien déclenché la CI distante et que
+> le déploiement preview Vercel fonctionne correctement.
+
+### 5.1 — Surveillance des checks CI GitHub
+
+Après le push, vérifier le statut des checks CI via l'API GitHub :
+
+```bash
+REPO=$(git remote get-url origin | sed 's|\.git$||' | awk -F'[/:]' '{print $(NF-1)"/"$NF}')
+GH_API="https://api.github.com/repos/$REPO"
+AUTH=(-H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json")
+SHA=$(git rev-parse HEAD)
+
+# Consulter les check-runs du dernier commit pushé
+curl -s "${AUTH[@]}" "$GH_API/commits/$SHA/check-runs" | \
+  jq '.check_runs[] | {name, status, conclusion}'
+```
+
+Interpréter les résultats :
+- **`queued` / `in_progress`** → Attendre et re-vérifier après 60 secondes
+- **`completed` + `success`** → ✅ Le job CI est passé
+- **`completed` + `failure`** → ❌ Analyser l'échec :
+  ```bash
+  # Détail d'un check-run en échec (récupérer l'ID depuis la requête précédente)
+  curl -s "${AUTH[@]}" "$GH_API/check-runs/<check_run_id>/annotations" | jq .
+
+  # Ou consulter les logs du workflow run
+  curl -s "${AUTH[@]}" "$GH_API/actions/runs?head_sha=$SHA&per_page=5" | \
+    jq '.workflow_runs[] | {id, name, status, conclusion, html_url}'
+  ```
+  Si un job échoue en CI mais passait localement, investiguer les causes
+  courantes :
+  - Variable d'environnement manquante en CI (vérifier les secrets GitHub)
+  - Différence de version Node.js / pnpm entre local et CI
+  - Dépendance à un fichier `.env.local` non commité
+  - Test flaky (relancer le workflow via l'API si pertinent)
+
+### 5.2 — Vérification du déploiement preview Vercel
+
+Utiliser le **MCP Vercel** pour vérifier le déploiement preview :
+
+1. **Statut du déploiement** — Via MCP Vercel, consulter les déploiements
+   récents du projet et vérifier que le commit pushé a déclenché un build
+2. **Build Vercel** — Vérifier que le build Vercel a réussi :
+   - Si échec : lire les **build logs** via MCP Vercel
+   - Causes fréquentes d'échec du build Vercel (différent de la CI) :
+     - Import d'un module Node.js non disponible en Edge Runtime
+     - `dynamic = 'force-dynamic'` manquant sur une route qui utilise
+       `headers()` / `cookies()`
+     - Taille du bundle Serverless > 50 Mo (vérifier les imports lourds)
+     - Variable `NEXT_PUBLIC_*` manquante dans l'environnement Preview
+     - Erreur de sérialisation dans un Server Component (Date, Map, Set)
+     - Middleware qui importe un package incompatible Edge
+3. **Runtime preview** — Si le build est réussi, vérifier sur l'URL de
+   preview que l'application fonctionne :
+   - Les pages concernées par le fix se chargent correctement
+   - Pas d'erreur dans les logs Serverless (onglet Logs du dashboard Vercel)
+   - Les API routes répondent correctement (vérifier via `curl` ou MCP)
+
+### 5.3 — Gestion des échecs post-push
+
+Si la CI distante ou le déploiement Vercel échoue :
+
+1. **Diagnostiquer** l'erreur (logs CI via API GitHub, logs Vercel via MCP)
+2. **Corriger** localement
+3. **Relancer l'étape 4** (validation locale complète)
+4. **Pousser** le commit de correction
+5. **Re-vérifier** l'étape 5 jusqu'à ce que tout soit vert
+
+> ⚠️ Ne jamais considérer le travail comme terminé si un check CI est
+> en échec ou si le déploiement preview Vercel a échoué.
+
+## ÉTAPE 6 — LIVRAISON
+
+Structure de réponse finale :
 1. **Fichiers modifiés** — chemin complet depuis la racine du monorepo
    + diff ou code complet (nouveau fichier uniquement)
 2. **Fichiers de test** — chemin complet + code complet
-3. **Commandes à exécuter** — séquence exacte et ordonnée
-4. **Vérification Vercel** (si le bug touche le déploiement)
-   - [ ] Tester en local avec `pnpm dev` (vérifier le comportement de base)
-   - [ ] Pousser sur une branche pour déclencher un déploiement preview
-   - [ ] Vérifier les **logs Serverless** dans le dashboard Vercel (onglet Logs)
-   - [ ] Vérifier que les variables d'environnement sont présentes en preview
-   - [ ] Si CRON/QStash concerné : vérifier les logs dans la console Upstash
-   - [ ] Comparer le comportement preview vs production (cache, headers, CSP)
-5. **Vérification base de données** (si le fix touche Prisma / les données)
+3. **Résultat de la validation locale** (étape 4)
+   - Lint : ✅ / ❌ (+ détail si corrections effectuées)
+   - Type-check : ✅ / ❌
+   - Tests : ✅ / ❌ (couverture : X%)
+   - Build : ✅ / ❌
+4. **Résultat de la CI distante** (étape 5.1)
+   - Job `lint` : ✅ / ❌
+   - Job `type-check` : ✅ / ❌
+   - Job `test` : ✅ / ❌
+   - Job `build` : ✅ / ❌
+   - Job `e2e` : ✅ / ❌ (si applicable)
+   - Job `security` : ✅ / ❌
+5. **Résultat du déploiement Vercel** (étape 5.2)
+   - Build Vercel : ✅ / ❌
+   - URL de preview : `<url>`
+   - Runtime vérifié : ✅ / ❌
+6. **Vérification base de données** (si le fix touche Prisma / les données)
    - [ ] Via MCP Supabase : vérifier que le schéma est cohérent après
      `prisma migrate deploy`
    - [ ] Via MCP Supabase : requête SQL de validation sur les données
      impactées
    - [ ] Politiques RLS toujours fonctionnelles après la modification
-6. **Vérification GitHub / CI**
-   - [ ] Checks CI : tous les checks passent sur la PR (via `/commits/<sha>/check-runs`)
-   - [ ] Si nouvelle variable d'environnement : vérifier qu'elle est
-     configurée dans les secrets GitHub Actions (`TURBO_TOKEN`, etc.)
 7. **Checklist de validation avant merge**
-   - [ ] `pnpm turbo run type-check --filter=<scope>` passe
-   - [ ] `pnpm turbo run test --filter=<scope>` passe (coverage ≥ seuils)
+   - [ ] Validation locale complète (lint + type-check + test + build)
+   - [ ] CI distante : tous les jobs passent
+   - [ ] Déploiement preview Vercel : build réussi + runtime fonctionnel
    - [ ] Isolation multi-tenant vérifiée sur chaque requête DB modifiée
    - [ ] Aucune donnée sensible exposée côté client
    - [ ] Consommateurs des packages partagés modifiés non régressés
-   - [ ] Lint et Prettier respectés (`pnpm lint`)
-   - [ ] Déploiement preview Vercel réussi (build + runtime)
    - [ ] Nouvelles variables d'environnement documentées dans `.env.example`
      et ajoutées dans les settings Vercel (Production / Preview / Development)
