@@ -376,6 +376,9 @@ export async function markPostAsPublished(
 
 /**
  * Marque un post comme échoué
+ *
+ * Note : ne pas incrémenter retryCount ici car il est déjà incrémenté
+ * par incrementRetryCount() appelé en amont dans le flux de publication.
  */
 export async function markPostAsFailed(id: string, errorMessage: string): Promise<SocialPost> {
   const post = await prisma.socialPost.update({
@@ -383,7 +386,6 @@ export async function markPostAsFailed(id: string, errorMessage: string): Promis
     data: {
       status: 'FAILED',
       errorMessage,
-      retryCount: { increment: 1 },
     },
   });
 

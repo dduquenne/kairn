@@ -21,10 +21,10 @@
  * Security: QStash signature or CRON_SECRET
  */
 
-import { verifyCronAuth } from "@kairn/core/scheduler";
-import { NextRequest, NextResponse } from "next/server";
+import { verifyCronAuth } from '@kairn/core/scheduler';
+import { NextRequest, NextResponse } from 'next/server';
 
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from '@/lib/db/prisma';
 
 import {
   getAnalyticsSummary,
@@ -33,7 +33,7 @@ import {
   getDeviceBreakdown,
   getSectionHeatmap,
   getAnomalies,
-} from "../../analytics/store-index";
+} from '../../analytics/store-index';
 
 interface ReportResult {
   reportId: string;
@@ -44,11 +44,14 @@ interface ReportResult {
   error?: string;
 }
 
+// Accepter aussi POST car QStash envoie POST par défaut
+export { GET as POST };
+
 export async function GET(request: NextRequest) {
   // Verify authentication (QStash signature or CRON_SECRET)
   const authResult = await verifyCronAuth(request);
   if (!authResult.valid) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const startTime = Date.now();
@@ -71,7 +74,7 @@ export async function GET(request: NextRequest) {
     if (reports.length === 0) {
       return NextResponse.json({
         success: true,
-        message: "Aucun rapport à envoyer",
+        message: 'Aucun rapport à envoyer',
         processed: 0,
         results: [],
       });
@@ -101,7 +104,7 @@ export async function GET(request: NextRequest) {
         // Envoyer l'email
         await sendReportEmail(
           report.recipients,
-          `Rapport ${periodLabel} - ${new Date(startDate).toLocaleDateString("fr-FR")}`,
+          `Rapport ${periodLabel} - ${new Date(startDate).toLocaleDateString('fr-FR')}`,
           emailHtml
         );
 
@@ -125,7 +128,9 @@ export async function GET(request: NextRequest) {
           recipients: report.recipients.length,
         });
 
-        console.log(`[Cron:process-reports] Rapport "${report.name}" envoyé à ${report.recipients.length} destinataire(s)`);
+        console.log(
+          `[Cron:process-reports] Rapport "${report.name}" envoyé à ${report.recipients.length} destinataire(s)`
+        );
       } catch (error) {
         console.error(`[Cron:process-reports] Erreur rapport "${report.name}":`, error);
         results.push({
@@ -134,13 +139,13 @@ export async function GET(request: NextRequest) {
           frequency: report.frequency,
           sent: false,
           recipients: 0,
-          error: error instanceof Error ? error.message : "Erreur inconnue",
+          error: error instanceof Error ? error.message : 'Erreur inconnue',
         });
       }
     }
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-    const sentCount = results.filter((r) => r.sent).length;
+    const sentCount = results.filter(r => r.sent).length;
 
     return NextResponse.json({
       success: true,
@@ -150,11 +155,11 @@ export async function GET(request: NextRequest) {
       results,
     });
   } catch (error) {
-    console.error("[Cron:process-reports] Erreur:", error);
+    console.error('[Cron:process-reports] Erreur:', error);
     return NextResponse.json(
       {
-        error: "Report processing failed",
-        message: error instanceof Error ? error.message : "Unknown error",
+        error: 'Report processing failed',
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -177,28 +182,28 @@ function calculateReportPeriod(frequency: string): {
   let periodLabel: string;
 
   switch (frequency) {
-    case "daily":
+    case 'daily':
       startDate = new Date(endDate);
       startDate.setDate(startDate.getDate() - 1);
-      periodLabel = "quotidien";
+      periodLabel = 'quotidien';
       break;
 
-    case "weekly":
+    case 'weekly':
       startDate = new Date(endDate);
       startDate.setDate(startDate.getDate() - 7);
-      periodLabel = "hebdomadaire";
+      periodLabel = 'hebdomadaire';
       break;
 
-    case "monthly":
+    case 'monthly':
       startDate = new Date(endDate);
       startDate.setMonth(startDate.getMonth() - 1);
-      periodLabel = "mensuel";
+      periodLabel = 'mensuel';
       break;
 
     default:
       startDate = new Date(endDate);
       startDate.setDate(startDate.getDate() - 1);
-      periodLabel = "quotidien";
+      periodLabel = 'quotidien';
   }
 
   return {
@@ -217,17 +222,17 @@ function calculateNextScheduled(report: {
   dayOfWeek: number | null;
   dayOfMonth: number | null;
 }): Date {
-  const [hours, minutes] = report.timeOfDay.split(":").map(Number);
+  const [hours, minutes] = report.timeOfDay.split(':').map(Number);
   const next = new Date();
 
   next.setHours(hours, minutes, 0, 0);
 
   switch (report.frequency) {
-    case "daily":
+    case 'daily':
       next.setDate(next.getDate() + 1);
       break;
 
-    case "weekly":
+    case 'weekly':
       const targetDay = report.dayOfWeek || 1; // Lundi par défaut
       const currentDay = next.getDay();
       let daysUntilTarget = targetDay - currentDay;
@@ -235,7 +240,7 @@ function calculateNextScheduled(report: {
       next.setDate(next.getDate() + daysUntilTarget);
       break;
 
-    case "monthly":
+    case 'monthly':
       const targetDate = report.dayOfMonth || 1;
       next.setMonth(next.getMonth() + 1);
       next.setDate(Math.min(targetDate, getDaysInMonth(next.getFullYear(), next.getMonth())));
@@ -258,7 +263,7 @@ function getDaysInMonth(year: number, month: number): number {
 async function generateReportData(startDate: string, endDate: string) {
   const [summary, comparison, trafficSources, devices, heatmap, anomalies] = await Promise.all([
     getAnalyticsSummary(startDate, endDate),
-    getAnalyticsSummaryWithComparison("day"),
+    getAnalyticsSummaryWithComparison('day'),
     getTrafficSources(startDate, endDate),
     getDeviceBreakdown(startDate, endDate),
     getSectionHeatmap(startDate, endDate),
@@ -271,7 +276,7 @@ async function generateReportData(startDate: string, endDate: string) {
     trafficSources: trafficSources.slice(0, 10),
     devices,
     sections: heatmap.slice(0, 10),
-    anomalies: anomalies.filter((a) => !a.acknowledged).slice(0, 10),
+    anomalies: anomalies.filter(a => !a.acknowledged).slice(0, 10),
   };
 }
 
@@ -284,20 +289,20 @@ function filterReportSections(
 ) {
   const filtered: Partial<typeof data> = {};
 
-  if (sections.includes("summary")) {
+  if (sections.includes('summary')) {
     filtered.summary = data.summary;
     filtered.comparison = data.comparison;
   }
-  if (sections.includes("traffic")) {
+  if (sections.includes('traffic')) {
     filtered.trafficSources = data.trafficSources;
   }
-  if (sections.includes("devices")) {
+  if (sections.includes('devices')) {
     filtered.devices = data.devices;
   }
-  if (sections.includes("sections")) {
+  if (sections.includes('sections')) {
     filtered.sections = data.sections;
   }
-  if (sections.includes("insights") || sections.includes("cohorts")) {
+  if (sections.includes('insights') || sections.includes('cohorts')) {
     filtered.anomalies = data.anomalies;
   }
 
@@ -314,7 +319,7 @@ function generateReportEmailHtml(
   periodLabel: string,
   frequency: string
 ): string {
-  const formatNumber = (n: number) => n.toLocaleString("fr-FR");
+  const formatNumber = (n: number) => n.toLocaleString('fr-FR');
   const formatPercent = (n: number) => `${n.toFixed(1)}%`;
   const formatTime = (ms: number) => {
     const seconds = Math.round(ms / 1000);
@@ -323,10 +328,10 @@ function generateReportEmailHtml(
     return `${minutes}m ${remainingSeconds}s`;
   };
 
-  const changeArrow = (change: number) => (change >= 0 ? "↑" : "↓");
-  const changeColor = (change: number) => (change >= 0 ? "#28a745" : "#dc3545");
+  const changeArrow = (change: number) => (change >= 0 ? '↑' : '↓');
+  const changeColor = (change: number) => (change >= 0 ? '#28a745' : '#dc3545');
 
-  const frequencyEmoji = frequency === "daily" ? "📊" : frequency === "weekly" ? "📈" : "📉";
+  const frequencyEmoji = frequency === 'daily' ? '📊' : frequency === 'weekly' ? '📈' : '📉';
 
   return `
     <!DOCTYPE html>
@@ -338,25 +343,27 @@ function generateReportEmailHtml(
     <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 700px; margin: 0 auto; padding: 20px;">
       <div style="background-color: #1a1a2e; padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
         <h1 style="color: #D4AF37; margin: 0; font-size: 24px;">${frequencyEmoji} Psypnos Analytics</h1>
-        <p style="color: #fff; margin: 10px 0 0 0; font-size: 14px;">Rapport ${periodLabel} - ${date.toLocaleDateString("fr-FR")}</p>
+        <p style="color: #fff; margin: 10px 0 0 0; font-size: 14px;">Rapport ${periodLabel} - ${date.toLocaleDateString('fr-FR')}</p>
         <p style="color: #aaa; margin: 5px 0 0 0; font-size: 12px;">${reportName}</p>
       </div>
 
       <div style="background-color: #f8f9fa; padding: 25px; border-radius: 0 0 10px 10px;">
-        ${data.summary ? `
+        ${
+          data.summary
+            ? `
         <h2 style="color: #1a1a2e; border-bottom: 2px solid #D4AF37; padding-bottom: 10px;">📌 Résumé</h2>
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
           <tr>
             <td style="padding: 15px; background: white; border-radius: 8px; text-align: center; width: 25%;">
               <div style="font-size: 28px; font-weight: bold; color: #1a1a2e;">${formatNumber(data.summary.totalVisits)}</div>
               <div style="color: #666; font-size: 12px;">Visites</div>
-              ${data.comparison ? `<div style="color: ${changeColor(data.comparison.comparison.totalVisitsChange)}; font-size: 12px;">${changeArrow(data.comparison.comparison.totalVisitsChange)} ${formatPercent(Math.abs(data.comparison.comparison.totalVisitsChange))}</div>` : ""}
+              ${data.comparison ? `<div style="color: ${changeColor(data.comparison.comparison.totalVisitsChange)}; font-size: 12px;">${changeArrow(data.comparison.comparison.totalVisitsChange)} ${formatPercent(Math.abs(data.comparison.comparison.totalVisitsChange))}</div>` : ''}
             </td>
             <td style="width: 2%;"></td>
             <td style="padding: 15px; background: white; border-radius: 8px; text-align: center; width: 25%;">
               <div style="font-size: 28px; font-weight: bold; color: #1a1a2e;">${formatNumber(data.summary.uniqueSessions)}</div>
               <div style="color: #666; font-size: 12px;">Sessions</div>
-              ${data.comparison ? `<div style="color: ${changeColor(data.comparison.comparison.uniqueSessionsChange)}; font-size: 12px;">${changeArrow(data.comparison.comparison.uniqueSessionsChange)} ${formatPercent(Math.abs(data.comparison.comparison.uniqueSessionsChange))}</div>` : ""}
+              ${data.comparison ? `<div style="color: ${changeColor(data.comparison.comparison.uniqueSessionsChange)}; font-size: 12px;">${changeArrow(data.comparison.comparison.uniqueSessionsChange)} ${formatPercent(Math.abs(data.comparison.comparison.uniqueSessionsChange))}</div>` : ''}
             </td>
             <td style="width: 2%;"></td>
             <td style="padding: 15px; background: white; border-radius: 8px; text-align: center; width: 25%;">
@@ -370,9 +377,13 @@ function generateReportEmailHtml(
             </td>
           </tr>
         </table>
-        ` : ""}
+        `
+            : ''
+        }
 
-        ${data.trafficSources && data.trafficSources.length > 0 ? `
+        ${
+          data.trafficSources && data.trafficSources.length > 0
+            ? `
         <h2 style="color: #1a1a2e; border-bottom: 2px solid #D4AF37; padding-bottom: 10px;">🌐 Sources de Trafic</h2>
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; background: white; border-radius: 8px;">
           <thead>
@@ -383,18 +394,26 @@ function generateReportEmailHtml(
             </tr>
           </thead>
           <tbody>
-            ${data.trafficSources.map((source) => `
+            ${data.trafficSources
+              .map(
+                source => `
             <tr>
               <td style="padding: 12px; border-bottom: 1px solid #eee;">${source.source} / ${source.medium}</td>
               <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee;">${formatNumber(source.visits)}</td>
               <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee;">${formatPercent(source.conversionRate)}</td>
             </tr>
-            `).join("")}
+            `
+              )
+              .join('')}
           </tbody>
         </table>
-        ` : ""}
+        `
+            : ''
+        }
 
-        ${data.devices && data.devices.length > 0 ? `
+        ${
+          data.devices && data.devices.length > 0
+            ? `
         <h2 style="color: #1a1a2e; border-bottom: 2px solid #D4AF37; padding-bottom: 10px;">📱 Appareils</h2>
         <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; background: white; border-radius: 8px;">
           <thead>
@@ -405,31 +424,45 @@ function generateReportEmailHtml(
             </tr>
           </thead>
           <tbody>
-            ${data.devices.map((device) => `
+            ${data.devices
+              .map(
+                device => `
             <tr>
               <td style="padding: 12px; border-bottom: 1px solid #eee; text-transform: capitalize;">${device.deviceType}</td>
               <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee;">${formatNumber(device.visits)}</td>
               <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee;">${formatTime(device.avgTimeOnSite)}</td>
             </tr>
-            `).join("")}
+            `
+              )
+              .join('')}
           </tbody>
         </table>
-        ` : ""}
+        `
+            : ''
+        }
 
-        ${data.anomalies && data.anomalies.length > 0 ? `
+        ${
+          data.anomalies && data.anomalies.length > 0
+            ? `
         <h2 style="color: #dc3545; border-bottom: 2px solid #dc3545; padding-bottom: 10px;">⚠️ Alertes</h2>
         <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin-bottom: 25px; border-radius: 4px;">
-          ${data.anomalies.map((anomaly) => `
+          ${data.anomalies
+            .map(
+              anomaly => `
           <div style="margin-bottom: 10px;">
-            <span style="display: inline-block; padding: 2px 8px; background: ${anomaly.severity === "high" ? "#dc3545" : anomaly.severity === "medium" ? "#ffc107" : "#6c757d"}; color: white; border-radius: 4px; font-size: 11px; margin-right: 8px;">${anomaly.severity.toUpperCase()}</span>
+            <span style="display: inline-block; padding: 2px 8px; background: ${anomaly.severity === 'high' ? '#dc3545' : anomaly.severity === 'medium' ? '#ffc107' : '#6c757d'}; color: white; border-radius: 4px; font-size: 11px; margin-right: 8px;">${anomaly.severity.toUpperCase()}</span>
             ${anomaly.message}
           </div>
-          `).join("")}
+          `
+            )
+            .join('')}
         </div>
-        ` : ""}
+        `
+            : ''
+        }
 
         <div style="text-align: center; padding-top: 20px; border-top: 1px solid #ddd;">
-          <a href="${process.env.NEXT_PUBLIC_SITE_URL || "https://psypnos.fr"}/admin/analytics"
+          <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://psypnos.fr'}/admin/analytics"
              style="display: inline-block; padding: 12px 30px; background-color: #D4AF37; color: #1a1a2e; text-decoration: none; border-radius: 5px; font-weight: bold;">
             Voir le Dashboard
           </a>
@@ -446,25 +479,21 @@ function generateReportEmailHtml(
 /**
  * Envoie l'email du rapport
  */
-async function sendReportEmail(
-  recipients: string[],
-  subject: string,
-  html: string
-): Promise<void> {
+async function sendReportEmail(recipients: string[], subject: string, html: string): Promise<void> {
   const resendApiKey = process.env.RESEND_API_KEY;
 
   if (!resendApiKey) {
-    throw new Error("RESEND_API_KEY non configuré");
+    throw new Error('RESEND_API_KEY non configuré');
   }
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
     headers: {
       Authorization: `Bearer ${resendApiKey}`,
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: process.env.REPORT_EMAIL_FROM || "Psypnos Analytics <analytics@psypnos.fr>",
+      from: process.env.REPORT_EMAIL_FROM || 'Psypnos Analytics <analytics@psypnos.fr>',
       to: recipients,
       subject: `[Psypnos] ${subject}`,
       html,

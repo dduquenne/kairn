@@ -189,3 +189,6 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+// Accepter aussi POST car QStash envoie POST par défaut
+export { GET as POST };
