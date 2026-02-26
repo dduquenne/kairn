@@ -4,10 +4,5 @@
   "installCommand": "pnpm install",
   "buildCommand": "cd ../.. && pnpm --filter @kairn/db exec prisma generate && pnpm turbo run build --filter=@kairn/psypnos --env-mode=loose",
   "outputDirectory": ".next",
-  "regions": ["cdg1"],
-  "functions": {
-    "app/api/**/*.ts": {
-      "maxDuration": 60
-    }
-  }
+  "regions": ["cdg1"]
 }

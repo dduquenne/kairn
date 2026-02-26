@@ -14,7 +14,7 @@
     "test:e2e:debug": "playwright test --debug"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.71.2",
+    "@anthropic-ai/sdk": "^0.78.0",
     "@kairn/admin": "workspace:*",
     "@kairn/ai": "workspace:*",
     "@kairn/analytics": "workspace:*",
@@ -36,7 +36,7 @@
     "jose": "^5.2.0",
     "lucide-react": "^0.400.0",
     "next": "^16.1.6",
-    "openai": "^6.16.0",
+    "openai": "^6.25.0",
     "pg": "^8.17.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
