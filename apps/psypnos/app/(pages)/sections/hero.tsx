@@ -80,7 +80,7 @@ export function HeroSection() {
           initial={fadeInInitial}
           animate={fadeIn}
           transition={hasMounted ? { duration: 2, ease: 'easeOut' } : { duration: 0 }}
-          className="bg-night/40 flex h-24 w-24 flex-col items-center justify-center "
+          className="bg-night/40 flex flex-col items-center justify-center"
         >
           <motion.svg
             initial={hasMounted ? { scale: 0.5, rotate: -360 } : { scale: 1, rotate: 0 }}
@@ -106,28 +106,14 @@ export function HeroSection() {
               strokeLinecap="round"
             />
           </motion.svg>
-          <motion.svg
+          <motion.span
             initial={fadeInInitial}
             animate={fadeIn}
             transition={hasMounted ? { duration: 2, delay: 1, ease: 'easeOut' } : { duration: 0 }}
-            width="100"
-            height="50"
-            viewBox="0 0 1000 500"
-            aria-label="Psypnos"
-            className="bg-night/40 flex h-24 w-24 items-center justify-center "
+            className="font-display text-gold text-2xl font-semibold"
           >
-            <text
-              x="50%"
-              y="50%"
-              fill="#E5C78E"
-              textAnchor="middle"
-              fontFamily="'Playfair Display',serif"
-              fontSize="180"
-              fontWeight="bold"
-            >
-              Psypnos
-            </text>
-          </motion.svg>
+            Psypnos
+          </motion.span>
         </motion.div>
 
         <motion.div
