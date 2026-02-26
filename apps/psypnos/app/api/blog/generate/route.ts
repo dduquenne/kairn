@@ -13,6 +13,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
+import { withAdminAuth } from '../../auth/middleware';
 import {
   generateArticleWithClaude,
   type ArticleGenerationOptions,
@@ -88,6 +89,9 @@ type GenerateArticlePayload = z.infer<typeof generateArticleSchema>;
  * 4. Return generated article with title, content, FAQ items, etc.
  */
 export async function POST(request: Request) {
+  const authResult = await withAdminAuth();
+  if (authResult.error) return authResult.error;
+
   let payload: GenerateArticlePayload;
 
   try {
