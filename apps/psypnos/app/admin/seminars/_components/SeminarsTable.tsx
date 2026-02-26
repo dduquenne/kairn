@@ -21,23 +21,23 @@ export function SeminarsTable({ seminars, onEdit, onDelete, onShare }: SeminarsT
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-night/40 bg-night/60 shadow-aurora/40">
+    <div className="overflow-x-auto rounded-xl border border-night/40 bg-night/60 shadow-aurora/40">
       <table className="min-w-full divide-y divide-night/40 text-sm">
         <thead className="bg-night/80 text-xs uppercase tracking-wide text-ivory/60">
           <tr>
-            <th scope="col" className="px-4 py-3 text-left font-medium">
+            <th scope="col" className="px-3 py-3 text-left font-medium sm:px-4">
               Titre
             </th>
-            <th scope="col" className="px-4 py-3 text-left font-medium">
+            <th scope="col" className="hidden px-3 py-3 text-left font-medium sm:table-cell sm:px-4">
               Intervenants
             </th>
-            <th scope="col" className="px-4 py-3 text-left font-medium">
+            <th scope="col" className="hidden px-3 py-3 text-left font-medium md:table-cell md:px-4">
               Période
             </th>
-            <th scope="col" className="px-4 py-3 text-left font-medium">
+            <th scope="col" className="hidden px-3 py-3 text-left font-medium lg:table-cell lg:px-4">
               Capacité
             </th>
-            <th scope="col" className="px-4 py-3 text-left font-medium">
+            <th scope="col" className="px-3 py-3 text-right font-medium sm:px-4">
               Actions
             </th>
           </tr>
@@ -45,21 +45,31 @@ export function SeminarsTable({ seminars, onEdit, onDelete, onShare }: SeminarsT
         <tbody className="divide-y divide-night/40">
           {seminars.map((seminar) => (
             <tr key={seminar.id} className="bg-night/40 text-ivory/90">
-              <td className="px-4 py-3">
+              <td className="px-3 py-3 sm:px-4">
                 <div className="flex flex-col gap-1">
                   <span className="font-medium text-ivory">{seminar.title}</span>
                   <span className="text-xs text-ivory/60">{renderTags(seminar.tags)}</span>
+                  <span className="text-xs text-ivory/50 sm:hidden">
+                    {renderSpeakers(seminar)}
+                  </span>
+                  <span className="text-xs text-ivory/50 sm:hidden md:hidden">
+                    {formatDateRange(seminar.startAt, seminar.endAt)}
+                  </span>
                 </div>
               </td>
-              <td className="px-4 py-3 text-ivory/80">{renderSpeakers(seminar)}</td>
-              <td className="px-4 py-3 text-ivory/80">{formatDateRange(seminar.startAt, seminar.endAt)}</td>
-              <td className="px-4 py-3">
+              <td className="hidden px-3 py-3 text-ivory/80 sm:table-cell sm:px-4">
+                {renderSpeakers(seminar)}
+              </td>
+              <td className="hidden px-3 py-3 text-ivory/80 md:table-cell md:px-4">
+                {formatDateRange(seminar.startAt, seminar.endAt)}
+              </td>
+              <td className="hidden px-3 py-3 lg:table-cell lg:px-4">
                 <span className="rounded-full bg-night/60 px-3 py-1 text-xs font-semibold text-gold">
                   {seminar.capacity}
                 </span>
               </td>
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-2">
+              <td className="px-3 py-3 sm:px-4">
+                <div className="flex flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-2">
                   <button
                     type="button"
                     onClick={() => onShare(seminar)}
