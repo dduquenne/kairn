@@ -189,7 +189,18 @@ export function TrafficPanel({
               width={40}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="value" fill="#D4AF37" radius={[4, 4, 0, 0]} maxBarSize={50} />
+            <Bar
+              dataKey="value"
+              fill="#D4AF37"
+              radius={[4, 4, 0, 0]}
+              maxBarSize={50}
+              activeBar={{
+                fill: "#E5C158",
+                stroke: "rgba(212,175,55,0.4)",
+                strokeWidth: 1.5,
+                fillOpacity: 0.9,
+              }}
+            />
             <Brush
               dataKey="label"
               height={30}

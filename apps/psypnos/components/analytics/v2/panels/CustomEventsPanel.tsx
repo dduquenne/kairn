@@ -174,7 +174,16 @@ export function CustomEventsPanel({
                   "Événements",
                 ]}
               />
-              <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+              <Bar
+                dataKey="count"
+                radius={[0, 4, 4, 0]}
+                activeBar={{
+                  fill: "#E5C158",
+                  stroke: "rgba(212,175,55,0.4)",
+                  strokeWidth: 1.5,
+                  fillOpacity: 0.9,
+                }}
+              >
                 {chartData.map((_entry, index) => (
                   <rect key={index} fill={COLORS[index % COLORS.length]} />
                 ))}
