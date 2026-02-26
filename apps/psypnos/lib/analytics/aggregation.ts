@@ -1,373 +1,207 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Prisma/type incompatibilities to fix
 /**
  * Analytics Aggregation Service
  * Phase 4: Scalability & Performance
  *
  * Pre-computes daily aggregations for faster dashboard loading.
+ * Uses the unified Kairn schema: AnalyticsEvent -> AnalyticsDailySummary.
  * Should be run via cron job daily.
  */
 
-import { prisma, isDatabaseConnected } from "@/lib/db/prisma";
+import { Prisma } from '@prisma/client';
 
-/**
- * Types locaux pour les records Prisma (évite les problèmes de génération Prisma)
- */
-interface PageVisitRecord {
-  id: string;
-  timestamp: Date;
-  sessionId: string;
-  page: string;
-  referrer: string | null;
-  userAgent: string | null;
-  utmSource: string | null;
-  utmMedium: string | null;
-  utmCampaign: string | null;
-  utmTerm: string | null;
-  utmContent: string | null;
-  referrerDomain: string | null;
-  deviceType: string | null;
-  browser: string | null;
-  os: string | null;
-  scrollDepthPercent: number | null;
-  timeOnPage: number | null;
-  isBot: boolean | null;
-}
+import { prisma, isDatabaseConnected } from '@/lib/db/prisma';
+import { getSiteId } from '@/lib/db/site';
 
-interface ConversionEventRecord {
-  id: string;
-  timestamp: Date;
-  sessionId: string;
-  eventType: string;
-  stepName: string;
-  completed: boolean;
-}
-
-interface SectionTimeRecord {
-  id: string;
-  timestamp: Date;
-  sessionId: string;
-  section: string;
-  timeSpent: number;
-}
-
-interface VisitSourceRecord {
-  sessionId: string;
-  utmSource: string | null;
-  utmMedium: string | null;
-  utmCampaign: string | null;
-  referrerDomain: string | null;
-}
-
-interface SessionIdRecord {
-  sessionId: string;
+interface EventData {
+  referrer?: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  deviceType?: string;
+  timeOnPage?: number;
+  scrollDepthPercent?: number;
+  isBot?: boolean;
+  sectionId?: string;
+  sectionName?: string;
+  timeSpent?: number;
+  conversionType?: string;
+  completed?: boolean;
 }
 
 /**
- * Compute and store daily summary aggregations
+ * Compute and store daily summary aggregation from AnalyticsEvent
  */
 export async function computeDailySummary(date: Date = new Date()): Promise<void> {
   const isConnected = await isDatabaseConnected();
   if (!isConnected) {
-    console.log("[Aggregation] Database not connected, skipping");
+    console.log('[Aggregation] Database not connected, skipping');
     return;
   }
 
-  // Normalize to start of day
+  const siteId = await getSiteId();
+
   const dayStart = new Date(date);
   dayStart.setHours(0, 0, 0, 0);
 
   const dayEnd = new Date(dayStart);
   dayEnd.setDate(dayEnd.getDate() + 1);
 
-  console.log(`[Aggregation] Computing summary for ${dayStart.toISOString().split("T")[0]}`);
+  console.log(`[Aggregation] Computing summary for ${dayStart.toISOString().split('T')[0]}`);
 
-  // Get all visits for the day
-  const visits = await prisma.pageVisit.findMany({
+  // Get all PAGE_VIEW events for the day (excluding bots)
+  const pageViews = await prisma.analyticsEvent.findMany({
     where: {
-      timestamp: { gte: dayStart, lt: dayEnd },
-      isBot: false,
+      siteId,
+      type: 'PAGE_VIEW',
+      createdAt: { gte: dayStart, lt: dayEnd },
     },
+    select: { sessionId: true, data: true, path: true },
   });
 
-  const sessions = new Set(visits.map((v: PageVisitRecord) => v.sessionId));
-  const uniqueSessions = sessions.size;
-  const totalVisits = visits.length;
+  // Filter out bots
+  const humanViews = pageViews.filter(v => {
+    const data = v.data as EventData | null;
+    return !data?.isBot;
+  });
+
+  const sessions = new Set(humanViews.map(v => v.sessionId).filter(Boolean));
+  const uniqueVisitors = sessions.size;
+  const totalPageViews = humanViews.length;
 
   // Device breakdown
-  const deviceCounts = { mobile: 0, desktop: 0, tablet: 0 };
-  visits.forEach((v: PageVisitRecord) => {
-    if (v.deviceType === "mobile") deviceCounts.mobile++;
-    else if (v.deviceType === "tablet") deviceCounts.tablet++;
-    else deviceCounts.desktop++;
+  const deviceBreakdown = { mobile: 0, desktop: 0, tablet: 0 };
+  humanViews.forEach(v => {
+    const data = v.data as EventData | null;
+    const device = data?.deviceType || 'desktop';
+    if (device === 'mobile') deviceBreakdown.mobile++;
+    else if (device === 'tablet') deviceBreakdown.tablet++;
+    else deviceBreakdown.desktop++;
   });
 
-  // Average time on page
-  const timesWithValue = visits.filter((v: PageVisitRecord) => v.timeOnPage != null);
-  const avgTimeOnPage =
-    timesWithValue.length > 0
-      ? timesWithValue.reduce((sum: number, v: PageVisitRecord) => sum + (v.timeOnPage || 0), 0) /
-        timesWithValue.length
-      : null;
-
-  // Conversions
-  const conversions = await prisma.conversionEvent.count({
+  // Average time on site from PAGE_EXIT events
+  const exitEvents = await prisma.analyticsEvent.findMany({
     where: {
-      timestamp: { gte: dayStart, lt: dayEnd },
-      completed: true,
+      siteId,
+      type: 'PAGE_EXIT',
+      createdAt: { gte: dayStart, lt: dayEnd },
+    },
+    select: { data: true },
+  });
+
+  const timesOnPage = exitEvents
+    .map(e => (e.data as EventData | null)?.timeOnPage)
+    .filter((t): t is number => t != null && t > 0);
+
+  const avgTimeOnSite =
+    timesOnPage.length > 0 ? timesOnPage.reduce((sum, t) => sum + t, 0) / timesOnPage.length : 0;
+
+  // Sessions count (SESSION_START events)
+  const sessionCount = await prisma.analyticsEvent.count({
+    where: {
+      siteId,
+      type: 'SESSION_START',
+      createdAt: { gte: dayStart, lt: dayEnd },
     },
   });
 
-  // Bounce rate (sessions with only 1 page view)
+  // Bounce rate: sessions with only 1 page view
   const sessionPageCounts = new Map<string, number>();
-  visits.forEach((v: PageVisitRecord) => {
-    sessionPageCounts.set(v.sessionId, (sessionPageCounts.get(v.sessionId) || 0) + 1);
+  humanViews.forEach(v => {
+    if (v.sessionId) {
+      sessionPageCounts.set(v.sessionId, (sessionPageCounts.get(v.sessionId) || 0) + 1);
+    }
   });
   const bouncedSessions = Array.from(sessionPageCounts.values()).filter(
-    (count) => count === 1
+    count => count === 1
   ).length;
-  const bounceRate = uniqueSessions > 0 ? (bouncedSessions / uniqueSessions) * 100 : null;
+  const bounceRate = uniqueVisitors > 0 ? (bouncedSessions / uniqueVisitors) * 100 : 0;
 
-  // Conversion rate
-  const conversionRate = uniqueSessions > 0 ? (conversions / uniqueSessions) * 100 : null;
+  // Conversions
+  const conversionEvents = await prisma.analyticsEvent.findMany({
+    where: {
+      siteId,
+      type: 'CONVERSION',
+      createdAt: { gte: dayStart, lt: dayEnd },
+    },
+    select: { data: true, name: true },
+  });
+
+  const conversions: Record<string, number> = {};
+  conversionEvents.forEach(e => {
+    const key = e.name || 'unknown';
+    conversions[key] = (conversions[key] || 0) + 1;
+  });
+
+  // Top pages
+  const pageCounts = new Map<string, number>();
+  humanViews.forEach(v => {
+    pageCounts.set(v.path, (pageCounts.get(v.path) || 0) + 1);
+  });
+  const topPages = Array.from(pageCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([page, views]) => ({ page, views }));
+
+  // Top sources
+  const sourceCounts = new Map<string, number>();
+  humanViews.forEach(v => {
+    const data = v.data as EventData | null;
+    const source = data?.utmSource || data?.referrer || 'direct';
+    sourceCounts.set(source, (sourceCounts.get(source) || 0) + 1);
+  });
+  const topSources = Array.from(sourceCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([source, visits]) => ({ source, visits }));
 
   // Upsert daily summary
-  await prisma.dailySummary.upsert({
-    where: { date: dayStart },
+  await prisma.analyticsDailySummary.upsert({
+    where: { siteId_date: { siteId, date: dayStart } },
     update: {
-      totalVisits,
-      uniqueSessions,
-      avgTimeOnPage,
-      mobileSessions: deviceCounts.mobile,
-      desktopSessions: deviceCounts.desktop,
-      tabletSessions: deviceCounts.tablet,
-      totalConversions: conversions,
-      conversionRate,
+      pageViews: totalPageViews,
+      uniqueVisitors,
+      sessions: sessionCount || uniqueVisitors,
       bounceRate,
-      updatedAt: new Date(),
+      avgTimeOnSite,
+      topPages,
+      topSources,
+      deviceBreakdown,
+      conversions: Object.keys(conversions).length > 0 ? conversions : Prisma.JsonNull,
     },
     create: {
+      siteId,
       date: dayStart,
-      totalVisits,
-      uniqueSessions,
-      avgTimeOnPage,
-      mobileSessions: deviceCounts.mobile,
-      desktopSessions: deviceCounts.desktop,
-      tabletSessions: deviceCounts.tablet,
-      totalConversions: conversions,
-      conversionRate,
+      pageViews: totalPageViews,
+      uniqueVisitors,
+      sessions: sessionCount || uniqueVisitors,
       bounceRate,
+      avgTimeOnSite,
+      topPages,
+      topSources,
+      deviceBreakdown,
+      conversions: Object.keys(conversions).length > 0 ? conversions : Prisma.JsonNull,
     },
   });
 
-  console.log(`[Aggregation] Daily summary saved: ${totalVisits} visits, ${uniqueSessions} sessions`);
-}
-
-/**
- * Compute and store traffic source summary for a day
- */
-export async function computeTrafficSourceSummary(date: Date = new Date()): Promise<void> {
-  const isConnected = await isDatabaseConnected();
-  if (!isConnected) return;
-
-  const dayStart = new Date(date);
-  dayStart.setHours(0, 0, 0, 0);
-
-  const dayEnd = new Date(dayStart);
-  dayEnd.setDate(dayEnd.getDate() + 1);
-
-  console.log(`[Aggregation] Computing traffic sources for ${dayStart.toISOString().split("T")[0]}`);
-
-  const visits = await prisma.pageVisit.findMany({
-    where: {
-      timestamp: { gte: dayStart, lt: dayEnd },
-      isBot: false,
-    },
-    select: {
-      sessionId: true,
-      utmSource: true,
-      utmMedium: true,
-      utmCampaign: true,
-      referrerDomain: true,
-    },
-  });
-
-  const conversions = await prisma.conversionEvent.findMany({
-    where: {
-      timestamp: { gte: dayStart, lt: dayEnd },
-      completed: true,
-    },
-    select: { sessionId: true },
-  });
-
-  const convertingSessions = new Set(conversions.map((c: SessionIdRecord) => c.sessionId));
-
-  // Group by source/medium/campaign
-  const sourceMap = new Map<
-    string,
-    { visits: number; sessions: Set<string>; conversions: number }
-  >();
-
-  visits.forEach((v: VisitSourceRecord) => {
-    const source = v.utmSource || v.referrerDomain || "direct";
-    const medium = v.utmMedium || "none";
-    const campaign = v.utmCampaign || "";
-    const key = `${source}|${medium}|${campaign}`;
-
-    if (!sourceMap.has(key)) {
-      sourceMap.set(key, { visits: 0, sessions: new Set(), conversions: 0 });
-    }
-
-    const data = sourceMap.get(key)!;
-    data.visits++;
-    data.sessions.add(v.sessionId);
-  });
-
-  // Count conversions per source
-  sourceMap.forEach((data) => {
-    data.sessions.forEach((sessionId) => {
-      if (convertingSessions.has(sessionId)) {
-        data.conversions++;
-      }
-    });
-  });
-
-  // Delete existing entries for the day
-  await prisma.trafficSourceSummary.deleteMany({
-    where: { date: dayStart },
-  });
-
-  // Insert new entries
-  const records = Array.from(sourceMap.entries()).map(([key, data]) => {
-    const [source, medium, campaign] = key.split("|");
-    return {
-      date: dayStart,
-      source,
-      medium,
-      campaign: campaign || null,
-      visits: data.visits,
-      uniqueSessions: data.sessions.size,
-      conversions: data.conversions,
-      conversionRate:
-        data.sessions.size > 0 ? (data.conversions / data.sessions.size) * 100 : null,
-    };
-  });
-
-  if (records.length > 0) {
-    await prisma.trafficSourceSummary.createMany({ data: records });
-  }
-
-  console.log(`[Aggregation] Traffic sources saved: ${records.length} sources`);
-}
-
-/**
- * Compute and store section engagement summary for a day
- */
-export async function computeSectionSummary(date: Date = new Date()): Promise<void> {
-  const isConnected = await isDatabaseConnected();
-  if (!isConnected) return;
-
-  const dayStart = new Date(date);
-  dayStart.setHours(0, 0, 0, 0);
-
-  const dayEnd = new Date(dayStart);
-  dayEnd.setDate(dayEnd.getDate() + 1);
-
-  console.log(`[Aggregation] Computing section summary for ${dayStart.toISOString().split("T")[0]}`);
-
-  // Get visits and section times
-  const visits = await prisma.pageVisit.findMany({
-    where: {
-      timestamp: { gte: dayStart, lt: dayEnd },
-      isBot: false,
-    },
-    select: { sessionId: true },
-  });
-
-  const totalSessions = new Set(visits.map((v: SessionIdRecord) => v.sessionId)).size;
-
-  const sectionTimes = await prisma.sectionTime.findMany({
-    where: {
-      timestamp: { gte: dayStart, lt: dayEnd },
-    },
-  });
-
-  const conversions = await prisma.conversionEvent.findMany({
-    where: {
-      timestamp: { gte: dayStart, lt: dayEnd },
-      completed: true,
-    },
-    select: { sessionId: true },
-  });
-
-  const convertingSessions = new Set(conversions.map((c: SessionIdRecord) => c.sessionId));
-
-  // Group by section
-  const sectionMap = new Map<
-    string,
-    { sessions: Set<string>; totalTime: number; count: number }
-  >();
-
-  sectionTimes.forEach((st: SectionTimeRecord) => {
-    if (!sectionMap.has(st.section)) {
-      sectionMap.set(st.section, { sessions: new Set(), totalTime: 0, count: 0 });
-    }
-
-    const data = sectionMap.get(st.section)!;
-    data.sessions.add(st.sessionId);
-    data.totalTime += st.timeSpent;
-    data.count++;
-  });
-
-  // Delete existing entries
-  await prisma.sectionSummary.deleteMany({
-    where: { date: dayStart },
-  });
-
-  // Insert new entries
-  const records = Array.from(sectionMap.entries()).map(([section, data]) => {
-    let conversionsFromSection = 0;
-    data.sessions.forEach((sessionId) => {
-      if (convertingSessions.has(sessionId)) {
-        conversionsFromSection++;
-      }
-    });
-
-    return {
-      date: dayStart,
-      section,
-      visitors: data.sessions.size,
-      totalTime: data.totalTime,
-      avgTime: data.count > 0 ? data.totalTime / data.count : 0,
-      scrollRate: totalSessions > 0 ? (data.sessions.size / totalSessions) * 100 : 0,
-      conversions: conversionsFromSection,
-    };
-  });
-
-  if (records.length > 0) {
-    await prisma.sectionSummary.createMany({ data: records });
-  }
-
-  console.log(`[Aggregation] Section summary saved: ${records.length} sections`);
+  console.log(
+    `[Aggregation] Daily summary saved: ${totalPageViews} views, ${uniqueVisitors} visitors`
+  );
 }
 
 /**
  * Run all daily aggregations
  */
 export async function runDailyAggregations(date: Date = new Date()): Promise<void> {
-  console.log("[Aggregation] Starting daily aggregations...");
+  console.log('[Aggregation] Starting daily aggregations...');
   const start = Date.now();
 
   try {
     await computeDailySummary(date);
-    await computeTrafficSourceSummary(date);
-    await computeSectionSummary(date);
 
     const duration = ((Date.now() - start) / 1000).toFixed(2);
     console.log(`[Aggregation] Completed in ${duration}s`);
   } catch (error) {
-    console.error("[Aggregation] Error:", error);
+    console.error('[Aggregation] Error:', error);
     throw error;
   }
 }
@@ -386,7 +220,7 @@ export async function backfillAggregations(
   end.setHours(0, 0, 0, 0);
 
   console.log(
-    `[Aggregation] Backfilling from ${current.toISOString().split("T")[0]} to ${end.toISOString().split("T")[0]}`
+    `[Aggregation] Backfilling from ${current.toISOString().split('T')[0]} to ${end.toISOString().split('T')[0]}`
   );
 
   while (current <= end) {
@@ -394,50 +228,19 @@ export async function backfillAggregations(
     current.setDate(current.getDate() + 1);
   }
 
-  console.log("[Aggregation] Backfill complete");
+  console.log('[Aggregation] Backfill complete');
 }
 
 /**
  * Get pre-computed daily summaries for a date range
  */
 export async function getDailySummaries(startDate: Date, endDate: Date) {
-  return prisma.dailySummary.findMany({
+  const siteId = await getSiteId();
+  return prisma.analyticsDailySummary.findMany({
     where: {
-      date: {
-        gte: startDate,
-        lte: endDate,
-      },
+      siteId,
+      date: { gte: startDate, lte: endDate },
     },
-    orderBy: { date: "asc" },
-  });
-}
-
-/**
- * Get pre-computed traffic source summaries for a date range
- */
-export async function getTrafficSourceSummaries(startDate: Date, endDate: Date) {
-  return prisma.trafficSourceSummary.findMany({
-    where: {
-      date: {
-        gte: startDate,
-        lte: endDate,
-      },
-    },
-    orderBy: [{ date: "asc" }, { visits: "desc" }],
-  });
-}
-
-/**
- * Get pre-computed section summaries for a date range
- */
-export async function getSectionSummaries(startDate: Date, endDate: Date) {
-  return prisma.sectionSummary.findMany({
-    where: {
-      date: {
-        gte: startDate,
-        lte: endDate,
-      },
-    },
-    orderBy: [{ date: "asc" }, { visitors: "desc" }],
+    orderBy: { date: 'asc' },
   });
 }

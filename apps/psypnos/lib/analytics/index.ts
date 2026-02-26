@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * Analytics Library Index
  * Phase 4: Scalability & Performance
@@ -11,11 +8,7 @@
 // Aggregation service
 export {
   computeDailySummary,
-  computeTrafficSourceSummary,
-  computeSectionSummary,
   runDailyAggregations,
   backfillAggregations,
   getDailySummaries,
-  getTrafficSourceSummaries,
-  getSectionSummaries,
-} from "./aggregation";
+} from './aggregation';

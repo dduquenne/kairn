@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * Cron Aggregation API Route
  * Phase 4: Scalability & Performance
@@ -13,17 +10,17 @@
  * Security: QStash signature or CRON_SECRET
  */
 
-import { verifyCronAuth } from "@kairn/core/scheduler";
-import { NextRequest, NextResponse } from "next/server";
+import { verifyCronAuth } from '@kairn/core/scheduler';
+import { NextRequest, NextResponse } from 'next/server';
 
-import { runAnomalyDetection } from "@/app/api/analytics/store-index";
-import { runDailyAggregations, backfillAggregations } from "@/lib/analytics/aggregation";
+import { runAnomalyDetection } from '@/app/api/analytics/store-index';
+import { runDailyAggregations, backfillAggregations } from '@/lib/analytics/aggregation';
 
 export async function POST(request: NextRequest) {
   // Verify authentication (QStash signature or CRON_SECRET)
   const authResult = await verifyCronAuth(request);
   if (!authResult.valid) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const startTime = Date.now();
@@ -46,24 +43,24 @@ export async function POST(request: NextRequest) {
       const toDate = date ? new Date(date) : new Date();
       await backfillAggregations(fromDate, toDate);
       results.backfill = {
-        from: fromDate.toISOString().split("T")[0],
-        to: toDate.toISOString().split("T")[0],
+        from: fromDate.toISOString().split('T')[0],
+        to: toDate.toISOString().split('T')[0],
       };
     } else {
       // Single day mode
       const targetDate = date ? new Date(date) : new Date();
       await runDailyAggregations(targetDate);
       results.aggregation = {
-        date: targetDate.toISOString().split("T")[0],
+        date: targetDate.toISOString().split('T')[0],
       };
     }
 
     // Optionally run anomaly detection
     if (runAnomalies !== false) {
-      const anomalies = await runAnomalyDetection("medium");
+      const anomalies = await runAnomalyDetection('medium');
       results.anomalies = {
         detected: anomalies.length,
-        items: anomalies.map((a) => ({
+        items: anomalies.map(a => ({
           metric: a.metric,
           type: a.type,
           severity: a.severity,
@@ -79,11 +76,11 @@ export async function POST(request: NextRequest) {
       results,
     });
   } catch (error) {
-    console.error("[Cron] Aggregation error:", error);
+    console.error('[Cron] Aggregation error:', error);
     return NextResponse.json(
       {
-        error: "Aggregation failed",
-        message: error instanceof Error ? error.message : "Unknown error",
+        error: 'Aggregation failed',
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
@@ -95,11 +92,11 @@ export async function GET(request: NextRequest) {
   // Verify authentication (QStash signature or CRON_SECRET)
   const authResult = await verifyCronAuth(request);
   if (!authResult.valid) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const searchParams = request.nextUrl.searchParams;
-  const date = searchParams.get("date");
+  const date = searchParams.get('date');
 
   const startTime = Date.now();
 
@@ -112,14 +109,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       duration: `${duration}s`,
-      date: targetDate.toISOString().split("T")[0],
+      date: targetDate.toISOString().split('T')[0],
     });
   } catch (error) {
-    console.error("[Cron] Aggregation error:", error);
+    console.error('[Cron] Aggregation error:', error);
     return NextResponse.json(
       {
-        error: "Aggregation failed",
-        message: error instanceof Error ? error.message : "Unknown error",
+        error: 'Aggregation failed',
+        message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );

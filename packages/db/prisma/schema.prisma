@@ -187,6 +187,8 @@ model BlogPost {
   /// Featured image URL
   coverImage  String?
   status      PostStatus @default(DRAFT)
+  /// SEO meta title
+  metaTitle       String?
   /// SEO meta description
   metaDescription String?
   /// Reading time in minutes
@@ -1004,7 +1006,7 @@ model SocialAccount {
   /// Platform identifier
   platform      SocialPlatform
   /// Platform-specific account ID
-  platformId    String
+  accountId     String
   /// Display name
   accountName   String
   /// Profile image URL
@@ -1014,11 +1016,15 @@ model SocialAccount {
   /// OAuth refresh token (encrypted)
   refreshToken  String?
   /// Token expiration timestamp
-  tokenExpiresAt DateTime?
+  tokenExpiry   DateTime?
+  /// OAuth scopes granted
+  scope         String[]       @default([])
   /// Platform-specific metadata as JSON
   metadata      Json?
   /// Whether account is active
   isActive      Boolean        @default(true)
+  /// Last time this account was used
+  lastUsed      DateTime?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
 
@@ -1026,7 +1032,7 @@ model SocialAccount {
   posts     SocialPost[]
   snapshots SocialAccountSnapshot[]
 
-  @@unique([platform, platformId])
+  @@unique([platform, accountId])
   @@index([platform])
   @@index([isActive])
 }
@@ -1038,6 +1044,7 @@ enum SocialPostStatus {
   PUBLISHING
   PUBLISHED
   FAILED
+  CANCELLED
 }
 
 /// Social media post
@@ -1146,6 +1153,60 @@ model SocialAccountSnapshot {
   @@unique([accountId, snapshotDate])
   @@index([platform, snapshotDate])
   @@index([accountId, snapshotDate])
+}
+
+// =============================================================================
+// SOCIAL MEDIA: TEMPLATES & GENERATION LOGS
+// =============================================================================
+
+/// Social media content template for AI generation
+model SocialTemplate {
+  id              String         @id @default(cuid())
+  /// Template name
+  name            String
+  /// Target platform
+  platform        SocialPlatform
+  /// Template description
+  description     String?
+  /// AI prompt template text
+  promptTemplate  String         @db.Text
+  /// Default tone for generation
+  defaultTone     String?
+  /// Default hashtags
+  defaultHashtags String[]       @default([])
+  /// Whether this is the default template for its platform
+  isDefault       Boolean        @default(false)
+  /// Number of times this template has been used
+  usageCount      Int            @default(0)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([platform])
+}
+
+/// Log of AI-generated social media content
+model SocialGenerationLog {
+  id               String         @id @default(cuid())
+  /// Blog post slug used as source
+  blogSlug         String
+  /// Target platform
+  platform         SocialPlatform
+  /// Input content sent to AI
+  inputContent     String         @db.Text
+  /// Prompt used for generation
+  promptUsed       String         @db.Text
+  /// AI-generated content
+  generatedContent String         @db.Text
+  /// Tokens consumed
+  tokensUsed       Int?
+  /// Whether the generated content was accepted
+  wasAccepted      Boolean        @default(false)
+  /// Whether the content was modified before use
+  wasModified      Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+
+  @@index([blogSlug])
+  @@index([createdAt])
 }
 
 // =============================================================================
