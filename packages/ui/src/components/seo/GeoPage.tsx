@@ -122,7 +122,7 @@ export function GeoPage({
   className,
   colors = {},
   ctaHref = '/contact',
-  ctaLabel = 'Book Now',
+  ctaLabel = 'Prendre rendez-vous',
   ctaSubtext,
   linkComponent: LinkComp,
 }: GeoPageComponentProps) {
@@ -148,14 +148,14 @@ export function GeoPage({
 
   // Build breadcrumb items for the UI component
   const uiBreadcrumbItems = [
-    { label: 'Home', href: '/' },
+    { label: 'Accueil', href: '/' },
     ...breadcrumbItems.map(item => ({ label: item.name, href: item.href })),
     { label: title },
   ];
 
   // Build breadcrumb items for structured data
   const structuredDataItems = [
-    { name: 'Home', url: baseUrl },
+    { name: 'Accueil', url: baseUrl },
     ...breadcrumbItems.map(item => ({ name: item.name, url: `${baseUrl}${item.href}` })),
     { name: title, url: `${baseUrl}${breadcrumbItems[breadcrumbItems.length - 1]?.href || '/'}` },
   ];
@@ -219,7 +219,7 @@ export function GeoPage({
               {/* Main section */}
               <section>
                 <h2 className={`font-display text-${primary} mb-6 text-2xl font-bold`}>
-                  {service.label} in {location.city}
+                  {service.label} à {location.city}
                 </h2>
 
                 <div className="prose prose-invert max-w-none">
@@ -253,7 +253,7 @@ export function GeoPage({
               {testimonials.length > 0 && (
                 <section>
                   <h3 className={`font-display text-${primary} mb-6 text-xl font-semibold`}>
-                    Testimonials from {location.city}
+                    Témoignages de {location.city}
                   </h3>
 
                   <div className="grid gap-6 md:grid-cols-2">
@@ -282,7 +282,7 @@ export function GeoPage({
               {/* Google Maps */}
               {mapsEmbedUrl && (
                 <section>
-                  <h3 className="font-display mb-4 text-xl font-semibold">Location</h3>
+                  <h3 className="font-display mb-4 text-xl font-semibold">Localisation</h3>
                   <div className="overflow-hidden rounded-xl">
                     <div className={`bg-${background}/50 aspect-video w-full`}>
                       <iframe
@@ -293,7 +293,7 @@ export function GeoPage({
                         allowFullScreen
                         loading="lazy"
                         referrerPolicy="no-referrer-when-downgrade"
-                        title={`Location for ${service.label} near ${location.city}`}
+                        title={`Localisation pour ${service.label} près de ${location.city}`}
                         className="h-full w-full"
                       />
                     </div>
@@ -322,7 +322,7 @@ export function GeoPage({
 
               {/* Practical information */}
               <div className={`border-${border}/10 bg-${background}/30 rounded-2xl border p-6`}>
-                <h3 className="font-display mb-4 text-lg font-semibold">Practical Information</h3>
+                <h3 className="font-display mb-4 text-lg font-semibold">Informations pratiques</h3>
 
                 <div className="space-y-4">
                   {/* Distance from city */}
@@ -331,7 +331,7 @@ export function GeoPage({
                       <CarIcon />
                     </span>
                     <div>
-                      <p className="font-medium">From {location.city}</p>
+                      <p className="font-medium">Depuis {location.city}</p>
                       <p className={`text-${text}/60 text-sm`}>
                         {practicalInfo.distance} &bull; {practicalInfo.duration}
                       </p>
@@ -344,7 +344,7 @@ export function GeoPage({
                       <MapPinIcon />
                     </span>
                     <div>
-                      <p className="font-medium">Address</p>
+                      <p className="font-medium">Adresse</p>
                       <p className={`text-${text}/60 text-sm`}>
                         {contactInfo.address}
                         {contactInfo.addressLine2 && <br />}
@@ -362,7 +362,7 @@ export function GeoPage({
                         <ClockIcon />
                       </span>
                       <div>
-                        <p className="font-medium">Hours</p>
+                        <p className="font-medium">Horaires</p>
                         <div className={`text-${text}/60 text-sm`}>
                           {contactInfo.hours.map((schedule, index) => (
                             <p key={index}>
@@ -384,7 +384,7 @@ export function GeoPage({
               {/* Pricing */}
               {pricing.length > 0 && (
                 <div className={`border-${border}/10 bg-${background}/30 rounded-2xl border p-6`}>
-                  <h3 className="font-display mb-4 text-lg font-semibold">Pricing</h3>
+                  <h3 className="font-display mb-4 text-lg font-semibold">Tarifs</h3>
                   <div className="space-y-3">
                     {pricing.map((tier, index) => (
                       <div key={index} className="flex items-baseline justify-between">
@@ -404,7 +404,7 @@ export function GeoPage({
               {/* Related links */}
               {relatedLinks.length > 0 && (
                 <div className={`border-${border}/10 bg-${background}/30 rounded-2xl border p-6`}>
-                  <h3 className="font-display mb-4 text-lg font-semibold">See Also</h3>
+                  <h3 className="font-display mb-4 text-lg font-semibold">Voir aussi</h3>
                   <ul className="space-y-2">
                     <li>
                       <Link
@@ -412,7 +412,7 @@ export function GeoPage({
                         className={`text-${text}/70 hover:text-${primary} flex items-center gap-2 text-sm transition-colors`}
                       >
                         <span className={`bg-${primary}/20 h-1.5 w-1.5 rounded-full`} />
-                        Learn more about {service.label.toLowerCase()}
+                        En savoir plus sur {service.label.toLowerCase()}
                       </Link>
                     </li>
                     {relatedLinks.map((link, index) => (
