@@ -8,7 +8,28 @@
  * - Common helper functions
  */
 
-import { EventType } from "@prisma/client";
+import type { EventType } from '@prisma/client';
+
+/**
+ * Local string constants matching the Prisma EventType enum values.
+ * Avoids runtime dependency on the generated Prisma client while
+ * preserving type safety via `import type` above.
+ */
+const EVENT_TYPE = {
+  PAGE_VIEW: 'PAGE_VIEW',
+  PAGE_EXIT: 'PAGE_EXIT',
+  SCROLL_DEPTH: 'SCROLL_DEPTH',
+  SECTION_VIEW: 'SECTION_VIEW',
+  SECTION_TIME: 'SECTION_TIME',
+  CONVERSION: 'CONVERSION',
+  FUNNEL_STEP: 'FUNNEL_STEP',
+  CLICK: 'CLICK',
+  FORM_SUBMIT: 'FORM_SUBMIT',
+  DOWNLOAD: 'DOWNLOAD',
+  CUSTOM: 'CUSTOM',
+  SESSION_START: 'SESSION_START',
+  SESSION_END: 'SESSION_END',
+} as const satisfies Record<string, EventType>;
 
 // =============================================================================
 // JSON TYPE HELPERS
@@ -61,23 +82,23 @@ export function normalizeNulls<T extends Record<string, unknown>>(
  */
 export function toEventType(type: string): EventType {
   const mapping: Record<string, EventType> = {
-    page_view: EventType.PAGE_VIEW,
-    page_exit: EventType.PAGE_EXIT,
-    scroll_depth: EventType.SCROLL_DEPTH,
-    section_view: EventType.SECTION_VIEW,
-    section_time: EventType.SECTION_TIME,
-    conversion: EventType.CONVERSION,
-    funnel_step: EventType.FUNNEL_STEP,
-    click: EventType.CLICK,
-    form_submit: EventType.FORM_SUBMIT,
-    download: EventType.DOWNLOAD,
-    custom: EventType.CUSTOM,
-    custom_event: EventType.CUSTOM,
-    session_start: EventType.SESSION_START,
-    session_end: EventType.SESSION_END,
+    page_view: EVENT_TYPE.PAGE_VIEW,
+    page_exit: EVENT_TYPE.PAGE_EXIT,
+    scroll_depth: EVENT_TYPE.SCROLL_DEPTH,
+    section_view: EVENT_TYPE.SECTION_VIEW,
+    section_time: EVENT_TYPE.SECTION_TIME,
+    conversion: EVENT_TYPE.CONVERSION,
+    funnel_step: EVENT_TYPE.FUNNEL_STEP,
+    click: EVENT_TYPE.CLICK,
+    form_submit: EVENT_TYPE.FORM_SUBMIT,
+    download: EVENT_TYPE.DOWNLOAD,
+    custom: EVENT_TYPE.CUSTOM,
+    custom_event: EVENT_TYPE.CUSTOM,
+    session_start: EVENT_TYPE.SESSION_START,
+    session_end: EVENT_TYPE.SESSION_END,
   };
 
-  return mapping[type.toLowerCase()] || EventType.CUSTOM;
+  return mapping[type.toLowerCase()] || EVENT_TYPE.CUSTOM;
 }
 
 /**
@@ -85,22 +106,22 @@ export function toEventType(type: string): EventType {
  */
 export function fromEventType(type: EventType): string {
   const mapping: Record<EventType, string> = {
-    [EventType.PAGE_VIEW]: "page_view",
-    [EventType.PAGE_EXIT]: "page_exit",
-    [EventType.SCROLL_DEPTH]: "scroll_depth",
-    [EventType.SECTION_VIEW]: "section_view",
-    [EventType.SECTION_TIME]: "section_time",
-    [EventType.CONVERSION]: "conversion",
-    [EventType.FUNNEL_STEP]: "funnel_step",
-    [EventType.CLICK]: "click",
-    [EventType.FORM_SUBMIT]: "form_submit",
-    [EventType.DOWNLOAD]: "download",
-    [EventType.CUSTOM]: "custom",
-    [EventType.SESSION_START]: "session_start",
-    [EventType.SESSION_END]: "session_end",
+    [EVENT_TYPE.PAGE_VIEW]: 'page_view',
+    [EVENT_TYPE.PAGE_EXIT]: 'page_exit',
+    [EVENT_TYPE.SCROLL_DEPTH]: 'scroll_depth',
+    [EVENT_TYPE.SECTION_VIEW]: 'section_view',
+    [EVENT_TYPE.SECTION_TIME]: 'section_time',
+    [EVENT_TYPE.CONVERSION]: 'conversion',
+    [EVENT_TYPE.FUNNEL_STEP]: 'funnel_step',
+    [EVENT_TYPE.CLICK]: 'click',
+    [EVENT_TYPE.FORM_SUBMIT]: 'form_submit',
+    [EVENT_TYPE.DOWNLOAD]: 'download',
+    [EVENT_TYPE.CUSTOM]: 'custom',
+    [EVENT_TYPE.SESSION_START]: 'session_start',
+    [EVENT_TYPE.SESSION_END]: 'session_end',
   };
 
-  return mapping[type] || "custom";
+  return mapping[type] || 'custom';
 }
 
 // =============================================================================
@@ -130,15 +151,15 @@ export async function getCurrentSiteId(): Promise<string> {
 
   // Try environment variables
   const envId = process.env.SITE_ID || process.env.NEXT_PUBLIC_SITE_ID;
-  if (envId && envId !== "default") {
+  if (envId && envId !== 'default') {
     cachedSiteId = envId;
     return envId;
   }
 
   // Look up the site from the database by slug
   try {
-    const { prisma } = await import("@/lib/db/prisma");
-    const slug = process.env.NEXT_PUBLIC_SITE_SLUG || "psypnos";
+    const { prisma } = await import('@/lib/db/prisma');
+    const slug = process.env.NEXT_PUBLIC_SITE_SLUG || 'psypnos';
 
     const site = await prisma.site.findFirst({
       where: { slug, isActive: true },
@@ -164,15 +185,15 @@ export async function getCurrentSiteId(): Promise<string> {
       return fallbackSite.id;
     }
   } catch (error) {
-    console.error("[Analytics] Failed to resolve site ID from database:", error);
+    console.error('[Analytics] Failed to resolve site ID from database:', error);
   }
 
   // Last resort — will cause FK errors but at least logs help debugging
   console.error(
-    "[Analytics] CRITICAL: No site found in database. Analytics data will NOT be persisted. " +
-    "Ensure a Site record exists or set the SITE_ID environment variable."
+    '[Analytics] CRITICAL: No site found in database. Analytics data will NOT be persisted. ' +
+      'Ensure a Site record exists or set the SITE_ID environment variable.'
   );
-  return "default";
+  return 'default';
 }
 
 /**
@@ -189,7 +210,10 @@ export function resetCachedSiteId(): void {
 /**
  * Builds a Prisma date filter for createdAt field.
  */
-export function buildDateFilter(startDate?: string, endDate?: string): {
+export function buildDateFilter(
+  startDate?: string,
+  endDate?: string
+): {
   createdAt?: { gte?: Date; lte?: Date };
 } {
   if (!startDate && !endDate) {
@@ -215,12 +239,8 @@ export function buildDateFilter(startDate?: string, endDate?: string): {
 /**
  * Safely extracts a value from a JSON data object.
  */
-export function extractFromData<T>(
-  data: unknown,
-  key: string,
-  defaultValue: T
-): T {
-  if (data && typeof data === "object" && key in data) {
+export function extractFromData<T>(data: unknown, key: string, defaultValue: T): T {
+  if (data && typeof data === 'object' && key in data) {
     return (data as Record<string, unknown>)[key] as T;
   }
   return defaultValue;
@@ -235,7 +255,7 @@ export function extractDataFields<T extends Record<string, unknown>>(
 ): Partial<T> {
   const result: Partial<T> = {};
 
-  if (data && typeof data === "object") {
+  if (data && typeof data === 'object') {
     const dataObj = data as Record<string, unknown>;
     for (const key of keys) {
       if (key in dataObj) {
@@ -388,7 +408,7 @@ export interface PageVisitDataExtracted {
   utmTerm?: string;
   utmContent?: string;
   referrerDomain?: string;
-  deviceType?: "mobile" | "tablet" | "desktop";
+  deviceType?: 'mobile' | 'tablet' | 'desktop';
   browser?: string;
   os?: string;
   isBot: boolean;
@@ -404,7 +424,7 @@ export interface SectionTimeDataExtracted {
 }
 
 export interface ConversionDataExtracted {
-  conversionType: "appointment_request" | "seminar_registration" | "contact_form";
+  conversionType: 'appointment_request' | 'seminar_registration' | 'contact_form';
   stepName: string;
   completed: boolean;
   value?: number;
