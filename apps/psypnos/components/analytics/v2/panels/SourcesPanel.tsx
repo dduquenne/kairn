@@ -297,10 +297,7 @@ export function SourcesPanel({
                     Medium
                   </th>
                   <th className="text-right py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-medium text-ivory/50 uppercase tracking-wider">
-                    Visites
-                  </th>
-                  <th className="text-right py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-medium text-ivory/50 uppercase tracking-wider hidden md:table-cell">
-                    Sessions
+                    Visiteurs
                   </th>
                   <th className="text-right py-2 sm:py-3 px-2 sm:px-4 text-[10px] sm:text-xs font-medium text-ivory/50 uppercase tracking-wider">
                     Conv.
@@ -334,11 +331,6 @@ export function SourcesPanel({
                     </td>
                     <td className="py-2 sm:py-3 px-2 sm:px-4 text-right">
                       <span className="text-xs sm:text-sm text-ivory">
-                        {source.visits.toLocaleString("fr-FR")}
-                      </span>
-                    </td>
-                    <td className="py-2 sm:py-3 px-2 sm:px-4 text-right hidden md:table-cell">
-                      <span className="text-xs sm:text-sm text-ivory/60">
                         {source.uniqueSessions.toLocaleString("fr-FR")}
                       </span>
                     </td>
