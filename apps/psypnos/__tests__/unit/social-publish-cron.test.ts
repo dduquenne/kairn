@@ -5,6 +5,8 @@
  * - Les routes CRON exportent bien GET et POST (QStash envoie POST)
  * - markPostAsFailed ne double-incrémente pas retryCount
  * - Le script setup-qstash-schedules passe method: 'GET'
+ * - claimPostForPublishing utilise updateMany atomique
+ * - Le CRON marque les posts FAILED quand retryCount >= maxRetries
  */
 
 import { readFileSync } from 'fs';
@@ -198,5 +200,70 @@ describe('CRON social-publish - protection getSocialAccountById', () => {
     const content = readFileSync(routePath, 'utf-8');
 
     expect(content).toContain('Erreur lors de la récupération du compte social');
+  });
+});
+
+// ─── Test 7 : claimPostForPublishing — verrouillage atomique ────────
+
+describe('claimPostForPublishing - verrouillage atomique', () => {
+  it('devrait exister dans le store', () => {
+    const storePath = join(__dirname, '../../lib/social/store.ts');
+    const content = readFileSync(storePath, 'utf-8');
+
+    expect(content).toContain('export async function claimPostForPublishing');
+  });
+
+  it('devrait utiliser updateMany avec filtre sur le status', () => {
+    const storePath = join(__dirname, '../../lib/social/store.ts');
+    const content = readFileSync(storePath, 'utf-8');
+
+    // Extraire le corps de la fonction
+    const funcStart = content.indexOf('export async function claimPostForPublishing');
+    expect(funcStart).toBeGreaterThan(-1);
+
+    const afterFunc = content.slice(funcStart);
+    const funcEnd = afterFunc.indexOf('\nexport ');
+    const funcBody = funcEnd > 0 ? afterFunc.slice(0, funcEnd) : afterFunc;
+
+    // Doit utiliser updateMany (pas update simple) pour l'atomicité
+    expect(funcBody).toContain('updateMany');
+    // Doit filtrer par status
+    expect(funcBody).toContain('status');
+    // Doit retourner un booléen basé sur count
+    expect(funcBody).toContain('result.count');
+  });
+
+  it('devrait être utilisé dans le CRON avant la publication', () => {
+    const routePath = join(CRON_DIR, 'social-publish', 'route.ts');
+    const content = readFileSync(routePath, 'utf-8');
+
+    // Le CRON doit importer et utiliser claimPostForPublishing
+    expect(content).toContain('claimPostForPublishing');
+  });
+});
+
+// ─── Test 8 : CRON — marquer FAILED quand maxRetries atteint ────────
+
+describe('CRON social-publish - gestion du max retries', () => {
+  it('devrait appeler markPostAsFailed quand retryCount >= maxRetries', () => {
+    const routePath = join(CRON_DIR, 'social-publish', 'route.ts');
+    const content = readFileSync(routePath, 'utf-8');
+
+    // Trouver la fonction publishPostWithRetry
+    const funcStart = content.indexOf('async function publishPostWithRetry');
+    expect(funcStart).toBeGreaterThan(-1);
+
+    const funcBody = content.slice(funcStart, content.indexOf('\n// ===', funcStart + 1));
+
+    // Le check retryCount >= maxRetries doit appeler markPostAsFailed
+    const maxRetriesCheck = funcBody.indexOf('post.retryCount >= DEFAULT_RETRY_CONFIG.maxRetries');
+    expect(maxRetriesCheck).toBeGreaterThan(-1);
+
+    // Après le check, markPostAsFailed doit être appelé (pas juste un return)
+    const afterCheck = funcBody.slice(maxRetriesCheck);
+    const nextMarkFailed = afterCheck.indexOf('markPostAsFailed');
+    expect(nextMarkFailed).toBeGreaterThan(-1);
+    // Le markPostAsFailed doit être proche du check (dans les 300 chars)
+    expect(nextMarkFailed).toBeLessThan(300);
   });
 });

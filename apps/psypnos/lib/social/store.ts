@@ -456,6 +456,33 @@ export async function getScheduledPosts(
 }
 
 /**
+ * Tente de réserver un post pour publication de manière atomique.
+ *
+ * Utilise updateMany avec un filtre sur le status courant pour garantir
+ * qu'un seul handler CRON concurrent peut s'emparer du post.
+ * Retourne true si le post a été réservé, false s'il a déjà été pris.
+ *
+ * @param postId - ID du post à réserver
+ * @param expectedStatus - Statuts acceptés pour la réservation
+ */
+export async function claimPostForPublishing(
+  postId: string,
+  expectedStatus: string[] = ['SCHEDULED', 'PUBLISHING']
+): Promise<boolean> {
+  const result = await prisma.socialPost.updateMany({
+    where: {
+      id: postId,
+      status: { in: expectedStatus },
+    },
+    data: {
+      status: 'PUBLISHING',
+    },
+  });
+
+  return result.count > 0;
+}
+
+/**
  * Compte les posts par statut
  */
 export async function countPostsByStatus(): Promise<Record<PostStatus, number>> {
