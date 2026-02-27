@@ -40,16 +40,15 @@ export interface GetAnalyticsInput {
 
 export interface AnalyticsResult {
   success: boolean;
-  data?: {
-    impressions?: number;
-    reach?: number;
-    engagements?: number;
-    likes?: number;
-    comments?: number;
-    shares?: number;
-    saves?: number;
-    clicks?: number;
-  };
+  impressions?: number;
+  reach?: number;
+  engagements?: number;
+  likes?: number;
+  comments?: number;
+  shares?: number;
+  saves?: number;
+  clicks?: number;
+  rawData?: Record<string, unknown>;
   error?: string;
 }
 

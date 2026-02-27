@@ -462,7 +462,10 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       const [dashboardRes, botsRes, postsRes] = await Promise.all([
         fetch(`/api/analytics/dashboard?${params}`, { cache: 'no-store' }),
         fetch(`/api/analytics/bots?${params}`).catch(() => null),
-        fetch(`/api/analytics/dashboard/posts?${params}`).catch(() => null),
+        fetch(`/api/analytics/dashboard/posts?${params}`).catch(err => {
+          console.error('[Analytics] Erreur réseau récupération posts sociaux:', err);
+          return null;
+        }),
       ]);
 
       if (!dashboardRes.ok) {
@@ -487,6 +490,9 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
         botsRes && botsRes.ok ? await botsRes.json() : { byBot: [], timeline: [], byPage: [] };
 
       // Social media posts data — null if API fails (graceful degradation)
+      if (postsRes && !postsRes.ok) {
+        console.warn(`[Analytics] API posts sociaux: HTTP ${postsRes.status}`);
+      }
       const postsData: PostsPanelData | null =
         postsRes && postsRes.ok ? await postsRes.json() : null;
 
