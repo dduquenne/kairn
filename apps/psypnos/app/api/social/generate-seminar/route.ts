@@ -11,7 +11,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { NextRequest, NextResponse } from 'next/server';
 
 import { withAdminAuth } from '@/app/api/auth/middleware';
-import { getStore, type SeminarStore } from '@/app/api/seminars/store';
+import { getSeminarById, type SeminarOutput } from '@/app/api/seminars/prisma-store';
 import { parseGenerationResponse, parseMultiPlatformResponse } from '@/lib/social/prompts/builder';
 import {
   buildSeminarSystemPrompt,
@@ -238,9 +238,9 @@ function validateRequestBody(body: unknown): {
 }
 
 /**
- * Convertit un SeminarStore en SeminarInput
+ * Convertit un SeminarOutput (Prisma) en SeminarInput (prompt builder)
  */
-function toSeminarInput(seminar: SeminarStore): SeminarInput {
+function toSeminarInput(seminar: SeminarOutput): SeminarInput {
   return {
     id: seminar.id,
     title: seminar.title,
@@ -468,9 +468,8 @@ export async function POST(request: NextRequest) {
       placesRemaining,
     } = validation.data;
 
-    // Récupérer le séminaire
-    const seminars = await getStore();
-    const seminar = seminars.find(s => s.id === seminarId);
+    // Récupérer le séminaire depuis la base de données
+    const seminar = await getSeminarById(seminarId);
 
     if (!seminar) {
       return NextResponse.json({ error: `Séminaire non trouvé: ${seminarId}` }, { status: 404 });
