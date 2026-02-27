@@ -12,16 +12,12 @@ import { recordAttemptAsync, getClientIP } from '../common/rate-limiter';
 // Vercel serverless function timeout (Pro plan: max 300s)
 export const maxDuration = 60;
 
-// Validate API key at module load — log once per cold start
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-
-if (!ANTHROPIC_API_KEY) {
-  console.error(
-    '[Chat] ANTHROPIC_API_KEY manquante — le chatbot ne pourra pas répondre. ' +
-      'Vérifier la configuration dans Vercel Dashboard (Production/Preview/Development).'
-  );
-} else {
-  console.info('[Chat] ANTHROPIC_API_KEY configurée — chatbot opérationnel');
+/**
+ * Returns the Anthropic API key from environment.
+ * Read at call time (not module load) to support testing and env changes.
+ */
+function getApiKey(): string | undefined {
+  return process.env.ANTHROPIC_API_KEY;
 }
 
 /**
@@ -29,10 +25,11 @@ if (!ANTHROPIC_API_KEY) {
  * @throws if ANTHROPIC_API_KEY is not set
  */
 function getAnthropicClient(): Anthropic {
-  if (!ANTHROPIC_API_KEY) {
+  const apiKey = getApiKey();
+  if (!apiKey) {
     throw new Error('ANTHROPIC_API_KEY is not configured');
   }
-  return new Anthropic({ apiKey: ANTHROPIC_API_KEY });
+  return new Anthropic({ apiKey });
 }
 
 const chatRequestSchema = z.object({
@@ -158,7 +155,7 @@ export async function POST(request: Request) {
   const requestStartTime = Date.now();
 
   // Check API key availability early
-  if (!ANTHROPIC_API_KEY) {
+  if (!getApiKey()) {
     console.error('[Chat] ERREUR CRITIQUE : ANTHROPIC_API_KEY manquante — HTTP 503');
     return NextResponse.json(
       {
