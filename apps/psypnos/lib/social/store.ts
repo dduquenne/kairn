@@ -518,7 +518,7 @@ export async function updatePostAnalytics(
   const updateData = {
     ...rest,
     rawData: rawData ? (rawData as PrismaJsonValue) : undefined,
-    fetchedAt: new Date(),
+    lastSyncAt: new Date(),
   };
 
   const analytics = await prisma.socialPostAnalytics.upsert({
@@ -783,7 +783,7 @@ function mapAnalytics(analytics: Record<string, unknown>): SocialPostAnalytics {
     saves: analytics.saves as number,
     clicks: analytics.clicks as number,
     rawData: analytics.rawData as Record<string, unknown> | null,
-    fetchedAt: analytics.fetchedAt as Date,
+    lastSyncAt: analytics.lastSyncAt as Date,
     updatedAt: analytics.updatedAt as Date,
   };
 }

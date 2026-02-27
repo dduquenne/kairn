@@ -414,7 +414,7 @@ export interface SocialPostAnalytics {
   saves: number;
   clicks: number;
   rawData: Record<string, unknown> | null;
-  fetchedAt: Date;
+  lastSyncAt: Date;
   updatedAt: Date;
 }
 
