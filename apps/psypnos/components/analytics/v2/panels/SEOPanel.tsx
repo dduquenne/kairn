@@ -19,7 +19,7 @@ interface BotVisit {
 
 interface BotType {
   name: string;
-  type: 'search_engine' | 'social' | 'seo_tool' | 'monitoring' | 'other';
+  type: 'search_engine' | 'social' | 'seo_tool' | 'monitor' | 'other';
   visits: number;
   lastSeen: string;
   pages: number;
@@ -51,7 +51,7 @@ const getBotIcon = (type: BotType['type']) => {
       return <Globe size={16} className="text-blue-400" />;
     case 'seo_tool':
       return <FileSearch size={16} className="text-purple-400" />;
-    case 'monitoring':
+    case 'monitor':
       return <Activity size={16} className="text-yellow-400" />;
     default:
       return <Bot size={16} className="text-ivory/50" />;
@@ -66,7 +66,7 @@ const getBotTypeLabel = (type: BotType['type']) => {
       return 'Réseau social';
     case 'seo_tool':
       return 'Outil SEO';
-    case 'monitoring':
+    case 'monitor':
       return 'Monitoring';
     default:
       return 'Autre';

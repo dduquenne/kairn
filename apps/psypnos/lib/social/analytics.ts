@@ -28,6 +28,7 @@ export interface SocialDashboardStats {
   totalLikes: number;
   totalComments: number;
   totalShares: number;
+  totalSaves: number;
   averageEngagementRate: number;
 }
 
@@ -170,6 +171,7 @@ export async function getDashboardStats(
       likes: true,
       comments: true,
       shares: true,
+      saves: true,
     },
     where: {
       post: publishedFilter,
@@ -198,6 +200,7 @@ export async function getDashboardStats(
     totalLikes: analyticsAgg._sum.likes || 0,
     totalComments: analyticsAgg._sum.comments || 0,
     totalShares: analyticsAgg._sum.shares || 0,
+    totalSaves: analyticsAgg._sum.saves || 0,
     averageEngagementRate: totalImpressions > 0 ? (totalEngagements / totalImpressions) * 100 : 0,
   };
 }
