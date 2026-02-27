@@ -8,6 +8,7 @@
  * POST /api/social/posts - Créer un nouveau post
  */
 
+import { publishDelayed } from '@kairn/core/scheduler';
 import { NextRequest, NextResponse } from 'next/server';
 
 import { withAdminAuth } from '@/app/api/auth/middleware';
@@ -161,6 +162,32 @@ export async function POST(request: NextRequest) {
     const post = await createSocialPost(input);
 
     console.log(`[Social Posts API] Created post ${post.id} for ${post.platform}`);
+
+    // Schedule a QStash trigger at the exact publication time
+    // so the CRON endpoint publishes the post without waiting for the next 5-min cycle
+    if (input.scheduledAt) {
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
+        if (baseUrl) {
+          const result = await publishDelayed({
+            destination: `${baseUrl}/api/cron/social-publish`,
+            notBefore: input.scheduledAt,
+            body: { triggeredBy: 'post-creation', postId: post.id },
+            retries: 3,
+            deduplicationId: `social-post-${post.id}`,
+          });
+          console.log(
+            `[Social Posts API] Scheduled QStash trigger for post ${post.id} at ${input.scheduledAt.toISOString()} (messageId: ${result.messageId})`
+          );
+        }
+      } catch (scheduleError) {
+        // Non-blocking: the periodic CRON will still pick up the post
+        console.warn(
+          `[Social Posts API] Failed to schedule QStash trigger for post ${post.id}:`,
+          scheduleError
+        );
+      }
+    }
 
     return NextResponse.json({
       success: true,
