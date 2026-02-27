@@ -283,7 +283,15 @@ export async function getFollowerGrowth(startDate: Date, endDate: Date): Promise
 export async function getTotalFollowersByPlatform(): Promise<
   Map<string, { followers: number; change: number }>
 > {
+  console.log('[PostsPanel:Debug][getTotalFollowersByPlatform] Appelé');
+
   const latestSnapshots = await getLatestSnapshots();
+
+  console.log(
+    '[PostsPanel:Debug][getTotalFollowersByPlatform] Snapshots récents:',
+    latestSnapshots.length,
+    latestSnapshots.map(s => `${s.platform}=${s.followers}`)
+  );
 
   // Get snapshots from 7 days ago for comparison
   const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
@@ -318,6 +326,13 @@ export async function getTotalFollowersByPlatform(): Promise<
 
     result.set(platform, { followers: currentFollowers, change });
   }
+
+  console.log(
+    '[PostsPanel:Debug][getTotalFollowersByPlatform] Résultat Map:',
+    [...result.entries()].map(
+      ([k, v]) => `${k}: followers=${v.followers}, change=${v.change.toFixed(1)}%`
+    )
+  );
 
   return result;
 }
