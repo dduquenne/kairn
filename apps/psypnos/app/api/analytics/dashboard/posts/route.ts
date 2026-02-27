@@ -12,6 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { withAdminAuth } from '@/app/api/auth/middleware';
+import { prisma } from '@/lib/db/prisma';
 import {
   getDashboardStats,
   getStatsByPlatform,
@@ -83,6 +84,37 @@ export async function GET(request: NextRequest) {
       startDate: startDate?.toISOString(),
       endDate: endDate?.toISOString(),
     });
+
+    // ── Fallback: si aucun post publié dans la période, élargir aux données existantes ──
+    let dateRangeExpanded = false;
+    if (startDate && endDate) {
+      const postsInPeriod = await prisma.socialPost.count({
+        where: {
+          status: 'PUBLISHED',
+          publishedAt: { gte: startDate, lte: endDate },
+        },
+      });
+
+      if (postsInPeriod === 0) {
+        const dateRange = await prisma.socialPost.aggregate({
+          _min: { publishedAt: true },
+          _max: { publishedAt: true },
+          where: { status: 'PUBLISHED', publishedAt: { not: null } },
+        });
+
+        if (dateRange._min.publishedAt && dateRange._max.publishedAt) {
+          console.log(
+            '[PostsPanel:Debug][API] ⚠️ Aucun post dans la période sélectionnée. Fallback sur la plage réelle:',
+            dateRange._min.publishedAt.toISOString(),
+            '→',
+            dateRange._max.publishedAt.toISOString()
+          );
+          startDate = dateRange._min.publishedAt;
+          endDate = dateRange._max.publishedAt;
+          dateRangeExpanded = true;
+        }
+      }
+    }
 
     console.log('[PostsPanel:Debug][API] Lancement des 9 requêtes service en parallèle...');
     const fetchStart = Date.now();
@@ -215,6 +247,13 @@ export async function GET(request: NextRequest) {
         totalReach: h.totalReach,
         totalEngagements: h.totalEngagements,
       })),
+      ...(dateRangeExpanded && {
+        dateRangeExpanded: true,
+        effectiveDateRange: {
+          startDate: startDate?.toISOString(),
+          endDate: endDate?.toISOString(),
+        },
+      }),
     };
 
     console.log('[PostsPanel:Debug][API] Réponse finale construite:', {

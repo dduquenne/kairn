@@ -22,6 +22,7 @@ import {
   Video,
   FileText,
   Layers,
+  Info,
 } from 'lucide-react';
 import {
   AreaChart,
@@ -102,6 +103,8 @@ export interface PostsPanelData {
   postTypes: PostTypeStats[];
   engagementTrends: EngagementTrend[];
   bestPostingTimes: BestPostingTime[];
+  dateRangeExpanded?: boolean;
+  effectiveDateRange?: { startDate: string; endDate: string };
 }
 
 interface PostsPanelProps {
@@ -269,6 +272,35 @@ export function PostsPanel({ data, isLoading = false }: PostsPanelProps) {
 
   return (
     <div className="space-y-4 overflow-x-hidden sm:space-y-6">
+      {/* Bannière quand les données sont élargies au-delà de la période sélectionnée */}
+      {data?.dateRangeExpanded && data.effectiveDateRange && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3"
+        >
+          <Info size={18} className="flex-shrink-0 text-amber-400" />
+          <p className="text-sm text-amber-200">
+            Aucune activité sur la période sélectionnée. Les données affichées couvrent la période{' '}
+            <span className="font-semibold text-amber-100">
+              {new Date(data.effectiveDateRange.startDate).toLocaleDateString('fr-FR', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+              })}
+            </span>
+            {' \u2013 '}
+            <span className="font-semibold text-amber-100">
+              {new Date(data.effectiveDateRange.endDate).toLocaleDateString('fr-FR', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+              })}
+            </span>
+          </p>
+        </motion.div>
+      )}
+
       {/* Summary Stats Row */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
         {/* Total Posts */}
