@@ -729,9 +729,8 @@ export async function getBestPostingTimes(
     analytics: { engagements: number } | null;
   }> = await prisma.socialPost.findMany({
     where: {
-      ...dateFilter,
+      AND: [dateFilter, { publishedAt: { not: null } }],
       status: 'PUBLISHED',
-      publishedAt: { not: null },
     },
     select: {
       publishedAt: true,

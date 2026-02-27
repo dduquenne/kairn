@@ -239,6 +239,8 @@ interface PostsPanelData {
   postTypes: PostTypeStats[];
   engagementTrends: EngagementTrend[];
   bestPostingTimes: BestPostingTime[];
+  dateRangeExpanded?: boolean;
+  effectiveDateRange?: { startDate: string; endDate: string };
 }
 
 interface AnalyticsData {
