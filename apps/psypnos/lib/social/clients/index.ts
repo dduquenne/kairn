@@ -71,12 +71,26 @@ export interface RetryConfig {
   maxRetries: number;
   baseDelay: number;
   maxDelay: number;
+  /** Patterns d'erreurs qui justifient un retry automatique */
+  retryableErrors: string[];
 }
 
 export const DEFAULT_RETRY_CONFIG: RetryConfig = {
   maxRetries: 3,
   baseDelay: 1000,
   maxDelay: 10000,
+  retryableErrors: [
+    'ECONNRESET',
+    'ETIMEDOUT',
+    'ENOTFOUND',
+    'rate_limit',
+    'temporarily_unavailable',
+    '429',
+    '500',
+    '502',
+    '503',
+    '504',
+  ],
 };
 
 /**

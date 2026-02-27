@@ -110,3 +110,93 @@ describe('setup-qstash-schedules - méthode HTTP', () => {
     expect(content).toContain("method: 'GET'");
   });
 });
+
+// ─── Test 4 : DEFAULT_RETRY_CONFIG — retryableErrors présent ────────
+
+describe('DEFAULT_RETRY_CONFIG - retryableErrors', () => {
+  it('devrait contenir la propriété retryableErrors dans le type RetryConfig', () => {
+    const clientsPath = join(__dirname, '../../lib/social/clients/index.ts');
+    const content = readFileSync(clientsPath, 'utf-8');
+
+    // Vérifier que l'interface RetryConfig définit retryableErrors
+    expect(content).toContain('retryableErrors');
+  });
+
+  it("devrait contenir les patterns d'erreurs réseau classiques", () => {
+    const clientsPath = join(__dirname, '../../lib/social/clients/index.ts');
+    const content = readFileSync(clientsPath, 'utf-8');
+
+    const expectedPatterns = ['ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', '429', '503'];
+    for (const pattern of expectedPatterns) {
+      expect(content).toContain(pattern);
+    }
+  });
+});
+
+// ─── Test 5 : CRON social-publish — isolation par post ──────────────
+
+describe('CRON social-publish - isolation des erreurs par post', () => {
+  const routePath = join(CRON_DIR, 'social-publish', 'route.ts');
+
+  it('devrait avoir un try/catch autour de publishPostWithRetry dans la boucle', () => {
+    const content = readFileSync(routePath, 'utf-8');
+
+    // Vérifier que la boucle for contient un try/catch interne
+    // Le pattern attendu : for ... { try { ... publishPostWithRetry ... } catch
+    const forLoopStart = content.indexOf('for (const post of posts)');
+    expect(forLoopStart).toBeGreaterThan(-1);
+
+    const afterLoop = content.slice(forLoopStart);
+    const publishCall = afterLoop.indexOf('publishPostWithRetry(post)');
+    expect(publishCall).toBeGreaterThan(-1);
+
+    // Le try doit apparaître AVANT publishPostWithRetry dans la boucle
+    const tryBeforePublish = afterLoop.slice(0, publishCall).includes('try {');
+    expect(tryBeforePublish).toBe(true);
+
+    // Le catch doit capturer l'erreur par post (pas juste le catch global)
+    const catchAfterPublish = afterLoop.indexOf('} catch (postError)');
+    expect(catchAfterPublish).toBeGreaterThan(publishCall);
+  });
+
+  it("devrait logger l'erreur et continuer avec les posts suivants", () => {
+    const content = readFileSync(routePath, 'utf-8');
+
+    // Le catch par post doit pousser un résultat d'erreur dans results
+    expect(content).toContain('Unexpected error on post');
+    expect(content).toContain('results.push({');
+  });
+});
+
+// ─── Test 6 : CRON social-publish — protection getSocialAccountById ─
+
+describe('CRON social-publish - protection getSocialAccountById', () => {
+  it('devrait protéger getSocialAccountById avec un try/catch dans publishPostWithRetry', () => {
+    const routePath = join(CRON_DIR, 'social-publish', 'route.ts');
+    const content = readFileSync(routePath, 'utf-8');
+
+    // Trouver la fonction publishPostWithRetry
+    const funcStart = content.indexOf('async function publishPostWithRetry');
+    expect(funcStart).toBeGreaterThan(-1);
+
+    const funcBody = content.slice(funcStart, content.indexOf('\n// ===', funcStart + 1));
+
+    // getSocialAccountById doit être dans un try/catch
+    const accountCallIndex = funcBody.indexOf('getSocialAccountById(post.accountId)');
+    expect(accountCallIndex).toBeGreaterThan(-1);
+
+    // Un try doit précéder l'appel
+    const beforeCall = funcBody.slice(0, accountCallIndex);
+    expect(beforeCall).toContain('try {');
+
+    // Un catch (accountError) doit suivre
+    expect(funcBody).toContain('catch (accountError)');
+  });
+
+  it("devrait retourner une erreur descriptive en cas d'échec de décryptage", () => {
+    const routePath = join(CRON_DIR, 'social-publish', 'route.ts');
+    const content = readFileSync(routePath, 'utf-8');
+
+    expect(content).toContain('Erreur lors de la récupération du compte social');
+  });
+});

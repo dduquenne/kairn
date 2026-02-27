@@ -38,8 +38,18 @@ async function publishPostWithRetry(post: SocialPost): Promise<{
   platformUrl?: string;
   error?: string;
 }> {
-  // Récupérer le compte
-  const account = await getSocialAccountById(post.accountId);
+  // Récupérer le compte (protégé : decryptToken peut throw si le token est corrompu)
+  let account;
+  try {
+    account = await getSocialAccountById(post.accountId);
+  } catch (accountError) {
+    const msg = accountError instanceof Error ? accountError.message : 'Erreur inconnue';
+    return {
+      success: false,
+      error: `Erreur lors de la récupération du compte social : ${msg}`,
+    };
+  }
+
   if (!account) {
     return {
       success: false,
@@ -257,23 +267,39 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Publier chaque post
+    // Publier chaque post (isolé : une erreur sur un post ne bloque pas les suivants)
     for (const post of posts) {
       console.log(`[Cron Social Publish] Publishing post ${post.id} to ${post.platform}`);
 
-      const result = await publishPostWithRetry(post);
+      try {
+        const result = await publishPostWithRetry(post);
 
-      results.push({
-        postId: post.id,
-        platform: post.platform,
-        success: result.success,
-        externalPostId: result.externalPostId,
-        error: result.error,
-      });
+        results.push({
+          postId: post.id,
+          platform: post.platform,
+          success: result.success,
+          externalPostId: result.externalPostId,
+          error: result.error,
+        });
 
-      // Envoyer une notification si échec définitif
-      if (!result.success && post.retryCount + 1 >= DEFAULT_RETRY_CONFIG.maxRetries) {
-        await sendFailureNotification(post, result.error || 'Erreur inconnue');
+        // Envoyer une notification si échec définitif
+        if (!result.success && post.retryCount + 1 >= DEFAULT_RETRY_CONFIG.maxRetries) {
+          await sendFailureNotification(post, result.error || 'Erreur inconnue');
+        }
+      } catch (postError) {
+        // Erreur inattendue sur ce post — on continue avec les suivants
+        const errorMessage = postError instanceof Error ? postError.message : 'Erreur inconnue';
+        console.error(
+          `[Cron Social Publish] Unexpected error on post ${post.id} (${post.platform}):`,
+          postError
+        );
+
+        results.push({
+          postId: post.id,
+          platform: post.platform,
+          success: false,
+          error: errorMessage,
+        });
       }
 
       // Petit délai entre les publications pour éviter le rate limiting
