@@ -223,6 +223,16 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 };
 
 export function PostsPanel({ data, isLoading = false }: PostsPanelProps) {
+  console.log('[PostsPanel:Debug][Render] PostsPanel rendu avec:', {
+    isLoading,
+    dataIsNull: data === null,
+    totalPosts: data?.totalPosts ?? 'N/A',
+    totalReach: data?.totalReach ?? 'N/A',
+    totalEngagement: data?.totalEngagement ?? 'N/A',
+    platformsCount: data?.platforms?.length ?? 'N/A',
+    topPostsCount: data?.topPosts?.length ?? 'N/A',
+  });
+
   const formatNumber = (num: number): string => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;

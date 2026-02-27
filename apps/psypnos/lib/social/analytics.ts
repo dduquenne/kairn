@@ -146,10 +146,20 @@ export async function getDashboardStats(
   startDate?: Date,
   endDate?: Date
 ): Promise<SocialDashboardStats> {
+  console.log('[PostsPanel:Debug][getDashboardStats] Appelé avec:', {
+    startDate: startDate?.toISOString() ?? 'undefined',
+    endDate: endDate?.toISOString() ?? 'undefined',
+  });
+
   // Post counts use createdAt (includes drafts/scheduled without publishedAt)
   const createdFilter = buildDateFilter(startDate, endDate, 'createdAt');
   // Analytics aggregate uses publishedAt (only published posts have analytics)
   const publishedFilter = buildDateFilter(startDate, endDate);
+
+  console.log('[PostsPanel:Debug][getDashboardStats] Filtres Prisma:', {
+    createdFilter: JSON.stringify(createdFilter),
+    publishedFilter: JSON.stringify(publishedFilter),
+  });
 
   // Compter les posts par statut
   const postCounts = await prisma.socialPost.groupBy({
@@ -160,6 +170,15 @@ export async function getDashboardStats(
 
   const countByStatus = Object.fromEntries(
     postCounts.map((c: { status: string; _count: { _all: number } }) => [c.status, c._count._all])
+  );
+
+  console.log('[PostsPanel:Debug][getDashboardStats] Posts par statut:', countByStatus);
+
+  // Vérifier aussi le nombre total de posts sans filtre de date
+  const totalPostsNoFilter = await prisma.socialPost.count();
+  console.log(
+    '[PostsPanel:Debug][getDashboardStats] Total posts en base (sans filtre):',
+    totalPostsNoFilter
   );
 
   // Récupérer les analytics agrégés
@@ -178,6 +197,23 @@ export async function getDashboardStats(
     },
   });
 
+  console.log('[PostsPanel:Debug][getDashboardStats] Analytics agrégés:', {
+    impressions: analyticsAgg._sum.impressions,
+    reach: analyticsAgg._sum.reach,
+    engagements: analyticsAgg._sum.engagements,
+    likes: analyticsAgg._sum.likes,
+    comments: analyticsAgg._sum.comments,
+    shares: analyticsAgg._sum.shares,
+    saves: analyticsAgg._sum.saves,
+  });
+
+  // Vérifier aussi le nombre d'analytics en base
+  const totalAnalyticsNoFilter = await prisma.socialPostAnalytics.count();
+  console.log(
+    '[PostsPanel:Debug][getDashboardStats] Total analytics en base (sans filtre):',
+    totalAnalyticsNoFilter
+  );
+
   const totalPosts =
     (countByStatus.PUBLISHED || 0) +
     (countByStatus.SCHEDULED || 0) +
@@ -188,7 +224,7 @@ export async function getDashboardStats(
   const totalImpressions = analyticsAgg._sum.impressions || 0;
   const totalEngagements = analyticsAgg._sum.engagements || 0;
 
-  return {
+  const result = {
     totalPosts,
     publishedPosts,
     scheduledPosts: countByStatus.SCHEDULED || 0,
@@ -203,6 +239,9 @@ export async function getDashboardStats(
     totalSaves: analyticsAgg._sum.saves || 0,
     averageEngagementRate: totalImpressions > 0 ? (totalEngagements / totalImpressions) * 100 : 0,
   };
+
+  console.log('[PostsPanel:Debug][getDashboardStats] Résultat final:', result);
+  return result;
 }
 
 // ===========================================
@@ -218,6 +257,8 @@ export async function getStatsByPlatform(
 ): Promise<PlatformStats[]> {
   const dateFilter = buildDateFilter(startDate, endDate);
 
+  console.log('[PostsPanel:Debug][getStatsByPlatform] Filtre date:', JSON.stringify(dateFilter));
+
   // Récupérer les posts avec leurs analytics groupés par plateforme
   const platformData = await prisma.socialPost.groupBy({
     by: ['platform'],
@@ -227,6 +268,12 @@ export async function getStatsByPlatform(
       status: 'PUBLISHED',
     },
   });
+
+  console.log(
+    '[PostsPanel:Debug][getStatsByPlatform] Plateformes trouvées:',
+    platformData.length,
+    platformData.map(p => `${p.platform}=${p._count}`)
+  );
 
   const results: PlatformStats[] = [];
 
@@ -253,6 +300,13 @@ export async function getStatsByPlatform(
     const impressions = analytics._sum.impressions || 0;
     const engagements = analytics._sum.engagements || 0;
 
+    console.log(`[PostsPanel:Debug][getStatsByPlatform] ${platform.platform}:`, {
+      posts: platform._count,
+      impressions,
+      reach: analytics._sum.reach,
+      engagements,
+    });
+
     results.push({
       platform: platform.platform as SocialPlatform,
       postsCount: platform._count,
@@ -266,6 +320,7 @@ export async function getStatsByPlatform(
     });
   }
 
+  console.log('[PostsPanel:Debug][getStatsByPlatform] Total résultats:', results.length);
   return results;
 }
 
@@ -282,6 +337,13 @@ export async function getTopPerformingPosts(
   endDate?: Date
 ): Promise<PostPerformance[]> {
   const dateFilter = buildDateFilter(startDate, endDate);
+
+  console.log(
+    '[PostsPanel:Debug][getTopPerformingPosts] Filtre:',
+    JSON.stringify(dateFilter),
+    'limit:',
+    limit
+  );
 
   const posts: Array<{
     id: string;
@@ -314,6 +376,14 @@ export async function getTopPerformingPosts(
     },
     take: limit,
   });
+
+  console.log(
+    '[PostsPanel:Debug][getTopPerformingPosts] Posts trouvés:',
+    posts.length,
+    posts.length > 0
+      ? `Premier: id=${posts[0]?.id}, platform=${posts[0]?.platform}, hasAnalytics=${!!posts[0]?.analytics}`
+      : '(aucun)'
+  );
 
   return posts.map((post: (typeof posts)[number]) => {
     const impressions = post.analytics?.impressions || 0;
@@ -355,6 +425,12 @@ export async function getTrendData(
   const end = endDate || new Date();
   const start = startDate || new Date(end.getTime() - days * 24 * 60 * 60 * 1000);
 
+  console.log('[PostsPanel:Debug][getTrendData] Période:', {
+    start: start.toISOString(),
+    end: end.toISOString(),
+    days,
+  });
+
   // Récupérer les posts publiés dans la période
   const posts = await prisma.socialPost.findMany({
     where: {
@@ -371,6 +447,12 @@ export async function getTrendData(
       publishedAt: 'asc',
     },
   });
+
+  console.log(
+    '[PostsPanel:Debug][getTrendData] Posts publiés dans la période:',
+    posts.length,
+    posts.length > 0 ? `(avec analytics: ${posts.filter(p => p.analytics).length})` : ''
+  );
 
   // Grouper par jour
   const dataByDate: Map<string, TrendDataPoint> = new Map();
@@ -410,7 +492,15 @@ export async function getTrendData(
     }
   }
 
-  return Array.from(dataByDate.values());
+  const trendResults = Array.from(dataByDate.values());
+  const nonZeroDays = trendResults.filter(d => d.posts > 0 || d.engagements > 0);
+  console.log(
+    '[PostsPanel:Debug][getTrendData] Jours générés:',
+    trendResults.length,
+    'Jours avec données:',
+    nonZeroDays.length
+  );
+  return trendResults;
 }
 
 // ===========================================
@@ -576,6 +666,19 @@ export async function getComparisonStats(startDate: Date, endDate: Date): Promis
   const prevStart = new Date(startDate.getTime() - durationMs);
   const prevEnd = new Date(startDate.getTime());
 
+  console.log(
+    '[PostsPanel:Debug][getComparisonStats] Période courante:',
+    startDate.toISOString(),
+    '->',
+    endDate.toISOString()
+  );
+  console.log(
+    '[PostsPanel:Debug][getComparisonStats] Période précédente:',
+    prevStart.toISOString(),
+    '->',
+    prevEnd.toISOString()
+  );
+
   const [currentStats, previousStats] = await Promise.all([
     getDashboardStats(startDate, endDate),
     getDashboardStats(prevStart, prevEnd),
@@ -586,12 +689,15 @@ export async function getComparisonStats(startDate: Date, endDate: Date): Promis
     return ((current - previous) / previous) * 100;
   };
 
-  return {
+  const compResult = {
     postsChange: pctChange(currentStats.publishedPosts, previousStats.publishedPosts),
     reachChange: pctChange(currentStats.totalReach, previousStats.totalReach),
     engagementChange: pctChange(currentStats.totalEngagements, previousStats.totalEngagements),
     engagementRateChange: currentStats.averageEngagementRate - previousStats.averageEngagementRate,
   };
+
+  console.log('[PostsPanel:Debug][getComparisonStats] Résultat:', compResult);
+  return compResult;
 }
 
 // ===========================================
@@ -616,6 +722,8 @@ export async function getBestPostingTimes(
 ): Promise<BestPostingTimeData[]> {
   const dateFilter = buildDateFilter(startDate, endDate);
 
+  console.log('[PostsPanel:Debug][getBestPostingTimes] Filtre:', JSON.stringify(dateFilter));
+
   const posts: Array<{
     publishedAt: Date | null;
     analytics: { engagements: number } | null;
@@ -632,6 +740,8 @@ export async function getBestPostingTimes(
       },
     },
   });
+
+  console.log('[PostsPanel:Debug][getBestPostingTimes] Posts trouvés:', posts.length);
 
   // Aggregate engagements by day/hour bucket
   const buckets: Map<string, { total: number; count: number }> = new Map();
@@ -692,6 +802,8 @@ export async function getPostTypeStats(
 ): Promise<PostTypeStatsData[]> {
   const dateFilter = buildDateFilter(startDate, endDate);
 
+  console.log('[PostsPanel:Debug][getPostTypeStats] Filtre:', JSON.stringify(dateFilter));
+
   const posts: Array<{
     platform: string;
     mediaUrls: unknown;
@@ -711,6 +823,8 @@ export async function getPostTypeStats(
       },
     },
   });
+
+  console.log('[PostsPanel:Debug][getPostTypeStats] Posts trouvés:', posts.length);
 
   const typeBuckets: Map<string, { count: number; totalEngRate: number }> = new Map();
 
@@ -741,6 +855,11 @@ export async function getPostTypeStats(
 
   // Sort by count descending
   results.sort((a, b) => b.count - a.count);
+
+  console.log(
+    '[PostsPanel:Debug][getPostTypeStats] Types trouvés:',
+    results.map(r => `${r.type}=${r.count}`)
+  );
   return results;
 }
 
@@ -776,6 +895,13 @@ export async function getHashtagPerformance(
 ): Promise<HashtagPerformance[]> {
   const dateFilter = buildDateFilter(startDate, endDate);
 
+  console.log(
+    '[PostsPanel:Debug][getHashtagPerformance] Filtre:',
+    JSON.stringify(dateFilter),
+    'limit:',
+    limit
+  );
+
   const posts: Array<{
     content: string;
     analytics: {
@@ -795,6 +921,8 @@ export async function getHashtagPerformance(
       },
     },
   });
+
+  console.log('[PostsPanel:Debug][getHashtagPerformance] Posts trouvés:', posts.length);
 
   const hashtagBuckets: Map<
     string,
@@ -844,7 +972,14 @@ export async function getHashtagPerformance(
     return rateCompare;
   });
 
-  return results.slice(0, limit);
+  const finalResults = results.slice(0, limit);
+  console.log(
+    '[PostsPanel:Debug][getHashtagPerformance] Hashtags uniques trouvés:',
+    results.length,
+    'Retournés (limit):',
+    finalResults.length
+  );
+  return finalResults;
 }
 
 // ===========================================

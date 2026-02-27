@@ -34,8 +34,19 @@ const PLATFORM_CONFIG: Record<string, { name: string; icon: string; color: strin
 };
 
 export async function GET(request: NextRequest) {
+  console.log('[PostsPanel:Debug][API] ══════════════════════════════════════');
+  console.log('[PostsPanel:Debug][API] Début traitement GET /api/analytics/dashboard/posts');
+  console.log('[PostsPanel:Debug][API] URL complète:', request.url);
+
   const authResult = await withAdminAuth();
-  if (authResult.error) return authResult.error;
+  if (authResult.error) {
+    console.error('[PostsPanel:Debug][API] ❌ Auth échouée — retour erreur 401/403');
+    return authResult.error;
+  }
+  console.log(
+    '[PostsPanel:Debug][API] ✅ Auth réussie, user:',
+    authResult.user?.email ?? authResult.user?.sub ?? 'inconnu'
+  );
 
   try {
     const { searchParams } = new URL(request.url);
@@ -43,6 +54,8 @@ export async function GET(request: NextRequest) {
     const startDateStr = searchParams.get('startDate');
     const endDateStr = searchParams.get('endDate');
     const days = searchParams.get('days');
+
+    console.log('[PostsPanel:Debug][API] Params reçus:', { startDateStr, endDateStr, days });
 
     let startDate: Date | undefined;
     let endDate: Date | undefined;
@@ -65,6 +78,14 @@ export async function GET(request: NextRequest) {
       endDate = new Date();
       startDate = new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
     }
+
+    console.log('[PostsPanel:Debug][API] Dates finales:', {
+      startDate: startDate?.toISOString(),
+      endDate: endDate?.toISOString(),
+    });
+
+    console.log('[PostsPanel:Debug][API] Lancement des 9 requêtes service en parallèle...');
+    const fetchStart = Date.now();
 
     // Fetch all data in parallel
     const [
@@ -95,6 +116,23 @@ export async function GET(request: NextRequest) {
       getTotalFollowersByPlatform(),
       getHashtagPerformance(startDate, endDate, 20),
     ]);
+
+    console.log(`[PostsPanel:Debug][API] 9 requêtes terminées en ${Date.now() - fetchStart}ms`);
+    console.log('[PostsPanel:Debug][API] Résumé des résultats:', {
+      'stats.publishedPosts': stats.publishedPosts,
+      'stats.totalPosts': stats.totalPosts,
+      'stats.totalImpressions': stats.totalImpressions,
+      'stats.totalEngagements': stats.totalEngagements,
+      'stats.totalReach': stats.totalReach,
+      'platformStats.length': platformStats.length,
+      'topPosts.length': topPosts.length,
+      'trendData.length': trendData.length,
+      comparison,
+      'bestTimes.length': bestTimes.length,
+      'postTypes.length': postTypes.length,
+      'followersByPlatform.size': followersByPlatform.size,
+      'hashtagPerformance.length': hashtagPerformance.length,
+    });
 
     // Format platform stats for PostsPanel
     const platforms = platformStats.map(p => {
@@ -179,9 +217,26 @@ export async function GET(request: NextRequest) {
       })),
     };
 
+    console.log('[PostsPanel:Debug][API] Réponse finale construite:', {
+      totalPosts: response.totalPosts,
+      totalReach: response.totalReach,
+      totalEngagement: response.totalEngagement,
+      avgEngagementRate: response.avgEngagementRate,
+      totalFollowers: response.totalFollowers,
+      'platforms.length': response.platforms.length,
+      'topPosts.length': response.topPosts.length,
+      'postTypes.length': response.postTypes.length,
+      'engagementTrends.length': response.engagementTrends.length,
+      'bestPostingTimes.length': response.bestPostingTimes.length,
+    });
+    console.log('[PostsPanel:Debug][API] ✅ Retour HTTP 200');
+    console.log('[PostsPanel:Debug][API] ══════════════════════════════════════');
+
     return NextResponse.json(response);
   } catch (error) {
-    console.error('[Dashboard Posts API] Error:', error);
+    console.error('[PostsPanel:Debug][API] ❌ ERREUR CATCH GLOBAL:', error);
+    console.error('[PostsPanel:Debug][API] Stack:', error instanceof Error ? error.stack : 'N/A');
+    console.error('[PostsPanel:Debug][API] ══════════════════════════════════════');
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Erreur interne' },
       { status: 500 }
