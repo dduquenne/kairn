@@ -85,7 +85,7 @@
     "@kairn/analytics": "workspace:*",
     "@kairn/blog": "workspace:*",
     "@kairn/social": "workspace:*",
-    "framer-motion": "^11.0.0",
+    "framer-motion": "^12.34.3",
     "lucide-react": "^0.330.0",
     "recharts": "^2.12.0"
   },
