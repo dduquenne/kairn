@@ -38,6 +38,20 @@ function mockResponse(data: unknown, status = 200, headers?: Record<string, stri
   };
 }
 
+/** Récupère l'URL du dernier appel fetch */
+function getCallUrl(callIndex = 0): string {
+  const call = mockFetch.mock.calls[callIndex];
+  if (!call) throw new Error(`No fetch call at index ${callIndex}`);
+  return call[0] as string;
+}
+
+/** Récupère le body parsé du dernier appel fetch */
+function getCallBody(callIndex = 0): Record<string, unknown> {
+  const call = mockFetch.mock.calls[callIndex];
+  if (!call || !call[1]) throw new Error(`No fetch call options at index ${callIndex}`);
+  return JSON.parse((call[1] as { body: string }).body) as Record<string, unknown>;
+}
+
 /** Input de base pour les tests */
 function baseInput(overrides: Partial<PublishPostInput> = {}): PublishPostInput {
   return {
@@ -109,9 +123,8 @@ describe('FacebookPublisher', () => {
     expect(mockFetch).toHaveBeenCalledTimes(1);
 
     // Vérifier l'URL d'appel
-    const callUrl = mockFetch.mock.calls[0][0];
-    expect(callUrl).toContain('graph.facebook.com');
-    expect(callUrl).toContain('page123/feed');
+    expect(getCallUrl()).toContain('graph.facebook.com');
+    expect(getCallUrl()).toContain('page123/feed');
   });
 
   it('devrait publier un post avec lien', async () => {
@@ -128,7 +141,7 @@ describe('FacebookPublisher', () => {
     expect(result.externalPostId).toBe('123_789');
 
     // Vérifier que le lien est inclus avec UTM
-    const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+    const body = getCallBody();
     expect(body.link).toContain('utm_source=facebook');
   });
 
@@ -146,8 +159,7 @@ describe('FacebookPublisher', () => {
     expect(result.externalPostId).toBe('photo_001');
 
     // Vérifier que l'URL de la photo est envoyée
-    const callUrl = mockFetch.mock.calls[0][0];
-    expect(callUrl).toContain('page123/photos');
+    expect(getCallUrl()).toContain('page123/photos');
   });
 
   it('devrait gérer une erreur API Facebook', async () => {
@@ -188,7 +200,7 @@ describe('FacebookPublisher', () => {
       })
     );
 
-    const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+    const body = getCallBody();
     expect(body.message).toContain('#yoga');
     expect(body.message).toContain('#bienetre');
   });
@@ -306,7 +318,7 @@ describe('LinkedInPublisher', () => {
     expect(result.platformUrl).toContain('linkedin.com/feed/update');
 
     // Vérifier le body envoyé
-    const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+    const body = getCallBody();
     expect(body.author).toBe('urn:li:person:person123');
     expect(body.lifecycleState).toBe('PUBLISHED');
   });
@@ -332,11 +344,11 @@ describe('LinkedInPublisher', () => {
 
     expect(result.success).toBe(true);
 
-    const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+    const body = getCallBody();
     expect(body.author).toBe('urn:li:organization:org123');
-    expect(body.specificContent['com.linkedin.ugc.ShareContent'].shareMediaCategory).toBe(
-      'ARTICLE'
-    );
+    const specificContent = body.specificContent as Record<string, Record<string, unknown>>;
+    const shareContent = specificContent['com.linkedin.ugc.ShareContent']!;
+    expect(shareContent.shareMediaCategory).toBe('ARTICLE');
   });
 
   it('devrait gérer une erreur API LinkedIn', async () => {
@@ -394,7 +406,7 @@ describe('ThreadsPublisher', () => {
     expect(result.platformUrl).toBe('https://threads.net/@user/post/abc');
 
     // Vérifier que le container est créé avec media_type TEXT
-    const containerBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+    const containerBody = getCallBody();
     expect(containerBody.media_type).toBe('TEXT');
     expect(containerBody.text).toContain('Test post content');
   });
@@ -420,7 +432,7 @@ describe('ThreadsPublisher', () => {
 
     expect(result.success).toBe(true);
 
-    const containerBody = JSON.parse(mockFetch.mock.calls[0][1].body);
+    const containerBody = getCallBody();
     expect(containerBody.media_type).toBe('IMAGE');
     expect(containerBody.image_url).toBe('https://example.com/photo.jpg');
   });
