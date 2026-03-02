@@ -4,11 +4,5 @@
   "installCommand": "pnpm install",
   "buildCommand": "cd ../.. && pnpm --filter @kairn/db exec prisma generate && pnpm turbo run build --filter=@kairn/psypnos --env-mode=loose",
   "outputDirectory": ".next",
-  "regions": ["cdg1"],
-  "crons": [
-    {
-      "path": "/api/cron/social-publish",
-      "schedule": "* * * * *"
-    }
-  ]
+  "regions": ["cdg1"]
 }

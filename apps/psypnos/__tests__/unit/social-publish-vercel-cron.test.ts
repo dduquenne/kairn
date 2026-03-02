@@ -1,11 +1,10 @@
 /**
- * Tests unitaires pour la configuration Vercel CRON et le flux de publication.
+ * Tests unitaires pour le flux de publication sociale et l'authentification CRON.
  *
  * Vérifie que :
- * - vercel.json contient la configuration CRON pour social-publish
- * - Le CRON est configuré pour s'exécuter toutes les minutes
- * - L'authentification supporte CRON_SECRET (Vercel CRON natif)
- * - Le handler GET est bien exporté (Vercel CRON envoie GET)
+ * - vercel.json ne contient PAS de bloc crons (scheduling via QStash uniquement)
+ * - L'authentification supporte CRON_SECRET et signature QStash
+ * - Le handler GET est bien exporté
  * - Le handler POST est bien exporté (compatibilité QStash)
  * - Les logs de diagnostic sont présents pour le traçage
  * - Le flux de publication gère correctement les cas limites
@@ -20,30 +19,13 @@ const APP_DIR = join(__dirname, '../..');
 const CRON_ROUTE = join(APP_DIR, 'app/api/cron/social-publish/route.ts');
 const POSTS_ROUTE = join(APP_DIR, 'app/api/social/posts/route.ts');
 
-// ─── Test 1 : Configuration Vercel CRON ──────────────────────────
+// ─── Test 1 : Absence de CRON natif Vercel ──────────────────────
 
-describe('Vercel CRON — configuration vercel.json', () => {
+describe('Vercel CRON — absence de crons natifs dans vercel.json', () => {
   const vercelConfig = JSON.parse(readFileSync(join(APP_DIR, 'vercel.json'), 'utf-8'));
 
-  it('devrait contenir un tableau crons', () => {
-    expect(vercelConfig.crons).toBeDefined();
-    expect(Array.isArray(vercelConfig.crons)).toBe(true);
-    expect(vercelConfig.crons.length).toBeGreaterThan(0);
-  });
-
-  it('devrait inclure social-publish dans les crons', () => {
-    const socialPublishCron = vercelConfig.crons.find(
-      (c: { path: string }) => c.path === '/api/cron/social-publish'
-    );
-    expect(socialPublishCron).toBeDefined();
-  });
-
-  it('devrait exécuter social-publish au moins toutes les minutes', () => {
-    const socialPublishCron = vercelConfig.crons.find(
-      (c: { path: string }) => c.path === '/api/cron/social-publish'
-    );
-    // "* * * * *" = toutes les minutes
-    expect(socialPublishCron.schedule).toBe('* * * * *');
+  it('ne devrait PAS contenir de bloc crons (scheduling via QStash)', () => {
+    expect(vercelConfig.crons).toBeUndefined();
   });
 });
 
