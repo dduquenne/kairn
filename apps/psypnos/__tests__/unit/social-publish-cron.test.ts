@@ -6,7 +6,8 @@
  * - markPostAsFailed ne double-incrémente pas retryCount
  * - Le script setup-qstash-schedules passe method: 'GET'
  * - claimPostForPublishing utilise updateMany atomique
- * - Le CRON marque les posts FAILED quand retryCount >= maxRetries
+ * - Le CRON utilise PostScheduler via PrismaPostStorage
+ * - PrismaPostStorage implémente correctement PostStorage
  */
 
 import { readFileSync } from 'fs';
@@ -135,71 +136,85 @@ describe('DEFAULT_RETRY_CONFIG - retryableErrors', () => {
   });
 });
 
-// ─── Test 5 : CRON social-publish — isolation par post ──────────────
+// ─── Test 5 : CRON social-publish — utilise PostScheduler ──────────
 
-describe('CRON social-publish - isolation des erreurs par post', () => {
+describe('CRON social-publish - utilisation de PostScheduler', () => {
   const routePath = join(CRON_DIR, 'social-publish', 'route.ts');
 
-  it('devrait avoir un try/catch autour de publishPostWithRetry dans la boucle', () => {
+  it('devrait importer PostScheduler depuis @kairn/social/posting', () => {
     const content = readFileSync(routePath, 'utf-8');
-
-    // Vérifier que la boucle for contient un try/catch interne
-    // Le pattern attendu : for ... { try { ... publishPostWithRetry ... } catch
-    const forLoopStart = content.indexOf('for (const post of posts)');
-    expect(forLoopStart).toBeGreaterThan(-1);
-
-    const afterLoop = content.slice(forLoopStart);
-    const publishCall = afterLoop.indexOf('publishPostWithRetry(post)');
-    expect(publishCall).toBeGreaterThan(-1);
-
-    // Le try doit apparaître AVANT publishPostWithRetry dans la boucle
-    const tryBeforePublish = afterLoop.slice(0, publishCall).includes('try {');
-    expect(tryBeforePublish).toBe(true);
-
-    // Le catch doit capturer l'erreur par post (pas juste le catch global)
-    const catchAfterPublish = afterLoop.indexOf('} catch (postError)');
-    expect(catchAfterPublish).toBeGreaterThan(publishCall);
+    expect(content).toContain("import { PostScheduler } from '@kairn/social/posting'");
   });
 
-  it("devrait logger l'erreur et continuer avec les posts suivants", () => {
+  it('devrait importer PrismaPostStorage', () => {
     const content = readFileSync(routePath, 'utf-8');
+    expect(content).toContain('PrismaPostStorage');
+  });
 
-    // Le catch par post doit pousser un résultat d'erreur dans results
-    expect(content).toContain('Unexpected error on post');
-    expect(content).toContain('results.push({');
+  it('devrait appeler scheduler.processDuePosts()', () => {
+    const content = readFileSync(routePath, 'utf-8');
+    expect(content).toContain('scheduler.processDuePosts()');
+  });
+
+  it('devrait configurer un callback onFailed pour les notifications email', () => {
+    const content = readFileSync(routePath, 'utf-8');
+    expect(content).toContain('onFailed');
+    expect(content).toContain('sendFailureNotification');
+  });
+
+  it('devrait configurer un callback onPublished pour le logging', () => {
+    const content = readFileSync(routePath, 'utf-8');
+    expect(content).toContain('onPublished');
   });
 });
 
-// ─── Test 6 : CRON social-publish — protection getSocialAccountById ─
+// ─── Test 6 : PrismaPostStorage — implémentation correcte ──────────
 
-describe('CRON social-publish - protection getSocialAccountById', () => {
-  it('devrait protéger getSocialAccountById avec un try/catch dans publishPostWithRetry', () => {
-    const routePath = join(CRON_DIR, 'social-publish', 'route.ts');
-    const content = readFileSync(routePath, 'utf-8');
+describe('PrismaPostStorage - implémentation PostStorage', () => {
+  const storagePath = join(__dirname, '../../lib/social/prisma-post-storage.ts');
 
-    // Trouver la fonction publishPostWithRetry
-    const funcStart = content.indexOf('async function publishPostWithRetry');
-    expect(funcStart).toBeGreaterThan(-1);
-
-    const funcBody = content.slice(funcStart, content.indexOf('\n// ===', funcStart + 1));
-
-    // getSocialAccountById doit être dans un try/catch
-    const accountCallIndex = funcBody.indexOf('getSocialAccountById(post.accountId)');
-    expect(accountCallIndex).toBeGreaterThan(-1);
-
-    // Un try doit précéder l'appel
-    const beforeCall = funcBody.slice(0, accountCallIndex);
-    expect(beforeCall).toContain('try {');
-
-    // Un catch (accountError) doit suivre
-    expect(funcBody).toContain('catch (accountError)');
+  it('devrait implémenter PostStorage', () => {
+    const content = readFileSync(storagePath, 'utf-8');
+    expect(content).toContain('implements PostStorage');
   });
 
-  it("devrait retourner une erreur descriptive en cas d'échec de décryptage", () => {
-    const routePath = join(CRON_DIR, 'social-publish', 'route.ts');
-    const content = readFileSync(routePath, 'utf-8');
+  it('devrait implémenter getPostsDueForPublishing', () => {
+    const content = readFileSync(storagePath, 'utf-8');
+    expect(content).toContain('async getPostsDueForPublishing()');
+  });
 
-    expect(content).toContain('Erreur lors de la récupération du compte social');
+  it('devrait implémenter updatePostStatus', () => {
+    const content = readFileSync(storagePath, 'utf-8');
+    expect(content).toContain('async updatePostStatus(');
+  });
+
+  it('devrait implémenter getAccountForPublishing', () => {
+    const content = readFileSync(storagePath, 'utf-8');
+    expect(content).toContain('async getAccountForPublishing(');
+  });
+
+  it('devrait mapper les statuts Prisma vers les statuts PostScheduler', () => {
+    const content = readFileSync(storagePath, 'utf-8');
+    expect(content).toContain('PRISMA_TO_SCHEDULER_STATUS');
+    expect(content).toContain("SCHEDULED: 'pending'");
+    expect(content).toContain("PUBLISHING: 'processing'");
+    expect(content).toContain("PUBLISHED: 'published'");
+    expect(content).toContain("FAILED: 'failed'");
+  });
+
+  it('devrait utiliser claimPostForPublishing pour le verrouillage atomique', () => {
+    const content = readFileSync(storagePath, 'utf-8');
+    expect(content).toContain('claimPostForPublishing');
+  });
+
+  it('devrait utiliser getScheduledPosts pour récupérer les posts (incluant stuck)', () => {
+    const content = readFileSync(storagePath, 'utf-8');
+    expect(content).toContain('getScheduledPosts');
+  });
+
+  it('devrait gérer le paramètre stuckTimeoutMinutes', () => {
+    const content = readFileSync(storagePath, 'utf-8');
+    expect(content).toContain('stuckTimeoutMinutes');
   });
 });
 
@@ -233,37 +248,46 @@ describe('claimPostForPublishing - verrouillage atomique', () => {
     expect(funcBody).toContain('result.count');
   });
 
-  it('devrait être utilisé dans le CRON avant la publication', () => {
-    const routePath = join(CRON_DIR, 'social-publish', 'route.ts');
-    const content = readFileSync(routePath, 'utf-8');
+  it('devrait être utilisé dans PrismaPostStorage', () => {
+    const storagePath = join(__dirname, '../../lib/social/prisma-post-storage.ts');
+    const content = readFileSync(storagePath, 'utf-8');
 
-    // Le CRON doit importer et utiliser claimPostForPublishing
     expect(content).toContain('claimPostForPublishing');
   });
 });
 
-// ─── Test 8 : CRON — marquer FAILED quand maxRetries atteint ────────
+// ─── Test 8 : getScheduledPosts — requête correcte ────────────────
 
-describe('CRON social-publish - gestion du max retries', () => {
-  it('devrait appeler markPostAsFailed quand retryCount >= maxRetries', () => {
-    const routePath = join(CRON_DIR, 'social-publish', 'route.ts');
-    const content = readFileSync(routePath, 'utf-8');
+describe('getScheduledPosts — requête Prisma', () => {
+  const storeSource = readFileSync(join(__dirname, '../../lib/social/store.ts'), 'utf-8');
 
-    // Trouver la fonction publishPostWithRetry
-    const funcStart = content.indexOf('async function publishPostWithRetry');
-    expect(funcStart).toBeGreaterThan(-1);
+  it('devrait filtrer les posts SCHEDULED avec scheduledAt <= now', () => {
+    const funcStart = storeSource.indexOf('export async function getScheduledPosts');
+    const funcBody = storeSource.slice(funcStart, storeSource.indexOf('\nexport ', funcStart + 1));
 
-    const funcBody = content.slice(funcStart, content.indexOf('\n// ===', funcStart + 1));
+    expect(funcBody).toContain("status: 'SCHEDULED'");
+    expect(funcBody).toContain('lte: now');
+  });
 
-    // Le check retryCount >= maxRetries doit appeler markPostAsFailed
-    const maxRetriesCheck = funcBody.indexOf('post.retryCount >= DEFAULT_RETRY_CONFIG.maxRetries');
-    expect(maxRetriesCheck).toBeGreaterThan(-1);
+  it('devrait inclure les posts bloqués en PUBLISHING (stuck recovery)', () => {
+    const funcStart = storeSource.indexOf('export async function getScheduledPosts');
+    const funcBody = storeSource.slice(funcStart, storeSource.indexOf('\nexport ', funcStart + 1));
 
-    // Après le check, markPostAsFailed doit être appelé (pas juste un return)
-    const afterCheck = funcBody.slice(maxRetriesCheck);
-    const nextMarkFailed = afterCheck.indexOf('markPostAsFailed');
-    expect(nextMarkFailed).toBeGreaterThan(-1);
-    // Le markPostAsFailed doit être proche du check (dans les 300 chars)
-    expect(nextMarkFailed).toBeLessThan(300);
+    expect(funcBody).toContain("status: 'PUBLISHING'");
+    expect(funcBody).toContain('stuckThreshold');
+  });
+
+  it('devrait utiliser OR pour combiner les deux conditions', () => {
+    const funcStart = storeSource.indexOf('export async function getScheduledPosts');
+    const funcBody = storeSource.slice(funcStart, storeSource.indexOf('\nexport ', funcStart + 1));
+
+    expect(funcBody).toContain('OR:');
+  });
+
+  it('devrait trier par scheduledAt ascendant', () => {
+    const funcStart = storeSource.indexOf('export async function getScheduledPosts');
+    const funcBody = storeSource.slice(funcStart, storeSource.indexOf('\nexport ', funcStart + 1));
+
+    expect(funcBody).toContain("orderBy: { scheduledAt: 'asc' }");
   });
 });
