@@ -163,8 +163,8 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Social Posts API] Created post ${post.id} for ${post.platform}`);
 
-    // Schedule a QStash trigger at the exact publication time
-    // so the CRON endpoint publishes the post without waiting for the next 5-min cycle
+    // Trigger QStash optionnel pour publication à l'heure exacte.
+    // Non-bloquant : le Vercel CRON (toutes les minutes) garantit la publication.
     if (input.scheduledAt) {
       try {
         const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
@@ -177,14 +177,18 @@ export async function POST(request: NextRequest) {
             deduplicationId: `social-post-${post.id}`,
           });
           console.log(
-            `[Social Posts API] Scheduled QStash trigger for post ${post.id} at ${input.scheduledAt.toISOString()} (messageId: ${result.messageId})`
+            `[Social Posts API] QStash trigger programmé pour post ${post.id} à ${input.scheduledAt.toISOString()} (messageId: ${result.messageId})`
+          );
+        } else {
+          console.warn(
+            `[Social Posts API] NEXT_PUBLIC_SITE_URL non défini — trigger QStash ignoré pour post ${post.id}. Le Vercel CRON prendra le relais.`
           );
         }
       } catch (scheduleError) {
-        // Non-blocking: the periodic CRON will still pick up the post
-        console.warn(
-          `[Social Posts API] Failed to schedule QStash trigger for post ${post.id}:`,
-          scheduleError
+        // Non-bloquant : le Vercel CRON (toutes les minutes) prend le relais
+        console.error(
+          `[Social Posts API] Échec du trigger QStash pour post ${post.id} (le Vercel CRON prendra le relais):`,
+          scheduleError instanceof Error ? scheduleError.message : scheduleError
         );
       }
     }

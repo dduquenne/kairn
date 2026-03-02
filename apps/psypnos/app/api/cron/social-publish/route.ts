@@ -4,11 +4,10 @@
 /**
  * Cron job pour la publication automatique des posts sur les réseaux sociaux
  *
- * Ce job est exécuté toutes les 5 minutes par QStash (Upstash)
- * et/ou déclenché ponctuellement à l'heure exacte de chaque post.
- * Il publie les posts programmés dont l'heure est arrivée.
+ * Déclenchement principal : Vercel CRON toutes les minutes (vercel.json)
+ * Déclenchement secondaire : QStash one-shot lors de la création d'un post
  *
- * Sécurité : Vérifie la signature QStash ou CRON_SECRET (dev local)
+ * Sécurité : Vérifie CRON_SECRET (Vercel CRON) ou signature QStash
  *
  * Concurrence : Utilise claimPostForPublishing (updateMany atomique)
  * pour éviter la double publication quand plusieurs invocations CRON
@@ -278,18 +277,24 @@ ${error}
 // ===========================================
 
 export async function GET(request: NextRequest) {
-  // Vérifier l'authentification (QStash signature ou CRON_SECRET)
+  const invocationId = Math.random().toString(36).substring(2, 10);
+  const startTime = Date.now();
+
+  console.log(
+    `[Cron Social Publish][${invocationId}] ▶ Invocation démarrée à ${new Date().toISOString()}`
+  );
+
+  // Vérifier l'authentification (CRON_SECRET Vercel ou signature QStash)
   const authResult = await verifyCronAuth(request);
   if (!authResult.valid) {
     console.warn(
-      `[Cron Social Publish] Unauthorized access attempt (source: ${authResult.source}): ${authResult.error}`
+      `[Cron Social Publish][${invocationId}] ✗ Accès non autorisé (source: ${authResult.source}): ${authResult.error}`
     );
     return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   }
 
-  console.log(`[Cron Social Publish] Authenticated via ${authResult.source}`);
+  console.log(`[Cron Social Publish][${invocationId}] Auth OK via ${authResult.source}`);
 
-  const startTime = Date.now();
   const results: {
     postId: string;
     platform: string;
@@ -310,19 +315,22 @@ export async function GET(request: NextRequest) {
     const stuckPosts = posts.filter(p => p.status === 'PUBLISHING');
 
     console.log(
-      `[Cron Social Publish] Found ${posts.length} posts to process ` +
-        `(${scheduledPosts.length} scheduled, ${stuckPosts.length} stuck in PUBLISHING) ` +
-        `at ${now.toISOString()}`
+      `[Cron Social Publish][${invocationId}] ${posts.length} post(s) à traiter ` +
+        `(${scheduledPosts.length} scheduled, ${stuckPosts.length} stuck) ` +
+        `à ${now.toISOString()}`
     );
 
     if (stuckPosts.length > 0) {
       console.warn(
-        `[Cron Social Publish] Recovering ${stuckPosts.length} stuck posts: ` +
+        `[Cron Social Publish][${invocationId}] Recovery de ${stuckPosts.length} post(s) bloqué(s): ` +
           stuckPosts.map(p => `${p.id} (${p.platform}, retries=${p.retryCount})`).join(', ')
       );
     }
 
     if (posts.length === 0) {
+      console.log(
+        `[Cron Social Publish][${invocationId}] ◀ Aucun post à publier (${Date.now() - startTime}ms)`
+      );
       return NextResponse.json({
         success: true,
         message: 'Aucun post à publier',
@@ -377,9 +385,11 @@ export async function GET(request: NextRequest) {
     const successCount = results.filter(r => r.success).length;
     const failCount = results.filter(r => !r.success && !r.skipped).length;
     const skipCount = results.filter(r => r.skipped).length;
+    const duration = Date.now() - startTime;
 
     console.log(
-      `[Cron Social Publish] Completed: ${successCount} published, ${failCount} failed, ${skipCount} skipped`
+      `[Cron Social Publish][${invocationId}] ◀ Terminé en ${duration}ms: ` +
+        `${successCount} publié(s), ${failCount} échoué(s), ${skipCount} ignoré(s)`
     );
 
     return NextResponse.json({
@@ -395,14 +405,18 @@ export async function GET(request: NextRequest) {
       duration: Date.now() - startTime,
     });
   } catch (error) {
-    console.error('[Cron Social Publish] Critical error:', error);
+    const duration = Date.now() - startTime;
+    console.error(
+      `[Cron Social Publish][${invocationId}] ✗ Erreur critique après ${duration}ms:`,
+      error
+    );
 
     return NextResponse.json(
       {
         success: false,
         error: error instanceof Error ? error.message : 'Erreur critique',
         results,
-        duration: Date.now() - startTime,
+        duration,
       },
       { status: 500 }
     );
