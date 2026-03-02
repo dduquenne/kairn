@@ -6,14 +6,15 @@
  * réponses des APIs de chaque plateforme.
  */
 
+import {
+  FacebookPublisher,
+  InstagramPublisher,
+  LinkedInPublisher,
+  ThreadsPublisher,
+  getPublisher,
+} from '@kairn/social/posting';
+import type { PublishPostInput } from '@kairn/social/posting';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-
-import { FacebookPublisher } from '../../src/posting/facebook';
-import { getPublisher } from '../../src/posting/index';
-import { InstagramPublisher } from '../../src/posting/instagram';
-import { LinkedInPublisher } from '../../src/posting/linkedin';
-import { ThreadsPublisher } from '../../src/posting/threads';
-import type { PublishPostInput } from '../../src/posting/types';
 
 // ─── Mock global fetch ───────────────────────────────────────────
 
