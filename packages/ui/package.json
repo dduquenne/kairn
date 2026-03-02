@@ -34,7 +34,7 @@
     "next": "^14.0.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
-    "zod": "^3.22.0"
+    "zod": "^4.3.6"
   },
   "peerDependenciesMeta": {
     "framer-motion": {
@@ -60,6 +60,6 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "typescript": "^5.4.0",
-    "zod": "^3.22.0"
+    "zod": "^4.3.6"
   }
 }

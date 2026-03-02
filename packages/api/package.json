@@ -55,7 +55,7 @@
     "@kairn/db": "workspace:*",
     "@kairn/blog": "workspace:*",
     "@kairn/analytics": "workspace:*",
-    "zod": "^3.22.0"
+    "zod": "^4.3.6"
   },
   "peerDependencies": {
     "@prisma/client": "^6.0.0"
