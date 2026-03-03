@@ -61,11 +61,8 @@ export const DEFAULT_CRON_SCHEDULES = {
   /** Rapport hebdomadaire - Lundi 9h00 */
   'weekly-report': '0 9 * * 1',
 
-  /** Nettoyage des données - 3h00 chaque jour */
-  'cleanup-data': '0 3 * * *',
-
-  /** Nettoyage des jobs - 4h00 chaque jour */
-  'cleanup-jobs': '0 4 * * *',
+  /** Nettoyage unifié (données + jobs) - 3h00 chaque jour */
+  cleanup: '0 3 * * *',
 
   /** Snapshot quotidien des comptes sociaux - 6h00 chaque jour */
   'snapshot-social-accounts': '0 6 * * *',
