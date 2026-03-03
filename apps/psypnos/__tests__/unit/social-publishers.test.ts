@@ -108,7 +108,7 @@ describe('FacebookPublisher', () => {
     expect(result.error).toContain('Page ID missing');
   });
 
-  it('devrait publier un post texte avec succès', async () => {
+  it('devrait publier un post texte avec succès via Graph API v21.0', async () => {
     mockFetch.mockResolvedValueOnce(mockResponse({ id: '123_456' }));
 
     const result = await publisher.publish(
@@ -122,8 +122,8 @@ describe('FacebookPublisher', () => {
     expect(result.platformUrl).toContain('facebook.com');
     expect(mockFetch).toHaveBeenCalledTimes(1);
 
-    // Vérifier l'URL d'appel
-    expect(getCallUrl()).toContain('graph.facebook.com');
+    // Vérifier l'URL d'appel et la version API
+    expect(getCallUrl()).toContain('graph.facebook.com/v21.0');
     expect(getCallUrl()).toContain('page123/feed');
   });
 
@@ -251,9 +251,12 @@ describe('InstagramPublisher', () => {
     expect(result.externalPostId).toBe('media_001');
     expect(result.platformUrl).toBe('https://instagram.com/p/abc123');
     expect(mockFetch).toHaveBeenCalledTimes(4);
+
+    // Vérifier que l'API Graph v21.0 est utilisée
+    expect(getCallUrl(0)).toContain('graph.facebook.com/v21.0');
   });
 
-  it('devrait gérer un échec de création de container', async () => {
+  it("devrait propager le message d'erreur API lors d'un échec de création de container", async () => {
     mockFetch.mockResolvedValueOnce(mockResponse({ error: { message: 'Invalid image' } }, 400));
 
     const result = await publisher.publish(
@@ -264,7 +267,21 @@ describe('InstagramPublisher', () => {
     );
 
     expect(result.success).toBe(false);
-    expect(result.error).toContain('Failed to create media container');
+    expect(result.error).toBe('Invalid image');
+  });
+
+  it("devrait retourner un message HTTP fallback si aucun message d'erreur API", async () => {
+    mockFetch.mockResolvedValueOnce(mockResponse({}, 500));
+
+    const result = await publisher.publish(
+      baseInput({
+        mediaUrls: ['https://example.com/bad.jpg'],
+        accountMetadata: { igUserId: 'ig123' },
+      })
+    );
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('HTTP error 500');
   });
 
   it('devrait gérer un timeout de traitement media', async () => {

@@ -20,7 +20,7 @@ import type {
   ContentValidationResult,
 } from './types';
 
-const GRAPH_API_VERSION = 'v18.0';
+const GRAPH_API_VERSION = 'v21.0';
 const GRAPH_API_BASE = `https://graph.facebook.com/${GRAPH_API_VERSION}`;
 
 export class InstagramPublisher implements SocialPublisher {
@@ -87,13 +87,6 @@ export class InstagramPublisher implements SocialPublisher {
 
       const containerId = await this.createMediaContainer(igUserId, imageUrl, caption, accessToken);
 
-      if (!containerId) {
-        return {
-          success: false,
-          error: 'Failed to create media container',
-        };
-      }
-
       // Wait for media processing
       await this.waitForMediaProcessing(containerId, accessToken);
 
@@ -107,12 +100,21 @@ export class InstagramPublisher implements SocialPublisher {
     }
   }
 
+  /**
+   * Crée un media container Instagram via le Graph API.
+   *
+   * @param igUserId - Identifiant Instagram Business/Creator
+   * @param imageUrl - URL publique de l'image
+   * @param caption - Légende du post
+   * @param accessToken - Token d'accès déchiffré
+   * @throws Error si l'API retourne une erreur ou si l'ID est absent
+   */
   private async createMediaContainer(
     igUserId: string,
     imageUrl: string,
     caption: string,
     accessToken: string
-  ): Promise<string | null> {
+  ): Promise<string> {
     const url = `${GRAPH_API_BASE}/${igUserId}/media`;
 
     const fullImageUrl = imageUrl.startsWith('http') ? imageUrl : `${this.baseUrl}${imageUrl}`;
@@ -131,10 +133,14 @@ export class InstagramPublisher implements SocialPublisher {
 
     if (!response.ok) {
       console.error('[InstagramPublisher] Container creation error:', data);
-      return null;
+      throw new Error(data.error?.message || `HTTP error ${response.status}`);
     }
 
-    return data.id || null;
+    if (!data.id) {
+      throw new Error('Instagram API returned no container ID');
+    }
+
+    return data.id;
   }
 
   private async waitForMediaProcessing(
