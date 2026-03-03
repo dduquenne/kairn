@@ -45,78 +45,109 @@ export async function getAnalyticsSummary(startDate?: string, endDate?: string) 
       const dateFilter = buildDateFilter(startDate, endDate);
 
       // Count total page views (excluding bots) and unique sessions via SQL
-      const [pageViewStats, bounceStats, pageExitStats, sectionTimeStats, conversionStats] =
-        await Promise.all([
-          // 1. Page view counts + unique sessions (SQL aggregation)
-          prisma.analyticsEvent.groupBy({
-            by: ['sessionId'],
-            where: {
-              siteId,
-              type: EventType.PAGE_VIEW,
-              ...dateFilter,
-              NOT: {
-                data: {
-                  path: ['isBot'],
-                  equals: true,
-                },
+      const [
+        pageViewStats,
+        bounceStats,
+        pageExitStats,
+        sectionTimeStats,
+        conversionStats,
+        conversionSessionStats,
+        completedSessionStats,
+      ] = await Promise.all([
+        // 1. Page view counts + unique sessions (SQL aggregation)
+        prisma.analyticsEvent.groupBy({
+          by: ['sessionId'],
+          where: {
+            siteId,
+            type: EventType.PAGE_VIEW,
+            ...dateFilter,
+            NOT: {
+              data: {
+                path: ['isBot'],
+                equals: true,
               },
             },
-            _count: { id: true },
-          }),
+          },
+          _count: { id: true },
+        }),
 
-          // 2. Total page views count (for total)
-          prisma.analyticsEvent.count({
-            where: {
-              siteId,
-              type: EventType.PAGE_VIEW,
-              ...dateFilter,
-              NOT: {
-                data: {
-                  path: ['isBot'],
-                  equals: true,
-                },
+        // 2. Total page views count (for total)
+        prisma.analyticsEvent.count({
+          where: {
+            siteId,
+            type: EventType.PAGE_VIEW,
+            ...dateFilter,
+            NOT: {
+              data: {
+                path: ['isBot'],
+                equals: true,
               },
             },
-          }),
+          },
+        }),
 
-          // 3. Page exit events (primary source for session duration & scroll depth)
-          prisma.analyticsEvent.findMany({
-            where: {
-              siteId,
-              type: EventType.PAGE_EXIT,
-              ...dateFilter,
-            },
-            select: {
-              sessionId: true,
-              data: true,
-            },
-          }),
+        // 3. Page exit events (primary source for session duration & scroll depth)
+        prisma.analyticsEvent.findMany({
+          where: {
+            siteId,
+            type: EventType.PAGE_EXIT,
+            ...dateFilter,
+          },
+          select: {
+            sessionId: true,
+            data: true,
+          },
+        }),
 
-          // 4. Section times grouped by session (for topSections & fallback duration)
-          prisma.analyticsEvent.findMany({
-            where: {
-              siteId,
-              type: EventType.SECTION_TIME,
-              ...dateFilter,
-            },
-            select: {
-              sessionId: true,
-              name: true,
-              data: true,
-            },
-          }),
+        // 4. Section times grouped by session (for topSections & fallback duration)
+        prisma.analyticsEvent.findMany({
+          where: {
+            siteId,
+            type: EventType.SECTION_TIME,
+            ...dateFilter,
+          },
+          select: {
+            sessionId: true,
+            name: true,
+            data: true,
+          },
+        }),
 
-          // 5. Conversion counts grouped by name
-          prisma.analyticsEvent.groupBy({
-            by: ['name'],
-            where: {
-              siteId,
-              type: EventType.CONVERSION,
-              ...dateFilter,
+        // 5. Conversion counts grouped by name
+        prisma.analyticsEvent.groupBy({
+          by: ['name'],
+          where: {
+            siteId,
+            type: EventType.CONVERSION,
+            ...dateFilter,
+          },
+          _count: { id: true },
+        }),
+
+        // 6. Unique sessions with any CONVERSION event (engaged visitors)
+        prisma.analyticsEvent.groupBy({
+          by: ['sessionId'],
+          where: {
+            siteId,
+            type: EventType.CONVERSION,
+            ...dateFilter,
+          },
+        }),
+
+        // 7. Unique sessions with completed conversions (converted visitors)
+        prisma.analyticsEvent.groupBy({
+          by: ['sessionId'],
+          where: {
+            siteId,
+            type: EventType.CONVERSION,
+            ...dateFilter,
+            data: {
+              path: ['completed'],
+              equals: true,
             },
-            _count: { id: true },
-          }),
-        ]);
+          },
+        }),
+      ]);
 
       // Compute summary from grouped results
       const totalVisits = bounceStats;
@@ -194,7 +225,6 @@ export async function getAnalyticsSummary(startDate?: string, endDate?: string) 
       // Conversion summary from groupBy
       const conversionByType: Record<string, { clicks: number; completed: number; rate: number }> =
         {};
-      let totalClicks = 0;
 
       for (const group of conversionStats) {
         const eventType = group.name || 'unknown';
@@ -203,7 +233,6 @@ export async function getAnalyticsSummary(startDate?: string, endDate?: string) 
           completed: 0,
           rate: 0,
         };
-        totalClicks += group._count.id;
       }
 
       // Get completed conversions count
@@ -226,15 +255,33 @@ export async function getAnalyticsSummary(startDate?: string, endDate?: string) 
         const eventType = group.name || 'unknown';
         if (conversionByType[eventType]) {
           conversionByType[eventType].completed = group._count.id;
+          // Rate = completed conversions / unique sessions (not conversion events)
           conversionByType[eventType].rate =
-            conversionByType[eventType].clicks > 0
-              ? (group._count.id / conversionByType[eventType].clicks) * 100
-              : 0;
+            uniqueSessions > 0 ? (group._count.id / uniqueSessions) * 100 : 0;
         }
         totalCompleted += group._count.id;
       }
 
-      const conversionRate = totalClicks > 0 ? (totalCompleted / totalClicks) * 100 : 0;
+      // Conversion rate = unique converted sessions / unique visitor sessions
+      const engagedSessions = conversionSessionStats.length;
+      const convertedSessions = completedSessionStats.length;
+      const conversionRate = uniqueSessions > 0 ? (convertedSessions / uniqueSessions) * 100 : 0;
+
+      // Aggregate conversion funnel (Visiteurs → Intéressés → Convertis)
+      const funnelSteps = [
+        {
+          name: 'Visiteurs',
+          visitors: uniqueSessions,
+        },
+        {
+          name: 'Intéressés',
+          visitors: engagedSessions,
+        },
+        {
+          name: 'Convertis',
+          visitors: convertedSessions,
+        },
+      ];
 
       return {
         totalVisits,
@@ -245,6 +292,7 @@ export async function getAnalyticsSummary(startDate?: string, endDate?: string) 
         bounceRate,
         topSections,
         conversionByType,
+        funnelSteps,
       };
     },
     CACHE_TTL.MEDIUM

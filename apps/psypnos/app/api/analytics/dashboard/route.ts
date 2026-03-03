@@ -155,6 +155,7 @@ export async function GET(request: NextRequest) {
           bounceRate: 0,
           topSections: [],
           conversionByType: {},
+          funnelSteps: [],
         };
 
         const [
