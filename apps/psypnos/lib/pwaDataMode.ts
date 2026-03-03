@@ -51,7 +51,7 @@ export function generateMockChartData(
       return {
         // Format ISO pour les heures: YYYY-MM-DDTHH:00
         date: date.toISOString().slice(0, 13) + ':00',
-        value: Math.floor(Math.random() * 100) + 50
+        value: Math.floor(Math.random() * 100) + 50,
       };
     } else {
       // Pour les autres périodes, on génère des jours
@@ -59,7 +59,7 @@ export function generateMockChartData(
       return {
         // Format ISO pour les jours: YYYY-MM-DD (cohérent avec l'API)
         date: date.toISOString().split('T')[0],
-        value: Math.floor(Math.random() * 100) + 50
+        value: Math.floor(Math.random() * 100) + 50,
       };
     }
   });
@@ -106,13 +106,11 @@ export function generateMockRawVisits(
   const numVisits = randomInRange(5, 20);
 
   for (let i = 0; i < numVisits; i++) {
-    const visitTime = new Date(
-      start.getTime() + Math.random() * (end.getTime() - start.getTime())
-    );
+    const visitTime = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
     data.push({
       timestamp: visitTime.toISOString(),
       sessionId: `session-${Date.now()}-${i}`,
-      page: pages[Math.floor(Math.random() * pages.length)]
+      page: pages[Math.floor(Math.random() * pages.length)],
     });
   }
 
@@ -144,21 +142,21 @@ export function generateMockVisits(
   if (timeRange === 'day') {
     // Daily buckets: midnight UTC for each of the last 7 days
     for (let i = 6; i >= 0; i--) {
-      const date = new Date(Date.UTC(
-        now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - i
-      ));
+      const date = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - i)
+      );
       data.push({
         period: date.toISOString(),
         visits: randomInRange(80, 150),
-        sessions: randomInRange(60, 120)
+        sessions: randomInRange(60, 120),
       });
     }
   } else if (timeRange === 'week') {
     // Weekly buckets: Monday at midnight UTC (ISO week start, matches date_trunc('week'))
     for (let i = 11; i >= 0; i--) {
-      const date = new Date(Date.UTC(
-        now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - (i * 7)
-      ));
+      const date = new Date(
+        Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - i * 7)
+      );
       // Align to Monday (ISO week start)
       const dayOfWeek = date.getUTCDay();
       const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
@@ -167,7 +165,7 @@ export function generateMockVisits(
       data.push({
         period: date.toISOString(),
         visits: randomInRange(400, 800),
-        sessions: randomInRange(300, 650)
+        sessions: randomInRange(300, 650),
       });
     }
   } else if (timeRange === 'month') {
@@ -177,7 +175,7 @@ export function generateMockVisits(
       data.push({
         period: date.toISOString(),
         visits: randomInRange(1500, 3000),
-        sessions: randomInRange(1200, 2500)
+        sessions: randomInRange(1200, 2500),
       });
     }
   } else {
@@ -187,7 +185,7 @@ export function generateMockVisits(
       data.push({
         period: date.toISOString(),
         visits: randomInRange(15000, 30000),
-        sessions: randomInRange(12000, 25000)
+        sessions: randomInRange(12000, 25000),
       });
     }
   }
@@ -209,7 +207,7 @@ export function generateMockSummary() {
     'Blog',
     'Contact',
     'Séminaires',
-    'FAQ'
+    'FAQ',
   ];
 
   return {
@@ -220,25 +218,25 @@ export function generateMockSummary() {
     topSections: sections.map(section => ({
       section,
       avgTime: randomInRange(30000, 180000), // 30s - 3min
-      visits: randomInRange(50, 300)
+      visits: randomInRange(50, 300),
     })),
     conversionByType: {
       appointment_request: {
         clicks: randomInRange(50, 150),
         completed: randomInRange(10, 50),
-        rate: Math.random() * 30 + 10 // 10-40%
+        rate: Math.random() * 30 + 10, // 10-40%
       },
       seminar_registration: {
         clicks: randomInRange(20, 80),
         completed: randomInRange(5, 30),
-        rate: Math.random() * 25 + 15 // 15-40%
+        rate: Math.random() * 25 + 15, // 15-40%
       },
       contact_form: {
         clicks: randomInRange(30, 100),
         completed: randomInRange(8, 40),
-        rate: Math.random() * 30 + 15 // 15-45%
-      }
-    }
+        rate: Math.random() * 30 + 15, // 15-45%
+      },
+    },
   };
 }
 
@@ -250,25 +248,30 @@ export function generateMockComparison() {
     totalVisits: randomInRange(500, 1200),
     uniqueSessions: randomInRange(400, 1000),
     averageTimeOnSite: randomInRange(120000, 300000),
-    conversionRate: Math.random() * 3 + 1
+    conversionRate: Math.random() * 3 + 1,
   };
 
   const previous = {
     totalVisits: randomInRange(450, 1150),
     uniqueSessions: randomInRange(380, 950),
     averageTimeOnSite: randomInRange(110000, 280000),
-    conversionRate: Math.random() * 3 + 0.8
+    conversionRate: Math.random() * 3 + 0.8,
   };
 
   return {
     current,
     previous,
     comparison: {
-      totalVisitsChange: ((current.totalVisits - previous.totalVisits) / previous.totalVisits) * 100,
-      uniqueSessionsChange: ((current.uniqueSessions - previous.uniqueSessions) / previous.uniqueSessions) * 100,
-      averageTimeOnSiteChange: ((current.averageTimeOnSite - previous.averageTimeOnSite) / previous.averageTimeOnSite) * 100,
-      conversionRateChange: ((current.conversionRate - previous.conversionRate) / previous.conversionRate) * 100
-    }
+      totalVisitsChange:
+        ((current.totalVisits - previous.totalVisits) / previous.totalVisits) * 100,
+      uniqueSessionsChange:
+        ((current.uniqueSessions - previous.uniqueSessions) / previous.uniqueSessions) * 100,
+      averageTimeOnSiteChange:
+        ((current.averageTimeOnSite - previous.averageTimeOnSite) / previous.averageTimeOnSite) *
+        100,
+      conversionRateChange:
+        ((current.conversionRate - previous.conversionRate) / previous.conversionRate) * 100,
+    },
   };
 }
 
@@ -286,7 +289,7 @@ export function generateMockHeatmap() {
     'Blog',
     'Contact',
     'Séminaires',
-    'FAQ'
+    'FAQ',
   ];
 
   return sections.map(section => ({
@@ -298,17 +301,17 @@ export function generateMockHeatmap() {
     conversionsByType: {
       appointment_request: {
         count: randomInRange(1, 10),
-        type: 'appointment_request' as const
+        type: 'appointment_request' as const,
       },
       seminar_registration: {
         count: randomInRange(0, 8),
-        type: 'seminar_registration' as const
+        type: 'seminar_registration' as const,
       },
       contact_form: {
         count: randomInRange(1, 7),
-        type: 'contact_form' as const
-      }
-    }
+        type: 'contact_form' as const,
+      },
+    },
   }));
 }
 
@@ -325,7 +328,7 @@ export function generateMockTrafficSources() {
     { source: 'google', medium: 'cpc' },
     { source: 'newsletter', medium: 'email' },
     { source: 'psychologies.com', medium: 'referral' },
-    { source: 'passeportsante.net', medium: 'referral' }
+    { source: 'passeportsante.net', medium: 'referral' },
   ];
 
   return sources.map(({ source, medium }) => ({
@@ -333,7 +336,7 @@ export function generateMockTrafficSources() {
     medium,
     visits: randomInRange(20, 200),
     uniqueSessions: randomInRange(15, 180),
-    conversionRate: Math.random() * 5 + 0.5 // 0.5-5.5%
+    conversionRate: Math.random() * 5 + 0.5, // 0.5-5.5%
   }));
 }
 
@@ -346,20 +349,20 @@ export function generateMockDeviceData() {
       deviceType: 'desktop',
       visits: randomInRange(300, 600),
       uniqueSessions: randomInRange(250, 550),
-      avgTimeOnSite: randomInRange(150000, 350000) // 2.5-5.8 min
+      avgTimeOnSite: randomInRange(150000, 350000), // 2.5-5.8 min
     },
     {
       deviceType: 'mobile',
       visits: randomInRange(200, 500),
       uniqueSessions: randomInRange(180, 450),
-      avgTimeOnSite: randomInRange(90000, 200000) // 1.5-3.3 min
+      avgTimeOnSite: randomInRange(90000, 200000), // 1.5-3.3 min
     },
     {
       deviceType: 'tablet',
       visits: randomInRange(50, 150),
       uniqueSessions: randomInRange(40, 130),
-      avgTimeOnSite: randomInRange(120000, 250000) // 2-4.2 min
-    }
+      avgTimeOnSite: randomInRange(120000, 250000), // 2-4.2 min
+    },
   ];
 }
 
@@ -379,10 +382,14 @@ export function generateMockDashboardData(
     comparison: generateMockComparison(),
     visits: isRealtimeMode
       ? generateMockRawVisits(customStartDate, customEndDate)
-      : generateMockVisits(timeRange as 'day' | 'week' | 'month' | 'year', customStartDate, customEndDate),
+      : generateMockVisits(
+          timeRange as 'day' | 'week' | 'month' | 'year',
+          customStartDate,
+          customEndDate
+        ),
     heatmap: generateMockHeatmap(),
     trafficSources: generateMockTrafficSources(),
-    deviceBreakdown: generateMockDeviceData()
+    deviceBreakdown: generateMockDeviceData(),
   };
 }
 
@@ -413,7 +420,7 @@ const BLOG_ARTICLE_SLUGS = [
   'traverser-commencer-psychotherapie',
   'decouvrir-enfant-interieur',
   'cheminer-apres-psychotherapie',
-  'traverser-accueillir-emotions'
+  'traverser-accueillir-emotions',
 ];
 
 /**
@@ -429,9 +436,7 @@ export function generateMockBlogAnalytics() {
       views,
       uniqueVisitors,
       averageViews: (views / uniqueVisitors).toFixed(2),
-      lastViewed: new Date(
-        Date.now() - randomInRange(0, 7 * 24 * 60 * 60 * 1000)
-      ).toISOString()
+      lastViewed: new Date(Date.now() - randomInRange(0, 7 * 24 * 60 * 60 * 1000)).toISOString(),
     };
   }).sort((a, b) => b.views - a.views);
 
@@ -445,7 +450,7 @@ export function generateMockBlogAnalytics() {
   return {
     articles,
     totalViews,
-    totalUniqueVisitors: allUniqueSessions.size
+    totalUniqueVisitors: allUniqueSessions.size,
   };
 }
 
@@ -460,9 +465,7 @@ export function generateMockBlogArticleStats(slug: string) {
     slug,
     views,
     uniqueVisitors,
-    lastViewed: new Date(
-      Date.now() - randomInRange(0, 7 * 24 * 60 * 60 * 1000)
-    ).toISOString()
+    lastViewed: new Date(Date.now() - randomInRange(0, 7 * 24 * 60 * 60 * 1000)).toISOString(),
   };
 }
 
@@ -472,20 +475,18 @@ export function generateMockBlogArticleStats(slug: string) {
 export function generateMockFaqClicks(articleSlug?: string) {
   const faqQuestions = [
     "Qu'est-ce que l'hypnose ericksonienne ?",
-    "Combien de séances sont nécessaires ?",
-    "La psychothérapie transpersonnelle est-elle pour moi ?",
-    "Comment se déroule une première séance ?",
-    "Quelle est la différence avec la psychanalyse ?",
-    "Est-ce remboursé par la sécurité sociale ?",
-    "Peut-on faire de la thérapie en ligne ?",
-    "Comment choisir son thérapeute ?",
-    "Combien de temps dure une séance ?",
-    "À quelle fréquence consulter ?"
+    'Combien de séances sont nécessaires ?',
+    'La psychothérapie transpersonnelle est-elle pour moi ?',
+    'Comment se déroule une première séance ?',
+    'Quelle est la différence avec la psychanalyse ?',
+    'Est-ce remboursé par la sécurité sociale ?',
+    'Peut-on faire de la thérapie en ligne ?',
+    'Comment choisir son thérapeute ?',
+    'Combien de temps dure une séance ?',
+    'À quelle fréquence consulter ?',
   ];
 
-  const slugsToUse = articleSlug
-    ? [articleSlug]
-    : BLOG_ARTICLE_SLUGS.slice(0, 10);
+  const slugsToUse = articleSlug ? [articleSlug] : BLOG_ARTICLE_SLUGS.slice(0, 10);
 
   const clicks = slugsToUse.flatMap(slug =>
     Array.from({ length: randomInRange(5, 30) }, (_, i) => {
@@ -495,9 +496,7 @@ export function generateMockFaqClicks(articleSlug?: string) {
         articleSlug: slug,
         faqIndex,
         question: faqQuestions[faqIndex] || `Question FAQ ${faqIndex}`,
-        timestamp: new Date(
-          Date.now() - randomInRange(0, 30 * 24 * 60 * 60 * 1000)
-        ).toISOString()
+        timestamp: new Date(Date.now() - randomInRange(0, 30 * 24 * 60 * 60 * 1000)).toISOString(),
       };
     })
   );
@@ -512,10 +511,10 @@ export function generateMockFaqClicks(articleSlug?: string) {
   });
 
   return {
-    clicks: clicks.sort((a, b) =>
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    clicks: clicks.sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     ),
-    summary
+    summary,
   };
 }
 
@@ -524,9 +523,7 @@ export function generateMockFaqClicks(articleSlug?: string) {
  */
 export function generateMockCtaClicks(articleSlug?: string) {
   const ctaTypes = ['appointment', 'seminar'] as const;
-  const slugsToUse = articleSlug
-    ? [articleSlug]
-    : BLOG_ARTICLE_SLUGS.slice(0, 15);
+  const slugsToUse = articleSlug ? [articleSlug] : BLOG_ARTICLE_SLUGS.slice(0, 15);
 
   const clicks = slugsToUse.flatMap(slug => {
     const appointmentClicks = randomInRange(2, 15);
@@ -536,30 +533,26 @@ export function generateMockCtaClicks(articleSlug?: string) {
       ...Array.from({ length: appointmentClicks }, () => ({
         type: 'appointment' as const,
         articleSlug: slug,
-        timestamp: new Date(
-          Date.now() - randomInRange(0, 30 * 24 * 60 * 60 * 1000)
-        ).toISOString()
+        timestamp: new Date(Date.now() - randomInRange(0, 30 * 24 * 60 * 60 * 1000)).toISOString(),
       })),
       ...Array.from({ length: seminarClicks }, () => ({
         type: 'seminar' as const,
         articleSlug: slug,
-        timestamp: new Date(
-          Date.now() - randomInRange(0, 30 * 24 * 60 * 60 * 1000)
-        ).toISOString()
-      }))
+        timestamp: new Date(Date.now() - randomInRange(0, 30 * 24 * 60 * 60 * 1000)).toISOString(),
+      })),
     ];
   });
 
   const summary = {
     appointment: clicks.filter(c => c.type === 'appointment').length,
-    seminar: clicks.filter(c => c.type === 'seminar').length
+    seminar: clicks.filter(c => c.type === 'seminar').length,
   };
 
   return {
-    clicks: clicks.sort((a, b) =>
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    clicks: clicks.sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     ),
-    summary
+    summary,
   };
 }
 
@@ -570,7 +563,7 @@ export function generateMockCompleteBlogStats() {
   return {
     analytics: generateMockBlogAnalytics(),
     faqClicks: generateMockFaqClicks(),
-    ctaClicks: generateMockCtaClicks()
+    ctaClicks: generateMockCtaClicks(),
   };
 }
 
@@ -583,38 +576,254 @@ export function generateMockCompleteBlogStats() {
  */
 const MOCK_LOCATIONS = [
   // France - Principales régions
-  { country: 'France', countryCode: 'FR', region: 'Île-de-France', regionCode: 'IDF', city: 'Paris', lat: 48.8566, lon: 2.3522, timezone: 'Europe/Paris' },
-  { country: 'France', countryCode: 'FR', region: 'Île-de-France', regionCode: 'IDF', city: 'Versailles', lat: 48.8014, lon: 2.1301, timezone: 'Europe/Paris' },
-  { country: 'France', countryCode: 'FR', region: 'Provence-Alpes-Côte d\'Azur', regionCode: 'PAC', city: 'Marseille', lat: 43.2965, lon: 5.3698, timezone: 'Europe/Paris' },
-  { country: 'France', countryCode: 'FR', region: 'Provence-Alpes-Côte d\'Azur', regionCode: 'PAC', city: 'Nice', lat: 43.7102, lon: 7.2620, timezone: 'Europe/Paris' },
-  { country: 'France', countryCode: 'FR', region: 'Auvergne-Rhône-Alpes', regionCode: 'ARA', city: 'Lyon', lat: 45.7640, lon: 4.8357, timezone: 'Europe/Paris' },
-  { country: 'France', countryCode: 'FR', region: 'Auvergne-Rhône-Alpes', regionCode: 'ARA', city: 'Grenoble', lat: 45.1885, lon: 5.7245, timezone: 'Europe/Paris' },
-  { country: 'France', countryCode: 'FR', region: 'Occitanie', regionCode: 'OCC', city: 'Toulouse', lat: 43.6047, lon: 1.4442, timezone: 'Europe/Paris' },
-  { country: 'France', countryCode: 'FR', region: 'Occitanie', regionCode: 'OCC', city: 'Montpellier', lat: 43.6108, lon: 3.8767, timezone: 'Europe/Paris' },
-  { country: 'France', countryCode: 'FR', region: 'Nouvelle-Aquitaine', regionCode: 'NAQ', city: 'Bordeaux', lat: 44.8378, lon: -0.5792, timezone: 'Europe/Paris' },
-  { country: 'France', countryCode: 'FR', region: 'Pays de la Loire', regionCode: 'PDL', city: 'Nantes', lat: 47.2184, lon: -1.5536, timezone: 'Europe/Paris' },
-  { country: 'France', countryCode: 'FR', region: 'Grand Est', regionCode: 'GES', city: 'Strasbourg', lat: 48.5734, lon: 7.7521, timezone: 'Europe/Paris' },
-  { country: 'France', countryCode: 'FR', region: 'Hauts-de-France', regionCode: 'HDF', city: 'Lille', lat: 50.6292, lon: 3.0573, timezone: 'Europe/Paris' },
-  { country: 'France', countryCode: 'FR', region: 'Bretagne', regionCode: 'BRE', city: 'Rennes', lat: 48.1173, lon: -1.6778, timezone: 'Europe/Paris' },
+  {
+    country: 'France',
+    countryCode: 'FR',
+    region: 'Île-de-France',
+    regionCode: 'IDF',
+    city: 'Paris',
+    lat: 48.8566,
+    lon: 2.3522,
+    timezone: 'Europe/Paris',
+  },
+  {
+    country: 'France',
+    countryCode: 'FR',
+    region: 'Île-de-France',
+    regionCode: 'IDF',
+    city: 'Versailles',
+    lat: 48.8014,
+    lon: 2.1301,
+    timezone: 'Europe/Paris',
+  },
+  {
+    country: 'France',
+    countryCode: 'FR',
+    region: "Provence-Alpes-Côte d'Azur",
+    regionCode: 'PAC',
+    city: 'Marseille',
+    lat: 43.2965,
+    lon: 5.3698,
+    timezone: 'Europe/Paris',
+  },
+  {
+    country: 'France',
+    countryCode: 'FR',
+    region: "Provence-Alpes-Côte d'Azur",
+    regionCode: 'PAC',
+    city: 'Nice',
+    lat: 43.7102,
+    lon: 7.262,
+    timezone: 'Europe/Paris',
+  },
+  {
+    country: 'France',
+    countryCode: 'FR',
+    region: 'Auvergne-Rhône-Alpes',
+    regionCode: 'ARA',
+    city: 'Lyon',
+    lat: 45.764,
+    lon: 4.8357,
+    timezone: 'Europe/Paris',
+  },
+  {
+    country: 'France',
+    countryCode: 'FR',
+    region: 'Auvergne-Rhône-Alpes',
+    regionCode: 'ARA',
+    city: 'Grenoble',
+    lat: 45.1885,
+    lon: 5.7245,
+    timezone: 'Europe/Paris',
+  },
+  {
+    country: 'France',
+    countryCode: 'FR',
+    region: 'Occitanie',
+    regionCode: 'OCC',
+    city: 'Toulouse',
+    lat: 43.6047,
+    lon: 1.4442,
+    timezone: 'Europe/Paris',
+  },
+  {
+    country: 'France',
+    countryCode: 'FR',
+    region: 'Occitanie',
+    regionCode: 'OCC',
+    city: 'Montpellier',
+    lat: 43.6108,
+    lon: 3.8767,
+    timezone: 'Europe/Paris',
+  },
+  {
+    country: 'France',
+    countryCode: 'FR',
+    region: 'Nouvelle-Aquitaine',
+    regionCode: 'NAQ',
+    city: 'Bordeaux',
+    lat: 44.8378,
+    lon: -0.5792,
+    timezone: 'Europe/Paris',
+  },
+  {
+    country: 'France',
+    countryCode: 'FR',
+    region: 'Pays de la Loire',
+    regionCode: 'PDL',
+    city: 'Nantes',
+    lat: 47.2184,
+    lon: -1.5536,
+    timezone: 'Europe/Paris',
+  },
+  {
+    country: 'France',
+    countryCode: 'FR',
+    region: 'Grand Est',
+    regionCode: 'GES',
+    city: 'Strasbourg',
+    lat: 48.5734,
+    lon: 7.7521,
+    timezone: 'Europe/Paris',
+  },
+  {
+    country: 'France',
+    countryCode: 'FR',
+    region: 'Hauts-de-France',
+    regionCode: 'HDF',
+    city: 'Lille',
+    lat: 50.6292,
+    lon: 3.0573,
+    timezone: 'Europe/Paris',
+  },
+  {
+    country: 'France',
+    countryCode: 'FR',
+    region: 'Bretagne',
+    regionCode: 'BRE',
+    city: 'Rennes',
+    lat: 48.1173,
+    lon: -1.6778,
+    timezone: 'Europe/Paris',
+  },
 
   // Belgique
-  { country: 'Belgique', countryCode: 'BE', region: 'Bruxelles-Capitale', regionCode: 'BRU', city: 'Bruxelles', lat: 50.8503, lon: 4.3517, timezone: 'Europe/Brussels' },
-  { country: 'Belgique', countryCode: 'BE', region: 'Flandre', regionCode: 'VLG', city: 'Anvers', lat: 51.2194, lon: 4.4025, timezone: 'Europe/Brussels' },
-  { country: 'Belgique', countryCode: 'BE', region: 'Wallonie', regionCode: 'WAL', city: 'Liège', lat: 50.6326, lon: 5.5797, timezone: 'Europe/Brussels' },
+  {
+    country: 'Belgique',
+    countryCode: 'BE',
+    region: 'Bruxelles-Capitale',
+    regionCode: 'BRU',
+    city: 'Bruxelles',
+    lat: 50.8503,
+    lon: 4.3517,
+    timezone: 'Europe/Brussels',
+  },
+  {
+    country: 'Belgique',
+    countryCode: 'BE',
+    region: 'Flandre',
+    regionCode: 'VLG',
+    city: 'Anvers',
+    lat: 51.2194,
+    lon: 4.4025,
+    timezone: 'Europe/Brussels',
+  },
+  {
+    country: 'Belgique',
+    countryCode: 'BE',
+    region: 'Wallonie',
+    regionCode: 'WAL',
+    city: 'Liège',
+    lat: 50.6326,
+    lon: 5.5797,
+    timezone: 'Europe/Brussels',
+  },
 
   // Suisse
-  { country: 'Suisse', countryCode: 'CH', region: 'Genève', regionCode: 'GE', city: 'Genève', lat: 46.2044, lon: 6.1432, timezone: 'Europe/Zurich' },
-  { country: 'Suisse', countryCode: 'CH', region: 'Vaud', regionCode: 'VD', city: 'Lausanne', lat: 46.5197, lon: 6.6323, timezone: 'Europe/Zurich' },
-  { country: 'Suisse', countryCode: 'CH', region: 'Zürich', regionCode: 'ZH', city: 'Zürich', lat: 47.3769, lon: 8.5417, timezone: 'Europe/Zurich' },
+  {
+    country: 'Suisse',
+    countryCode: 'CH',
+    region: 'Genève',
+    regionCode: 'GE',
+    city: 'Genève',
+    lat: 46.2044,
+    lon: 6.1432,
+    timezone: 'Europe/Zurich',
+  },
+  {
+    country: 'Suisse',
+    countryCode: 'CH',
+    region: 'Vaud',
+    regionCode: 'VD',
+    city: 'Lausanne',
+    lat: 46.5197,
+    lon: 6.6323,
+    timezone: 'Europe/Zurich',
+  },
+  {
+    country: 'Suisse',
+    countryCode: 'CH',
+    region: 'Zürich',
+    regionCode: 'ZH',
+    city: 'Zürich',
+    lat: 47.3769,
+    lon: 8.5417,
+    timezone: 'Europe/Zurich',
+  },
 
   // Canada (francophone)
-  { country: 'Canada', countryCode: 'CA', region: 'Québec', regionCode: 'QC', city: 'Montréal', lat: 45.5017, lon: -73.5673, timezone: 'America/Montreal' },
-  { country: 'Canada', countryCode: 'CA', region: 'Québec', regionCode: 'QC', city: 'Québec', lat: 46.8139, lon: -71.2080, timezone: 'America/Montreal' },
+  {
+    country: 'Canada',
+    countryCode: 'CA',
+    region: 'Québec',
+    regionCode: 'QC',
+    city: 'Montréal',
+    lat: 45.5017,
+    lon: -73.5673,
+    timezone: 'America/Montreal',
+  },
+  {
+    country: 'Canada',
+    countryCode: 'CA',
+    region: 'Québec',
+    regionCode: 'QC',
+    city: 'Québec',
+    lat: 46.8139,
+    lon: -71.208,
+    timezone: 'America/Montreal',
+  },
 
   // Autres pays
-  { country: 'Luxembourg', countryCode: 'LU', region: 'Luxembourg', regionCode: 'LU', city: 'Luxembourg', lat: 49.6116, lon: 6.1319, timezone: 'Europe/Luxembourg' },
-  { country: 'Maroc', countryCode: 'MA', region: 'Casablanca-Settat', regionCode: 'CS', city: 'Casablanca', lat: 33.5731, lon: -7.5898, timezone: 'Africa/Casablanca' },
-  { country: 'Sénégal', countryCode: 'SN', region: 'Dakar', regionCode: 'DK', city: 'Dakar', lat: 14.7167, lon: -17.4677, timezone: 'Africa/Dakar' }
+  {
+    country: 'Luxembourg',
+    countryCode: 'LU',
+    region: 'Luxembourg',
+    regionCode: 'LU',
+    city: 'Luxembourg',
+    lat: 49.6116,
+    lon: 6.1319,
+    timezone: 'Europe/Luxembourg',
+  },
+  {
+    country: 'Maroc',
+    countryCode: 'MA',
+    region: 'Casablanca-Settat',
+    regionCode: 'CS',
+    city: 'Casablanca',
+    lat: 33.5731,
+    lon: -7.5898,
+    timezone: 'Africa/Casablanca',
+  },
+  {
+    country: 'Sénégal',
+    countryCode: 'SN',
+    region: 'Dakar',
+    regionCode: 'DK',
+    city: 'Dakar',
+    lat: 14.7167,
+    lon: -17.4677,
+    timezone: 'Africa/Dakar',
+  },
 ];
 
 /**
@@ -629,7 +838,7 @@ const MOCK_ISPS = [
   'Proximus (Belgique)',
   'Swisscom',
   'Videotron (Canada)',
-  'Bell Canada'
+  'Bell Canada',
 ];
 
 /**
@@ -647,9 +856,7 @@ export function generateMockGeolocationData() {
     return {
       id: `visitor-${i}`,
       sessionId: `session-${i}`,
-      timestamp: new Date(
-        Date.now() - randomInRange(0, 30 * 24 * 60 * 60 * 1000)
-      ).toISOString(),
+      timestamp: new Date(Date.now() - randomInRange(0, 30 * 24 * 60 * 60 * 1000)).toISOString(),
       country: location.country,
       countryCode: location.countryCode,
       region: location.region,
@@ -658,7 +865,7 @@ export function generateMockGeolocationData() {
       latitude: location.lat,
       longitude: location.lon,
       timezone: location.timezone,
-      isp
+      isp,
     };
   });
 
@@ -677,7 +884,18 @@ export function generateMockGeolocationData() {
   });
 
   // Agréger par ville
-  const byCity: Record<string, { count: number; percentage: number; country: string; latitude: number; longitude: number }> = {};
+  const byCity: Record<
+    string,
+    {
+      count: number;
+      percentage: number;
+      country: string;
+      countryCode: string;
+      regionCode: string;
+      latitude: number;
+      longitude: number;
+    }
+  > = {};
   visitors.forEach(v => {
     const key = `${v.city}, ${v.country}`;
     if (!byCity[key]) {
@@ -685,8 +903,10 @@ export function generateMockGeolocationData() {
         count: 0,
         percentage: 0,
         country: v.country,
+        countryCode: v.countryCode,
+        regionCode: v.regionCode,
         latitude: v.latitude,
-        longitude: v.longitude
+        longitude: v.longitude,
       };
     }
     byCity[key].count++;
@@ -701,7 +921,7 @@ export function generateMockGeolocationData() {
   const topCities = Object.entries(byCity)
     .map(([city, data]) => ({
       city,
-      ...data
+      ...data,
     }))
     .sort((a, b) => b.count - a.count)
     .slice(0, 10);
@@ -726,15 +946,15 @@ export function generateMockGeolocationData() {
     byCountry: Object.entries(byCountry)
       .map(([country, data]) => ({
         country,
-        ...data
+        ...data,
       }))
       .sort((a, b) => b.count - a.count),
     byRegion: Object.entries(byRegion)
       .map(([region, data]) => ({
         region,
-        ...data
+        ...data,
       }))
       .sort((a, b) => b.count - a.count),
-    topCities
+    topCities,
   };
 }

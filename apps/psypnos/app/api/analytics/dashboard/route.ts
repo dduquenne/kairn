@@ -263,6 +263,17 @@ export async function GET(request: NextRequest) {
 // (previously fetched as separate HTTP calls)
 // ============================================
 
+/**
+ * Décode une valeur URI-encodée de manière sûre (retourne la valeur brute en cas d'erreur)
+ */
+function safeDecodeGeo(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 async function fetchGeoData(startDate: Date, endDate: Date) {
   try {
     const siteId = await getCurrentSiteId();
@@ -277,6 +288,7 @@ async function fetchGeoData(startDate: Date, endDate: Date) {
         country: true,
         countryCode: true,
         region: true,
+        regionCode: true,
         city: true,
         latitude: true,
         longitude: true,
@@ -291,23 +303,28 @@ async function fetchGeoData(startDate: Date, endDate: Date) {
         country: string;
         countryCode: string;
         region: string | null;
+        regionCode: string | null;
         latitude: number | null;
         longitude: number | null;
       }
     > = {};
 
     for (const geo of geolocations) {
-      const countryStat = countryStats[geo.country] ?? { count: 0, countryCode: geo.countryCode };
+      const country = safeDecodeGeo(geo.country);
+      const countryStat = countryStats[country] ?? { count: 0, countryCode: geo.countryCode };
       countryStat.count++;
-      countryStats[geo.country] = countryStat;
+      countryStats[country] = countryStat;
 
       if (geo.city) {
-        const cityKey = `${geo.country}|${geo.region || ''}|${geo.city}`;
+        const city = safeDecodeGeo(geo.city);
+        const region = geo.region ? safeDecodeGeo(geo.region) : null;
+        const cityKey = `${country}|${region || ''}|${city}`;
         const cityStat = cityStats[cityKey] ?? {
           count: 0,
-          country: geo.country,
+          country,
           countryCode: geo.countryCode,
-          region: geo.region,
+          region,
+          regionCode: geo.regionCode,
           latitude: geo.latitude,
           longitude: geo.longitude,
         };
@@ -328,6 +345,7 @@ async function fetchGeoData(startDate: Date, endDate: Date) {
           country: data.country,
           countryCode: data.countryCode,
           region: data.region,
+          regionCode: data.regionCode,
           latitude: data.latitude,
           longitude: data.longitude,
           visitors: data.count,
