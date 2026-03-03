@@ -12,6 +12,7 @@ import {
   formatSubmittedAt,
   getEmailBranding,
 } from '../common/email-templates';
+import { generatePreResponse } from '../common/generate-pre-response';
 import { recordAttempt, getClientIP } from '../common/rate-limiter';
 import { sendEmailThroughResend, type EmailContent } from '../common/send-email';
 
@@ -63,7 +64,10 @@ const requestTypeLabels: Record<(typeof requestTypeValues)[number], string> = {
   seminaire: 'Séminaire de respiration holotropique',
 };
 
-const formatAdminEmail = (payload: QuickContactPayload): EmailContent => {
+const formatAdminEmail = (
+  payload: QuickContactPayload,
+  preResponse?: { text: string; source: 'ai' | 'fallback' }
+): EmailContent => {
   const fullName = `${payload.firstName} ${payload.lastName}`;
 
   const options = {
@@ -84,6 +88,7 @@ const formatAdminEmail = (payload: QuickContactPayload): EmailContent => {
       label: 'Message',
       content: payload.message,
     },
+    preResponse,
     metadata: {
       type: 'quick_contact',
       first_name: payload.firstName,
@@ -184,7 +189,14 @@ export async function POST(request: Request) {
     process.env.CONTACT_FORM_RECIPIENT ??
     process.env.APPOINTMENT_REQUEST_RECIPIENT ??
     branding.contactEmail;
-  const adminContent = formatAdminEmail(payload);
+
+  const preResponse = await generatePreResponse({
+    name: `${payload.firstName} ${payload.lastName}`,
+    message: payload.message,
+    subject: payload.requestType,
+  });
+
+  const adminContent = formatAdminEmail(payload, preResponse);
 
   try {
     await sendEmailThroughResend(adminContent, recipient, branding, { replyTo: payload.email });

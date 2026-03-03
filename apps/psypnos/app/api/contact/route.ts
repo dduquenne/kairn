@@ -12,6 +12,7 @@ import {
   formatSubmittedAt,
   getEmailBranding,
 } from '../common/email-templates';
+import { generatePreResponse } from '../common/generate-pre-response';
 import { recordAttempt, getClientIP } from '../common/rate-limiter';
 import { sendEmailThroughResend, type EmailContent } from '../common/send-email';
 
@@ -37,7 +38,10 @@ const contactSchema = z.object({
 
 type ContactPayload = z.infer<typeof contactSchema>;
 
-const formatAdminEmail = (payload: ContactPayload): EmailContent => {
+const formatAdminEmail = (
+  payload: ContactPayload,
+  preResponse?: { text: string; source: 'ai' | 'fallback' }
+): EmailContent => {
   const options = {
     heading: 'Nouveau message de contact',
     badge: 'Contact',
@@ -56,6 +60,7 @@ const formatAdminEmail = (payload: ContactPayload): EmailContent => {
       label: 'Message',
       content: payload.message,
     },
+    preResponse,
     metadata: {
       type: 'contact',
       name: payload.name,
@@ -153,7 +158,14 @@ export async function POST(request: Request) {
     process.env.CONTACT_FORM_RECIPIENT ??
     process.env.APPOINTMENT_REQUEST_RECIPIENT ??
     branding.contactEmail;
-  const adminContent = formatAdminEmail(payload);
+
+  const preResponse = await generatePreResponse({
+    name: payload.name,
+    message: payload.message,
+    subject: payload.subject,
+  });
+
+  const adminContent = formatAdminEmail(payload, preResponse);
 
   try {
     await sendEmailThroughResend(adminContent, recipient, branding, { replyTo: payload.email });

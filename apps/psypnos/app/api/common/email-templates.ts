@@ -78,6 +78,8 @@ export type AdminEmailOptions = {
   sections: EmailSection[];
   /** Freeform message block (e.g. user's message) */
   messageBlock?: { label: string; content: string };
+  /** AI-generated pre-response suggestion for the practitioner */
+  preResponse?: { text: string; source: 'ai' | 'fallback' };
   /** JSON metadata for automated processing (embedded as hidden comment) */
   metadata?: Record<string, unknown>;
   /** Submission timestamp ISO string */
@@ -231,7 +233,7 @@ function renderAdminSection(section: EmailSection, c: ResolvedColors): string {
 
 export function buildAdminEmailHtml(options: AdminEmailOptions, branding: EmailBranding): string {
   const c = resolveColors(branding);
-  const { heading, badge, sections, messageBlock, metadata, submittedAt, sourcePage } = options;
+  const { heading, badge, sections, messageBlock, preResponse, metadata, submittedAt, sourcePage } = options;
 
   const siteNameUpper = branding.siteName.toUpperCase();
 
@@ -249,6 +251,23 @@ export function buildAdminEmailHtml(options: AdminEmailOptions, branding: EmailB
       `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid ${c.grey200};border-top:none;border-radius:0 0 6px 6px;">` +
       `<tr><td style="padding:16px;color:${c.grey900};font-size:14px;line-height:1.7;white-space:pre-wrap;">${nl2br(messageBlock.content)}</td></tr>` +
       `</table>`
+    )
+    : "";
+
+  const sourceLabel = preResponse?.source === 'ai' ? 'Suggestion IA' : 'Suggestion';
+  const preResponseHtml = preResponse
+    ? (
+      `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px;">` +
+      `<tr><td style="padding:8px 14px;background:linear-gradient(135deg,${c.gold},${c.goldLight});color:${c.night};font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1px;border-radius:6px 6px 0 0;">` +
+      `${escapeHtml(sourceLabel)}` +
+      `</td></tr>` +
+      `</table>` +
+      `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid ${c.goldLight};border-top:none;border-radius:0 0 6px 6px;background:${c.grey50};">` +
+      `<tr><td style="padding:16px;color:${c.grey700};font-size:14px;line-height:1.7;white-space:pre-wrap;font-style:italic;">${nl2br(preResponse.text)}</td></tr>` +
+      `</table>` +
+      `<p style="margin:6px 0 0;font-size:11px;color:${c.grey400};font-style:italic;">` +
+      `Cette suggestion est un brouillon à personnaliser avant envoi.` +
+      `</p>`
     )
     : "";
 
@@ -286,6 +305,7 @@ export function buildAdminEmailHtml(options: AdminEmailOptions, branding: EmailB
     `<h1 style="margin:0 0 4px;font-size:20px;color:${c.night};font-weight:700;">${escapeHtml(heading)}${badgeHtml}</h1>` +
     sectionsHtml +
     messageBlockHtml +
+    preResponseHtml +
     footerHtml +
     `</td></tr>` +
     // Footer bar
@@ -299,7 +319,7 @@ export function buildAdminEmailHtml(options: AdminEmailOptions, branding: EmailB
 }
 
 export function buildAdminEmailText(options: AdminEmailOptions): string {
-  const { heading, sections, messageBlock, submittedAt, sourcePage } = options;
+  const { heading, sections, messageBlock, preResponse, submittedAt, sourcePage } = options;
 
   const separator = Array(heading.length + 1).join("═");
   const lines: string[] = [heading, separator, ""];
@@ -315,6 +335,14 @@ export function buildAdminEmailText(options: AdminEmailOptions): string {
   if (messageBlock) {
     lines.push(`── ${messageBlock.label} ──`);
     lines.push(messageBlock.content);
+    lines.push("");
+  }
+
+  if (preResponse) {
+    const sourceLabel = preResponse.source === 'ai' ? 'Suggestion IA' : 'Suggestion';
+    lines.push(`── ${sourceLabel} ──`);
+    lines.push(preResponse.text);
+    lines.push("(Brouillon à personnaliser avant envoi)");
     lines.push("");
   }
 
