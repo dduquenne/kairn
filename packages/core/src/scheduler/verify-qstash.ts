@@ -87,10 +87,11 @@ export async function verifyQStashSignature(
       const clonedRequest = request.clone();
       const body = await clonedRequest.text();
 
+      // Ne pas passer url pour éviter les problèmes de mismatch sur Vercel
+      // (request.url peut différer de l'URL signée par QStash)
       const isValid = await qstashReceiver.verify({
         signature,
         body,
-        url: request.url,
       });
 
       return {
