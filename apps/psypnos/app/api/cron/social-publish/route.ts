@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * Cron job pour la publication automatique des posts sur les réseaux sociaux
  *
@@ -9,189 +6,22 @@
  *
  * Sécurité : Vérifie CRON_SECRET (Vercel CRON) ou signature QStash
  *
- * Concurrence : Utilise claimPostForPublishing (updateMany atomique)
- * pour éviter la double publication quand plusieurs invocations CRON
- * concurrentes traitent le même post.
+ * Délègue la logique de publication au PostScheduler mutualisé (@kairn/social)
+ * via PrismaPostStorage qui gère :
+ * - Le mapping des statuts Prisma ↔ PostScheduler
+ * - Le verrouillage atomique (claimPostForPublishing)
+ * - La récupération des posts stuck (PUBLISHING > 10 min)
  */
 
 import { verifyCronAuth } from '@kairn/core/scheduler';
+import { PostScheduler } from '@kairn/social/posting';
 import { NextRequest, NextResponse } from 'next/server';
 
-import { getSocialClient, DEFAULT_RETRY_CONFIG } from '@/lib/social/clients';
-import {
-  getScheduledPosts,
-  getSocialAccountById,
-  updateSocialPost,
-  markPostAsPublished,
-  markPostAsFailed,
-  incrementRetryCount,
-  markAccountAsUsed,
-  claimPostForPublishing,
-} from '@/lib/social/store';
-import type { SocialPost } from '@/lib/social/types';
+import { PrismaPostStorage } from '@/lib/social/prisma-post-storage';
+import { getSocialPostById } from '@/lib/social/store';
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'contact@psypnos.fr';
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-
-// ===========================================
-// Publication avec retry
-// ===========================================
-
-/**
- * Publie un post sur la plateforme sociale avec gestion des retries.
- *
- * Utilise claimPostForPublishing pour verrouiller atomiquement le post
- * avant de lancer la publication, empêchant les doublons en cas
- * d'invocations CRON concurrentes.
- *
- * @param post - Le post à publier (snapshot en mémoire)
- * @returns Résultat de la publication
- */
-async function publishPostWithRetry(post: SocialPost): Promise<{
-  success: boolean;
-  skipped?: boolean;
-  externalPostId?: string;
-  platformUrl?: string;
-  error?: string;
-}> {
-  // Vérifier le nombre de retries — marquer FAILED si dépassé
-  if (post.retryCount >= DEFAULT_RETRY_CONFIG.maxRetries) {
-    console.warn(
-      `[Cron Social Publish] Post ${post.id} a atteint le max retries (${post.retryCount}/${DEFAULT_RETRY_CONFIG.maxRetries}), marqué FAILED`
-    );
-    await markPostAsFailed(
-      post.id,
-      `Nombre maximum de tentatives atteint (${DEFAULT_RETRY_CONFIG.maxRetries})`
-    );
-    return {
-      success: false,
-      error: `Nombre maximum de tentatives atteint (${DEFAULT_RETRY_CONFIG.maxRetries})`,
-    };
-  }
-
-  // Verrouillage atomique : empêche un autre handler de publier le même post
-  const claimed = await claimPostForPublishing(post.id);
-  if (!claimed) {
-    console.log(`[Cron Social Publish] Post ${post.id} déjà pris par un autre handler, skip`);
-    return {
-      success: false,
-      skipped: true,
-      error: 'Post déjà en cours de traitement par un autre handler',
-    };
-  }
-
-  // Récupérer le compte (protégé : decryptToken peut throw si le token est corrompu)
-  let account;
-  try {
-    account = await getSocialAccountById(post.accountId);
-  } catch (accountError) {
-    const msg = accountError instanceof Error ? accountError.message : 'Erreur inconnue';
-    await updateSocialPost(post.id, { status: 'SCHEDULED' });
-    return {
-      success: false,
-      error: `Erreur lors de la récupération du compte social : ${msg}`,
-    };
-  }
-
-  if (!account) {
-    await markPostAsFailed(post.id, 'Compte social non trouvé');
-    return {
-      success: false,
-      error: 'Compte social non trouvé',
-    };
-  }
-
-  if (!account.isActive) {
-    await markPostAsFailed(post.id, 'Le compte social est désactivé');
-    return {
-      success: false,
-      error: 'Le compte social est désactivé',
-    };
-  }
-
-  try {
-    // Obtenir le client et publier
-    const client = getSocialClient(post.platform);
-    console.log(
-      `[Cron Social Publish] Appel API ${post.platform} pour post ${post.id} (retry ${post.retryCount}/${DEFAULT_RETRY_CONFIG.maxRetries})`
-    );
-
-    const result = await client.publish({
-      content: post.content,
-      mediaUrls: post.mediaUrls,
-      hashtags: post.hashtags,
-      linkUrl: post.linkUrl,
-      accessToken: account.accessToken,
-      accountMetadata: account.metadata,
-    });
-
-    if (result.success && result.externalPostId) {
-      // Succès — sauvegarder aussi le platformUrl (lien vers le post publié)
-      await markPostAsPublished(post.id, result.externalPostId, result.platformUrl);
-      await markAccountAsUsed(account.id);
-
-      console.log(
-        `[Cron Social Publish] ✓ Post ${post.id} publié sur ${post.platform} → ${result.externalPostId}`
-      );
-
-      return {
-        success: true,
-        externalPostId: result.externalPostId,
-        platformUrl: result.platformUrl,
-      };
-    } else {
-      // Échec — incrémenter le compteur de retry
-      await incrementRetryCount(post.id);
-
-      const updatedRetryCount = post.retryCount + 1;
-      const apiError = result.error || "Erreur inconnue (pas d'externalPostId)";
-
-      console.error(
-        `[Cron Social Publish] ✗ Post ${post.id} échec sur ${post.platform}: ${apiError} (retry ${updatedRetryCount}/${DEFAULT_RETRY_CONFIG.maxRetries})`
-      );
-
-      if (updatedRetryCount >= DEFAULT_RETRY_CONFIG.maxRetries) {
-        // Plus de retries possibles — marquer comme échoué
-        await markPostAsFailed(post.id, apiError);
-      } else {
-        // Remettre en scheduled pour le prochain cycle
-        await updateSocialPost(post.id, { status: 'SCHEDULED' });
-      }
-
-      return {
-        success: false,
-        error: apiError,
-      };
-    }
-  } catch (error) {
-    // Erreur inattendue
-    const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
-
-    console.error(
-      `[Cron Social Publish] ✗ Post ${post.id} exception sur ${post.platform}: ${errorMessage}`
-    );
-
-    // Vérifier si c'est une erreur retryable
-    const isRetryable = DEFAULT_RETRY_CONFIG.retryableErrors.some(retryableError =>
-      errorMessage.includes(retryableError)
-    );
-
-    await incrementRetryCount(post.id);
-
-    const updatedRetryCount = post.retryCount + 1;
-    if (!isRetryable || updatedRetryCount >= DEFAULT_RETRY_CONFIG.maxRetries) {
-      await markPostAsFailed(post.id, errorMessage);
-    } else {
-      // Remettre en scheduled pour le prochain cycle
-      await updateSocialPost(post.id, { status: 'SCHEDULED' });
-    }
-
-    return {
-      success: false,
-      error: errorMessage,
-    };
-  }
-}
 
 // ===========================================
 // Notification par email
@@ -200,10 +30,10 @@ async function publishPostWithRetry(post: SocialPost): Promise<{
 /**
  * Envoie un email de notification d'échec définitif de publication.
  *
- * @param post - Le post qui a échoué
+ * @param postId - L'ID du post qui a échoué
  * @param error - Le message d'erreur
  */
-async function sendFailureNotification(post: SocialPost, error: string): Promise<void> {
+async function sendFailureNotification(postId: string, error: string): Promise<void> {
   if (!RESEND_API_KEY) {
     console.warn(
       '[Cron Social Publish] RESEND_API_KEY not configured - skipping email notification'
@@ -211,9 +41,15 @@ async function sendFailureNotification(post: SocialPost, error: string): Promise
     return;
   }
 
+  const post = await getSocialPostById(postId);
+  if (!post) {
+    console.warn(`[Cron Social Publish] Post ${postId} introuvable pour notification`);
+    return;
+  }
+
   const html = `
     <h2>Échec de publication automatique</h2>
-    <p>La publication programmée suivante a échoué après ${post.retryCount + 1} tentative(s) :</p>
+    <p>La publication programmée suivante a échoué après ${post.retryCount} tentative(s) :</p>
 
     <h3>Détails du post</h3>
     <ul>
@@ -295,114 +131,53 @@ export async function GET(request: NextRequest) {
 
   console.log(`[Cron Social Publish][${invocationId}] Auth OK via ${authResult.source}`);
 
-  const results: {
-    postId: string;
-    platform: string;
-    success: boolean;
-    skipped?: boolean;
-    externalPostId?: string;
-    error?: string;
-  }[] = [];
-
   try {
-    // Récupérer les posts programmés dont l'heure est passée
-    // + les posts bloqués en PUBLISHING depuis plus de 10 minutes
-    const now = new Date();
-    const posts = await getScheduledPosts(now);
+    // Créer le storage Prisma et le scheduler
+    const storage = new PrismaPostStorage();
+    const scheduler = new PostScheduler(storage, {
+      maxRetries: 3,
+      onPublished: (postId, result) => {
+        console.log(
+          `[Cron Social Publish][${invocationId}] ✓ Post ${postId} publié → ${result.externalPostId}`
+        );
+      },
+      onFailed: async (postId, error) => {
+        console.error(
+          `[Cron Social Publish][${invocationId}] ✗ Post ${postId} échec définitif: ${error}`
+        );
+        await sendFailureNotification(postId, error);
+      },
+    });
 
-    // Compter les posts par statut pour le logging
-    const scheduledPosts = posts.filter(p => p.status === 'SCHEDULED');
-    const stuckPosts = posts.filter(p => p.status === 'PUBLISHING');
+    // Déléguer au PostScheduler mutualisé
+    const batchResult = await scheduler.processDuePosts();
 
-    console.log(
-      `[Cron Social Publish][${invocationId}] ${posts.length} post(s) à traiter ` +
-        `(${scheduledPosts.length} scheduled, ${stuckPosts.length} stuck) ` +
-        `à ${now.toISOString()}`
-    );
+    const duration = Date.now() - startTime;
 
-    if (stuckPosts.length > 0) {
-      console.warn(
-        `[Cron Social Publish][${invocationId}] Recovery de ${stuckPosts.length} post(s) bloqué(s): ` +
-          stuckPosts.map(p => `${p.id} (${p.platform}, retries=${p.retryCount})`).join(', ')
-      );
-    }
-
-    if (posts.length === 0) {
-      console.log(
-        `[Cron Social Publish][${invocationId}] ◀ Aucun post à publier (${Date.now() - startTime}ms)`
-      );
+    if (batchResult.total === 0) {
+      console.log(`[Cron Social Publish][${invocationId}] ◀ Aucun post à publier (${duration}ms)`);
       return NextResponse.json({
         success: true,
         message: 'Aucun post à publier',
         processed: 0,
-        duration: Date.now() - startTime,
+        duration,
       });
     }
 
-    // Publier chaque post (isolé : une erreur sur un post ne bloque pas les suivants)
-    for (const post of posts) {
-      try {
-        const result = await publishPostWithRetry(post);
-
-        results.push({
-          postId: post.id,
-          platform: post.platform,
-          success: result.success,
-          skipped: result.skipped,
-          externalPostId: result.externalPostId,
-          error: result.error,
-        });
-
-        // Envoyer une notification si échec définitif (pas de skip)
-        if (
-          !result.success &&
-          !result.skipped &&
-          post.retryCount + 1 >= DEFAULT_RETRY_CONFIG.maxRetries
-        ) {
-          await sendFailureNotification(post, result.error || 'Erreur inconnue');
-        }
-      } catch (postError) {
-        // Erreur inattendue sur ce post — on continue avec les suivants
-        const errorMessage = postError instanceof Error ? postError.message : 'Erreur inconnue';
-        console.error(
-          `[Cron Social Publish] Unexpected error on post ${post.id} (${post.platform}):`,
-          postError
-        );
-
-        results.push({
-          postId: post.id,
-          platform: post.platform,
-          success: false,
-          error: errorMessage,
-        });
-      }
-
-      // Petit délai entre les publications pour éviter le rate limiting
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-
-    // Résumé
-    const successCount = results.filter(r => r.success).length;
-    const failCount = results.filter(r => !r.success && !r.skipped).length;
-    const skipCount = results.filter(r => r.skipped).length;
-    const duration = Date.now() - startTime;
-
     console.log(
       `[Cron Social Publish][${invocationId}] ◀ Terminé en ${duration}ms: ` +
-        `${successCount} publié(s), ${failCount} échoué(s), ${skipCount} ignoré(s)`
+        `${batchResult.published} publié(s), ${batchResult.failed} échoué(s), ${batchResult.skipped} ignoré(s)`
     );
 
     return NextResponse.json({
       success: true,
-      message: `Publication terminée: ${successCount} réussi(s), ${failCount} échoué(s), ${skipCount} ignoré(s)`,
-      processed: posts.length,
-      published: successCount,
-      failed: failCount,
-      skipped: skipCount,
-      scheduled: scheduledPosts.length,
-      recovered: stuckPosts.length,
-      results,
-      duration: Date.now() - startTime,
+      message: `Publication terminée: ${batchResult.published} réussi(s), ${batchResult.failed} échoué(s), ${batchResult.skipped} ignoré(s)`,
+      processed: batchResult.total,
+      published: batchResult.published,
+      failed: batchResult.failed,
+      skipped: batchResult.skipped,
+      results: batchResult.results,
+      duration,
     });
   } catch (error) {
     const duration = Date.now() - startTime;
@@ -415,7 +190,6 @@ export async function GET(request: NextRequest) {
       {
         success: false,
         error: error instanceof Error ? error.message : 'Erreur critique',
-        results,
         duration,
       },
       { status: 500 }

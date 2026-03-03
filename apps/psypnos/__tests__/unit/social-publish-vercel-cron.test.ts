@@ -7,7 +7,7 @@
  * - Le handler GET est bien exporté
  * - Le handler POST est bien exporté (compatibilité QStash)
  * - Les logs de diagnostic sont présents pour le traçage
- * - Le flux de publication gère correctement les cas limites
+ * - Le CRON utilise PostScheduler avec PrismaPostStorage
  */
 
 import { readFileSync } from 'fs';
@@ -107,50 +107,32 @@ describe('Logs de diagnostic — traçabilité des invocations', () => {
   });
 });
 
-// ─── Test 5 : Flux de publication — gestion des erreurs ──────────
+// ─── Test 5 : Architecture — PostScheduler + PrismaPostStorage ───
 
-describe('Flux de publication — robustesse', () => {
+describe('Architecture — délégation au PostScheduler', () => {
   const routeSource = readFileSync(CRON_ROUTE, 'utf-8');
 
-  it('devrait utiliser claimPostForPublishing avant publication', () => {
-    const funcStart = routeSource.indexOf('async function publishPostWithRetry');
-    const funcBody = routeSource.slice(funcStart, routeSource.indexOf('\n// ===', funcStart + 1));
-
-    const claimIndex = funcBody.indexOf('claimPostForPublishing');
-    const publishIndex = funcBody.indexOf('client.publish');
-    expect(claimIndex).toBeGreaterThan(-1);
-    expect(publishIndex).toBeGreaterThan(claimIndex);
+  it('devrait utiliser PostScheduler depuis @kairn/social/posting', () => {
+    expect(routeSource).toContain("import { PostScheduler } from '@kairn/social/posting'");
   });
 
-  it('devrait vérifier retryCount >= maxRetries AVANT le claim', () => {
-    const funcStart = routeSource.indexOf('async function publishPostWithRetry');
-    const funcBody = routeSource.slice(funcStart, routeSource.indexOf('\n// ===', funcStart + 1));
-
-    const retryCheck = funcBody.indexOf('post.retryCount >= DEFAULT_RETRY_CONFIG.maxRetries');
-    const claimIndex = funcBody.indexOf('claimPostForPublishing');
-    expect(retryCheck).toBeGreaterThan(-1);
-    expect(retryCheck).toBeLessThan(claimIndex);
+  it('devrait utiliser PrismaPostStorage comme couche de stockage', () => {
+    expect(routeSource).toContain('PrismaPostStorage');
+    expect(routeSource).toContain('new PrismaPostStorage()');
   });
 
-  it('devrait protéger getSocialAccountById avec try/catch', () => {
-    const funcStart = routeSource.indexOf('async function publishPostWithRetry');
-    const funcBody = routeSource.slice(funcStart, routeSource.indexOf('\n// ===', funcStart + 1));
-
-    expect(funcBody).toContain('catch (accountError)');
+  it('devrait instancier le scheduler avec le storage et les callbacks', () => {
+    expect(routeSource).toContain('new PostScheduler(storage');
+    expect(routeSource).toContain('onPublished');
+    expect(routeSource).toContain('onFailed');
   });
 
-  it('devrait remettre le post en SCHEDULED si le compte est inaccessible', () => {
-    const funcStart = routeSource.indexOf('async function publishPostWithRetry');
-    const funcBody = routeSource.slice(funcStart, routeSource.indexOf('\n// ===', funcStart + 1));
-
-    const accountCatch = funcBody.indexOf('catch (accountError)');
-    const reschedule = funcBody.indexOf("status: 'SCHEDULED'", accountCatch);
-    expect(reschedule).toBeGreaterThan(accountCatch);
+  it('devrait appeler processDuePosts pour la publication', () => {
+    expect(routeSource).toContain('scheduler.processDuePosts()');
   });
 
-  it('devrait isoler les erreurs par post dans la boucle', () => {
-    expect(routeSource).toContain('catch (postError)');
-    expect(routeSource).toContain('Unexpected error on post');
+  it("devrait envoyer une notification email en cas d'échec définitif via onFailed", () => {
+    expect(routeSource).toContain('sendFailureNotification');
   });
 });
 
