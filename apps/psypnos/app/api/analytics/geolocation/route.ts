@@ -5,14 +5,25 @@
  * Retrieves visitor geolocation data aggregated by country, region, and city.
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
 
-import { prisma } from "@/lib/db/prisma";
-import { isMockMode, generateMockGeolocationData, logDataMode } from "@/lib/pwaDataMode";
+import { prisma } from '@/lib/db/prisma';
+import { isMockMode, generateMockGeolocationData, logDataMode } from '@/lib/pwaDataMode';
 
-import { getCurrentSiteId } from "../store-postgres/utils";
+import { getCurrentSiteId } from '../store-postgres/utils';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
+
+/**
+ * Décode une valeur URI-encodée de manière sûre (retourne la valeur brute en cas d'erreur)
+ */
+function safeDecodeGeo(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,21 +33,21 @@ export async function GET(request: NextRequest) {
     if (authResult.error) return authResult.error;
 
     const searchParams = request.nextUrl.searchParams;
-    const startDateParam = searchParams.get("startDate");
-    const endDateParam = searchParams.get("endDate");
+    const startDateParam = searchParams.get('startDate');
+    const endDateParam = searchParams.get('endDate');
 
     // Log the data mode
     logDataMode();
 
     // If in mock mode, return simulated data
     if (isMockMode()) {
-      console.log("📊 [Geolocation Analytics] Using MOCK data");
+      console.log('📊 [Geolocation Analytics] Using MOCK data');
       const mockData = generateMockGeolocationData();
       return NextResponse.json(mockData, { status: 200 });
     }
 
     // Real mode - fetch data from VisitorGeolocation table
-    console.log("📊 [Geolocation Analytics] Using REAL data");
+    console.log('📊 [Geolocation Analytics] Using REAL data');
 
     const siteId = await getCurrentSiteId();
 
@@ -77,10 +88,7 @@ export async function GET(request: NextRequest) {
     // Aggregate by country
     const countryStats: Record<string, { count: number; countryCode: string }> = {};
     // Aggregate by region
-    const regionStats: Record<
-      string,
-      { count: number; country: string; countryCode: string }
-    > = {};
+    const regionStats: Record<string, { count: number; country: string; countryCode: string }> = {};
     // Aggregate by city
     const cityStats: Record<
       string,
@@ -89,6 +97,7 @@ export async function GET(request: NextRequest) {
         country: string;
         countryCode: string;
         region: string | null;
+        regionCode: string | null;
         latitude: number | null;
         longitude: number | null;
       }
@@ -99,22 +108,25 @@ export async function GET(request: NextRequest) {
     for (const geo of geolocations) {
       uniqueVisitors.add(geo.sessionId);
 
+      const country = safeDecodeGeo(geo.country);
+
       // Count by country
-      if (!countryStats[geo.country]) {
-        countryStats[geo.country] = { count: 0, countryCode: geo.countryCode };
+      if (!countryStats[country]) {
+        countryStats[country] = { count: 0, countryCode: geo.countryCode };
       }
-      const countryStat = countryStats[geo.country];
+      const countryStat = countryStats[country];
       if (countryStat) {
         countryStat.count++;
       }
 
       // Count by region
       if (geo.region) {
-        const regionKey = `${geo.country}|${geo.region}`;
+        const region = safeDecodeGeo(geo.region);
+        const regionKey = `${country}|${region}`;
         if (!regionStats[regionKey]) {
           regionStats[regionKey] = {
             count: 0,
-            country: geo.country,
+            country,
             countryCode: geo.countryCode,
           };
         }
@@ -123,13 +135,16 @@ export async function GET(request: NextRequest) {
 
       // Count by city
       if (geo.city) {
-        const cityKey = `${geo.country}|${geo.region || ""}|${geo.city}`;
+        const city = safeDecodeGeo(geo.city);
+        const region = geo.region ? safeDecodeGeo(geo.region) : null;
+        const cityKey = `${country}|${region || ''}|${city}`;
         if (!cityStats[cityKey]) {
           cityStats[cityKey] = {
             count: 0,
-            country: geo.country,
+            country,
             countryCode: geo.countryCode,
-            region: geo.region,
+            region,
+            regionCode: geo.regionCode,
             latitude: geo.latitude,
             longitude: geo.longitude,
           };
@@ -149,7 +164,7 @@ export async function GET(request: NextRequest) {
 
     const byRegion = Object.entries(regionStats)
       .map(([key, data]) => {
-        const [, region] = key.split("|");
+        const [, region] = key.split('|');
         return {
           region,
           country: data.country,
@@ -161,12 +176,13 @@ export async function GET(request: NextRequest) {
 
     const byCity = Object.entries(cityStats)
       .map(([key, data]) => {
-        const [, , city] = key.split("|");
+        const [, , city] = key.split('|');
         return {
           city,
           country: data.country,
           countryCode: data.countryCode,
           region: data.region,
+          regionCode: data.regionCode,
           latitude: data.latitude,
           longitude: data.longitude,
           visitors: data.count,
@@ -192,10 +208,7 @@ export async function GET(request: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error fetching geolocation data:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch geolocation data" },
-      { status: 500 }
-    );
+    console.error('Error fetching geolocation data:', error);
+    return NextResponse.json({ error: 'Failed to fetch geolocation data' }, { status: 500 });
   }
 }

@@ -86,6 +86,18 @@ const TrackingPayloadSchema = z.object({
 // ============================================
 
 /**
+ * Décode une valeur URI-encodée de manière sûre (retourne la valeur brute en cas d'erreur)
+ */
+function safeDecodeURI(value: string | null): string | null {
+  if (!value) return null;
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
+/**
  * Extrait les données de géolocalisation depuis les headers de la requête
  * Supporte Cloudflare, Vercel et autres CDN populaires
  */
@@ -123,9 +135,9 @@ function extractGeolocation(request: NextRequest): GeolocationData | null {
   return {
     country: getCountryName(country),
     countryCode: country,
-    region: region || undefined,
+    region: safeDecodeURI(region) || undefined,
     regionCode: regionCode || undefined,
-    city: city || undefined,
+    city: safeDecodeURI(city) || undefined,
     latitude: latitude ? parseFloat(latitude) : undefined,
     longitude: longitude ? parseFloat(longitude) : undefined,
     timezone: timezone || undefined,

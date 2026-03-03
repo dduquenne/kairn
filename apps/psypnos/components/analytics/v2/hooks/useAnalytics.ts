@@ -89,6 +89,7 @@ interface GeoLocation {
   country: string;
   countryCode?: string;
   region?: string;
+  regionCode?: string;
   city?: string;
   visitors: number;
   percentage: number;
@@ -728,6 +729,7 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
         countryCode: c.countryCode,
         city: c.city,
         region: c.region,
+        regionCode: c.regionCode,
         visitors: c.visitors || 0,
         percentage: totalGeoVisitors > 0 ? ((c.visitors || 0) / totalGeoVisitors) * 100 : 0,
       }));
