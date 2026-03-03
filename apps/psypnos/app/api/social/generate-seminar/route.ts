@@ -252,6 +252,7 @@ function toSeminarInput(seminar: SeminarOutput): SeminarInput {
     price: seminar.price,
     deposit: seminar.deposit,
     tags: seminar.tags,
+    thumbnail: seminar.thumbnail,
   };
 }
 
@@ -271,8 +272,6 @@ async function generateForPlatform(
     const client = getAnthropicClient();
     const systemPrompt = buildSeminarSystemPrompt();
     const userPrompt = buildSeminarUserPrompt(seminar, platform, options);
-
-    console.log(`[SeminarSocialGen] Generating ${platform} content for "${seminar.title}"`);
 
     const response = await client.messages.create({
       model: MODEL,
@@ -306,6 +305,7 @@ async function generateForPlatform(
         platform,
         content: parsed.content,
         hashtags: parsed.hashtags,
+        suggestedMediaUrl: seminar.thumbnail,
         tokensUsed,
       },
       tokensUsed,
@@ -352,8 +352,6 @@ async function generateForMultiplePlatforms(
     const systemPrompt = buildSeminarSystemPrompt();
     const userPrompt = buildSeminarMultiPlatformPrompt(seminar, platforms, options);
 
-    console.log(`[SeminarSocialGen] Generating for ${platforms.join(', ')} for "${seminar.title}"`);
-
     const response = await client.messages.create({
       model: MODEL,
       max_tokens: MAX_TOKENS * platforms.length,
@@ -385,6 +383,7 @@ async function generateForMultiplePlatforms(
       platform: gen.platform,
       content: gen.content,
       hashtags: gen.hashtags,
+      suggestedMediaUrl: seminar.thumbnail,
       tokensUsed: tokensPerPlatform,
     }));
 
@@ -489,8 +488,6 @@ export async function POST(request: NextRequest) {
       urgencyLevel,
       placesRemaining,
     };
-
-    console.log(`[SeminarSocialGen API] Generating for ${platforms.join(', ')}`);
 
     // Générer le contenu
     const result = await generateForMultiplePlatforms(seminarInput, platforms, options);

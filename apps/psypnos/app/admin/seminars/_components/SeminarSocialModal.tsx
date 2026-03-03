@@ -35,6 +35,7 @@ interface GeneratedContent {
   platform: SocialPlatform;
   content: string;
   hashtags: string[];
+  suggestedMediaUrl?: string;
   characterCount?: number;
 }
 
@@ -380,6 +381,7 @@ export function SeminarSocialModal({ seminar, open, onClose }: SeminarSocialModa
           platform: gen.platform,
           content: gen.content,
           hashtags: gen.hashtags,
+          mediaUrls: gen.suggestedMediaUrl ? [gen.suggestedMediaUrl] : [],
           generatedBy: 'ai',
           aiModel: 'claude-sonnet-4-5-20250929',
           metadata: { seminarId: seminar.id, seminarTitle: seminar.title },
