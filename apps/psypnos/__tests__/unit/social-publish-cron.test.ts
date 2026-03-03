@@ -44,8 +44,7 @@ describe('routes CRON - compatibilité QStash POST', () => {
   const cronRoutes = [
     'social-publish',
     'refresh-tokens',
-    'cleanup-data',
-    'cleanup-jobs',
+    'cleanup',
     'check-alerts',
     'daily-report',
     'weekly-report',
