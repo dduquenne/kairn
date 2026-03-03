@@ -16,8 +16,7 @@
  *   de déduplication QStash (~10 min).
  */
 
-import { publishDelayed } from '@kairn/core/scheduler';
-import { verifyCronAuth } from '@kairn/core/scheduler';
+import { publishDelayed, verifyCronAuth } from '@kairn/core/scheduler';
 import { NextRequest, NextResponse } from 'next/server';
 
 import { getFutureScheduledPosts } from '@/lib/social/store';
@@ -38,10 +37,7 @@ export async function GET(request: NextRequest) {
     const baseUrl = process.env.NEXT_PUBLIC_SITE_URL;
     if (!baseUrl) {
       console.error(`${LOG_PREFIX} NEXT_PUBLIC_SITE_URL non défini`);
-      return NextResponse.json(
-        { error: 'NEXT_PUBLIC_SITE_URL non configuré' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'NEXT_PUBLIC_SITE_URL non configuré' }, { status: 500 });
     }
 
     // Récupérer tous les posts SCHEDULED avec scheduledAt dans le futur
