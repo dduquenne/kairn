@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { motion, AnimatePresence } from "framer-motion";
-import { Calendar, Mail, Users, Download, FileText, Table } from "lucide-react";
-import { useState, useCallback, useEffect } from "react";
+import { motion, AnimatePresence } from 'framer-motion';
+import { Calendar, Mail, Users, Download, FileText, Table } from 'lucide-react';
+import { useState, useCallback, useEffect } from 'react';
 
 import {
   CommandCenter,
@@ -22,14 +22,14 @@ import {
   useSimulation,
   type PeriodType,
   type TabId,
-} from "../../../components/analytics/v2";
+} from '../../../components/analytics/v2';
 
 function AnalyticsPageContent() {
   // State
-  const [period, setPeriod] = useState<PeriodType>("last7days");
-  const [customStartDate, setCustomStartDate] = useState<string>("");
-  const [customEndDate, setCustomEndDate] = useState<string>("");
-  const [activeTab, setActiveTab] = useState<TabId>("traffic");
+  const [period, setPeriod] = useState<PeriodType>('last7days');
+  const [customStartDate, setCustomStartDate] = useState<string>('');
+  const [customEndDate, setCustomEndDate] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<TabId>('traffic');
   const [isInsightsOpen, setIsInsightsOpen] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [formattedLastUpdated, setFormattedLastUpdated] = useState<string | null>(null);
@@ -38,18 +38,34 @@ function AnalyticsPageContent() {
   const { isSimulationMode, toggleSimulationMode } = useSimulation();
 
   // Fetch analytics data
-  const { data, isLoading, error, refresh, isRefreshing, lastUpdated } = useAnalytics({
+  const {
+    data,
+    isLoading,
+    error,
+    refresh,
+    isRefreshing,
+    lastUpdated,
+    fetchInsights,
+    isLoadingInsights,
+  } = useAnalytics({
     period,
-    customStartDate: period === "custom" ? customStartDate : undefined,
-    customEndDate: period === "custom" ? customEndDate : undefined,
-    autoRefresh: period === "realtime",
+    customStartDate: period === 'custom' ? customStartDate : undefined,
+    customEndDate: period === 'custom' ? customEndDate : undefined,
+    autoRefresh: period === 'realtime',
     refreshInterval: 30000,
   });
+
+  // Fetch AI insights when the drawer opens
+  useEffect(() => {
+    if (isInsightsOpen) {
+      fetchInsights();
+    }
+  }, [isInsightsOpen, fetchInsights]);
 
   // Format lastUpdated on client-side only to avoid hydration mismatch
   useEffect(() => {
     if (lastUpdated) {
-      setFormattedLastUpdated(lastUpdated.toLocaleTimeString("fr-FR"));
+      setFormattedLastUpdated(lastUpdated.toLocaleTimeString('fr-FR'));
     } else {
       setFormattedLastUpdated(null);
     }
@@ -69,22 +85,22 @@ function AnalyticsPageContent() {
     setShowExportMenu(false);
     try {
       const params = new URLSearchParams();
-      if (period === "custom" && customStartDate && customEndDate) {
-        params.append("startDate", customStartDate);
-        params.append("endDate", customEndDate);
+      if (period === 'custom' && customStartDate && customEndDate) {
+        params.append('startDate', customStartDate);
+        params.append('endDate', customEndDate);
       }
       const response = await fetch(`/api/analytics/export-pdf?${params}`);
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
+        const a = document.createElement('a');
         a.href = url;
-        a.download = `analytics-report-${new Date().toISOString().split("T")[0]}.pdf`;
+        a.download = `analytics-report-${new Date().toISOString().split('T')[0]}.pdf`;
         a.click();
         window.URL.revokeObjectURL(url);
       }
     } catch (err) {
-      console.error("Export PDF error:", err);
+      console.error('Export PDF error:', err);
     }
   }, [period, customStartDate, customEndDate]);
 
@@ -92,43 +108,43 @@ function AnalyticsPageContent() {
     setShowExportMenu(false);
     try {
       const params = new URLSearchParams();
-      if (period === "custom" && customStartDate && customEndDate) {
-        params.append("startDate", customStartDate);
-        params.append("endDate", customEndDate);
+      if (period === 'custom' && customStartDate && customEndDate) {
+        params.append('startDate', customStartDate);
+        params.append('endDate', customEndDate);
       }
       const response = await fetch(`/api/analytics/export-excel?${params}`);
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
+        const a = document.createElement('a');
         a.href = url;
-        a.download = `analytics-data-${new Date().toISOString().split("T")[0]}.xlsx`;
+        a.download = `analytics-data-${new Date().toISOString().split('T')[0]}.xlsx`;
         a.click();
         window.URL.revokeObjectURL(url);
       }
     } catch (err) {
-      console.error("Export Excel error:", err);
+      console.error('Export Excel error:', err);
     }
   }, [period, customStartDate, customEndDate]);
 
   const handleMarkAlertRead = useCallback((alertId: string) => {
     // Mark alert as read - could call API here
-    console.log("Mark alert read:", alertId);
+    console.log('Mark alert read:', alertId);
   }, []);
 
   // Error state
   if (error) {
     return (
-      <div className="min-h-[400px] flex items-center justify-center">
+      <div className="flex min-h-[400px] items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/10 flex items-center justify-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10">
             <span className="text-2xl">!</span>
           </div>
-          <h2 className="text-lg font-semibold text-ivory mb-2">Erreur de chargement</h2>
-          <p className="text-sm text-ivory/60 mb-4">{error}</p>
+          <h2 className="text-ivory mb-2 text-lg font-semibold">Erreur de chargement</h2>
+          <p className="text-ivory/60 mb-4 text-sm">{error}</p>
           <button
             onClick={refresh}
-            className="px-4 py-2 rounded-lg bg-gold text-night font-medium hover:bg-gold/90 transition-colors"
+            className="bg-gold text-night hover:bg-gold/90 rounded-lg px-4 py-2 font-medium transition-colors"
           >
             Réessayer
           </button>
@@ -148,10 +164,10 @@ function AnalyticsPageContent() {
   };
 
   // Get unread alerts count
-  const unreadAlerts = data?.alerts?.filter((a) => !a.isRead).length || 0;
+  const unreadAlerts = data?.alerts?.filter(a => !a.isRead).length || 0;
 
   return (
-    <div className="space-y-6 overflow-x-hidden max-w-full">
+    <div className="max-w-full space-y-6 overflow-x-hidden">
       {/* Page Title (hidden but semantic) */}
       <h1 className="sr-only">Analytics Dashboard</h1>
 
@@ -160,15 +176,13 @@ function AnalyticsPageContent() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl border border-purple-500/30 bg-purple-500/10 px-3 sm:px-4 py-2 sm:py-3 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3"
+          className="flex flex-col items-start gap-2 rounded-xl border border-purple-500/30 bg-purple-500/10 px-3 py-2 sm:flex-row sm:items-center sm:gap-3 sm:px-4 sm:py-3"
         >
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse flex-shrink-0" />
-            <span className="text-xs sm:text-sm font-medium text-purple-300">
-              Mode Simulation
-            </span>
+            <div className="h-2 w-2 flex-shrink-0 animate-pulse rounded-full bg-purple-500" />
+            <span className="text-xs font-medium text-purple-300 sm:text-sm">Mode Simulation</span>
           </div>
-          <span className="text-xs text-purple-300/60 ml-4 sm:ml-0">
+          <span className="ml-4 text-xs text-purple-300/60 sm:ml-0">
             Données générées aléatoirement
           </span>
         </motion.div>
@@ -179,7 +193,7 @@ function AnalyticsPageContent() {
         healthScore={data?.healthScore || 50}
         kpis={kpis}
         isLoading={isLoading}
-        isRealtime={period === "realtime"}
+        isRealtime={period === 'realtime'}
         alertCount={unreadAlerts}
         isSimulationMode={isSimulationMode}
         onRefresh={refresh}
@@ -203,19 +217,19 @@ function AnalyticsPageContent() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="fixed top-24 right-4 z-50 w-48 rounded-xl border border-gold/20 bg-night/95 backdrop-blur-xl shadow-2xl overflow-hidden"
+            className="border-gold/20 bg-night/95 fixed right-4 top-24 z-50 w-48 overflow-hidden rounded-xl border shadow-2xl backdrop-blur-xl"
           >
             <div className="p-2">
               <button
                 onClick={handleExportPDF}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-ivory hover:bg-ivory/5 transition-colors"
+                className="text-ivory hover:bg-ivory/5 flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors"
               >
                 <FileText size={16} className="text-red-400" />
                 Exporter en PDF
               </button>
               <button
                 onClick={handleExportExcel}
-                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-ivory hover:bg-ivory/5 transition-colors"
+                className="text-ivory hover:bg-ivory/5 flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors"
               >
                 <Table size={16} className="text-green-400" />
                 Exporter en Excel
@@ -227,10 +241,7 @@ function AnalyticsPageContent() {
 
       {/* Click outside to close export menu */}
       {showExportMenu && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setShowExportMenu(false)}
-        />
+        <div className="fixed inset-0 z-40" onClick={() => setShowExportMenu(false)} />
       )}
 
       {/* Last Updated Indicator */}
@@ -238,18 +249,16 @@ function AnalyticsPageContent() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="flex items-center justify-end gap-2 text-xs text-ivory/40"
+          className="text-ivory/40 flex items-center justify-end gap-2 text-xs"
         >
-          <span>
-            Dernière mise à jour : {formattedLastUpdated}
-          </span>
-          {period === "realtime" && (
+          <span>Dernière mise à jour : {formattedLastUpdated}</span>
+          {period === 'realtime' && (
             <motion.span
               className="flex items-center gap-1 text-green-400"
               animate={{ opacity: [1, 0.5, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
-              <span className="w-2 h-2 bg-green-500 rounded-full" />
+              <span className="h-2 w-2 rounded-full bg-green-500" />
               Temps réel
             </motion.span>
           )}
@@ -265,7 +274,7 @@ function AnalyticsPageContent() {
 
       {/* Tab Content */}
       <AnimatePresence mode="wait">
-        {activeTab === "traffic" && (
+        {activeTab === 'traffic' && (
           <TabContent tabId="traffic">
             <TrafficPanel
               chartData={data?.trafficChart || []}
@@ -278,7 +287,7 @@ function AnalyticsPageContent() {
           </TabContent>
         )}
 
-        {activeTab === "engagement" && (
+        {activeTab === 'engagement' && (
           <TabContent tabId="engagement">
             <EngagementPanel
               avgSessionDuration={data?.avgSessionDuration || 0}
@@ -292,23 +301,25 @@ function AnalyticsPageContent() {
           </TabContent>
         )}
 
-        {activeTab === "conversions" && (
+        {activeTab === 'conversions' && (
           <TabContent tabId="conversions">
             <ConversionsPanel
               totalConversions={data?.totalConversions || 0}
               conversionRate={data?.conversionRate || 0}
               conversionChange={data?.conversionChange || 0}
-              conversionTypes={data?.conversionTypes?.map((ct) => ({
-                ...ct,
-                icon:
-                  ct.id === "appointment_request" ? (
-                    <Calendar size={18} className="text-gold" />
-                  ) : ct.id === "seminar_registration" ? (
-                    <Users size={18} className="text-blue-400" />
-                  ) : (
-                    <Mail size={18} className="text-green-400" />
-                  ),
-              })) || []}
+              conversionTypes={
+                data?.conversionTypes?.map(ct => ({
+                  ...ct,
+                  icon:
+                    ct.id === 'appointment_request' ? (
+                      <Calendar size={18} className="text-gold" />
+                    ) : ct.id === 'seminar_registration' ? (
+                      <Users size={18} className="text-blue-400" />
+                    ) : (
+                      <Mail size={18} className="text-green-400" />
+                    ),
+                })) || []
+              }
               funnelSteps={data?.funnelSteps || []}
               goals={data?.goals || []}
               isLoading={isLoading}
@@ -316,7 +327,7 @@ function AnalyticsPageContent() {
           </TabContent>
         )}
 
-        {activeTab === "sources" && (
+        {activeTab === 'sources' && (
           <TabContent tabId="sources">
             <SourcesPanel
               sources={data?.trafficSources || []}
@@ -331,7 +342,7 @@ function AnalyticsPageContent() {
           </TabContent>
         )}
 
-        {activeTab === "seo" && (
+        {activeTab === 'seo' && (
           <TabContent tabId="seo">
             <SEOPanel
               totalBotVisits={data?.totalBotVisits || 0}
@@ -346,21 +357,15 @@ function AnalyticsPageContent() {
           </TabContent>
         )}
 
-        {activeTab === "blog" && (
+        {activeTab === 'blog' && (
           <TabContent tabId="blog">
-            <BlogPanel
-              data={data?.blogData || null}
-              isLoading={isLoading}
-            />
+            <BlogPanel data={data?.blogData || null} isLoading={isLoading} />
           </TabContent>
         )}
 
-        {activeTab === "posts" && (
+        {activeTab === 'posts' && (
           <TabContent tabId="posts">
-            <PostsPanel
-              data={data?.postsData || null}
-              isLoading={isLoading}
-            />
+            <PostsPanel data={data?.postsData || null} isLoading={isLoading} />
           </TabContent>
         )}
       </AnimatePresence>
@@ -372,8 +377,8 @@ function AnalyticsPageContent() {
         insights={data?.insights || []}
         alerts={data?.alerts || []}
         goals={data?.goals || []}
-        isLoadingInsights={isLoading}
-        onRefreshInsights={refresh}
+        isLoadingInsights={isLoadingInsights}
+        onRefreshInsights={fetchInsights}
         onMarkAlertRead={handleMarkAlertRead}
       />
     </div>
