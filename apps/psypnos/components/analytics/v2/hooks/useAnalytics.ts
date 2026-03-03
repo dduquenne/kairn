@@ -661,10 +661,14 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       let funnelSteps: FunnelStep[];
 
       if (rawFunnelSteps.length > 0) {
+        // Use the first step's visitors as base (100%) for consistent funnel percentages
+        const firstStepVisitors = rawFunnelSteps[0]?.visitors || 0;
         funnelSteps = rawFunnelSteps.map((step: any, i: number) => {
-          const percentage = totalVisits > 0 ? (step.visitors / totalVisits) * 100 : 0;
+          const percentage = firstStepVisitors > 0 ? (step.visitors / firstStepVisitors) * 100 : 0;
           const prevPercentage =
-            i > 0 && totalVisits > 0 ? (rawFunnelSteps[i - 1].visitors / totalVisits) * 100 : 100;
+            i > 0 && firstStepVisitors > 0
+              ? (rawFunnelSteps[i - 1].visitors / firstStepVisitors) * 100
+              : 100;
           return {
             name: step.name || step.stepName || `Étape ${i + 1}`,
             visitors: step.visitors || step.count || 0,
@@ -673,11 +677,12 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
           };
         });
       } else {
-        // Fallback: derive from totalVisits and conversionRate
+        // Fallback: derive from uniqueSessions and conversionRate
+        const uniqueSessions = dashboardData.summary?.uniqueSessions || totalVisits;
         const convRate = dashboardData.summary?.conversionRate || 0;
-        const converted = Math.round((totalVisits * convRate) / 100);
+        const converted = Math.round((uniqueSessions * convRate) / 100);
         funnelSteps = [
-          { name: 'Visite', visitors: totalVisits, percentage: 100, dropoff: 0 },
+          { name: 'Visite', visitors: uniqueSessions, percentage: 100, dropoff: 0 },
           {
             name: 'Conversion',
             visitors: converted,
