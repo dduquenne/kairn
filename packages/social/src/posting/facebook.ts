@@ -51,9 +51,12 @@ export class FacebookPublisher implements SocialPublisher {
         message += '\n\n' + hashtags.map(h => `#${h}`).join(' ');
       }
 
+      // Resolve and validate image URL before choosing publication type
+      const resolvedImageUrl = this.resolveImageUrl(mediaUrls[0]);
+
       // Decide publication type
-      if (mediaUrls.length > 0 && mediaUrls[0]) {
-        return await this.publishWithPhoto(pageId, message, mediaUrls[0], linkUrl, accessToken);
+      if (resolvedImageUrl) {
+        return await this.publishWithPhoto(pageId, message, resolvedImageUrl, linkUrl, accessToken);
       } else if (linkUrl) {
         return await this.publishWithLink(pageId, message, linkUrl, accessToken);
       } else {
@@ -65,6 +68,34 @@ export class FacebookPublisher implements SocialPublisher {
         error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
+  }
+
+  /**
+   * Resolve a media URL to an absolute HTTP(S) URL and validate it.
+   * Returns the resolved URL if valid, or null if invalid/missing.
+   *
+   * @param rawUrl - Raw media URL (absolute or relative path)
+   */
+  private resolveImageUrl(rawUrl: string | undefined): string | null {
+    if (!rawUrl) {
+      return null;
+    }
+
+    const fullUrl = rawUrl.startsWith('http') ? rawUrl : `${this.baseUrl}${rawUrl}`;
+
+    try {
+      const parsed = new URL(fullUrl);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+        return fullUrl;
+      }
+    } catch {
+      // URL parsing failed — invalid format
+    }
+
+    console.warn(
+      `[FacebookPublisher] Invalid image URL skipped (falling back to text post): ${fullUrl}`
+    );
+    return null;
   }
 
   private async publishText(
@@ -140,16 +171,23 @@ export class FacebookPublisher implements SocialPublisher {
     };
   }
 
+  /**
+   * Publish a photo post to a Facebook Page.
+   *
+   * @param pageId - Facebook Page ID
+   * @param caption - Post caption text (already includes hashtags)
+   * @param resolvedImageUrl - Fully resolved and validated absolute image URL
+   * @param linkUrl - Optional article link to append to caption
+   * @param accessToken - Facebook Page access token
+   */
   private async publishWithPhoto(
     pageId: string,
     caption: string,
-    imageUrl: string,
+    resolvedImageUrl: string,
     linkUrl: string | null,
     accessToken: string
   ): Promise<PublishResult> {
     const url = `${GRAPH_API_BASE}/${pageId}/photos`;
-
-    const fullImageUrl = imageUrl.startsWith('http') ? imageUrl : `${this.baseUrl}${imageUrl}`;
 
     // Add link to caption since photos don't support separate link
     let finalCaption = caption;
@@ -170,7 +208,7 @@ export class FacebookPublisher implements SocialPublisher {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        url: fullImageUrl,
+        url: resolvedImageUrl,
         caption: finalCaption,
         access_token: accessToken,
       }),
