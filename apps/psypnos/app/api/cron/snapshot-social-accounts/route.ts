@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
 /**
  * Cron Snapshot Social Accounts API Route
  *
@@ -12,20 +10,20 @@
  * Security: QStash signature or CRON_SECRET
  */
 
-import { verifyCronAuth } from "@kairn/core/scheduler";
-import { NextRequest, NextResponse } from "next/server";
+import { verifyCronAuth } from '@kairn/core/scheduler';
+import { NextRequest, NextResponse } from 'next/server';
 
-import { captureAllSnapshots } from "@/lib/social/snapshots";
+import { captureAllSnapshots } from '@/lib/social/snapshots';
 
 export async function POST(request: NextRequest) {
   // Vérifier l'authentification CRON
-  const authResult = verifyCronAuth(request);
-  if (!authResult.authorized) {
-    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+  const authResult = await verifyCronAuth(request);
+  if (!authResult.valid) {
+    return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
   }
 
   try {
-    console.log("[Cron:snapshot-social-accounts] Démarrage de la capture des snapshots...");
+    console.log('[Cron:snapshot-social-accounts] Démarrage de la capture des snapshots...');
 
     const result = await captureAllSnapshots();
 
@@ -35,8 +33,8 @@ export async function POST(request: NextRequest) {
 
     if (result.errors.length > 0) {
       console.warn(
-        "[Cron:snapshot-social-accounts] Erreurs:",
-        result.errors.map((e) => `${e.accountId}: ${e.error}`).join(", ")
+        '[Cron:snapshot-social-accounts] Erreurs:',
+        result.errors.map(e => `${e.accountId}: ${e.error}`).join(', ')
       );
     }
 
@@ -45,10 +43,10 @@ export async function POST(request: NextRequest) {
       ...result,
     });
   } catch (error) {
-    console.error("[Cron:snapshot-social-accounts] Erreur fatale:", error);
+    console.error('[Cron:snapshot-social-accounts] Erreur fatale:', error);
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Erreur interne",
+        error: error instanceof Error ? error.message : 'Erreur interne',
       },
       { status: 500 }
     );
