@@ -483,6 +483,29 @@ export async function claimPostForPublishing(
 }
 
 /**
+ * Récupère les posts planifiés dans le futur (SCHEDULED avec scheduledAt > maintenant).
+ *
+ * Utilisé par le cron de réconciliation QStash pour renvoyer les triggers
+ * des posts dont le message QStash one-shot a pu être perdu.
+ */
+export async function getFutureScheduledPosts(): Promise<SocialPost[]> {
+  const now = new Date();
+
+  const posts = await prisma.socialPost.findMany({
+    where: {
+      status: 'SCHEDULED',
+      scheduledAt: {
+        not: null,
+        gt: now,
+      },
+    },
+    orderBy: { scheduledAt: 'asc' },
+  });
+
+  return posts.map(mapPost);
+}
+
+/**
  * Compte les posts par statut
  */
 export async function countPostsByStatus(): Promise<Record<PostStatus, number>> {
