@@ -78,6 +78,9 @@ export const DEFAULT_CRON_SCHEDULES = {
 
   /** Traitement des rapports programmés - toutes les heures à :45 */
   'process-reports': '45 * * * *',
+
+  /** Réconciliation QStash des posts planifiés - toutes les heures à :15 */
+  'reconcile-qstash': '15 * * * *',
 } as const;
 
 export type CronJobName = keyof typeof DEFAULT_CRON_SCHEDULES;
