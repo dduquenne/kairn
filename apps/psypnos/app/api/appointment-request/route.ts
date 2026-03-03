@@ -12,6 +12,7 @@ import {
   formatSubmittedAt,
   getEmailBranding,
 } from '../common/email-templates';
+import { generatePreResponse } from '../common/generate-pre-response';
 import { recordAttempt, getClientIP } from '../common/rate-limiter';
 import { sendEmailThroughResend, type EmailContent } from '../common/send-email';
 
@@ -103,7 +104,10 @@ const referralLabels: Record<(typeof referralValues)[number], string> = {
   autre: 'Autre',
 };
 
-const formatAdminEmail = (payload: AppointmentRequestPayload): EmailContent => {
+const formatAdminEmail = (
+  payload: AppointmentRequestPayload,
+  preResponse?: { text: string; source: 'ai' | 'fallback' }
+): EmailContent => {
   const options = {
     heading: 'Nouvelle demande de rendez-vous',
     badge: 'Rendez-vous',
@@ -142,6 +146,7 @@ const formatAdminEmail = (payload: AppointmentRequestPayload): EmailContent => {
       label: 'Motif de la demande',
       content: payload.reason,
     },
+    preResponse,
     metadata: {
       type: 'appointment_request',
       name: payload.name,
@@ -259,7 +264,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true }, { status: 200 });
   }
 
-  const adminContent = formatAdminEmail(payload);
+  const preResponse = await generatePreResponse({
+    name: payload.name,
+    message: payload.reason,
+    subject: 'Rendez-vous',
+  });
+
+  const adminContent = formatAdminEmail(payload, preResponse);
   const recipient = process.env.APPOINTMENT_REQUEST_RECIPIENT ?? branding.contactEmail;
 
   try {
