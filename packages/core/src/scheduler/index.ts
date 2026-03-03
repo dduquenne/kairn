@@ -78,6 +78,9 @@ export const DEFAULT_CRON_SCHEDULES = {
 
   /** Réconciliation QStash des posts planifiés - toutes les heures à :15 */
   'reconcile-qstash': '15 * * * *',
+
+  /** Promotion automatique des séminaires - 6h00 chaque jour */
+  'promote-seminars': '0 6 * * *',
 } as const;
 
 export type CronJobName = keyof typeof DEFAULT_CRON_SCHEDULES;
