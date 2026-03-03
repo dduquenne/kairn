@@ -427,10 +427,7 @@ export class Tracker {
     const timeOnPage = Date.now() - this.pageStartTime;
 
     // Calculate engagement score (0-100)
-    const engagementScore = this.calculateEngagementScore(
-      timeOnPage,
-      this.maxScrollDepth
-    );
+    const engagementScore = this.calculateEngagementScore(timeOnPage, this.maxScrollDepth);
 
     const event: PageExitEvent = {
       type: 'page_exit',
@@ -534,10 +531,7 @@ export class Tracker {
       } else {
         // Use fetch with AbortController for timeout
         const controller = new AbortController();
-        const timeoutId = setTimeout(
-          () => controller.abort(),
-          Tracker.FETCH_TIMEOUT_MS
-        );
+        const timeoutId = setTimeout(() => controller.abort(), Tracker.FETCH_TIMEOUT_MS);
 
         try {
           const response = await fetch(this.config.apiEndpoint, {
@@ -653,9 +647,7 @@ export class Tracker {
     // Avoid division by zero
     if (documentHeight <= windowHeight) return;
 
-    const scrollPercent = Math.round(
-      (scrollTop / (documentHeight - windowHeight)) * 100
-    );
+    const scrollPercent = Math.round((scrollTop / (documentHeight - windowHeight)) * 100);
 
     this.trackScrollDepth(Math.min(scrollPercent, 100));
   }
@@ -710,16 +702,17 @@ export class Tracker {
     this.originalPushState = history.pushState.bind(history);
     this.originalReplaceState = history.replaceState.bind(history);
 
-    const tracker = this;
+    const originalPush = this.originalPushState;
+    const originalReplace = this.originalReplaceState;
 
-    history.pushState = function (...args: Parameters<typeof history.pushState>) {
-      tracker.originalPushState!(...args);
-      tracker.handleSPANavigation();
+    history.pushState = (...args: Parameters<typeof history.pushState>) => {
+      originalPush(...args);
+      this.handleSPANavigation();
     };
 
-    history.replaceState = function (...args: Parameters<typeof history.replaceState>) {
-      tracker.originalReplaceState!(...args);
-      tracker.handleSPANavigation();
+    history.replaceState = (...args: Parameters<typeof history.replaceState>) => {
+      originalReplace(...args);
+      this.handleSPANavigation();
     };
   }
 
@@ -746,8 +739,8 @@ export class Tracker {
    */
   private setupSectionObserver(): void {
     this.sectionObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
+      entries => {
+        entries.forEach(entry => {
           const element = entry.target as HTMLElement;
           const sectionId = element.dataset.sectionId;
           const sectionName = element.dataset.sectionName;
@@ -816,7 +809,7 @@ export class Tracker {
   private updateSectionTimes(): void {
     const now = Date.now();
 
-    this.visibleSections.forEach((sectionId) => {
+    this.visibleSections.forEach(sectionId => {
       const startTime = this.sectionStartTimes.get(sectionId);
       if (startTime) {
         const elapsed = now - startTime;
@@ -862,7 +855,7 @@ export class Tracker {
     if (this.sectionTimesFlushed) return;
     this.sectionTimesFlushed = true;
 
-    this.visibleSections.forEach((sectionId) => {
+    this.visibleSections.forEach(sectionId => {
       const element = document.querySelector(`[data-section-id="${sectionId}"]`) as HTMLElement;
       const sectionName = element?.dataset.sectionName || sectionId;
       this.trackSectionTime(sectionId, sectionName);
@@ -874,7 +867,7 @@ export class Tracker {
    */
   private resumeSectionTracking(): void {
     const now = Date.now();
-    this.visibleSections.forEach((sectionId) => {
+    this.visibleSections.forEach(sectionId => {
       this.sectionStartTimes.set(sectionId, now);
     });
   }
@@ -901,8 +894,8 @@ export class Tracker {
       screenWidth: window.screen.width,
       screenHeight: window.screen.height,
       colorDepth: canFingerprint ? window.screen.colorDepth : 0,
-      pixelRatio: canFingerprint ? (window.devicePixelRatio || 1) : 0,
-      touchSupport: canFingerprint ? ('ontouchstart' in window) : false,
+      pixelRatio: canFingerprint ? window.devicePixelRatio || 1 : 0,
+      touchSupport: canFingerprint ? 'ontouchstart' in window : false,
       connectionType: canFingerprint ? connection?.effectiveType : undefined,
     };
   }
@@ -925,7 +918,7 @@ export class Tracker {
    */
   private isExcludedPath(path: string): boolean {
     const lowerPath = path.toLowerCase();
-    return this.config.excludedPaths.some((excluded) => {
+    return this.config.excludedPaths.some(excluded => {
       // Case-insensitive comparison for /admin
       if (excluded.toLowerCase() === '/admin') {
         return lowerPath.startsWith('/admin');
