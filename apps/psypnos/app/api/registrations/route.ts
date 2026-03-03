@@ -12,6 +12,7 @@ import {
   buildConfirmationEmailText,
   getEmailBranding,
 } from '../common/email-templates';
+import { generatePreResponse } from '../common/generate-pre-response';
 import { recordAttempt, getClientIP } from '../common/rate-limiter';
 import { sendEmailThroughResend, type EmailContent } from '../common/send-email';
 
@@ -145,7 +146,11 @@ const formatSeminarDetails = (seminar?: Seminar) => {
   };
 };
 
-const formatAdminEmail = (payload: SeminarRegistrationPayload, seminar?: Seminar): EmailContent => {
+const formatAdminEmail = (
+  payload: SeminarRegistrationPayload,
+  seminar?: Seminar,
+  preResponse?: { text: string; source: 'ai' | 'fallback' }
+): EmailContent => {
   const submittedAt = new Date().toISOString();
   const seminarInfo = formatSeminarDetails(seminar);
   const precision = payload.precisions?.trim() ? payload.precisions.trim() : 'Non précisées';
@@ -208,6 +213,7 @@ const formatAdminEmail = (payload: SeminarRegistrationPayload, seminar?: Seminar
         ],
       },
     ],
+    preResponse,
     metadata: {
       type: 'seminar_registration',
       first_name: payload.firstName,
@@ -363,13 +369,23 @@ export async function POST(request: Request) {
   }
 
   const seminar = getSeminarById(payload.seminarId);
+  const seminarInfo = formatSeminarDetails(seminar);
   const recipient =
     process.env.SEMINAR_REGISTRATION_RECIPIENT ??
     process.env.APPOINTMENT_REQUEST_RECIPIENT ??
     branding.contactEmail;
 
+  // Générer une pré-réponse uniquement si le participant a laissé des précisions
+  const preResponse = payload.precisions
+    ? await generatePreResponse({
+        name: `${payload.firstName} ${payload.lastName}`,
+        message: payload.precisions,
+        subject: `Inscription séminaire — ${seminarInfo.title}`,
+      })
+    : undefined;
+
   try {
-    await sendEmailThroughResend(formatAdminEmail(payload, seminar), recipient, branding, {
+    await sendEmailThroughResend(formatAdminEmail(payload, seminar, preResponse), recipient, branding, {
       replyTo: payload.email,
     });
 
