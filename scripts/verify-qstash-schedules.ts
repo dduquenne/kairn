@@ -28,6 +28,7 @@ const REQUIRED_JOBS = [
   'weekly-report',
   'cleanup-data',
   'cleanup-jobs',
+  'snapshot-social-accounts',
   'aggregate',
   'check-alerts',
   'process-reports',
