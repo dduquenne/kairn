@@ -56,6 +56,7 @@ export interface SeminarInput {
   price?: number;
   deposit?: number;
   tags: string[];
+  thumbnail?: string;
 }
 
 export interface SeminarGenerationOptions {
@@ -94,6 +95,12 @@ IDENTITÉ DE MARQUE:
 - Ton général: Mystérieux mais rassurant, professionnel mais accessible
 - Valeurs: Authenticité, bienveillance, expertise, accompagnement personnalisé
 - Positionnement: Praticien expérimenté, approche holistique, ancrage local
+
+LIENS DU SITE (À UTILISER DANS LES POSTS):
+- Page Respiration Holotropique : https://www.psypnos.fr/respiration-holotropique
+- Inscription séminaire : https://www.psypnos.fr/inscription-seminaire
+Ces liens DOIVENT être intégrés dans les posts quand la plateforme le permet (Facebook, LinkedIn, Twitter).
+Pour Instagram et Threads, mentionner "lien en bio" en référençant la page d'inscription.
 
 CONTEXTE DES SÉMINAIRES:
 - Les séminaires sont des expériences immersives de groupe
@@ -266,6 +273,7 @@ Places restantes: ${options.placesRemaining || 'non précisé'}
 Prix: ${formattedPrice}
 Thématiques: ${seminar.tags.join(', ')}
 Jours avant l'événement: ${daysUntil}
+${seminar.thumbnail ? `Image du séminaire: ${seminar.thumbnail}` : ''}
 
 ═══════════════════════════════════════════
 FORMAT DE POST : "${formatSpec.name}"
@@ -330,8 +338,8 @@ OBJECTIFS SPÉCIFIQUES AU SÉMINAIRE
    - La transformation possible (sans promesse thérapeutique)
 
 3. Appel à l'action CLAIR :
-   - Inciter à s'inscrire
-   - "Lien en bio" pour Instagram
+   - Inciter à s'inscrire via "lien en bio" (le lien en bio pointe vers https://www.psypnos.fr/inscription-seminaire)
+   - Mentionner la page https://www.psypnos.fr/respiration-holotropique pour en savoir plus sur la pratique
 
 ═══════════════════════════════════════════
 RÈGLES INSTAGRAM ESSENTIELLES
@@ -431,6 +439,11 @@ Places restantes: ${options.placesRemaining || 'non précisé'}
 Prix: ${formattedPrice}
 Thématiques: ${seminar.tags.join(', ')}
 Jours avant l'événement: ${daysUntil}
+${seminar.thumbnail ? `Image du séminaire: ${seminar.thumbnail}` : ''}
+
+LIENS À UTILISER:
+- Page d'inscription: https://www.psypnos.fr/inscription-seminaire
+- En savoir plus sur la pratique: https://www.psypnos.fr/respiration-holotropique
 
 ═══════════════════════════════════════════
 FORMAT DE POST LINKEDIN : "${formatSpec.name}"
@@ -517,7 +530,7 @@ FORMAT DE RÉPONSE
 Réponds UNIQUEMENT avec ce JSON (sans markdown, sans backticks) :
 
 {
-  "content": "Le contenu du post LinkedIn (avec \\n pour les sauts de ligne). Mentionner que le lien est en commentaire.",
+  "content": "Le contenu du post LinkedIn (avec \\n pour les sauts de ligne). Mentionner le lien https://www.psypnos.fr/inscription-seminaire en commentaire et/ou https://www.psypnos.fr/respiration-holotropique pour en savoir plus.",
   "hashtags": ["${suggestedHashtags[0] || 'seminaire'}", "${suggestedHashtags[1] || 'bienetre'}", "${suggestedHashtags[2] || 'ressourcement'}", "${suggestedHashtags[3] || 'developpementpersonnel'}"],
   "suggestedMediaAlt": "Description alternative pour l'image",
   "formatUsed": "${format}",
@@ -528,7 +541,7 @@ RAPPEL FINAL:
 - Le post doit faire ${formatSpec.optimalLength.min}-${formatSpec.optimalLength.max} mots
 - Paragraphes ULTRA-COURTS (1-3 lignes)
 - Question d'engagement en fin de post
-- Lien mentionné "en commentaire"`;
+- Mentionner les vrais liens (https://www.psypnos.fr/inscription-seminaire et https://www.psypnos.fr/respiration-holotropique) "en commentaire"`;
 }
 
 /**
@@ -589,6 +602,11 @@ Places restantes: ${options.placesRemaining || 'non précisé'}
 Prix: ${formattedPrice}
 Thématiques: ${seminar.tags.join(', ')}
 Jours avant l'événement: ${daysUntil}
+${seminar.thumbnail ? `Image du séminaire: ${seminar.thumbnail}` : ''}
+
+LIENS À UTILISER:
+- Page d'inscription: https://www.psypnos.fr/inscription-seminaire
+- En savoir plus sur la pratique: https://www.psypnos.fr/respiration-holotropique
 
 ═══════════════════════════════════════════
 FORMAT DE POST FACEBOOK : "${formatSpec.name}"
@@ -642,7 +660,8 @@ RÈGLES FACEBOOK ESSENTIELLES
 ✅ À FAIRE :
 • Ton chaleureux et conversationnel
 • Utiliser des sauts de ligne pour aérer
-• Inclure le lien vers l'inscription avec 👉
+• Inclure le VRAI lien vers l'inscription : 👉 https://www.psypnos.fr/inscription-seminaire
+• Référencer la page de la pratique : https://www.psypnos.fr/respiration-holotropique
 • Terminer par une question qui invite aux commentaires
 • Maximum 2-3 hashtags, discrets en fin de post
 
@@ -652,6 +671,7 @@ RÈGLES FACEBOOK ESSENTIELLES
 • Promesses thérapeutiques
 • Trop d'émojis
 • Urgence anxiogène
+• Placeholder [LIEN] au lieu des vrais liens
 
 ═══════════════════════════════════════════
 FORMAT DE RÉPONSE
@@ -660,7 +680,7 @@ FORMAT DE RÉPONSE
 Réponds UNIQUEMENT avec ce JSON (sans markdown, sans backticks) :
 
 {
-  "content": "Le contenu du post Facebook (avec \\n pour les sauts de ligne). Inclure [LIEN] à l'emplacement souhaité.",
+  "content": "Le contenu du post Facebook (avec \\n pour les sauts de ligne). Utiliser les vrais liens https://www.psypnos.fr/inscription-seminaire et https://www.psypnos.fr/respiration-holotropique.",
   "hashtags": ["${suggestedHashtags[0] || 'seminaire'}", "${suggestedHashtags[1] || 'bienetre'}"],
   "suggestedMediaAlt": "Description alternative pour l'image",
   "formatUsed": "${format}",
@@ -696,7 +716,7 @@ RÈGLE CRITIQUE : LIMITE DE CARACTÈRES
 ⚠️ THREADS A UNE LIMITE DE 500 CARACTÈRES MAXIMUM ⚠️
 
 Tu dois générer un post de ${formatSpec.maxLength} CARACTÈRES maximum.
-Le lien sera ajouté automatiquement, ne l'inclus PAS dans le contenu.
+Le lien https://www.psypnos.fr/inscription-seminaire sera ajouté automatiquement, ne l'inclus PAS dans le contenu.
 
 ═══════════════════════════════════════════
 SÉMINAIRE À PROMOUVOIR
@@ -708,6 +728,7 @@ Dates: ${formattedDates}
 Lieu: ${location}
 Capacité: ${seminar.capacity} places
 Jours avant: ${daysUntil}
+${seminar.thumbnail ? `Image du séminaire: ${seminar.thumbnail}` : ''}
 
 ═══════════════════════════════════════════
 FORMAT DE POST THREADS : "${formatSpec.name}"
@@ -822,6 +843,11 @@ Dates: ${formattedDates}
 Capacité: ${seminar.capacity} places (CRÉER UN SENTIMENT D'URGENCE)
 Prix: ${formattedPrice}
 Thématiques: ${seminar.tags.join(', ')}
+${seminar.thumbnail ? `Image du séminaire: ${seminar.thumbnail}` : ''}
+
+LIENS À UTILISER:
+- Page d'inscription: https://www.psypnos.fr/inscription-seminaire
+- En savoir plus: https://www.psypnos.fr/respiration-holotropique
 
 ═══════════════════════════════════════════
 SPÉCIFICATIONS ${spec.name.toUpperCase()}
@@ -867,8 +893,8 @@ OBJECTIFS SPÉCIFIQUES AU SÉMINAIRE
    - La transformation possible
 
 3. Appel à l'action CLAIR :
-   - Inciter à s'inscrire
-   - Mentionner comment réserver
+   - Inciter à s'inscrire via https://www.psypnos.fr/inscription-seminaire
+   - Référencer https://www.psypnos.fr/respiration-holotropique pour en savoir plus
 
 ═══════════════════════════════════════════
 FORMAT DE RÉPONSE ATTENDU
@@ -995,6 +1021,13 @@ Places restantes: ${options.placesRemaining || 'non précisé'}
 Prix: ${formattedPrice}
 Thématiques: ${seminar.tags.join(', ')}
 Jours avant l'événement: ${daysUntil}
+${seminar.thumbnail ? `Image du séminaire: ${seminar.thumbnail}` : ''}
+
+LIENS DU SITE (À UTILISER):
+- Page d'inscription: https://www.psypnos.fr/inscription-seminaire
+- Page Respiration Holotropique: https://www.psypnos.fr/respiration-holotropique
+→ Facebook/LinkedIn/Twitter: inclure les vrais liens dans le post
+→ Instagram/Threads: mentionner "lien en bio" (qui pointe vers la page d'inscription)
 
 ═══════════════════════════════════════════
 NIVEAU D'URGENCE : ${urgencyLevel}/5 - ${urgencySpec.name}
@@ -1024,7 +1057,8 @@ OBJECTIFS POUR TOUS LES POSTS
 
 1. URGENCE POSITIVE (niveau ${urgencyLevel}/5): ${urgencySpec.examplePhrase}
 2. EXPÉRIENCE UNIQUE: Cadre exceptionnel (${location}), accompagnement de qualité
-3. APPEL À L'ACTION: Inciter à s'inscrire
+3. APPEL À L'ACTION: Inciter à s'inscrire via https://www.psypnos.fr/inscription-seminaire
+4. LIENS: Utiliser les vrais liens du site (inscription + page respiration holotropique)
 
 ═══════════════════════════════════════════
 CONTRAINTES DÉONTOLOGIQUES
