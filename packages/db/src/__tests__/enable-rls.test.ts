@@ -20,11 +20,12 @@ function extractPrismaModels(schemaPath: string): string[] {
 
 /**
  * Extracts table names from the enable-rls.sql migration file.
- * Parses lines matching `ALTER TABLE "TableName" ENABLE ROW LEVEL SECURITY;`.
+ * Parses lines matching `ALTER TABLE IF EXISTS "TableName" ENABLE ROW LEVEL SECURITY;`.
  */
 function extractRlsTables(sqlPath: string): string[] {
   const sql = readFileSync(sqlPath, 'utf-8');
-  const alterRegex = /ALTER\s+TABLE\s+"(\w+)"\s+ENABLE\s+ROW\s+LEVEL\s+SECURITY/gi;
+  const alterRegex =
+    /ALTER\s+TABLE\s+(?:IF\s+EXISTS\s+)?"(\w+)"\s+ENABLE\s+ROW\s+LEVEL\s+SECURITY/gi;
   const tables: string[] = [];
   let match: RegExpExecArray | null;
   while ((match = alterRegex.exec(sql)) !== null) {
@@ -69,7 +70,9 @@ describe('enable-rls.sql', () => {
 
   it('should use ENABLE (not DISABLE) for all tables', () => {
     const sql = readFileSync(RLS_SQL_PATH, 'utf-8');
-    const disableMatches = sql.match(/ALTER\s+TABLE\s+"\w+"\s+DISABLE\s+ROW\s+LEVEL\s+SECURITY/gi);
+    const disableMatches = sql.match(
+      /ALTER\s+TABLE\s+(?:IF\s+EXISTS\s+)?"\w+"\s+DISABLE\s+ROW\s+LEVEL\s+SECURITY/gi
+    );
     expect(disableMatches).toBeNull();
   });
 });
