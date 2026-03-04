@@ -6,6 +6,7 @@
 
 import type { SocialPlatform } from '../types';
 import { PLATFORM_SPECS } from '../types';
+import { normalizeHashtags, deduplicateWithContent } from '../utils/hashtags';
 import { buildUrlWithUtm } from '../utils/utm';
 
 import type {
@@ -45,8 +46,8 @@ export class LinkedInPublisher implements SocialPublisher {
       : `urn:li:person:${personId}`;
 
     try {
-      // Build content with hashtags
-      const safeHashtags = hashtags ?? [];
+      // Build content with hashtags (normalize + deduplicate with inline)
+      const safeHashtags = deduplicateWithContent(normalizeHashtags(hashtags), content);
       let fullContent = content;
       if (safeHashtags.length > 0) {
         fullContent += '\n\n' + safeHashtags.map(h => `#${h}`).join(' ');

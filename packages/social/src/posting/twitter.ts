@@ -6,6 +6,7 @@
 
 import type { SocialPlatform } from '../types';
 import { PLATFORM_SPECS } from '../types';
+import { normalizeHashtags, deduplicateWithContent } from '../utils/hashtags';
 import { buildUrlWithUtm } from '../utils/utm';
 
 import type {
@@ -31,8 +32,8 @@ export class TwitterPublisher implements SocialPublisher {
     const { content, hashtags, linkUrl, accessToken, accountMetadata } = input;
 
     try {
-      // Build tweet text
-      const safeHashtags = hashtags ?? [];
+      // Build tweet text (normalize + deduplicate with inline)
+      const safeHashtags = deduplicateWithContent(normalizeHashtags(hashtags), content);
       let text = content;
 
       // Add hashtags

@@ -11,6 +11,8 @@
  * - Les instructions personnalisées
  */
 
+import { normalizeHashtags } from '@kairn/social/utils';
+
 import type {
   SocialPlatform,
   ContentTone,
@@ -1140,7 +1142,7 @@ export function parseGenerationResponse(response: string): {
 
     return {
       content: parsed.content,
-      hashtags: Array.isArray(parsed.hashtags) ? parsed.hashtags : [],
+      hashtags: normalizeHashtags(parsed.hashtags),
       suggestedMediaAlt: parsed.suggestedMediaAlt,
     };
   } catch (error) {
@@ -1173,7 +1175,7 @@ export function parseMultiPlatformResponse(response: string): Array<{
     return parsed.generations.map((gen: Record<string, unknown>) => ({
       platform: gen.platform as SocialPlatform,
       content: String(gen.content || ''),
-      hashtags: Array.isArray(gen.hashtags) ? gen.hashtags : [],
+      hashtags: normalizeHashtags(gen.hashtags),
     }));
   } catch (error) {
     console.error('[PromptBuilder] Failed to parse multi-platform response:', error);

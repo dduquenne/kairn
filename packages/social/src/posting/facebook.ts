@@ -6,6 +6,7 @@
 
 import type { SocialPlatform } from '../types';
 import { PLATFORM_SPECS } from '../types';
+import { normalizeHashtags, deduplicateWithContent } from '../utils/hashtags';
 import { buildUrlWithUtm } from '../utils/utm';
 
 import type {
@@ -45,8 +46,8 @@ export class FacebookPublisher implements SocialPublisher {
     }
 
     try {
-      // Build message with hashtags
-      const safeHashtags = hashtags ?? [];
+      // Build message with hashtags (normalize + deduplicate with inline)
+      const safeHashtags = deduplicateWithContent(normalizeHashtags(hashtags), content);
       let message = content;
       if (safeHashtags.length > 0) {
         message += '\n\n' + safeHashtags.map(h => `#${h}`).join(' ');

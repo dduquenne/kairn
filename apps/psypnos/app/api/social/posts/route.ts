@@ -9,6 +9,7 @@
  */
 
 import { publishDelayed } from '@kairn/core/scheduler';
+import { normalizeHashtags } from '@kairn/social/utils';
 import { NextRequest, NextResponse } from 'next/server';
 
 import { withAdminAuth } from '@/app/api/auth/middleware';
@@ -150,7 +151,7 @@ export async function POST(request: NextRequest) {
       blogSlug: body.blogSlug,
       blogTitle: body.blogTitle,
       mediaUrls: body.mediaUrls || [],
-      hashtags: body.hashtags || [],
+      hashtags: normalizeHashtags(body.hashtags),
       linkUrl: body.linkUrl,
       scheduledAt: body.scheduledAt ? new Date(body.scheduledAt) : undefined,
       generatedBy: body.generatedBy || 'manual',

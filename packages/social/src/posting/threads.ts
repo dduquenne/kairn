@@ -7,6 +7,7 @@
 
 import type { SocialPlatform } from '../types';
 import { PLATFORM_SPECS } from '../types';
+import { normalizeHashtags, deduplicateWithContent } from '../utils/hashtags';
 import { buildUrlWithUtm } from '../utils/utm';
 
 import type {
@@ -46,8 +47,8 @@ export class ThreadsPublisher implements SocialPublisher {
     }
 
     try {
-      // Build text with hashtags
-      const safeHashtags = hashtags ?? [];
+      // Build text with hashtags (normalize + deduplicate with inline)
+      const safeHashtags = deduplicateWithContent(normalizeHashtags(hashtags), content);
       let text = content;
       if (safeHashtags.length > 0) {
         text += '\n\n' + safeHashtags.map(h => `#${h}`).join(' ');

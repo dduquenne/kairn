@@ -7,6 +7,7 @@
 
 import type { SocialPlatform } from '../types';
 import { PLATFORM_SPECS } from '../types';
+import { normalizeHashtags, deduplicateWithContent } from '../utils/hashtags';
 import { buildUrlWithUtm } from '../utils/utm';
 
 import type {
@@ -72,7 +73,7 @@ export class InstagramPublisher implements SocialPublisher {
         caption += '\n\n🔗 Full article: ' + trackedLinkUrl;
       }
 
-      const safeHashtags = hashtags ?? [];
+      const safeHashtags = deduplicateWithContent(normalizeHashtags(hashtags), caption);
       if (safeHashtags.length > 0) {
         // On Instagram, hashtags are often separated by dots
         caption += '\n.\n.\n.\n' + safeHashtags.map(h => `#${h}`).join(' ');
