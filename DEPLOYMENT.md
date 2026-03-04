@@ -11,7 +11,7 @@ Ce guide décrit les étapes pour déployer un site Kairn sur Vercel avec QStash
 
 ## Prérequis
 
-1. **Compte Vercel Pro (obligatoire)** — le plan Hobby est limité à 12 Serverless Functions par déploiement, ce qui est insuffisant pour l'application (~200 routes dynamiques + API). Sans le plan Pro, le déploiement échouera avec l'erreur : `No more than 12 Serverless Functions can be added to a Deployment on the Hobby plan.`
+1. **Compte Vercel (Pro recommandé)** — le plan Hobby limite à 12 Serverless Functions par déploiement. Next.js regroupe les routes en ~10 fonctions, ce qui est proche de la limite. Le plan Pro supprime cette contrainte et offre des durées d'exécution plus longues.
 2. Compte Upstash avec QStash activé
 3. Base de données PostgreSQL (Supabase)
 4. Node.js 22+ et pnpm 10+
@@ -210,19 +210,17 @@ Pour déployer un nouveau site (ex: unanima) :
 Error: No more than 12 Serverless Functions can be added to a Deployment on the Hobby plan.
 ```
 
-Cette erreur signifie que le projet Vercel est sur le **plan Hobby**, qui limite à 12 Serverless Functions par déploiement. L'application Kairn génère ~200 routes dynamiques (pages + API), chacune compilée en Serverless Function.
+Cette erreur peut apparaître de manière **transitoire** sur le plan Hobby. Next.js regroupe les routes de l'application en ~10 Serverless Functions (visible via `lambdaRuntimeStats` dans les métadonnées du déploiement), ce qui est en dessous de la limite de 12.
 
-**Solution** : Passer le projet au **plan Pro** dans les paramètres Vercel :
+**Si l'erreur apparaît** :
 
-1. Aller dans Vercel Dashboard → Settings → Billing
-2. Upgrader vers le plan Pro (ou Team)
-3. Relancer le déploiement
+1. **Relancer le déploiement** — l'erreur peut être transitoire (bug de comptage côté Vercel)
+2. Si l'erreur persiste, passer au **plan Pro** (Vercel Dashboard → Settings → Billing)
 
-**Vérification locale** : Avant de déployer, vérifiez les limites avec :
+**Vérification locale** : Le script `check:vercel` compte les fichiers de fonctions du build local (qui diffère du regroupement Vercel) :
 
 ```bash
 pnpm check:vercel -- --app psypnos --plan hobby
-# ou pour vérifier les limites Pro :
 pnpm check:vercel -- --app psypnos --plan pro
 ```
 
