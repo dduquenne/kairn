@@ -9,23 +9,29 @@
  * GET - Lister les jobs récents
  */
 
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
+import { after, NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
 
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from '@/lib/db/prisma';
 
-import { withAdminAuth } from "../../auth/middleware";
+import { withAdminAuth } from '../../auth/middleware';
 
-import { runBlogGenerationWorker } from "./worker";
+import { runBlogGenerationWorker } from './worker';
+
+/**
+ * Timeout Vercel — la génération sectionnelle enchaîne 8-12 appels Claude API
+ * séquentiels, chacun pouvant prendre jusqu'à 90 secondes.
+ */
+export const maxDuration = 300;
 
 /**
  * Schéma de validation pour les paramètres de génération
  */
 const createJobSchema = z.object({
-  topic: z.string().trim().min(1, "Le sujet est requis"),
-  category: z.enum(["Comprendre", "Traverser", "Découvrir", "Cheminer"]),
-  targetLength: z.enum(["short", "medium", "long"]).optional().default("medium"),
-  editorialCategory: z.enum(["Comprendre", "Traverser", "Découvrir", "Cheminer"]).optional(),
+  topic: z.string().trim().min(1, 'Le sujet est requis'),
+  category: z.enum(['Comprendre', 'Traverser', 'Découvrir', 'Cheminer']),
+  targetLength: z.enum(['short', 'medium', 'long']).optional().default('medium'),
+  editorialCategory: z.enum(['Comprendre', 'Traverser', 'Découvrir', 'Cheminer']).optional(),
   preferredTones: z.array(z.string()).optional(),
   tones: z.array(z.string()).optional(),
   seoQuery: z.string().trim().optional(),
@@ -61,60 +67,58 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) {
       const firstError = parsed.error.issues[0];
       return NextResponse.json(
-        { message: firstError?.message ?? "Données invalides." },
+        { message: firstError?.message ?? 'Données invalides.' },
         { status: 400 }
       );
     }
 
     input = parsed.data;
   } catch (error) {
-    return NextResponse.json({ message: "Données invalides." }, { status: 400 });
+    return NextResponse.json({ message: 'Données invalides.' }, { status: 400 });
   }
 
   // Vérifier la clé API Anthropic
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     console.error("[BlogJob] ANTHROPIC_API_KEY n'est pas configurée");
-    return NextResponse.json(
-      { message: "Le service n'est pas configuré." },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: "Le service n'est pas configuré." }, { status: 500 });
   }
 
   try {
     // Créer le job en base de données
     const job = await prisma.blogGenerationJob.create({
       data: {
-        status: "PENDING",
+        status: 'PENDING',
         input: input as any, // JSON
         progress: 0,
-        currentStep: "En attente de traitement",
+        currentStep: 'En attente de traitement',
         totalSteps: 9,
       },
     });
 
     console.log(`[BlogJob] Job créé: ${job.id}`);
 
-    // Lancer le worker en arrière-plan (sans attendre)
-    // Utilisation de setImmediate pour ne pas bloquer la réponse HTTP
-    setImmediate(() => {
-      runBlogGenerationWorker(job.id, apiKey).catch((error) => {
+    // Lancer le worker en arrière-plan via after() de Next.js
+    // after() utilise waitUntil() sous le capot sur Vercel, ce qui garantit
+    // que la Serverless Function reste active jusqu'à la fin du worker,
+    // même après l'envoi de la réponse HTTP.
+    after(async () => {
+      try {
+        await runBlogGenerationWorker(job.id, apiKey);
+      } catch (error) {
         console.error(`[BlogJob] Erreur worker pour job ${job.id}:`, error);
-      });
+      }
     });
 
     // Retourner immédiatement l'ID du job
     return NextResponse.json({
       jobId: job.id,
       status: job.status,
-      message: "Job de génération créé avec succès",
+      message: 'Job de génération créé avec succès',
     });
   } catch (error) {
-    console.error("[BlogJob] Erreur création job:", error);
-    return NextResponse.json(
-      { message: "Erreur lors de la création du job" },
-      { status: 500 }
-    );
+    console.error('[BlogJob] Erreur création job:', error);
+    return NextResponse.json({ message: 'Erreur lors de la création du job' }, { status: 500 });
   }
 }
 
@@ -132,16 +136,16 @@ export async function GET(request: NextRequest) {
   if (authResult.error) return authResult.error;
 
   const searchParams = request.nextUrl.searchParams;
-  const limitParam = searchParams.get("limit");
-  const statusParam = searchParams.get("status");
+  const limitParam = searchParams.get('limit');
+  const statusParam = searchParams.get('status');
 
   const limit = limitParam ? Math.min(parseInt(limitParam, 10), 100) : 20;
-  const status = statusParam as "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED" | null;
+  const status = statusParam as 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | null;
 
   try {
     const jobs = await prisma.blogGenerationJob.findMany({
       where: status ? { status } : undefined,
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
       take: limit,
       select: {
         id: true,
@@ -164,7 +168,7 @@ export async function GET(request: NextRequest) {
     // Extraire le topic de l'input pour l'affichage
     const jobsWithTopic = jobs.map((job: (typeof jobs)[number]) => ({
       ...job,
-      topic: (job.input as Record<string, unknown>)?.topic || "Sans titre",
+      topic: (job.input as Record<string, unknown>)?.topic || 'Sans titre',
     }));
 
     return NextResponse.json({
@@ -172,9 +176,9 @@ export async function GET(request: NextRequest) {
       total: jobsWithTopic.length,
     });
   } catch (error) {
-    console.error("[BlogJob] Erreur liste jobs:", error);
+    console.error('[BlogJob] Erreur liste jobs:', error);
     return NextResponse.json(
-      { message: "Erreur lors de la récupération des jobs" },
+      { message: 'Erreur lors de la récupération des jobs' },
       { status: 500 }
     );
   }
