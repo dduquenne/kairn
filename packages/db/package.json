@@ -28,7 +28,8 @@
     "db:migrate:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "db:seed": "tsx src/seed.ts",
-    "db:reset": "prisma migrate reset --force"
+    "db:reset": "prisma migrate reset --force",
+    "db:enable-rls": "prisma db execute --file prisma/sql/enable-rls.sql"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0"
