@@ -9,20 +9,12 @@
  * GET - Lister les jobs récents
  */
 
-import { after, NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { prisma } from '@/lib/db/prisma';
 
 import { withAdminAuth } from '../../auth/middleware';
-
-import { runBlogGenerationWorker } from './worker';
-
-/**
- * Timeout Vercel — la génération sectionnelle enchaîne 8-12 appels Claude API
- * séquentiels, chacun pouvant prendre jusqu'à 90 secondes.
- */
-export const maxDuration = 300;
 
 /**
  * Schéma de validation pour les paramètres de génération
@@ -50,8 +42,9 @@ export type CreateJobInput = z.infer<typeof createJobSchema>;
 /**
  * POST /api/blog/jobs
  *
- * Crée un nouveau job de génération d'article et lance le traitement en arrière-plan.
- * Retourne immédiatement l'ID du job pour permettre le polling.
+ * Crée un nouveau job de génération d'article en base de données.
+ * Le frontend pilote ensuite l'exécution via POST /api/blog/jobs/[id]/step.
+ * Retourne immédiatement l'ID du job.
  */
 export async function POST(request: NextRequest) {
   // Vérifier l'authentification admin
@@ -77,40 +70,23 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'Données invalides.' }, { status: 400 });
   }
 
-  // Vérifier la clé API Anthropic
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    console.error("[BlogJob] ANTHROPIC_API_KEY n'est pas configurée");
-    return NextResponse.json({ message: "Le service n'est pas configuré." }, { status: 500 });
-  }
-
   try {
     // Créer le job en base de données
+    // Le frontend pilotera l'exécution via POST /api/blog/jobs/[id]/step
     const job = await prisma.blogGenerationJob.create({
       data: {
         status: 'PENDING',
         input: input as any, // JSON
         progress: 0,
         currentStep: 'En attente de traitement',
+        currentStepIndex: 0,
         totalSteps: 9,
       },
     });
 
     console.log(`[BlogJob] Job créé: ${job.id}`);
 
-    // Lancer le worker en arrière-plan via after() de Next.js
-    // after() utilise waitUntil() sous le capot sur Vercel, ce qui garantit
-    // que la Serverless Function reste active jusqu'à la fin du worker,
-    // même après l'envoi de la réponse HTTP.
-    after(async () => {
-      try {
-        await runBlogGenerationWorker(job.id, apiKey);
-      } catch (error) {
-        console.error(`[BlogJob] Erreur worker pour job ${job.id}:`, error);
-      }
-    });
-
-    // Retourner immédiatement l'ID du job
+    // Retourner l'ID du job — le frontend enchaînera les appels step-by-step
     return NextResponse.json({
       jobId: job.id,
       status: job.status,
