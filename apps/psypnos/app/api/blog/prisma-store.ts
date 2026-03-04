@@ -261,7 +261,7 @@ export async function createBlogPost(data: BlogPostPayload): Promise<BlogPostOut
         jsonLd: data.jsonLd as Prisma.InputJsonValue | undefined,
         featured,
         authorName: data.author,
-        publishedAt: published ? postDate : null,
+        publishedAt: postDate,
         tags: {
           create: tagRecords.map(tag => ({
             tagId: tag.id,
@@ -364,7 +364,7 @@ export async function updateBlogPost(
         }),
         ...(data.featured !== undefined && { featured: data.featured }),
         ...(data.author && { authorName: data.author }),
-        publishedAt: published ? postDate : null,
+        publishedAt: postDate,
         ...tagOperations,
       },
       include: {
