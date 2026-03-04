@@ -427,6 +427,7 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isLoadingInsightsRef = useRef(false);
 
   // Mode simulation
   let simulationContext: ReturnType<typeof useSimulation> | null = null;
@@ -953,9 +954,12 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
   }, [fetchData]);
 
   // Lazy-load insights (Claude API call — 3-15s latency)
-  // Called on demand when the user opens the InsightsDrawer
+  // Called on demand when the user opens the InsightsDrawer.
+  // Uses a ref for the concurrency guard so the callback reference stays stable
+  // and does not cause infinite re-render loops in consumer useEffects.
   const fetchInsights = useCallback(async () => {
-    if (isLoadingInsights) return;
+    if (isLoadingInsightsRef.current) return;
+    isLoadingInsightsRef.current = true;
     setIsLoadingInsights(true);
     try {
       const timeRange = mapPeriodToTimeRange(period);
@@ -983,9 +987,10 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
     } catch (err) {
       console.error('Error fetching insights:', err);
     } finally {
+      isLoadingInsightsRef.current = false;
       setIsLoadingInsights(false);
     }
-  }, [period, customStartDate, customEndDate, isLoadingInsights]);
+  }, [period, customStartDate, customEndDate]);
 
   return {
     data,
