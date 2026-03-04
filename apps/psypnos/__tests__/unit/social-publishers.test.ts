@@ -470,7 +470,89 @@ describe('ThreadsPublisher', () => {
   });
 });
 
-// ─── Test 6 : Validation de contenu ──────────────────────────────
+// ─── Test 6 : Gestion des hashtags null (issue #250) ────────────
+
+describe('Publishers — hashtags null depuis la base de données (issue #250)', () => {
+  it('LinkedInPublisher ne devrait pas crasher quand hashtags est null', async () => {
+    const publisher = new LinkedInPublisher();
+    const mockHeaders = new Map([['x-restli-id', 'urn:li:share:250']]);
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 201,
+      json: () => Promise.resolve({}),
+      headers: { get: (key: string) => mockHeaders.get(key) || null },
+    });
+
+    // Simule le cas réel : Prisma retourne null pour un champ Json?
+    const result = await publisher.publish(
+      baseInput({
+        hashtags: null as unknown as string[],
+        accountMetadata: { personId: 'person123' },
+      })
+    );
+
+    expect(result.success).toBe(true);
+    const body = getCallBody();
+    const specificContent = body.specificContent as Record<string, Record<string, unknown>>;
+    const shareContent = specificContent['com.linkedin.ugc.ShareContent']!;
+    const commentary = shareContent.shareCommentary as { text: string };
+    // Le contenu ne devrait pas contenir de hashtags
+    expect(commentary.text).toBe('Test post content');
+  });
+
+  it('FacebookPublisher ne devrait pas crasher quand hashtags est null', async () => {
+    const publisher = new FacebookPublisher('https://example.com');
+    mockFetch.mockResolvedValueOnce(mockResponse({ id: '123_null' }));
+
+    const result = await publisher.publish(
+      baseInput({
+        hashtags: null as unknown as string[],
+        accountMetadata: { pageId: 'page123' },
+      })
+    );
+
+    expect(result.success).toBe(true);
+  });
+
+  it('ThreadsPublisher ne devrait pas crasher quand hashtags est null', async () => {
+    const publisher = new ThreadsPublisher('https://example.com');
+    mockFetch.mockResolvedValueOnce(mockResponse({ id: 'container_null' }));
+    mockFetch.mockResolvedValueOnce(mockResponse({ status: 'FINISHED' }));
+    mockFetch.mockResolvedValueOnce(mockResponse({ id: 'thread_null' }));
+    mockFetch.mockResolvedValueOnce(mockResponse({ permalink: 'https://threads.net/@u/p/x' }));
+
+    const result = await publisher.publish(
+      baseInput({
+        hashtags: null as unknown as string[],
+        accountMetadata: { threadsUserId: 'threads123' },
+      })
+    );
+
+    expect(result.success).toBe(true);
+  });
+
+  it('LinkedInPublisher devrait fonctionner avec un tableau de hashtags vide', async () => {
+    const publisher = new LinkedInPublisher();
+    const mockHeaders = new Map([['x-restli-id', 'urn:li:share:empty']]);
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      status: 201,
+      json: () => Promise.resolve({}),
+      headers: { get: (key: string) => mockHeaders.get(key) || null },
+    });
+
+    const result = await publisher.publish(
+      baseInput({
+        hashtags: [],
+        accountMetadata: { personId: 'person123' },
+      })
+    );
+
+    expect(result.success).toBe(true);
+  });
+});
+
+// ─── Test 7 : Validation de contenu ──────────────────────────────
 
 describe('Validation de contenu — limites par plateforme', () => {
   it('Facebook : contenu de 63 206+ caractères devrait échouer', () => {

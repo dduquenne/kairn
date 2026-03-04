@@ -167,7 +167,7 @@ export class MultiPublisher {
     };
 
     let adaptedContent = content;
-    let adaptedHashtags = [...hashtags];
+    let adaptedHashtags = [...(hashtags ?? [])];
 
     // Limit hashtags
     if (opts.limitHashtags && adaptedHashtags.length > specs.optimalHashtags) {

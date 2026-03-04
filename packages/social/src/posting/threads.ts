@@ -47,9 +47,10 @@ export class ThreadsPublisher implements SocialPublisher {
 
     try {
       // Build text with hashtags
+      const safeHashtags = hashtags ?? [];
       let text = content;
-      if (hashtags.length > 0) {
-        text += '\n\n' + hashtags.map(h => `#${h}`).join(' ');
+      if (safeHashtags.length > 0) {
+        text += '\n\n' + safeHashtags.map(h => `#${h}`).join(' ');
       }
 
       // Add link with UTM tracking
@@ -274,8 +275,10 @@ export class ThreadsPublisher implements SocialPublisher {
     const errors: string[] = [];
     const warnings: string[] = [];
     const specs = PLATFORM_SPECS.THREADS;
+    const safeHashtags = hashtags ?? [];
 
-    const hashtagsText = hashtags.length > 0 ? '\n\n' + hashtags.map(h => `#${h}`).join(' ') : '';
+    const hashtagsText =
+      safeHashtags.length > 0 ? '\n\n' + safeHashtags.map(h => `#${h}`).join(' ') : '';
     const fullContent = content + hashtagsText;
 
     if (fullContent.length > specs.maxTextLength) {
@@ -291,11 +294,11 @@ export class ThreadsPublisher implements SocialPublisher {
       );
     }
 
-    if (hashtags.length > specs.maxHashtags) {
+    if (safeHashtags.length > specs.maxHashtags) {
       errors.push(`Maximum ${specs.maxHashtags} hashtags allowed on Threads`);
     }
 
-    if (hashtags.length > specs.optimalHashtags) {
+    if (safeHashtags.length > specs.optimalHashtags) {
       warnings.push(`Threads works better with ${specs.optimalHashtags} hashtags or less`);
     }
 

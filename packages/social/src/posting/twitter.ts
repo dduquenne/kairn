@@ -32,11 +32,12 @@ export class TwitterPublisher implements SocialPublisher {
 
     try {
       // Build tweet text
+      const safeHashtags = hashtags ?? [];
       let text = content;
 
       // Add hashtags
-      if (hashtags.length > 0) {
-        const hashtagsText = hashtags.map(h => `#${h}`).join(' ');
+      if (safeHashtags.length > 0) {
+        const hashtagsText = safeHashtags.map(h => `#${h}`).join(' ');
         text += '\n\n' + hashtagsText;
       }
 
@@ -55,7 +56,7 @@ export class TwitterPublisher implements SocialPublisher {
       }
 
       // Validate content
-      const validation = this.validateContent(content, hashtags);
+      const validation = this.validateContent(content, safeHashtags);
       if (!validation.valid) {
         return {
           success: false,
@@ -253,9 +254,11 @@ export class TwitterPublisher implements SocialPublisher {
     const errors: string[] = [];
     const warnings: string[] = [];
     const specs = PLATFORM_SPECS.TWITTER;
+    const safeHashtags = hashtags ?? [];
 
     // Calculate total length
-    const hashtagsText = hashtags.length > 0 ? '\n\n' + hashtags.map(h => `#${h}`).join(' ') : '';
+    const hashtagsText =
+      safeHashtags.length > 0 ? '\n\n' + safeHashtags.map(h => `#${h}`).join(' ') : '';
     const fullContent = content + hashtagsText;
 
     // Calculate effective length (URLs are shortened to 23 chars)
@@ -273,11 +276,11 @@ export class TwitterPublisher implements SocialPublisher {
       );
     }
 
-    if (hashtags.length > specs.maxHashtags) {
+    if (safeHashtags.length > specs.maxHashtags) {
       errors.push(`Maximum ${specs.maxHashtags} hashtags on Twitter`);
     }
 
-    if (hashtags.length > specs.optimalHashtags) {
+    if (safeHashtags.length > specs.optimalHashtags) {
       warnings.push(`Twitter works better with ${specs.optimalHashtags} hashtags or less`);
     }
 
