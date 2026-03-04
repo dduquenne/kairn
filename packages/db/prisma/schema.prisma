@@ -932,6 +932,10 @@ model BlogGenerationJob {
   input       Json
   /// Generated result as JSON (article content)
   result      Json?
+  /// Partial results between steps (step-by-step architecture)
+  partialResult Json?
+  /// Current step index for step-by-step execution (0-based)
+  currentStepIndex Int @default(0)
   /// Error message if failed
   error       String?
   /// When processing started
