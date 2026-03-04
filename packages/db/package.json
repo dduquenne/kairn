@@ -29,7 +29,7 @@
     "db:studio": "prisma studio",
     "db:seed": "tsx src/seed.ts",
     "db:reset": "prisma migrate reset --force",
-    "db:enable-rls": "prisma db execute --file prisma/sql/enable-rls.sql --url \"$DATABASE_URL\""
+    "db:enable-rls": "tsx src/enable-rls.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.0.0"
