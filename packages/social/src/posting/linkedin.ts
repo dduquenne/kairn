@@ -46,9 +46,10 @@ export class LinkedInPublisher implements SocialPublisher {
 
     try {
       // Build content with hashtags
+      const safeHashtags = hashtags ?? [];
       let fullContent = content;
-      if (hashtags.length > 0) {
-        fullContent += '\n\n' + hashtags.map(h => `#${h}`).join(' ');
+      if (safeHashtags.length > 0) {
+        fullContent += '\n\n' + safeHashtags.map(h => `#${h}`).join(' ');
       }
 
       if (linkUrl) {
@@ -339,19 +340,20 @@ export class LinkedInPublisher implements SocialPublisher {
     const errors: string[] = [];
     const warnings: string[] = [];
     const specs = PLATFORM_SPECS.LINKEDIN;
+    const safeHashtags = hashtags ?? [];
 
     const fullContent =
-      content + (hashtags.length > 0 ? '\n\n' + hashtags.map(h => `#${h}`).join(' ') : '');
+      content + (safeHashtags.length > 0 ? '\n\n' + safeHashtags.map(h => `#${h}`).join(' ') : '');
 
     if (fullContent.length > specs.maxTextLength) {
       errors.push(`Content exceeds the ${specs.maxTextLength} character limit`);
     }
 
-    if (hashtags.length > specs.maxHashtags) {
+    if (safeHashtags.length > specs.maxHashtags) {
       errors.push(`Maximum ${specs.maxHashtags} hashtags allowed`);
     }
 
-    if (hashtags.length > specs.optimalHashtags) {
+    if (safeHashtags.length > specs.optimalHashtags) {
       warnings.push(`LinkedIn recommends ${specs.optimalHashtags} hashtags for optimal engagement`);
     }
 

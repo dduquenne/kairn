@@ -46,7 +46,8 @@ export class InstagramPublisher implements SocialPublisher {
     }
 
     // Instagram requires an image
-    if (mediaUrls.length === 0) {
+    const safeMediaUrls = mediaUrls ?? [];
+    if (safeMediaUrls.length === 0) {
       return {
         success: false,
         error: 'Instagram requires at least one image to publish',
@@ -71,13 +72,14 @@ export class InstagramPublisher implements SocialPublisher {
         caption += '\n\n🔗 Full article: ' + trackedLinkUrl;
       }
 
-      if (hashtags.length > 0) {
+      const safeHashtags = hashtags ?? [];
+      if (safeHashtags.length > 0) {
         // On Instagram, hashtags are often separated by dots
-        caption += '\n.\n.\n.\n' + hashtags.map(h => `#${h}`).join(' ');
+        caption += '\n.\n.\n.\n' + safeHashtags.map(h => `#${h}`).join(' ');
       }
 
       // Step 1: Create media container
-      const imageUrl = mediaUrls[0];
+      const imageUrl = safeMediaUrls[0];
       if (!imageUrl) {
         return {
           success: false,
@@ -295,24 +297,25 @@ export class InstagramPublisher implements SocialPublisher {
     const errors: string[] = [];
     const warnings: string[] = [];
     const specs = PLATFORM_SPECS.INSTAGRAM;
+    const safeHashtags = hashtags ?? [];
 
     const hashtagsText =
-      hashtags.length > 0 ? '\n.\n.\n.\n' + hashtags.map(h => `#${h}`).join(' ') : '';
+      safeHashtags.length > 0 ? '\n.\n.\n.\n' + safeHashtags.map(h => `#${h}`).join(' ') : '';
     const fullContent = content + hashtagsText;
 
     if (fullContent.length > specs.maxTextLength) {
       errors.push(`Content exceeds the ${specs.maxTextLength} character limit`);
     }
 
-    if (hashtags.length > specs.maxHashtags) {
+    if (safeHashtags.length > specs.maxHashtags) {
       errors.push(`Maximum ${specs.maxHashtags} hashtags allowed on Instagram`);
     }
 
-    if (hashtags.length > specs.optimalHashtags) {
+    if (safeHashtags.length > specs.optimalHashtags) {
       warnings.push(`${specs.optimalHashtags} hashtags recommended for optimal engagement`);
     }
 
-    if (hashtags.length < 5 && hashtags.length > 0) {
+    if (safeHashtags.length < 5 && safeHashtags.length > 0) {
       warnings.push('Instagram works better with 5-10 relevant hashtags');
     }
 

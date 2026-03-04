@@ -46,9 +46,10 @@ export class FacebookPublisher implements SocialPublisher {
 
     try {
       // Build message with hashtags
+      const safeHashtags = hashtags ?? [];
       let message = content;
-      if (hashtags.length > 0) {
-        message += '\n\n' + hashtags.map(h => `#${h}`).join(' ');
+      if (safeHashtags.length > 0) {
+        message += '\n\n' + safeHashtags.map(h => `#${h}`).join(' ');
       }
 
       // Resolve and validate image URL before choosing publication type
@@ -330,15 +331,16 @@ export class FacebookPublisher implements SocialPublisher {
     const errors: string[] = [];
     const warnings: string[] = [];
     const specs = PLATFORM_SPECS.FACEBOOK;
+    const safeHashtags = hashtags ?? [];
 
     const fullContent =
-      content + (hashtags.length > 0 ? '\n\n' + hashtags.map(h => `#${h}`).join(' ') : '');
+      content + (safeHashtags.length > 0 ? '\n\n' + safeHashtags.map(h => `#${h}`).join(' ') : '');
 
     if (fullContent.length > specs.maxTextLength) {
       errors.push(`Content exceeds the ${specs.maxTextLength} character limit`);
     }
 
-    if (hashtags.length > specs.maxHashtags) {
+    if (safeHashtags.length > specs.maxHashtags) {
       warnings.push(`Facebook recommends ${specs.optimalHashtags} hashtags maximum`);
     }
 
