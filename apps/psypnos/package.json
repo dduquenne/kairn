@@ -3,6 +3,9 @@
   "version": "1.7.22",
   "private": true,
   "description": "Site PSYPNOS - Psychothérapie, Hypnose & Respiration Holotropique",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",

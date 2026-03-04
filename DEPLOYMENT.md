@@ -11,7 +11,7 @@ Ce guide décrit les étapes pour déployer un site Kairn sur Vercel avec QStash
 
 ## Prérequis
 
-1. Compte Vercel (Pro recommandé)
+1. **Compte Vercel Pro (obligatoire)** — le plan Hobby est limité à 12 Serverless Functions par déploiement, ce qui est insuffisant pour l'application (~200 routes dynamiques + API). Sans le plan Pro, le déploiement échouera avec l'erreur : `No more than 12 Serverless Functions can be added to a Deployment on the Hobby plan.`
 2. Compte Upstash avec QStash activé
 3. Base de données PostgreSQL (Supabase)
 4. Node.js 22+ et pnpm 10+
@@ -203,6 +203,28 @@ Pour déployer un nouveau site (ex: unanima) :
 1. Vérifiez que toutes les variables d'environnement sont définies
 2. Assurez-vous que la base de données est accessible
 3. Vérifiez les logs de build dans Vercel
+
+### Erreur "No more than 12 Serverless Functions"
+
+```
+Error: No more than 12 Serverless Functions can be added to a Deployment on the Hobby plan.
+```
+
+Cette erreur signifie que le projet Vercel est sur le **plan Hobby**, qui limite à 12 Serverless Functions par déploiement. L'application Kairn génère ~200 routes dynamiques (pages + API), chacune compilée en Serverless Function.
+
+**Solution** : Passer le projet au **plan Pro** dans les paramètres Vercel :
+
+1. Aller dans Vercel Dashboard → Settings → Billing
+2. Upgrader vers le plan Pro (ou Team)
+3. Relancer le déploiement
+
+**Vérification locale** : Avant de déployer, vérifiez les limites avec :
+
+```bash
+pnpm check:vercel -- --app psypnos --plan hobby
+# ou pour vérifier les limites Pro :
+pnpm check:vercel -- --app psypnos --plan pro
+```
 
 ## Maintenance
 
