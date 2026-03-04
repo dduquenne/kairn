@@ -53,7 +53,7 @@ if (!databaseUrl) {
 }
 
 console.warn('Applying RLS migration...');
-execSync(`npx prisma db execute --file "${SQL_FILE}" --url "${databaseUrl}"`, {
+execSync(`prisma db execute --file "${SQL_FILE}" --url "${databaseUrl}"`, {
   stdio: 'inherit',
   cwd: PACKAGE_ROOT,
 });
