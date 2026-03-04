@@ -22,7 +22,8 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
     "audit": "pnpm audit --audit-level=moderate",
     "prepare": "husky || true",
-    "preinstall": "npx only-allow pnpm"
+    "preinstall": "npx only-allow pnpm",
+    "check:vercel": "tsx scripts/check-vercel-limits.ts"
   },
   "devDependencies": {
     "@axe-core/react": "^4.11.1",
