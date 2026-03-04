@@ -1,7 +1,7 @@
 /**
  * Enable Row Level Security (RLS) on all tables.
  *
- * Loads DATABASE_URL from the .env file at the monorepo root,
+ * Loads DATABASE_URL from .env.local / .env at the monorepo root,
  * then executes the enable-rls.sql migration via Prisma.
  *
  * Run with: pnpm db:enable-rls
@@ -39,9 +39,11 @@ const MONOREPO_ROOT = resolve(__dirname, '../../..');
 const PACKAGE_ROOT = resolve(__dirname, '..');
 const SQL_FILE = resolve(PACKAGE_ROOT, 'prisma/sql/enable-rls.sql');
 
-// Load .env from monorepo root (same as Prisma's default behavior)
+// Load env files (most specific wins — .env.local overrides .env)
+// .env.local has priority: loaded first so its values are kept
+loadEnv(resolve(MONOREPO_ROOT, '.env.local'));
 loadEnv(resolve(MONOREPO_ROOT, '.env'));
-// Also try package-level .env as fallback
+loadEnv(resolve(PACKAGE_ROOT, '.env.local'));
 loadEnv(resolve(PACKAGE_ROOT, '.env'));
 
 const databaseUrl = process.env.DATABASE_URL;
