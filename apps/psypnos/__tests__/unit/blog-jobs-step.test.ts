@@ -49,9 +49,13 @@ vi.mock('../../../app/api/common/claude-article-generator-sectional', () => ({
   generateArticleSectional: vi.fn(),
 }));
 
+const { mockWithRetryAndTimeout } = vi.hoisted(() => ({
+  mockWithRetryAndTimeout: vi.fn(async (fn: () => Promise<unknown>) => fn()),
+}));
+
 vi.mock('../../../app/api/common/ai-utils', () => ({
   parseJsonFromText: vi.fn((text: string) => JSON.parse(text)),
-  withRetryAndTimeout: vi.fn(async (fn: () => Promise<unknown>) => fn()),
+  withRetryAndTimeout: mockWithRetryAndTimeout,
 }));
 
 vi.mock('../../../app/api/common/psypnos-system-prompt', () => ({
@@ -206,5 +210,52 @@ describe('executeNextStep', () => {
         }),
       })
     );
+  });
+
+  it('doit faire un graceful degradation si l étape 5 (cohérence) timeout', async () => {
+    // Simuler un job à l'étape 5 avec du contenu assemblé
+    const assembledContent = '# Intro\n\nContenu des sections\n\n## Conclusion';
+    mockFindUnique.mockResolvedValue({
+      ...BASE_JOB,
+      status: 'PROCESSING',
+      currentStepIndex: 4, // Étape 5 (0-based index 4)
+      partialResult: {
+        outline: {
+          mainThesis: 'test',
+          targetAudience: 'test',
+          keyMessages: [],
+          introduction: { hook: '', contextSetup: '', promiseToReader: '' },
+          sections: [],
+          conclusion: { keyTakeaways: [], callToAction: '', closingThought: '' },
+        },
+        introduction: 'Intro',
+        sections: ['Section 1'],
+        conclusion: 'Conclusion',
+        assembledContent,
+      },
+    });
+
+    // Simuler un timeout sur l'appel API de l'étape 5
+    mockWithRetryAndTimeout.mockRejectedValueOnce(new Error('Appel API timeout après 50000ms'));
+
+    const result = await executeNextStep('job-test-001');
+
+    // Le job doit continuer (PROCESSING) et non échouer (FAILED)
+    expect(result.status).toBe('PROCESSING');
+    expect(result.currentStepIndex).toBe(5); // Passé à l'étape suivante
+
+    // Le contenu original doit être conservé dans le partialResult
+    const updateCall = mockUpdate.mock.calls.find(
+      (call: unknown[]) =>
+        (call[0] as { data?: { currentStepIndex?: number } })?.data?.currentStepIndex === 5
+    );
+    expect(updateCall).toBeDefined();
+    const savedPartial = (
+      updateCall![0] as {
+        data: { partialResult: { revisedContent: string; coherenceScore: number } };
+      }
+    ).data.partialResult;
+    expect(savedPartial.revisedContent).toBe(assembledContent);
+    expect(savedPartial.coherenceScore).toBe(70);
   });
 });
