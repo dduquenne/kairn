@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      finalPath: `/images/blog/${slug}.webp`,
+      finalPath: result.url,
     });
   } catch (error) {
     console.error('Erreur lors de la confirmation de la sélection:', error);

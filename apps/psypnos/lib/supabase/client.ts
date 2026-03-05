@@ -6,7 +6,7 @@
  * Used for Supabase Storage (images)
  */
 
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 // Declare global type for the Supabase client in development
 declare global {
@@ -16,28 +16,36 @@ declare global {
 
 function createSupabaseClient(): SupabaseClient | null {
   const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseServiceKey =
+    process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !supabaseServiceKey) {
     console.warn(
-      "Supabase credentials not configured. Image storage will fall back to local filesystem."
+      'Supabase credentials not configured. Image storage will fall back to local filesystem.'
     );
     return null;
   }
 
-  return createClient(supabaseUrl, supabaseServiceKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
+  try {
+    return createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
+  } catch (error) {
+    console.warn(
+      'Failed to create Supabase client:',
+      error instanceof Error ? error.message : error
+    );
+    return null;
+  }
 }
 
 // Use global instance in development to prevent too many connections during hot reloading
-const supabase =
-  globalThis.supabase ?? createSupabaseClient();
+const supabase = globalThis.supabase ?? createSupabaseClient();
 
-if (process.env.NODE_ENV !== "production" && supabase) {
+if (process.env.NODE_ENV !== 'production' && supabase) {
   globalThis.supabase = supabase;
 }
 
