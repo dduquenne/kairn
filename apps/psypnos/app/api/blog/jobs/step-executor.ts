@@ -714,12 +714,15 @@ IMPORTANT: Rédige UNIQUEMENT la conclusion en Markdown (titre H2 inclus).`;
     }
 
     case 4: {
-      // RÉVISION DE COHÉRENCE
+      // RÉVISION DE COHÉRENCE — graceful degradation si timeout
       if (!outline) throw new Error('Plan détaillé manquant');
 
       const fullContent = partial.assembledContent || '';
+      const COHERENCE_TIMEOUT_MS = 50000; // 50s pour rester sous la limite Vercel 60s
+      const COHERENCE_RETRY_OPTIONS = { ...RETRY_OPTIONS, maxRetries: 1 };
 
-      const prompt = `Tu dois RÉVISER un article pour améliorer sa cohérence et sa fluidité.
+      try {
+        const prompt = `Tu dois RÉVISER un article pour améliorer sa cohérence et sa fluidité.
 
 ## SUJET
 ${options.topic}
@@ -743,29 +746,33 @@ ${fullContent}
   "changesApplied": ["Changement 1", "Changement 2"]
 }`;
 
-      const message = await withRetryAndTimeout(
-        () =>
-          anthropic.messages.create({
-            model: 'claude-sonnet-4-5-20250929',
-            max_tokens: 8000,
-            temperature: 0.3,
-            ...(PSYPNOS_STYLE_SYSTEM_PROMPT && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
-            messages: [{ role: 'user', content: prompt }],
-          }),
-        API_TIMEOUT_MS * 1.5,
-        RETRY_OPTIONS
-      );
+        const message = await withRetryAndTimeout(
+          () =>
+            anthropic.messages.create({
+              model: 'claude-sonnet-4-5-20250929',
+              max_tokens: 8000,
+              temperature: 0.3,
+              ...(PSYPNOS_STYLE_SYSTEM_PROMPT && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
+              messages: [{ role: 'user', content: prompt }],
+            }),
+          COHERENCE_TIMEOUT_MS,
+          COHERENCE_RETRY_OPTIONS
+        );
 
-      const text = message.content[0].type === 'text' ? message.content[0].text : '';
+        const text = message.content[0].type === 'text' ? message.content[0].text : '';
 
-      try {
         const parsed = parseJsonFromText(text, { revisedContent: fullContent, coherenceScore: 70 });
         const revisedContent =
           parsed.revisedContent && parsed.revisedContent.length > fullContent.length * 0.5
             ? parsed.revisedContent
             : fullContent;
         return { revisedContent, coherenceScore: parsed.coherenceScore || 75 };
-      } catch {
+      } catch (revisionError) {
+        // Graceful degradation : conserver le contenu original si la révision échoue
+        console.warn(
+          `[BlogJob] Révision de cohérence échouée, contenu original conservé:`,
+          revisionError instanceof Error ? revisionError.message : revisionError
+        );
         return { revisedContent: fullContent, coherenceScore: 70 };
       }
     }
