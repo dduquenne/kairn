@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion';
 import {
   FileText,
   Image as ImageIcon,
@@ -9,28 +9,28 @@ import {
   Save,
   ChevronLeft,
   Loader2,
-} from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+} from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-import { Tabs } from "@/components/ui/Tabs";
-import { BlogPost } from "@/lib/blog";
-import { useToast } from "@/lib/toast-context";
+import { Tabs } from '@/components/ui/Tabs';
+import { BlogPost } from '@/lib/blog';
+import { useToast } from '@/lib/toast-context';
 
-import { useArticleGeneration } from "../_hooks/useArticleGeneration";
-import { useFormData } from "../_hooks/useFormData";
-import { useFormSave } from "../_hooks/useFormSave";
-import { useFormValidation } from "../_hooks/useFormValidation";
-import { useImageUpload } from "../_hooks/useImageUpload";
-import { useJsonLdGeneration } from "../_hooks/useJsonLdGeneration";
-import { useOneClickImageGeneration } from "../_hooks/useOneClickImageGeneration";
-import { useTagManagement } from "../_hooks/useTagManagement";
-import { useTextImprovement } from "../_hooks/useTextImprovement";
-import { generateSlugFromTitleAndCategory } from "../_utils/generateSlug";
+import { useArticleGeneration } from '../_hooks/useArticleGeneration';
+import { useFormData } from '../_hooks/useFormData';
+import { useFormSave } from '../_hooks/useFormSave';
+import { useFormValidation } from '../_hooks/useFormValidation';
+import { useImageUpload } from '../_hooks/useImageUpload';
+import { useJsonLdGeneration } from '../_hooks/useJsonLdGeneration';
+import { useOneClickImageGeneration } from '../_hooks/useOneClickImageGeneration';
+import { useTagManagement } from '../_hooks/useTagManagement';
+import { useTextImprovement } from '../_hooks/useTextImprovement';
+import { generateSlugFromTitleAndCategory } from '../_utils/generateSlug';
 
-import { ModalContainer } from "./ModalContainer";
-import { SocialDiffusionSection } from "./SocialDiffusionSection";
-import { EssentialsTab, ContentTab, MediaTab, AdvancedOptionsTab } from "./tabs";
+import { ModalContainer } from './ModalContainer';
+import { SocialDiffusionSection } from './SocialDiffusionSection';
+import { EssentialsTab, ContentTab, MediaTab, AdvancedOptionsTab } from './tabs';
 
 interface BlogPostFormProps {
   post?: BlogPost;
@@ -40,7 +40,7 @@ interface BlogPostFormProps {
 export function BlogPostForm({ post, jobId }: BlogPostFormProps) {
   const router = useRouter();
   const isEditing = !!post;
-  const [activeTab, setActiveTab] = useState("essentials");
+  const [activeTab, setActiveTab] = useState('essentials');
   const [isLoadingJob, setIsLoadingJob] = useState(!!jobId);
 
   const { addToast } = useToast();
@@ -78,11 +78,8 @@ export function BlogPostForm({ post, jobId }: BlogPostFormProps) {
   } = useOneClickImageGeneration(formData, updateFormData);
 
   // AI Feature Hooks
-  const {
-    isGeneratorModalOpen,
-    setIsGeneratorModalOpen,
-    handleGenerateArticleData,
-  } = useArticleGeneration(updateFormData, formData.image, generateImageFromArticleData);
+  const { isGeneratorModalOpen, setIsGeneratorModalOpen, handleGenerateArticleData } =
+    useArticleGeneration(updateFormData, formData.image, generateImageFromArticleData);
 
   const {
     isImproverOpen,
@@ -96,9 +93,8 @@ export function BlogPostForm({ post, jobId }: BlogPostFormProps) {
   } = useTextImprovement(formData, updateFormData);
 
   // Manual image upload
-  const { isUploadingImage, handleUploadImage } = useImageUpload(
-    formData.slug,
-    (imagePath) => updateFormData({ image: imagePath })
+  const { isUploadingImage, handleUploadImage } = useImageUpload(formData.slug, imagePath =>
+    updateFormData({ image: imagePath })
   );
 
   // Initialize form with post data when editing
@@ -136,16 +132,16 @@ export function BlogPostForm({ post, jobId }: BlogPostFormProps) {
         const response = await fetch(`/api/blog/jobs/${jobId}`);
 
         if (!response.ok) {
-          throw new Error("Erreur lors du chargement du job");
+          throw new Error('Erreur lors du chargement du job');
         }
 
         const job = await response.json();
 
-        if (job.status !== "COMPLETED" || !job.result?.article) {
+        if (job.status !== 'COMPLETED' || !job.result?.article) {
           addToast({
-            title: "Job non disponible",
+            title: 'Job non disponible',
             description: "Ce job n'est pas terminé ou ne contient pas de résultat",
-            variant: "error",
+            variant: 'error',
           });
           setIsLoadingJob(false);
           return;
@@ -154,9 +150,9 @@ export function BlogPostForm({ post, jobId }: BlogPostFormProps) {
         // Check if job has already been used to create an article
         if (job.usedAt && job.articleSlug) {
           addToast({
-            title: "Job déjà utilisé",
+            title: 'Job déjà utilisé',
             description: `Ce job a déjà été utilisé pour créer un article. Redirection vers l'édition...`,
-            variant: "info",
+            variant: 'info',
           });
           router.push(`/admin/blog/edit/${job.articleSlug}`);
           return;
@@ -166,8 +162,8 @@ export function BlogPostForm({ post, jobId }: BlogPostFormProps) {
 
         // Generate slug from title and category
         const baseSlug = generateSlugFromTitleAndCategory(
-          article.title || "",
-          article.category || "Comprendre"
+          article.title || '',
+          article.category || 'Comprendre'
         );
 
         // Check if slug already exists and get a unique one if needed
@@ -181,14 +177,14 @@ export function BlogPostForm({ post, jobId }: BlogPostFormProps) {
             if (exists) {
               finalSlug = suggestedSlug;
               addToast({
-                title: "Slug modifié",
+                title: 'Slug modifié',
                 description: `Un article avec le slug "${baseSlug}" existe déjà. Nouveau slug : "${finalSlug}"`,
-                variant: "info",
+                variant: 'info',
               });
             }
           }
         } catch (slugCheckError) {
-          console.warn("Erreur vérification slug, utilisation du slug généré:", slugCheckError);
+          console.warn('Erreur vérification slug, utilisation du slug généré:', slugCheckError);
         }
 
         // Ensure FAQ items have unique IDs
@@ -201,29 +197,29 @@ export function BlogPostForm({ post, jobId }: BlogPostFormProps) {
 
         // Update form with job data
         setFormData({
-          title: article.title || "",
+          title: article.title || '',
           slug: finalSlug,
-          description: article.description || "",
-          category: article.category || "Comprendre",
-          content: article.content || "",
+          description: article.description || '',
+          category: article.category || 'Comprendre',
+          content: article.content || '',
           tags: article.tags || [],
           faq: faqWithIds,
-          image: "",
-          imagePrompt: article.imagePrompt || "",
+          image: '',
+          imagePrompt: article.imagePrompt || '',
           published: false,
           featured: false,
-          date: new Date().toISOString().split("T")[0] ?? "",
-          author: "David Duquenne",
-          seoIntent: "",
-          persona: "",
+          date: new Date().toISOString().split('T')[0] ?? '',
+          author: 'David Duquenne',
+          seoIntent: '',
+          persona: '',
           tones: [],
           jsonLd: undefined,
         });
 
         addToast({
-          title: "Article chargé",
-          description: "Les données du job ont été appliquées au formulaire",
-          variant: "success",
+          title: 'Article chargé',
+          description: 'Les données du job ont été appliquées au formulaire',
+          variant: 'success',
         });
 
         // Trigger automatic image generation if imagePrompt exists
@@ -232,24 +228,24 @@ export function BlogPostForm({ post, jobId }: BlogPostFormProps) {
             addToast({
               title: "Génération de l'image...",
               description: "L'image va être générée automatiquement",
-              variant: "info",
+              variant: 'info',
             });
             generateImageFromArticleData({
-              title: article.title || "",
-              content: article.content || "",
+              title: article.title || '',
+              content: article.content || '',
               slug: finalSlug,
-              category: article.category || "Comprendre",
+              category: article.category || 'Comprendre',
               tags: article.tags || [],
               imagePrompt: article.imagePrompt,
             });
           }, 500);
         }
       } catch (error) {
-        console.error("Erreur chargement job:", error);
+        console.error('Erreur chargement job:', error);
         addToast({
-          title: "Erreur",
-          description: "Impossible de charger les données du job",
-          variant: "error",
+          title: 'Erreur',
+          description: 'Impossible de charger les données du job',
+          variant: 'error',
         });
       } finally {
         setIsLoadingJob(false);
@@ -262,8 +258,8 @@ export function BlogPostForm({ post, jobId }: BlogPostFormProps) {
   // Tab configuration
   const tabs = [
     {
-      id: "essentials",
-      label: "Essentiel",
+      id: 'essentials',
+      label: 'Essentiel',
       icon: FileText,
       children: (
         <EssentialsTab
@@ -276,25 +272,25 @@ export function BlogPostForm({ post, jobId }: BlogPostFormProps) {
       ),
     },
     {
-      id: "content",
-      label: "Contenu",
+      id: 'content',
+      label: 'Contenu',
       icon: FileText,
       children: (
         <ContentTab
           content={formData.content}
           faqs={formData.faq}
           error={errors.content}
-          onContentChange={(content) => updateFormData({ content })}
-          onFAQChange={(faq) => updateFormData({ faq })}
+          onContentChange={content => updateFormData({ content })}
+          onFAQChange={faq => updateFormData({ faq })}
           onImproveClick={() => setIsImproverOpen(true)}
           onImproveSelection={handleImproveSelection}
-          onClearError={() => clearError("content")}
+          onClearError={() => clearError('content')}
         />
       ),
     },
     {
-      id: "media",
-      label: "Média",
+      id: 'media',
+      label: 'Média',
       icon: ImageIcon,
       children: (
         <MediaTab
@@ -308,8 +304,8 @@ export function BlogPostForm({ post, jobId }: BlogPostFormProps) {
           isUploadingImage={isUploadingImage}
           isRegeneratingPrompt={isRegeneratingPrompt}
           imageProposals={imageProposals}
-          onImageChange={(image) => updateFormData({ image })}
-          onImagePromptChange={(imagePrompt) => updateFormData({ imagePrompt })}
+          onImageChange={image => updateFormData({ image })}
+          onImagePromptChange={imagePrompt => updateFormData({ imagePrompt })}
           onGenerateImage={generateImage}
           onUploadImage={handleUploadImage}
           onSelectProposal={selectProposal}
@@ -319,8 +315,8 @@ export function BlogPostForm({ post, jobId }: BlogPostFormProps) {
       ),
     },
     {
-      id: "advanced",
-      label: "Options",
+      id: 'advanced',
+      label: 'Options',
       icon: Settings,
       children: (
         <AdvancedOptionsTab
@@ -343,7 +339,7 @@ export function BlogPostForm({ post, jobId }: BlogPostFormProps) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-gold" />
+          <Loader2 className="text-gold h-8 w-8 animate-spin" />
           <p className="text-ivory/70">Chargement des données de l'article...</p>
         </div>
       </div>
@@ -361,17 +357,17 @@ export function BlogPostForm({ post, jobId }: BlogPostFormProps) {
       >
         <div className="flex items-center gap-4">
           <button
-            onClick={() => router.push("/admin/blog")}
-            className="rounded-lg p-2 text-ivory/70 transition hover:bg-gold/10 hover:text-ivory"
+            onClick={() => router.push('/admin/blog')}
+            className="text-ivory/70 hover:bg-gold/10 hover:text-ivory rounded-lg p-2 transition"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
           <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-gold">
-              {isEditing ? "Modifier" : "Nouvel article"}
+            <p className="text-gold text-sm uppercase tracking-[0.3em]">
+              {isEditing ? 'Modifier' : 'Nouvel article'}
             </p>
-            <h1 className="mt-1 text-2xl font-semibold text-ivory truncate max-w-md">
-              {formData.title || "Sans titre"}
+            <h1 className="text-ivory mt-1 max-w-md truncate text-2xl font-semibold">
+              {formData.title || 'Sans titre'}
             </h1>
           </div>
         </div>
@@ -380,7 +376,7 @@ export function BlogPostForm({ post, jobId }: BlogPostFormProps) {
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className="flex items-center gap-2 rounded-lg bg-gold px-6 py-2.5 font-medium text-night transition hover:bg-gold/90 disabled:opacity-50"
+            className="bg-gold text-night hover:bg-gold/90 flex items-center gap-2 rounded-lg px-6 py-2.5 font-medium transition disabled:opacity-50"
           >
             {isSaving ? (
               <>
@@ -403,11 +399,7 @@ export function BlogPostForm({ post, jobId }: BlogPostFormProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
       >
-        <Tabs
-          items={tabs}
-          defaultTab="essentials"
-          onChange={setActiveTab}
-        />
+        <Tabs items={tabs} defaultTab="essentials" onChange={setActiveTab} />
       </motion.div>
 
       {/* Social Diffusion Section */}
@@ -416,12 +408,7 @@ export function BlogPostForm({ post, jobId }: BlogPostFormProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.2 }}
       >
-        <SocialDiffusionSection
-          blogSlug={formData.slug}
-          blogTitle={formData.title}
-          blogImage={formData.image}
-          isNewPost={!isEditing}
-        />
+        <SocialDiffusionSection blogSlug={formData.slug} isNewPost={!isEditing} />
       </motion.div>
 
       {/* Action Footer */}
@@ -432,15 +419,15 @@ export function BlogPostForm({ post, jobId }: BlogPostFormProps) {
         className="flex flex-col gap-3 sm:flex-row sm:justify-end"
       >
         <button
-          onClick={() => router.push("/admin/blog")}
-          className="rounded-lg border border-gold/20 px-6 py-3 font-medium text-ivory/70 transition hover:border-gold/40 hover:text-ivory"
+          onClick={() => router.push('/admin/blog')}
+          className="border-gold/20 text-ivory/70 hover:border-gold/40 hover:text-ivory rounded-lg border px-6 py-3 font-medium transition"
         >
           Annuler
         </button>
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className="flex items-center justify-center gap-2 rounded-lg bg-gold px-8 py-3 font-medium text-night transition hover:bg-gold/90 disabled:opacity-50"
+          className="bg-gold text-night hover:bg-gold/90 flex items-center justify-center gap-2 rounded-lg px-8 py-3 font-medium transition disabled:opacity-50"
         >
           {isSaving ? (
             <>
@@ -450,7 +437,7 @@ export function BlogPostForm({ post, jobId }: BlogPostFormProps) {
           ) : formData.published ? (
             <>
               <Save className="h-5 w-5" />
-              {isEditing ? "Mettre à jour" : "Publier l'article"}
+              {isEditing ? 'Mettre à jour' : "Publier l'article"}
             </>
           ) : (
             <>

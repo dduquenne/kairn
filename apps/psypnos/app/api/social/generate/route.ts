@@ -13,7 +13,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { withAdminAuth } from '@/app/api/auth/middleware';
-import { getPostBySlug } from '@/lib/blog';
+import { getPostBySlugAsync } from '@/lib/blog';
 import {
   generateForMultiplePlatforms,
   checkGenerationConfig,
@@ -82,7 +82,13 @@ function validateRequestBody(body: unknown): {
     return { valid: false, error: 'platforms doit être un tableau non vide' };
   }
 
-  const validPlatforms: SocialPlatform[] = ['FACEBOOK', 'LINKEDIN', 'INSTAGRAM', 'TWITTER', 'THREADS'];
+  const validPlatforms: SocialPlatform[] = [
+    'FACEBOOK',
+    'LINKEDIN',
+    'INSTAGRAM',
+    'TWITTER',
+    'THREADS',
+  ];
   for (const p of b.platforms) {
     if (!validPlatforms.includes(p as SocialPlatform)) {
       return { valid: false, error: `Plateforme invalide: ${p}` };
@@ -90,7 +96,13 @@ function validateRequestBody(body: unknown): {
   }
 
   // tone requis
-  const validTones: ContentTone[] = ['informatif', 'inspirant', 'promotionnel', 'educatif', 'personnel'];
+  const validTones: ContentTone[] = [
+    'informatif',
+    'inspirant',
+    'promotionnel',
+    'educatif',
+    'personnel',
+  ];
   if (!b.tone || !validTones.includes(b.tone as ContentTone)) {
     return { valid: false, error: 'tone invalide ou manquant' };
   }
@@ -103,10 +115,17 @@ function validateRequestBody(body: unknown): {
 
   // instagramFormat optionnel mais doit être valide si fourni
   const validInstagramFormats: InstagramPostFormat[] = [
-    'hook_reveal', 'liste_visuelle', 'micro_storytelling',
-    'question_rhethorique', 'citation_reflexion', 'mythe_realite'
+    'hook_reveal',
+    'liste_visuelle',
+    'micro_storytelling',
+    'question_rhethorique',
+    'citation_reflexion',
+    'mythe_realite',
   ];
-  if (b.instagramFormat && !validInstagramFormats.includes(b.instagramFormat as InstagramPostFormat)) {
+  if (
+    b.instagramFormat &&
+    !validInstagramFormats.includes(b.instagramFormat as InstagramPostFormat)
+  ) {
     return { valid: false, error: 'instagramFormat invalide' };
   }
 
@@ -120,8 +139,12 @@ function validateRequestBody(body: unknown): {
 
   // threadsFormat optionnel mais doit être valide si fourni
   const validThreadsFormats: ThreadsPostFormat[] = [
-    'pensee_brute', 'observation_cabinet', 'question_ouverte',
-    'micro_confession', 'fragment_poetique', 'contre_intuitif'
+    'pensee_brute',
+    'observation_cabinet',
+    'question_ouverte',
+    'micro_confession',
+    'fragment_poetique',
+    'contre_intuitif',
   ];
   if (b.threadsFormat && !validThreadsFormats.includes(b.threadsFormat as ThreadsPostFormat)) {
     return { valid: false, error: 'threadsFormat invalide' };
@@ -137,8 +160,12 @@ function validateRequestBody(body: unknown): {
 
   // linkedinFormat optionnel mais doit être valide si fourni
   const validLinkedInFormats: LinkedInPostFormat[] = [
-    'observation_pro', 'contre_intuition', 'liste_puces',
-    'storytelling_court', 'question_provocante', 'temoignage_terrain'
+    'observation_pro',
+    'contre_intuition',
+    'liste_puces',
+    'storytelling_court',
+    'question_provocante',
+    'temoignage_terrain',
   ];
   if (b.linkedinFormat && !validLinkedInFormats.includes(b.linkedinFormat as LinkedInPostFormat)) {
     return { valid: false, error: 'linkedinFormat invalide' };
@@ -187,10 +214,7 @@ export async function POST(request: NextRequest) {
   // Vérifier la configuration
   const configCheck = checkGenerationConfig();
   if (!configCheck.valid) {
-    return NextResponse.json(
-      { error: configCheck.error },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: configCheck.error }, { status: 500 });
   }
 
   try {
@@ -199,10 +223,7 @@ export async function POST(request: NextRequest) {
     const validation = validateRequestBody(body);
 
     if (!validation.valid || !validation.data) {
-      return NextResponse.json(
-        { error: validation.error },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
     const {
@@ -220,12 +241,9 @@ export async function POST(request: NextRequest) {
     } = validation.data;
 
     // Récupérer l'article
-    const article = await getPostBySlug(blogSlug);
+    const article = await getPostBySlugAsync(blogSlug);
     if (!article) {
-      return NextResponse.json(
-        { error: `Article non trouvé: ${blogSlug}` },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: `Article non trouvé: ${blogSlug}` }, { status: 404 });
     }
 
     // Préparer l'input pour la génération
@@ -312,23 +330,17 @@ export async function GET(request: NextRequest) {
     const platformsParam = searchParams.get('platforms');
 
     if (!blogSlug) {
-      return NextResponse.json(
-        { error: 'blogSlug requis' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'blogSlug requis' }, { status: 400 });
     }
 
     const platforms = platformsParam
       ? (platformsParam.split(',') as SocialPlatform[])
-      : ['FACEBOOK', 'LINKEDIN', 'INSTAGRAM'] as SocialPlatform[];
+      : (['FACEBOOK', 'LINKEDIN', 'INSTAGRAM'] as SocialPlatform[]);
 
     // Récupérer l'article
-    const article = await getPostBySlug(blogSlug);
+    const article = await getPostBySlugAsync(blogSlug);
     if (!article) {
-      return NextResponse.json(
-        { error: `Article non trouvé: ${blogSlug}` },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: `Article non trouvé: ${blogSlug}` }, { status: 404 });
     }
 
     const articleInput: BlogArticleInput = {
