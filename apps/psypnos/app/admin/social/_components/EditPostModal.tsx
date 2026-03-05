@@ -1,12 +1,14 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Clock, Save, Loader2, AlertCircle } from 'lucide-react';
+import { X, Calendar, Save, Loader2, AlertCircle } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 
 import type { SocialPlatform } from '@/lib/social/types';
 
 import { SocialPlatformIcon } from '../accounts/_components/SocialPlatformIcon';
+
+import { SuggestedTimeSlots } from './SuggestedTimeSlots';
 
 // ===========================================
 // Types
@@ -25,6 +27,7 @@ interface EditPostModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (postId: string, data: { scheduledAt: string | null; content?: string }) => Promise<void>;
+  articleDate?: string | null;
 }
 
 // ===========================================
@@ -36,45 +39,11 @@ function formatDateTimeLocal(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
-function getOptimalTimes() {
-  const now = new Date();
-  const times = [];
-
-  // Add some optimal posting times
-  const optimalHours = [9, 12, 14, 17, 19];
-
-  for (let dayOffset = 0; dayOffset <= 7; dayOffset++) {
-    for (const hour of optimalHours) {
-      const date = new Date(now);
-      date.setDate(now.getDate() + dayOffset);
-      date.setHours(hour, 0, 0, 0);
-
-      if (date > now) {
-        times.push({
-          date,
-          label: date.toLocaleDateString('fr-FR', {
-            weekday: 'short',
-            day: 'numeric',
-            month: 'short',
-          }),
-          time: `${hour}:00`,
-          isPrimary: [9, 12, 17].includes(hour),
-        });
-      }
-
-      if (times.length >= 15) break;
-    }
-    if (times.length >= 15) break;
-  }
-
-  return times;
-}
-
 // ===========================================
 // Main Component
 // ===========================================
 
-export function EditPostModal({ post, isOpen, onClose, onSave }: EditPostModalProps) {
+export function EditPostModal({ post, isOpen, onClose, onSave, articleDate }: EditPostModalProps) {
   const [scheduledDate, setScheduledDate] = useState<string>('');
   const [content, setContent] = useState<string>('');
   const [isContentEdited, setIsContentEdited] = useState(false);
@@ -123,8 +92,6 @@ export function EditPostModal({ post, isOpen, onClose, onSave }: EditPostModalPr
     setContent(value);
     setIsContentEdited(true);
   }, []);
-
-  const optimalTimes = getOptimalTimes();
 
   // Character count
   const maxLength: Record<SocialPlatform, number> = {
@@ -205,31 +172,15 @@ export function EditPostModal({ post, isOpen, onClose, onSave }: EditPostModalPr
                     : 'Laissez vide pour convertir en brouillon'}
                 </p>
 
-                {/* Quick Time Suggestions */}
-                <div className="space-y-2">
-                  <span className="text-ivory/50 flex items-center gap-1 text-xs">
-                    <Clock className="h-3 w-3" />
-                    Créneaux suggérés
-                  </span>
-                  <div className="flex flex-wrap gap-2">
-                    {optimalTimes.slice(0, 8).map((slot, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleQuickTime(slot.date)}
-                        className={`
-                          rounded-lg border px-3 py-1.5 text-xs transition
-                          ${
-                            slot.isPrimary
-                              ? 'border-gold/40 bg-gold/10 text-gold hover:bg-gold/20'
-                              : 'border-gold/20 bg-night/30 text-ivory/70 hover:border-gold/40 hover:text-ivory'
-                          }
-                        `}
-                      >
-                        {slot.label} {slot.time}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                {/* Suggested Time Slots */}
+                {post && (
+                  <SuggestedTimeSlots
+                    platform={post.platform}
+                    articleDate={articleDate}
+                    selectedDate={scheduledDate ? new Date(scheduledDate) : null}
+                    onSelect={handleQuickTime}
+                  />
+                )}
               </div>
 
               {/* Content Editor */}

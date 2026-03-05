@@ -5,16 +5,14 @@ import {
   X,
   Save,
   Calendar,
-  Clock,
   Send,
   FileText,
   Loader2,
   AlertCircle,
   CheckCircle,
-  Sparkles,
   ChevronDown,
 } from 'lucide-react';
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import type {
   SocialPlatform,
@@ -23,8 +21,9 @@ import type {
   ContentTone,
   ContentAngle,
 } from '@/lib/social/types';
-import { OPTIMAL_POSTING_TIMES, PLATFORM_SPECS } from '@/lib/social/types';
+import { PLATFORM_SPECS } from '@/lib/social/types';
 
+import { SuggestedTimeSlots } from '../../../_components/SuggestedTimeSlots';
 import { SocialPlatformIcon } from '../../../accounts/_components/SocialPlatformIcon';
 
 // ===========================================
@@ -37,6 +36,7 @@ interface SavePostModalProps {
   generations: GeneratedContent[];
   blogSlug: string;
   blogTitle: string;
+  articleDate?: string;
   articleImage?: string;
   tone: ContentTone;
   angle: ContentAngle;
@@ -54,71 +54,9 @@ interface PostConfig {
 
 type SaveMode = 'draft' | 'schedule' | 'now';
 
-interface SuggestedTime {
-  date: Date;
-  label: string;
-  isPrimary: boolean;
-}
-
 // ===========================================
 // Helpers
 // ===========================================
-
-function getNextOptimalTimes(platform: SocialPlatform, count: number = 5): SuggestedTime[] {
-  const now = new Date();
-  const slots = OPTIMAL_POSTING_TIMES[platform] || [];
-  const suggestions: SuggestedTime[] = [];
-
-  // Générer les 14 prochains jours de créneaux
-  for (let dayOffset = 0; dayOffset < 14 && suggestions.length < count; dayOffset++) {
-    const date = new Date(now);
-    date.setDate(date.getDate() + dayOffset);
-    const dayOfWeek = date.getDay();
-
-    for (const slot of slots) {
-      if (slot.dayOfWeek === dayOfWeek) {
-        const slotDate = new Date(date);
-        slotDate.setHours(slot.hour, 0, 0, 0);
-
-        // Ne pas inclure les créneaux passés
-        if (slotDate > now) {
-          const label = formatSuggestedTime(slotDate);
-          suggestions.push({
-            date: slotDate,
-            label,
-            isPrimary: slot.priority === 'primary',
-          });
-        }
-      }
-    }
-  }
-
-  // Trier par date et retourner les premiers
-  return suggestions.sort((a, b) => a.date.getTime() - b.date.getTime()).slice(0, count);
-}
-
-function formatSuggestedTime(date: Date): string {
-  const now = new Date();
-  const tomorrow = new Date(now);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  const isToday = date.toDateString() === now.toDateString();
-  const isTomorrow = date.toDateString() === tomorrow.toDateString();
-
-  const time = date.toLocaleTimeString('fr-FR', {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-
-  if (isToday) return `Aujourd'hui à ${time}`;
-  if (isTomorrow) return `Demain à ${time}`;
-
-  const day = date.toLocaleDateString('fr-FR', { weekday: 'long' });
-  const dayNum = date.getDate();
-  const month = date.toLocaleDateString('fr-FR', { month: 'short' });
-
-  return `${day.charAt(0).toUpperCase() + day.slice(1)} ${dayNum} ${month} à ${time}`;
-}
 
 function formatDateTimeLocal(date: Date): string {
   const pad = (n: number) => n.toString().padStart(2, '0');
@@ -135,6 +73,7 @@ export function SavePostModal({
   generations,
   blogSlug,
   blogTitle,
+  articleDate,
   articleImage,
   tone,
   angle,
@@ -195,23 +134,6 @@ export function SavePostModal({
       );
     }
   }, [generations, accounts]);
-
-  // Calculer les suggestions d'horaires optimaux pour chaque plateforme
-  const suggestedTimes = useMemo(() => {
-    const times: Record<SocialPlatform, SuggestedTime[]> = {
-      FACEBOOK: [],
-      LINKEDIN: [],
-      INSTAGRAM: [],
-      TWITTER: [],
-      THREADS: [],
-    };
-
-    for (const platform of Object.keys(times) as SocialPlatform[]) {
-      times[platform] = getNextOptimalTimes(platform, 5);
-    }
-
-    return times;
-  }, []);
 
   // Handlers
   const updatePostConfig = useCallback((platform: SocialPlatform, updates: Partial<PostConfig>) => {
@@ -473,39 +395,29 @@ export function SavePostModal({
                         <p className="text-ivory/60 mb-3 text-sm">
                           Date et heure de publication pour tous les posts :
                         </p>
-                        <div className="grid gap-4 sm:grid-cols-2">
-                          <input
-                            type="datetime-local"
-                            value={
-                              globalScheduleDate ? formatDateTimeLocal(globalScheduleDate) : ''
-                            }
-                            onChange={e => {
-                              const date = e.target.value ? new Date(e.target.value) : null;
-                              setGlobalScheduleDate(date);
-                            }}
-                            min={formatDateTimeLocal(new Date())}
-                            className="border-gold/20 bg-night/50 text-ivory focus:border-gold rounded-lg border px-4 py-2 focus:outline-none"
+                        <div className="space-y-4">
+                          <SuggestedTimeSlots
+                            platform={postConfigs[0]?.platform || 'FACEBOOK'}
+                            articleDate={articleDate}
+                            selectedDate={globalScheduleDate}
+                            onSelect={setGlobalScheduleDate}
                           />
-                          <div className="space-y-2">
-                            <p className="text-ivory/50 flex items-center gap-2 text-xs">
-                              <Sparkles className="h-3 w-3" />
-                              Suggestions :
+                          <div>
+                            <p className="text-ivory/40 mb-2 text-xs uppercase tracking-wider">
+                              Ou choisir manuellement
                             </p>
-                            <div className="flex flex-wrap gap-2">
-                              {suggestedTimes.FACEBOOK.slice(0, 3).map((time, idx) => (
-                                <button
-                                  key={idx}
-                                  onClick={() => setGlobalScheduleDate(time.date)}
-                                  className={`rounded-full px-3 py-1 text-xs transition ${
-                                    time.isPrimary
-                                      ? 'bg-gold/20 text-gold hover:bg-gold/30'
-                                      : 'bg-ivory/10 text-ivory/70 hover:bg-ivory/20'
-                                  }`}
-                                >
-                                  {time.label}
-                                </button>
-                              ))}
-                            </div>
+                            <input
+                              type="datetime-local"
+                              value={
+                                globalScheduleDate ? formatDateTimeLocal(globalScheduleDate) : ''
+                              }
+                              onChange={e => {
+                                const date = e.target.value ? new Date(e.target.value) : null;
+                                setGlobalScheduleDate(date);
+                              }}
+                              min={formatDateTimeLocal(new Date())}
+                              className="border-gold/20 bg-night/50 text-ivory focus:border-gold w-full rounded-lg border px-4 py-2 focus:outline-none"
+                            />
                           </div>
                         </div>
                       </div>
@@ -525,7 +437,6 @@ export function SavePostModal({
                       const platformAccounts = getAccountsForPlatform(config.platform);
                       const hasAccount = platformAccounts.length > 0;
                       const isExpanded = expandedPlatform === config.platform;
-                      const platformSuggestions = suggestedTimes[config.platform] || [];
 
                       return (
                         <div
@@ -614,49 +525,39 @@ export function SavePostModal({
 
                                   {/* Individual Schedule */}
                                   {saveMode === 'schedule' && useIndividualSchedules && (
-                                    <div>
-                                      <label className="text-ivory/60 mb-2 block text-sm">
-                                        <Clock className="mr-1 inline h-4 w-4" />
-                                        Date de publication
-                                      </label>
-                                      <input
-                                        type="datetime-local"
-                                        value={
-                                          config.scheduledAt
-                                            ? formatDateTimeLocal(config.scheduledAt)
-                                            : ''
-                                        }
-                                        onChange={e => {
-                                          const date = e.target.value
-                                            ? new Date(e.target.value)
-                                            : null;
+                                    <div className="space-y-3">
+                                      <SuggestedTimeSlots
+                                        platform={config.platform}
+                                        articleDate={articleDate}
+                                        selectedDate={config.scheduledAt}
+                                        onSelect={date =>
                                           updatePostConfig(config.platform, {
                                             scheduledAt: date,
-                                          });
-                                        }}
-                                        min={formatDateTimeLocal(new Date())}
-                                        className="border-gold/20 bg-night/50 text-ivory focus:border-gold w-full rounded-lg border px-4 py-2 focus:outline-none"
+                                          })
+                                        }
                                       />
-
-                                      {/* Platform-specific suggestions */}
-                                      <div className="mt-2 flex flex-wrap gap-2">
-                                        {platformSuggestions.map((time, idx) => (
-                                          <button
-                                            key={idx}
-                                            onClick={() =>
-                                              updatePostConfig(config.platform, {
-                                                scheduledAt: time.date,
-                                              })
-                                            }
-                                            className={`rounded-full px-2.5 py-1 text-xs transition ${
-                                              time.isPrimary
-                                                ? 'bg-gold/20 text-gold hover:bg-gold/30'
-                                                : 'bg-ivory/10 text-ivory/70 hover:bg-ivory/20'
-                                            }`}
-                                          >
-                                            {time.label}
-                                          </button>
-                                        ))}
+                                      <div>
+                                        <p className="text-ivory/40 mb-2 text-xs uppercase tracking-wider">
+                                          Ou choisir manuellement
+                                        </p>
+                                        <input
+                                          type="datetime-local"
+                                          value={
+                                            config.scheduledAt
+                                              ? formatDateTimeLocal(config.scheduledAt)
+                                              : ''
+                                          }
+                                          onChange={e => {
+                                            const date = e.target.value
+                                              ? new Date(e.target.value)
+                                              : null;
+                                            updatePostConfig(config.platform, {
+                                              scheduledAt: date,
+                                            });
+                                          }}
+                                          min={formatDateTimeLocal(new Date())}
+                                          className="border-gold/20 bg-night/50 text-ivory focus:border-gold w-full rounded-lg border px-4 py-2 focus:outline-none"
+                                        />
                                       </div>
                                     </div>
                                   )}
