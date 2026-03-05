@@ -108,6 +108,60 @@ export interface GeneratedPrompt {
 }
 
 // ===========================================
+// Helpers
+// ===========================================
+
+/** URL du site (production) */
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://psypnos.fr';
+
+/**
+ * Mapping plateforme → utm_source
+ */
+const PLATFORM_UTM_SOURCE: Record<SocialPlatform, string> = {
+  FACEBOOK: 'facebook',
+  LINKEDIN: 'linkedin',
+  INSTAGRAM: 'instagram',
+  TWITTER: 'twitter',
+  THREADS: 'threads',
+};
+
+/**
+ * Construit l'URL d'un article avec les paramètres UTM pour une plateforme donnée
+ */
+function buildArticleLinkWithUtm(slug: string, platform: SocialPlatform): string {
+  const source = PLATFORM_UTM_SOURCE[platform];
+  return `${SITE_URL}/blog/${slug}?utm_source=${source}&utm_medium=social&utm_content=blog`;
+}
+
+/**
+ * Construit la section de contexte image + lien pour les prompts
+ */
+function buildMediaAndLinkContext(article: BlogArticleInput, platform: SocialPlatform): string {
+  const articleLink = buildArticleLinkWithUtm(article.slug, platform);
+  const hasImage = Boolean(article.imageUrl);
+
+  const lines: string[] = [
+    '═══════════════════════════════════════════',
+    "IMAGE ET LIEN DE L'ARTICLE",
+    '═══════════════════════════════════════════',
+    '',
+  ];
+
+  if (hasImage) {
+    lines.push(
+      `Une image est associée à cet article et sera AUTOMATIQUEMENT attachée au post.`,
+      `URL de l'image : ${article.imageUrl}`,
+      `Rédige ton contenu en tenant compte qu'une image accompagnera le post (ne décris pas l'image).`,
+      ''
+    );
+  }
+
+  lines.push(`Lien vers l'article : ${articleLink}`);
+
+  return lines.join('\n');
+}
+
+// ===========================================
 // Contexte Psypnos
 // ===========================================
 
@@ -198,6 +252,9 @@ function buildInstagramPrompt(article: BlogArticleInput, options: GenerationProm
     .map(e => `• ${e.category}: ${e.emojis.join(' ')} - ${e.usage}`)
     .join('\n');
 
+  const mediaAndLinkContext = buildMediaAndLinkContext(article, 'INSTAGRAM');
+  const articleLink = buildArticleLinkWithUtm(article.slug, 'INSTAGRAM');
+
   return `Génère un post Instagram NATIF et ENGAGEANT pour l'article suivant.
 
 ═══════════════════════════════════════════
@@ -211,6 +268,10 @@ ${article.tags?.length ? `Tags: ${article.tags.join(', ')}` : ''}
 
 Contenu:
 ${contentSummary}
+
+${mediaAndLinkContext}
+Sur Instagram, les liens ne sont pas cliquables dans les légendes.
+Mentionne "lien en bio" pour rediriger vers : ${articleLink}
 
 ═══════════════════════════════════════════
 FORMAT DE POST INSTAGRAM
@@ -361,6 +422,9 @@ function buildThreadsPrompt(article: BlogArticleInput, options: GenerationPrompt
     .map(h => `• ${h.name}: "${h.pattern}"\n  Exemples: ${h.examples.slice(0, 2).join(' | ')}`)
     .join('\n');
 
+  const mediaAndLinkContext = buildMediaAndLinkContext(article, 'THREADS');
+  const articleLink = buildArticleLinkWithUtm(article.slug, 'THREADS');
+
   return `Génère un post Threads AUTHENTIQUE et COURT pour partager cet article.
 
 ═══════════════════════════════════════════
@@ -370,9 +434,12 @@ RÈGLE CRITIQUE : LIMITE DE CARACTÈRES
 ⚠️ THREADS A UNE LIMITE DE 500 CARACTÈRES MAXIMUM ⚠️
 
 Tu dois générer un post de ${THREADS_RULES.optimalLength} CARACTÈRES maximum (hors lien).
-Le lien sera ajouté automatiquement, ne l'inclus PAS dans le contenu.
+Le lien suivant sera ajouté automatiquement APRÈS ton contenu, ne l'inclus PAS dans le texte :
+${articleLink}
 
 Compte les caractères ! Un post Threads réussi = UNE pensée courte et percutante.
+
+${mediaAndLinkContext}
 
 ═══════════════════════════════════════════
 ARTICLE SOURCE
@@ -528,6 +595,9 @@ function buildFacebookPrompt(article: BlogArticleInput, options: GenerationPromp
     .map(e => `• ${e.category}: ${e.emojis.join(' ')} - ${e.usage}`)
     .join('\n');
 
+  const mediaAndLinkContext = buildMediaAndLinkContext(article, 'FACEBOOK');
+  const articleLink = buildArticleLinkWithUtm(article.slug, 'FACEBOOK');
+
   return `Génère un post Facebook NATIF et ENGAGEANT pour l'article suivant.
 
 ═══════════════════════════════════════════
@@ -541,6 +611,11 @@ ${article.tags?.length ? `Tags: ${article.tags.join(', ')}` : ''}
 
 Contenu:
 ${contentSummary}
+
+${mediaAndLinkContext}
+Le lien suivant sera attaché automatiquement au post Facebook (aperçu avec image) :
+${articleLink}
+NE PAS inclure ce lien dans le texte du post — il sera ajouté comme lien de partage.
 
 ═══════════════════════════════════════════
 FORMAT DE POST FACEBOOK : "${formatSpec.name}"
@@ -708,6 +783,9 @@ function buildLinkedInPrompt(article: BlogArticleInput, options: GenerationPromp
     .map(e => `• ${e.category}: ${e.emojis.join(' ')} - ${e.usage}`)
     .join('\n');
 
+  const mediaAndLinkContext = buildMediaAndLinkContext(article, 'LINKEDIN');
+  const articleLink = buildArticleLinkWithUtm(article.slug, 'LINKEDIN');
+
   return `Génère un post LinkedIn PROFESSIONNEL et ENGAGEANT pour l'article suivant.
 
 ═══════════════════════════════════════════
@@ -721,6 +799,11 @@ ${article.tags?.length ? `Tags: ${article.tags.join(', ')}` : ''}
 
 Contenu:
 ${contentSummary}
+
+${mediaAndLinkContext}
+Le lien vers l'article sera placé en commentaire (bonne pratique LinkedIn).
+Mentionne dans le post que le lien complet est en commentaire.
+Lien : ${articleLink}
 
 ═══════════════════════════════════════════
 FORMAT DE POST LINKEDIN : "${formatSpec.name}"
@@ -937,6 +1020,9 @@ export function buildUserPrompt(
   const contentSummary =
     article.content.length > 3000 ? article.content.substring(0, 3000) + '...' : article.content;
 
+  const mediaAndLinkContext = buildMediaAndLinkContext(article, platform);
+  const articleLink = buildArticleLinkWithUtm(article.slug, platform);
+
   const prompt = `Génère un post ${spec.name} pour l'article suivant.
 
 ═══════════════════════════════════════════
@@ -951,6 +1037,9 @@ ${article.author ? `Auteur: ${article.author}` : ''}
 
 Contenu:
 ${contentSummary}
+
+${mediaAndLinkContext}
+Lien vers l'article (à inclure dans le post si la plateforme le permet) : ${articleLink}
 
 ═══════════════════════════════════════════
 SPÉCIFICATIONS ${spec.name.toUpperCase()}
@@ -1016,9 +1105,12 @@ export function buildMultiPlatformPrompt(
   const contentSummary =
     article.content.length > 3000 ? article.content.substring(0, 3000) + '...' : article.content;
 
+  const hasImage = Boolean(article.imageUrl);
+
   const platformSpecs = platforms
     .map(platform => {
       const spec = PLATFORM_GENERATION_SPECS[platform];
+      const articleLink = buildArticleLinkWithUtm(article.slug, platform);
 
       // Threads utilise des caractères, pas des mots
       if (platform === 'THREADS') {
@@ -1028,7 +1120,7 @@ export function buildMultiPlatformPrompt(
 - Ton: ${spec.tone}
 - Style: pensée courte et spontanée, comme un tweet
 - Hashtags: 0-1 maximum (Threads n'aime pas les hashtags)
-- Lien: sera ajouté automatiquement après le texte
+- Lien article (ajouté automatiquement après le texte) : ${articleLink}
 - IMPORTANT: Une seule idée percutante, pas de développement`;
       }
 
@@ -1038,7 +1130,8 @@ export function buildMultiPlatformPrompt(
 - Ton: ${spec.tone}
 - Structure: ${spec.structure.join(' → ')}
 - Hashtags: ${spec.optimalHashtags} (style: ${spec.hashtagStyle})
-- Lien: ${spec.linkPlacement === 'inline' ? 'dans le post' : spec.linkPlacement === 'comment' ? 'en commentaire' : 'lien en bio'}
+- Lien article : ${articleLink}
+- Placement du lien: ${spec.linkPlacement === 'inline' ? 'dans le post' : spec.linkPlacement === 'comment' ? 'en commentaire (mentionner dans le texte)' : 'lien en bio (mentionner dans le texte)'}
 - Émojis: ${spec.emojiUsage}`;
     })
     .join('\n');
@@ -1056,6 +1149,12 @@ ${article.tags?.length ? `Tags: ${article.tags.join(', ')}` : ''}
 
 Contenu:
 ${contentSummary}
+
+═══════════════════════════════════════════
+IMAGE ET LIEN
+═══════════════════════════════════════════
+
+${hasImage ? `Une image est associée à cet article (${article.imageUrl}) et sera attachée à chaque post.\nRédige les contenus en sachant qu'une image accompagnera chaque publication.` : "Aucune image n'est associée à cet article."}
 
 ═══════════════════════════════════════════
 PLATEFORMES CIBLES
