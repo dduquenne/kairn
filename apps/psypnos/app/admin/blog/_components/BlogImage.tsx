@@ -1,36 +1,44 @@
-"use client";
+'use client';
 
-import { Loader2, ImageOff, RefreshCw } from "lucide-react";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { Loader2, ImageOff, RefreshCw } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 /**
- * Convertit un chemin d'image en URL API pour le servir dynamiquement
+ * Convertit un chemin d'image en URL affichable
  *
- * Cela résout le problème du mode standalone de Next.js où les fichiers
- * créés dynamiquement dans /public ne sont pas accessibles directement.
+ * - URLs complètes (Supabase) : retournées directement
+ * - Chemins locaux (/images/blog/...) : routés via /api/blog/image pour
+ *   résoudre le problème du mode standalone de Next.js
  *
- * @param imagePath - Chemin de l'image (ex: /images/blog/slug.webp ou /images/blog/temp/file.webp)
+ * @param imagePath - Chemin ou URL de l'image
  * @param bustCache - Ajouter un timestamp pour forcer le rechargement
- * @returns URL de l'API pour servir l'image
+ * @returns URL affichable pour l'image
  */
 export function getBlogImageUrl(imagePath: string | undefined, bustCache = true): string {
-  if (!imagePath) return "";
+  if (!imagePath) return '';
 
   // Nettoyer le chemin des paramètres existants
-  const cleanPath = imagePath.split("?")[0] ?? imagePath;
+  const cleanPath = imagePath.split('?')[0] ?? imagePath;
 
-  // Extraire le chemin relatif après /images/blog/
-  let relativePath = cleanPath;
-  if (cleanPath.startsWith("/images/blog/")) {
-    relativePath = cleanPath.replace("/images/blog/", "");
-  } else if (cleanPath.startsWith("images/blog/")) {
-    relativePath = cleanPath.replace("images/blog/", "");
+  // URLs complètes (Supabase ou autre CDN) : utiliser directement
+  if (cleanPath.startsWith('http://') || cleanPath.startsWith('https://')) {
+    if (bustCache) {
+      const separator = cleanPath.includes('?') ? '&' : '?';
+      return `${cleanPath}${separator}t=${Date.now()}`;
+    }
+    return cleanPath;
   }
 
-  // Construire l'URL de l'API
+  // Chemins locaux : router via l'API
+  let relativePath = cleanPath;
+  if (cleanPath.startsWith('/images/blog/')) {
+    relativePath = cleanPath.replace('/images/blog/', '');
+  } else if (cleanPath.startsWith('images/blog/')) {
+    relativePath = cleanPath.replace('images/blog/', '');
+  }
+
   const apiUrl = `/api/blog/image?path=${encodeURIComponent(relativePath)}`;
 
-  // Ajouter un timestamp pour le cache-busting si demandé
   if (bustCache) {
     return `${apiUrl}&t=${Date.now()}`;
   }
@@ -43,21 +51,26 @@ export function getBlogImageUrl(imagePath: string | undefined, bustCache = true)
  * Utilisé pour stocker le chemin dans la base de données sans le timestamp
  */
 export function getCleanImagePath(imagePath: string | undefined): string {
-  if (!imagePath) return "";
+  if (!imagePath) return '';
 
-  // Retirer les paramètres de requête
-  const cleanPath = imagePath.split("?")[0] ?? imagePath;
-
-  // Si c'est déjà un chemin relatif au dossier blog, le garder
-  if (!cleanPath.startsWith("/") && !cleanPath.startsWith("http")) {
-    return `/images/blog/${cleanPath}`;
+  // Si c'est une URL API, extraire le chemin AVANT de supprimer les query params
+  if (imagePath.includes('/api/blog/image')) {
+    const url = new URL(imagePath, 'http://localhost');
+    const path = url.searchParams.get('path');
+    return path ? `/images/blog/${path}` : '';
   }
 
-  // Si c'est une URL API, extraire le chemin
-  if (cleanPath.includes("/api/blog/image")) {
-    const url = new URL(cleanPath, "http://localhost");
-    const path = url.searchParams.get("path");
-    return path ? `/images/blog/${path}` : "";
+  // Retirer les paramètres de requête
+  const cleanPath = imagePath.split('?')[0] ?? imagePath;
+
+  // URLs Supabase : retourner telles quelles (ce sont les URLs de stockage)
+  if (cleanPath.startsWith('http://') || cleanPath.startsWith('https://')) {
+    return cleanPath;
+  }
+
+  // Si c'est déjà un chemin relatif au dossier blog, le garder
+  if (!cleanPath.startsWith('/')) {
+    return `/images/blog/${cleanPath}`;
   }
 
   // Sinon retourner tel quel (devrait être /images/blog/...)
@@ -99,7 +112,7 @@ interface BlogImageProps {
   reloadKey?: string | number;
 }
 
-type LoadingState = "loading" | "loaded" | "error";
+type LoadingState = 'loading' | 'loaded' | 'error';
 
 /**
  * Composant d'image robuste pour le blog avec:
@@ -111,14 +124,14 @@ type LoadingState = "loading" | "loaded" | "error";
 export function BlogImage({
   src,
   alt,
-  className = "",
-  containerClassName = "",
+  className = '',
+  containerClassName = '',
   showRetryButton = true,
   onLoad,
   onError,
   reloadKey,
 }: BlogImageProps) {
-  const [loadingState, setLoadingState] = useState<LoadingState>("loading");
+  const [loadingState, setLoadingState] = useState<LoadingState>('loading');
   const [retryCount, setRetryCount] = useState(0);
   const imgRef = useRef<HTMLImageElement>(null);
 
@@ -126,40 +139,38 @@ export function BlogImage({
   const imageUrl = getBlogImageUrl(src, true);
 
   // Clé unique pour forcer le rechargement quand src ou reloadKey change
-  const uniqueKey = `${imageUrl}-${reloadKey || ""}-${retryCount}`;
+  const uniqueKey = `${imageUrl}-${reloadKey || ''}-${retryCount}`;
 
   // Reset l'état quand l'image change
   useEffect(() => {
     if (src) {
-      setLoadingState("loading");
+      setLoadingState('loading');
       setRetryCount(0);
     } else {
-      setLoadingState("error");
+      setLoadingState('error');
     }
   }, [src, reloadKey]);
 
   const handleLoad = useCallback(() => {
-    setLoadingState("loaded");
+    setLoadingState('loaded');
     onLoad?.();
   }, [onLoad]);
 
   const handleError = useCallback(() => {
-    setLoadingState("error");
+    setLoadingState('error');
     onError?.();
   }, [onError]);
 
   const handleRetry = useCallback(() => {
-    setLoadingState("loading");
-    setRetryCount((prev) => prev + 1);
+    setLoadingState('loading');
+    setRetryCount(prev => prev + 1);
   }, []);
 
   // Si pas d'image source, afficher directement le placeholder
   if (!src) {
     return (
-      <div
-        className={`flex items-center justify-center bg-night/40 ${containerClassName}`}
-      >
-        <div className="flex flex-col items-center gap-2 text-ivory/40">
+      <div className={`bg-night/40 flex items-center justify-center ${containerClassName}`}>
+        <div className="text-ivory/40 flex flex-col items-center gap-2">
           <ImageOff className="h-8 w-8" />
           <span className="text-sm">Aucune image</span>
         </div>
@@ -170,22 +181,22 @@ export function BlogImage({
   return (
     <div className={`relative ${containerClassName}`}>
       {/* Spinner de chargement */}
-      {loadingState === "loading" && (
-        <div className="absolute inset-0 flex items-center justify-center bg-night/60 backdrop-blur-sm z-10">
-          <Loader2 className="h-8 w-8 animate-spin text-gold" />
+      {loadingState === 'loading' && (
+        <div className="bg-night/60 absolute inset-0 z-10 flex items-center justify-center backdrop-blur-sm">
+          <Loader2 className="text-gold h-8 w-8 animate-spin" />
         </div>
       )}
 
       {/* État d'erreur */}
-      {loadingState === "error" && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-night/60 backdrop-blur-sm z-10 gap-3">
+      {loadingState === 'error' && (
+        <div className="bg-night/60 absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 backdrop-blur-sm">
           <ImageOff className="h-8 w-8 text-red-400" />
-          <span className="text-sm text-ivory/60">Impossible de charger l&apos;image</span>
+          <span className="text-ivory/60 text-sm">Impossible de charger l&apos;image</span>
           {showRetryButton && (
             <button
               type="button"
               onClick={handleRetry}
-              className="flex items-center gap-2 rounded-lg bg-gold/20 px-3 py-1.5 text-sm font-medium text-gold transition hover:bg-gold/30"
+              className="bg-gold/20 text-gold hover:bg-gold/30 flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition"
             >
               <RefreshCw className="h-4 w-4" />
               Réessayer
@@ -200,7 +211,7 @@ export function BlogImage({
         key={uniqueKey}
         src={imageUrl}
         alt={alt}
-        className={`${className} ${loadingState === "loading" ? "opacity-0" : "opacity-100"} transition-opacity duration-300`}
+        className={`${className} ${loadingState === 'loading' ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
         onLoad={handleLoad}
         onError={handleError}
         // Désactiver le lazy loading pour les images du formulaire
@@ -231,12 +242,12 @@ export function BlogImageProposal({
   onClick,
   index,
 }: BlogImageProposalProps) {
-  const [loadingState, setLoadingState] = useState<LoadingState>("loading");
+  const [loadingState, setLoadingState] = useState<LoadingState>('loading');
 
   const imageUrl = getBlogImageUrl(src, true);
 
   useEffect(() => {
-    setLoadingState("loading");
+    setLoadingState('loading');
   }, [src]);
 
   return (
@@ -244,23 +255,21 @@ export function BlogImageProposal({
       type="button"
       onClick={onClick}
       className={`group relative aspect-video overflow-hidden rounded-lg border-2 transition ${
-        isSelected
-          ? "border-gold ring-2 ring-gold/30"
-          : "border-gold/20 hover:border-gold/50"
+        isSelected ? 'border-gold ring-gold/30 ring-2' : 'border-gold/20 hover:border-gold/50'
       }`}
     >
       {/* Spinner de chargement */}
-      {loadingState === "loading" && (
-        <div className="absolute inset-0 flex items-center justify-center bg-night/60 z-10">
-          <Loader2 className="h-6 w-6 animate-spin text-gold" />
+      {loadingState === 'loading' && (
+        <div className="bg-night/60 absolute inset-0 z-10 flex items-center justify-center">
+          <Loader2 className="text-gold h-6 w-6 animate-spin" />
         </div>
       )}
 
       {/* État d'erreur */}
-      {loadingState === "error" && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-night/60 z-10">
+      {loadingState === 'error' && (
+        <div className="bg-night/60 absolute inset-0 z-10 flex flex-col items-center justify-center">
           <ImageOff className="h-6 w-6 text-red-400" />
-          <span className="text-xs text-ivory/50 mt-1">Erreur</span>
+          <span className="text-ivory/50 mt-1 text-xs">Erreur</span>
         </div>
       )}
 
@@ -269,20 +278,20 @@ export function BlogImageProposal({
         src={imageUrl}
         alt={alt}
         className={`h-full w-full object-cover transition group-hover:scale-105 ${
-          loadingState === "loading" ? "opacity-0" : "opacity-100"
+          loadingState === 'loading' ? 'opacity-0' : 'opacity-100'
         }`}
-        onLoad={() => setLoadingState("loaded")}
-        onError={() => setLoadingState("error")}
+        onLoad={() => setLoadingState('loaded')}
+        onError={() => setLoadingState('error')}
         loading="eager"
         decoding="sync"
       />
 
       {/* Overlay de sélection */}
-      {isSelected && loadingState === "loaded" && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gold/20">
-          <div className="rounded-full bg-gold p-2">
+      {isSelected && loadingState === 'loaded' && (
+        <div className="bg-gold/20 absolute inset-0 flex items-center justify-center">
+          <div className="bg-gold rounded-full p-2">
             <svg
-              className="h-5 w-5 text-night"
+              className="text-night h-5 w-5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -295,8 +304,8 @@ export function BlogImageProposal({
       )}
 
       {/* Label en bas */}
-      <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-night/80 to-transparent p-3">
-        <p className="text-sm font-medium text-ivory">Option {index + 1}</p>
+      <div className="from-night/80 absolute inset-x-0 bottom-0 bg-gradient-to-t to-transparent p-3">
+        <p className="text-ivory text-sm font-medium">Option {index + 1}</p>
       </div>
     </button>
   );

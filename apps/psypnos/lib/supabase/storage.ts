@@ -5,31 +5,34 @@
  * Supabase Storage Module
  * Handles image upload/delete for blog articles and seminars
  * Falls back to local filesystem if Supabase is not configured
+ *
+ * Les noms de fichier sont utilisés tels quels (pas de normalisation d'extension).
+ * Les appelants sont responsables de fournir l'extension correcte.
  */
 
-import { promises as fs } from "fs";
-import path from "path";
+import { promises as fs } from 'fs';
+import path from 'path';
 
-import { supabase, isSupabaseStorageConfigured } from "./client";
+import { supabase, isSupabaseStorageConfigured } from './client';
 
 // Storage bucket names
 export const BUCKETS = {
-  BLOG_IMAGES: "blog-images",
-  SEMINAR_IMAGES: "seminar-images",
+  BLOG_IMAGES: 'blog-images',
+  SEMINAR_IMAGES: 'seminar-images',
 } as const;
 
 export type BucketName = (typeof BUCKETS)[keyof typeof BUCKETS];
 
 // Local fallback paths
 const LOCAL_PATHS: Record<BucketName, string> = {
-  [BUCKETS.BLOG_IMAGES]: "public/images/blog",
-  [BUCKETS.SEMINAR_IMAGES]: "public/images/seminars",
+  [BUCKETS.BLOG_IMAGES]: 'public/images/blog',
+  [BUCKETS.SEMINAR_IMAGES]: 'public/images/seminars',
 };
 
 // Public URL paths for local storage
 const PUBLIC_URL_PATHS: Record<BucketName, string> = {
-  [BUCKETS.BLOG_IMAGES]: "/images/blog",
-  [BUCKETS.SEMINAR_IMAGES]: "/images/seminars",
+  [BUCKETS.BLOG_IMAGES]: '/images/blog',
+  [BUCKETS.SEMINAR_IMAGES]: '/images/seminars',
 };
 
 interface UploadResult {
@@ -50,22 +53,15 @@ export async function uploadImage(
   bucket: BucketName,
   filename: string,
   buffer: Buffer,
-  contentType: string = "image/webp"
+  contentType: string = 'image/webp'
 ): Promise<UploadResult> {
-  // Ensure filename has .webp extension
-  const normalizedFilename = filename.endsWith(".webp")
-    ? filename
-    : `${filename}.webp`;
-
   if (isSupabaseStorageConfigured() && supabase) {
     try {
       // Upload to Supabase Storage
-      const { error } = await supabase.storage
-        .from(bucket)
-        .upload(normalizedFilename, buffer, {
-          contentType,
-          upsert: true, // Overwrite if exists
-        });
+      const { error } = await supabase.storage.from(bucket).upload(filename, buffer, {
+        contentType,
+        upsert: true, // Overwrite if exists
+      });
 
       if (error) {
         console.error(`Supabase upload error: ${error.message}`);
@@ -75,19 +71,18 @@ export async function uploadImage(
       // Get public URL
       const {
         data: { publicUrl },
-      } = supabase.storage.from(bucket).getPublicUrl(normalizedFilename);
+      } = supabase.storage.from(bucket).getPublicUrl(filename);
 
       return { success: true, url: publicUrl };
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unknown upload error";
+      const message = error instanceof Error ? error.message : 'Unknown upload error';
       console.error(`Supabase upload exception: ${message}`);
       return { success: false, error: message };
     }
   }
 
   // Fallback to local filesystem
-  return uploadImageLocal(bucket, normalizedFilename, buffer);
+  return uploadImageLocal(bucket, filename, buffer);
 }
 
 /**
@@ -113,8 +108,7 @@ async function uploadImageLocal(
 
     return { success: true, url };
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Unknown local upload error";
+    const message = error instanceof Error ? error.message : 'Unknown local upload error';
     console.error(`Local upload error: ${message}`);
     return { success: false, error: message };
   }
@@ -123,19 +117,10 @@ async function uploadImageLocal(
 /**
  * Delete an image from Supabase Storage or local filesystem
  */
-export async function deleteImage(
-  bucket: BucketName,
-  filename: string
-): Promise<DeleteResult> {
-  const normalizedFilename = filename.endsWith(".webp")
-    ? filename
-    : `${filename}.webp`;
-
+export async function deleteImage(bucket: BucketName, filename: string): Promise<DeleteResult> {
   if (isSupabaseStorageConfigured() && supabase) {
     try {
-      const { error } = await supabase.storage
-        .from(bucket)
-        .remove([normalizedFilename]);
+      const { error } = await supabase.storage.from(bucket).remove([filename]);
 
       if (error) {
         console.error(`Supabase delete error: ${error.message}`);
@@ -144,24 +129,20 @@ export async function deleteImage(
 
       return { success: true };
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unknown delete error";
+      const message = error instanceof Error ? error.message : 'Unknown delete error';
       console.error(`Supabase delete exception: ${message}`);
       return { success: false, error: message };
     }
   }
 
   // Fallback to local filesystem
-  return deleteImageLocal(bucket, normalizedFilename);
+  return deleteImageLocal(bucket, filename);
 }
 
 /**
  * Delete image from local filesystem (fallback)
  */
-async function deleteImageLocal(
-  bucket: BucketName,
-  filename: string
-): Promise<DeleteResult> {
+async function deleteImageLocal(bucket: BucketName, filename: string): Promise<DeleteResult> {
   try {
     const localPath = LOCAL_PATHS[bucket];
     const fullPath = path.join(process.cwd(), localPath, filename);
@@ -171,12 +152,11 @@ async function deleteImageLocal(
     return { success: true };
   } catch (error) {
     // File might not exist, which is OK
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
       return { success: true };
     }
 
-    const message =
-      error instanceof Error ? error.message : "Unknown local delete error";
+    const message = error instanceof Error ? error.message : 'Unknown local delete error';
     console.error(`Local delete error: ${message}`);
     return { success: false, error: message };
   }
@@ -186,40 +166,27 @@ async function deleteImageLocal(
  * Get the public URL for an image
  */
 export function getImageUrl(bucket: BucketName, filename: string): string {
-  const normalizedFilename = filename.endsWith(".webp")
-    ? filename
-    : `${filename}.webp`;
-
   if (isSupabaseStorageConfigured() && supabase) {
     const {
       data: { publicUrl },
-    } = supabase.storage.from(bucket).getPublicUrl(normalizedFilename);
+    } = supabase.storage.from(bucket).getPublicUrl(filename);
     return publicUrl;
   }
 
   // Local URL
-  return `${PUBLIC_URL_PATHS[bucket]}/${normalizedFilename}`;
+  return `${PUBLIC_URL_PATHS[bucket]}/${filename}`;
 }
 
 /**
  * Check if an image exists
  */
-export async function imageExists(
-  bucket: BucketName,
-  filename: string
-): Promise<boolean> {
-  const normalizedFilename = filename.endsWith(".webp")
-    ? filename
-    : `${filename}.webp`;
-
+export async function imageExists(bucket: BucketName, filename: string): Promise<boolean> {
   if (isSupabaseStorageConfigured() && supabase) {
     try {
-      const { data, error } = await supabase.storage
-        .from(bucket)
-        .list("", { search: normalizedFilename });
+      const { data, error } = await supabase.storage.from(bucket).list('', { search: filename });
 
       if (error) return false;
-      return data?.some((file) => file.name === normalizedFilename) ?? false;
+      return data?.some(file => file.name === filename) ?? false;
     } catch {
       return false;
     }
@@ -228,7 +195,7 @@ export async function imageExists(
   // Check local filesystem
   try {
     const localPath = LOCAL_PATHS[bucket];
-    const fullPath = path.join(process.cwd(), localPath, normalizedFilename);
+    const fullPath = path.join(process.cwd(), localPath, filename);
     await fs.access(fullPath);
     return true;
   } catch {
@@ -245,7 +212,7 @@ export async function migrateImageToSupabase(
   filename: string
 ): Promise<UploadResult> {
   if (!isSupabaseStorageConfigured()) {
-    return { success: false, error: "Supabase Storage not configured" };
+    return { success: false, error: 'Supabase Storage not configured' };
   }
 
   try {
@@ -258,8 +225,7 @@ export async function migrateImageToSupabase(
     // Upload to Supabase
     return uploadImage(bucket, filename, buffer);
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Unknown migration error";
+    const message = error instanceof Error ? error.message : 'Unknown migration error';
     return { success: false, error: message };
   }
 }
