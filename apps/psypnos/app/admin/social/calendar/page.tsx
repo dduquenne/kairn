@@ -169,7 +169,7 @@ export default function SocialCalendarPage() {
   const [posts, setPosts] = useState<SocialPostCalendar[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   // Edit modal state
   const [editingPost, setEditingPost] = useState<SocialPostCalendar | null>(null);
@@ -219,19 +219,29 @@ export default function SocialCalendarPage() {
     [year, month, posts]
   );
 
+  /** Jour sélectionné dérivé de calendarDays — se met à jour automatiquement quand posts change */
+  const selectedDay = useMemo(() => {
+    if (!selectedDate) return null;
+    return (
+      calendarDays.find(
+        day => day.date.getTime() === selectedDate.getTime() && day.posts.length > 0
+      ) ?? null
+    );
+  }, [calendarDays, selectedDate]);
+
   const goToPreviousMonth = () => {
     setCurrentDate(new Date(year, month - 1, 1));
-    setSelectedDay(null);
+    setSelectedDate(null);
   };
 
   const goToNextMonth = () => {
     setCurrentDate(new Date(year, month + 1, 1));
-    setSelectedDay(null);
+    setSelectedDate(null);
   };
 
   const goToToday = () => {
     setCurrentDate(new Date());
-    setSelectedDay(null);
+    setSelectedDate(null);
   };
 
   const handlePublishNow = async (postId: string) => {
@@ -311,7 +321,7 @@ export default function SocialCalendarPage() {
           variant: 'success',
         });
         setDeletingPostId(null);
-        setSelectedDay(null);
+        setSelectedDate(null);
         loadPosts();
       } else {
         const data = await response.json();
@@ -418,7 +428,7 @@ export default function SocialCalendarPage() {
               {calendarDays.map((day, index) => (
                 <button
                   key={index}
-                  onClick={() => setSelectedDay(day.posts.length > 0 ? day : null)}
+                  onClick={() => setSelectedDate(day.posts.length > 0 ? day.date : null)}
                   className={`
                     min-h-[100px] rounded-lg border p-2 text-left transition
                     ${
@@ -428,7 +438,7 @@ export default function SocialCalendarPage() {
                     }
                     ${day.isToday ? 'border-gold/40 ring-gold/30 ring-1' : ''}
                     ${day.posts.length > 0 ? 'hover:border-gold/30 cursor-pointer' : 'cursor-default'}
-                    ${selectedDay?.date.getTime() === day.date.getTime() ? 'border-gold/50 bg-gold/10' : ''}
+                    ${selectedDate?.getTime() === day.date.getTime() ? 'border-gold/50 bg-gold/10' : ''}
                   `}
                 >
                   <span
@@ -483,7 +493,7 @@ export default function SocialCalendarPage() {
               })}
             </h2>
             <button
-              onClick={() => setSelectedDay(null)}
+              onClick={() => setSelectedDate(null)}
               className="text-ivory/50 hover:text-ivory text-sm"
             >
               Fermer
