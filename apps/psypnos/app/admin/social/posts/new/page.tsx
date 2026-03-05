@@ -954,6 +954,7 @@ export default function NewSocialPostPage() {
         generations={generation.generations}
         blogSlug={selectedArticle?.slug || ''}
         blogTitle={selectedArticle?.title || ''}
+        articleDate={selectedArticle?.date}
         articleImage={selectedArticle?.image}
         tone={selectedTone}
         angle={selectedAngle}
