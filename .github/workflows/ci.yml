@@ -39,6 +39,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate Prisma client
+        run: pnpm --filter @kairn/db db:generate
+
       - name: Lint
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
@@ -69,6 +72,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm --filter @kairn/db db:generate
 
       - name: Type check
         run: |

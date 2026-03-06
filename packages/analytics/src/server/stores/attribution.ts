@@ -113,7 +113,7 @@ export async function getMarketingAttribution(startDate?: string, endDate?: stri
           }
 
           const attr = attributionMap.get(key);
-          if (!attr) continue;
+          if (!attr) return;
           attr.touchpoints++;
           attr.sessions.add(sessionId);
 
