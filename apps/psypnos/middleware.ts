@@ -4,7 +4,7 @@
  * Implements:
  * - Nonce-based Content Security Policy (CSP) for XSS protection
  * - Rate limiting for API routes (single point of enforcement)
- * - Security headers
+ * Note: Static security headers are set in next.config.mjs (single source of truth)
  */
 
 import { NextResponse } from 'next/server';
@@ -125,23 +125,6 @@ function buildCSP(nonce: string): string {
   ].join('; ');
 }
 
-/**
- * Set common security headers on a response
- */
-function setSecurityHeaders(response: NextResponse): void {
-  response.headers.set('X-DNS-Prefetch-Control', 'on');
-  response.headers.set('X-Frame-Options', 'SAMEORIGIN');
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-  response.headers.set(
-    'Permissions-Policy',
-    'camera=(), microphone=(), geolocation=(self), interest-cohort=()'
-  );
-  response.headers.set('X-Permitted-Cross-Domain-Policies', 'none');
-  response.headers.set('X-XSS-Protection', '1; mode=block');
-}
-
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const ip = getClientIP(request);
@@ -221,7 +204,6 @@ export function middleware(request: NextRequest) {
     response.headers.set('X-RateLimit-Remaining', String(result.remaining));
     response.headers.set('X-RateLimit-Reset', String(result.resetAt));
     response.headers.set('Content-Security-Policy', cspHeader);
-    setSecurityHeaders(response);
     return response;
   }
 
@@ -231,7 +213,6 @@ export function middleware(request: NextRequest) {
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set('Content-Security-Policy', cspHeader);
-  setSecurityHeaders(response);
 
   return response;
 }

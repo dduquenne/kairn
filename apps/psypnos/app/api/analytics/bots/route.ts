@@ -139,7 +139,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     const { getSiteId } = await import('@/lib/db/site');
     const siteId = await getSiteId();
 
-    // Fetch all visits in the date range
+    // Fetch visits in the date range (capped at 10 000 to prevent Serverless timeout)
     const visits: BotVisitRecord[] = await prisma.botVisit.findMany({
       where: {
         siteId,
@@ -149,6 +149,7 @@ export async function GET(request: NextRequest): Promise<Response> {
         },
       },
       orderBy: { timestamp: 'desc' },
+      take: 10000,
     });
 
     // Calculate summary stats

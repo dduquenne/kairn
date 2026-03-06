@@ -79,7 +79,7 @@ const nextConfig = {
   // Optimisation des packages
   // Note: @kairn/ui removed from optimizePackageImports to preserve React context sharing
   experimental: {
-    optimizePackageImports: [],
+    optimizePackageImports: ['lucide-react', 'recharts', 'framer-motion'],
     // Enable system TLS certs for Turbopack to fetch Google Fonts
     turbopackUseSystemTlsCerts: true,
   },
@@ -209,13 +209,13 @@ const nextConfig = {
       // PAGES - Smart caching
       // ============================================
 
-      // Homepage - no cache (dynamic SSR data)
+      // Homepage - ISR cache (revalidate=120s in page.tsx)
       {
         source: '/',
         headers: [
           {
             key: 'Cache-Control',
-            value: 'private, no-cache, no-store, must-revalidate',
+            value: 'public, s-maxage=120, stale-while-revalidate=86400',
           },
         ],
       },

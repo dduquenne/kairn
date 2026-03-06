@@ -1,4 +1,5 @@
-/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/ban-ts-comment, no-console */
+// @ts-nocheck — Legacy migration script, BlogPostExtended model removed
 /**
  * Migration: BlogPostExtended → BlogPost
  *

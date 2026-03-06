@@ -7,14 +7,12 @@
  * Les sections avec données dynamiques reçoivent leurs données initiales
  * en props, permettant un rendu instantané.
  *
- * @version 2.0.0 - SSR data loading fixed
+ * @version 2.1.0 - ISR enabled (revalidate=120s) for CDN caching
  */
 
-// Force dynamic rendering to ensure database queries run at request time
-// (not during build when DATABASE_URL may not be available)
-export const dynamic = 'force-dynamic';
-export const revalidate = 0; // Disable ISR completely
-export const fetchCache = 'force-no-store';
+// ISR: revalidate every 120 seconds for fresh data with CDN caching
+// During build, DATABASE_URL is available via Vercel environment
+export const revalidate = 120;
 
 import { Footer } from '../components/Footer';
 import { NavigationMenu } from '../components/NavigationMenu';

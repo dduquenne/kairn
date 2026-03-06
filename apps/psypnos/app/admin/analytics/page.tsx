@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Mail, Users, Download, FileText, Table } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { useState, useCallback, useEffect } from 'react';
 
 import {
@@ -10,19 +11,46 @@ import {
   TabNavigation,
   TabContent,
   InsightsDrawer,
-  TrafficPanel,
-  EngagementPanel,
-  ConversionsPanel,
-  SourcesPanel,
-  SEOPanel,
-  BlogPanel,
-  PostsPanel,
   useAnalytics,
   SimulationProvider,
   useSimulation,
   type PeriodType,
   type TabId,
 } from '../../../components/analytics/v2';
+
+/** Panels chargés en lazy — contiennent recharts (~350 KB) */
+const TrafficPanel = dynamic(
+  () => import('../../../components/analytics/v2/panels/TrafficPanel').then(m => m.TrafficPanel),
+  { ssr: false }
+);
+const EngagementPanel = dynamic(
+  () =>
+    import('../../../components/analytics/v2/panels/EngagementPanel').then(m => m.EngagementPanel),
+  { ssr: false }
+);
+const ConversionsPanel = dynamic(
+  () =>
+    import('../../../components/analytics/v2/panels/ConversionsPanel').then(
+      m => m.ConversionsPanel
+    ),
+  { ssr: false }
+);
+const SourcesPanel = dynamic(
+  () => import('../../../components/analytics/v2/panels/SourcesPanel').then(m => m.SourcesPanel),
+  { ssr: false }
+);
+const SEOPanel = dynamic(
+  () => import('../../../components/analytics/v2/panels/SEOPanel').then(m => m.SEOPanel),
+  { ssr: false }
+);
+const BlogPanel = dynamic(
+  () => import('../../../components/analytics/v2/panels/BlogPanel').then(m => m.BlogPanel),
+  { ssr: false }
+);
+const PostsPanel = dynamic(
+  () => import('../../../components/analytics/v2/panels/PostsPanel').then(m => m.PostsPanel),
+  { ssr: false }
+);
 
 function AnalyticsPageContent() {
   // State

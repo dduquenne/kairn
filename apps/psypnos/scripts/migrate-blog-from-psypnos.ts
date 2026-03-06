@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-nocheck — Legacy migration script, BlogPostExtended model removed
 /**
  * Migration script: Import blog articles from PSYPNOS to KAIRN
  *

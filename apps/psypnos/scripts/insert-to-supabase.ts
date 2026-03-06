@@ -1,4 +1,5 @@
-/* eslint-disable no-console, @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/ban-ts-comment, no-console, @typescript-eslint/no-non-null-assertion */
+// @ts-nocheck — Legacy migration script, BlogPostExtended model removed
 /**
  * Insert blog articles to Supabase KAIRN
  *

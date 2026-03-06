@@ -269,6 +269,7 @@ model BlogPostTag {
   tag    Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([postId, tagId])
+  @@index([tagId])
 }
 
 // =============================================================================
@@ -816,53 +817,11 @@ model Appointment {
 }
 
 // =============================================================================
-// BLOG: EXTENDED CONTENT MODEL (Psypnos-style)
+// BLOG: EXTENDED CONTENT MODEL — DEPRECATED
 // =============================================================================
-
-/// Extended blog post model with full content management features
-/// This extends the base BlogPost for sites that need richer blog functionality
-model BlogPostExtended {
-  id           String   @id @default(cuid())
-  /// URL-friendly slug
-  slug         String   @unique
-  title        String
-  /// Short description for SEO/previews
-  description  String?
-  /// Full content (Markdown/HTML)
-  content      String
-  /// Author name
-  author       String
-  /// Category for organization
-  category     String
-  /// Tags as string array
-  tags         String[]
-  /// Cover/featured image URL
-  image        String?
-  /// AI image generation prompt used
-  imagePrompt  String?
-  /// SEO intent/keyword
-  seoIntent    String?
-  /// Target reader persona
-  persona      String?
-  /// Content tones used
-  tones        String[]
-  /// FAQ section as JSON array [{question, answer, id?}]
-  faq          Json?
-  /// Structured data JSON-LD
-  jsonLd       Json?
-  /// Whether published
-  published    Boolean  @default(false)
-  /// Whether featured on homepage
-  featured     Boolean  @default(false)
-  /// Publication date
-  date         DateTime @default(now())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  @@index([published, date])
-  @@index([category])
-  @@index([featured])
-}
+// BlogPostExtended has been removed. All fields are now part of BlogPost.
+// Migration script: apps/psypnos/scripts/migrate-blogpostextended-to-blogpost.ts
+// The SQL table can be dropped after verifying no data remains.
 
 // =============================================================================
 // BLOG: ANALYTICS & ENGAGEMENT TRACKING

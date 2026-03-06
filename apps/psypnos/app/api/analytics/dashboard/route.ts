@@ -293,6 +293,7 @@ async function fetchGeoData(startDate: Date, endDate: Date) {
         latitude: true,
         longitude: true,
       },
+      take: 10000,
     });
 
     const countryStats: Record<string, { count: number; countryCode: string }> = {};
@@ -376,6 +377,7 @@ async function fetchBlogAnalytics(startDate: Date, endDate: Date) {
         timeOnPage: true,
         completed: true,
       },
+      take: 50000,
     });
 
     const grouped = new Map<
@@ -478,6 +480,7 @@ async function fetchBlogFaqClicks(startDate: Date, endDate: Date) {
     const clicks = await prisma.blogFaqClick.findMany({
       where: { timestamp: { gte: startDate, lte: endDate } },
       orderBy: { timestamp: 'desc' },
+      take: 10000,
     });
 
     const summary: Record<string, { opens: number }> = {};
