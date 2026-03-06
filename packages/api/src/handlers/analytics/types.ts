@@ -109,7 +109,6 @@ export const dashboardQuerySchema = z.object({
   startDate: z.string().optional(),
   endDate: z.string().optional(),
   period: z.enum(['today', '7d', '30d', '90d', 'custom']).default('7d'),
-  siteId: z.string().optional(),
 });
 
 export type DashboardQueryParams = z.infer<typeof dashboardQuerySchema>;
@@ -122,7 +121,6 @@ export const exportQuerySchema = z.object({
   endDate: z.string(),
   format: z.enum(['csv', 'xlsx', 'pdf']).default('csv'),
   type: z.enum(['overview', 'pages', 'events', 'conversions', 'full']).default('overview'),
-  siteId: z.string().optional(),
 });
 
 export type ExportQueryParams = z.infer<typeof exportQuerySchema>;
@@ -382,7 +380,7 @@ export function extractDomain(url: string | null): string | undefined {
  */
 export function hashIP(ip: string): string {
   // Use dynamic import to avoid bundling crypto in client
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   const { createHmac } = require('crypto') as typeof import('crypto');
   const secret = process.env.IP_HASH_SECRET || process.env.JWT_SECRET || 'kairn-ip-hash-fallback';
   return `ip_${createHmac('sha256', secret).update(ip).digest('hex').slice(0, 16)}`;

@@ -64,7 +64,6 @@ export async function handleGetPosts(
     search,
     includeUnpublished,
     featuredFirst,
-    siteId: querySiteId,
   } = queryResult.query;
 
   try {
@@ -78,7 +77,7 @@ export async function handleGetPosts(
       search,
       includeUnpublished,
       featuredFirst,
-      siteId: querySiteId || configSiteId,
+      siteId: configSiteId,
     });
 
     // Cache strategy based on context
@@ -201,8 +200,7 @@ export async function handleCreatePost(
   }
 
   try {
-    // Add siteId if configured
-    const postData = siteId ? { ...data, siteId } : data;
+    const postData = { ...data, siteId };
     const post = await createPost(postData);
 
     // Invalidate cache

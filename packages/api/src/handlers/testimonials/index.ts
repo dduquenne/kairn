@@ -22,7 +22,6 @@ export const testimonialSchema = z.object({
   company: z.string().max(100).optional(),
   featured: z.boolean().default(false),
   approved: z.boolean().default(false),
-  siteId: z.string().optional(),
 });
 
 export type TestimonialInput = z.infer<typeof testimonialSchema>;
@@ -48,7 +47,6 @@ export const testimonialsQuerySchema = z.object({
     .enum(['true', 'false'])
     .optional()
     .transform(v => (v === 'true' ? true : v === 'false' ? false : undefined)),
-  siteId: z.string().optional(),
 });
 
 export type TestimonialsQueryParams = z.infer<typeof testimonialsQuerySchema>;
@@ -126,7 +124,7 @@ export async function handleGetTestimonials(
     };
   }
 
-  const { page, limit, approved, featured, siteId: querySiteId } = queryResult.query;
+  const { page, limit, approved, featured } = queryResult.query;
 
   try {
     const { testimonials, total } = await getAllTestimonials({
@@ -134,7 +132,7 @@ export async function handleGetTestimonials(
       limit,
       approved,
       featured,
-      siteId: querySiteId || configSiteId,
+      siteId: configSiteId,
     });
 
     // Public testimonials (approved only) can be cached

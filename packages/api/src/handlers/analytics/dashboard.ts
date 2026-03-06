@@ -124,7 +124,7 @@ export async function handleDashboard(
     };
   }
 
-  const { period, startDate, endDate, siteId: querySiteId } = queryResult.query;
+  const { period, startDate, endDate } = queryResult.query;
 
   // Calculate date range
   const { start, end } = calculateDateRange(period, startDate, endDate);
@@ -133,7 +133,7 @@ export async function handleDashboard(
     const dashboardData = await getDashboardData({
       startDate: start,
       endDate: end,
-      siteId: querySiteId || configSiteId,
+      siteId: configSiteId,
     });
 
     // Cache for 5 minutes (admin data)

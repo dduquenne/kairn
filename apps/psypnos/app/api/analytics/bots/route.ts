@@ -136,10 +136,13 @@ export async function GET(request: NextRequest): Promise<Response> {
     }
 
     const { prisma } = await import('@/lib/db/prisma');
+    const { getSiteId } = await import('@/lib/db/site');
+    const siteId = await getSiteId();
 
     // Fetch all visits in the date range
     const visits: BotVisitRecord[] = await prisma.botVisit.findMany({
       where: {
+        siteId,
         timestamp: {
           gte: dateFrom,
           lte: dateTo,

@@ -60,8 +60,9 @@ export async function POST(request: NextRequest) {
 
     const data = validationResult.data;
 
-    // Import Prisma dynamically
+    // Import Prisma and site helper dynamically
     const { prisma } = await import('@/lib/db/prisma');
+    const { getSiteId } = await import('@/lib/db/site');
 
     // Determine country code and name
     let countryCode: string | undefined;
@@ -81,6 +82,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const siteId = await getSiteId();
+
     // Store the bot visit
     await prisma.botVisit.create({
       data: {
@@ -93,6 +96,7 @@ export async function POST(request: NextRequest) {
         countryCode: countryCode,
         city: data.city || undefined,
         ipHash: data.ipHash,
+        siteId,
       },
     });
 

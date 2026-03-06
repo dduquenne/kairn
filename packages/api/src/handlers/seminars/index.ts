@@ -40,7 +40,6 @@ export const seminarSchema = z.object({
   status: z.enum(['draft', 'published', 'cancelled', 'completed']).default('draft'),
   featured: z.boolean().default(false),
   tags: z.array(z.string()).default([]),
-  siteId: z.string().optional(),
 });
 
 export type SeminarInput = z.infer<typeof seminarSchema>;
@@ -83,7 +82,6 @@ export const seminarsQuerySchema = z.object({
     .optional()
     .transform(v => (v === 'true' ? true : v === 'false' ? false : undefined)),
   tag: z.string().optional(),
-  siteId: z.string().optional(),
 });
 
 export type SeminarsQueryParams = z.infer<typeof seminarsQuerySchema>;
@@ -199,7 +197,7 @@ export async function handleGetSeminars(
     };
   }
 
-  const { page, limit, status, upcoming, featured, tag, siteId: querySiteId } = queryResult.query;
+  const { page, limit, status, upcoming, featured, tag } = queryResult.query;
 
   try {
     const { seminars, total } = await getAllSeminars({
@@ -209,7 +207,7 @@ export async function handleGetSeminars(
       upcoming,
       featured,
       tag,
-      siteId: querySiteId || configSiteId,
+      siteId: configSiteId,
     });
 
     // Public seminars (published) can be cached

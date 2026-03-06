@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { prisma } from '@/lib/db/prisma';
+import { getSiteId } from '@/lib/db/site';
 
 import { withAdminAuth } from '../../auth/middleware';
 
@@ -71,6 +72,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const siteId = await getSiteId();
+
     // Créer le job en base de données
     // Le frontend pilotera l'exécution via POST /api/blog/jobs/[id]/step
     const job = await prisma.blogGenerationJob.create({
@@ -81,6 +84,7 @@ export async function POST(request: NextRequest) {
         currentStep: 'En attente de traitement',
         currentStepIndex: 0,
         totalSteps: 9,
+        siteId,
       },
     });
 
@@ -119,8 +123,10 @@ export async function GET(request: NextRequest) {
   const status = statusParam as 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | null;
 
   try {
+    const siteId = await getSiteId();
+
     const jobs = await prisma.blogGenerationJob.findMany({
-      where: status ? { status } : undefined,
+      where: { siteId, ...(status ? { status } : {}) },
       orderBy: { createdAt: 'desc' },
       take: limit,
       select: {

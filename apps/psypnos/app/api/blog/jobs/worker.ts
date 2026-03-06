@@ -9,15 +9,16 @@
  * Il met à jour le statut du job en base de données à chaque étape.
  */
 
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from '@/lib/db/prisma';
+import { getSiteId } from '@/lib/db/site';
 
 import {
   generateArticleSectional,
   type GenerationProgress,
   type SectionalGenerationOptions,
-} from "../../common/claude-article-generator-sectional";
+} from '../../common/claude-article-generator-sectional';
 
-import type { CreateJobInput } from "./route";
+import type { CreateJobInput } from './route';
 
 /**
  * Met à jour la progression d'un job dans la base de données
@@ -49,9 +50,9 @@ async function markJobAsProcessing(jobId: string): Promise<void> {
   await prisma.blogGenerationJob.update({
     where: { id: jobId },
     data: {
-      status: "PROCESSING",
+      status: 'PROCESSING',
       startedAt: new Date(),
-      currentStep: "Démarrage de la génération...",
+      currentStep: 'Démarrage de la génération...',
     },
   });
   console.log(`[BlogJob:${jobId}] Job démarré (PROCESSING)`);
@@ -64,9 +65,9 @@ async function markJobAsCompleted(jobId: string, result: any): Promise<void> {
   await prisma.blogGenerationJob.update({
     where: { id: jobId },
     data: {
-      status: "COMPLETED",
+      status: 'COMPLETED',
       progress: 100,
-      currentStep: "Génération terminée",
+      currentStep: 'Génération terminée',
       result: result,
       completedAt: new Date(),
     },
@@ -81,8 +82,8 @@ async function markJobAsFailed(jobId: string, error: string): Promise<void> {
   await prisma.blogGenerationJob.update({
     where: { id: jobId },
     data: {
-      status: "FAILED",
-      currentStep: "Échec de la génération",
+      status: 'FAILED',
+      currentStep: 'Échec de la génération',
       error: error,
       completedAt: new Date(),
     },
@@ -99,16 +100,15 @@ async function markJobAsFailed(jobId: string, error: string): Promise<void> {
  * 3. Exécute la génération avec callbacks de progression
  * 4. Met à jour le job avec le résultat (COMPLETED) ou l'erreur (FAILED)
  */
-export async function runBlogGenerationWorker(
-  jobId: string,
-  apiKey: string
-): Promise<void> {
+export async function runBlogGenerationWorker(jobId: string, apiKey: string): Promise<void> {
   console.log(`[BlogJob:${jobId}] Démarrage du worker de génération`);
 
   try {
+    const siteId = await getSiteId();
+
     // Récupérer le job
-    const job = await prisma.blogGenerationJob.findUnique({
-      where: { id: jobId },
+    const job = await prisma.blogGenerationJob.findFirst({
+      where: { id: jobId, siteId },
     });
 
     if (!job) {
@@ -117,7 +117,7 @@ export async function runBlogGenerationWorker(
     }
 
     // Vérifier que le job est toujours en attente
-    if (job.status !== "PENDING") {
+    if (job.status !== 'PENDING') {
       console.warn(`[BlogJob:${jobId}] Job déjà traité (status: ${job.status})`);
       return;
     }
@@ -130,20 +130,18 @@ export async function runBlogGenerationWorker(
 
     // Construire les options de génération
     const options: SectionalGenerationOptions = {
-      topic: input.topic || input.subject || "",
+      topic: input.topic || input.subject || '',
       category: input.category,
       editorialCategory: input.editorialCategory || input.category,
       targetLength: input.targetLength,
-      seoQuery: input.seoQuery || input.seoKeyword || "",
-      searchIntent: input.searchIntent || input.searchIntention || "",
-      readerPersona: input.readerPersona || input.persona || "",
+      seoQuery: input.seoQuery || input.seoKeyword || '',
+      searchIntent: input.searchIntent || input.searchIntention || '',
+      readerPersona: input.readerPersona || input.persona || '',
       preferredTones: allTones,
       usePsypnosStyle: input.usePsypnosStyle,
       // Callback de progression pour mettre à jour le job
       onProgress: async (progress: GenerationProgress) => {
-        const progressPercent = Math.round(
-          (progress.step / progress.totalSteps) * 100
-        );
+        const progressPercent = Math.round((progress.step / progress.totalSteps) * 100);
 
         // Construire le message de progression
         let stepMessage = progress.name;
@@ -167,10 +165,7 @@ export async function runBlogGenerationWorker(
     // Vérifier le résultat
     if (!result.success && !result.content) {
       // Échec complet
-      await markJobAsFailed(
-        jobId,
-        result.error || "Erreur lors de la génération de l'article"
-      );
+      await markJobAsFailed(jobId, result.error || "Erreur lors de la génération de l'article");
       return;
     }
 
@@ -190,7 +185,7 @@ export async function runBlogGenerationWorker(
       // Avertissement si génération partielle
       ...(result.success === false &&
         result.content && {
-          warning: "Génération partielle - certaines étapes ont échoué",
+          warning: 'Génération partielle - certaines étapes ont échoué',
           error: result.error,
         }),
     };
@@ -200,7 +195,7 @@ export async function runBlogGenerationWorker(
     console.error(`[BlogJob:${jobId}] Erreur worker:`, error);
     await markJobAsFailed(
       jobId,
-      error instanceof Error ? error.message : "Erreur inconnue lors de la génération"
+      error instanceof Error ? error.message : 'Erreur inconnue lors de la génération'
     );
   }
 }
@@ -214,18 +209,19 @@ export async function runBlogGenerationWorker(
  *
  * Les jobs orphelins sont marqués comme FAILED avec un message explicatif.
  */
-export async function cleanupOrphanedJobs(
-  maxAgeMinutes: number = 30
-): Promise<number> {
-  console.log("[BlogJob] Nettoyage des jobs orphelins...");
+export async function cleanupOrphanedJobs(maxAgeMinutes: number = 30): Promise<number> {
+  console.log('[BlogJob] Nettoyage des jobs orphelins...');
 
   try {
     const cutoffTime = new Date(Date.now() - maxAgeMinutes * 60 * 1000);
 
+    const siteId = await getSiteId();
+
     // Trouver les jobs PROCESSING qui n'ont pas été mis à jour depuis longtemps
     const orphanedJobs = await prisma.blogGenerationJob.findMany({
       where: {
-        status: "PROCESSING",
+        siteId,
+        status: 'PROCESSING',
         updatedAt: {
           lt: cutoffTime,
         },
@@ -233,7 +229,7 @@ export async function cleanupOrphanedJobs(
     });
 
     if (orphanedJobs.length === 0) {
-      console.log("[BlogJob] Aucun job orphelin trouvé");
+      console.log('[BlogJob] Aucun job orphelin trouvé');
       return 0;
     }
 
@@ -245,7 +241,7 @@ export async function cleanupOrphanedJobs(
         },
       },
       data: {
-        status: "FAILED",
+        status: 'FAILED',
         error: `Job interrompu - le serveur a redémarré ou le job est resté bloqué pendant plus de ${maxAgeMinutes} minutes`,
         completedAt: new Date(),
       },
@@ -255,7 +251,7 @@ export async function cleanupOrphanedJobs(
 
     return result.count;
   } catch (error) {
-    console.error("[BlogJob] Erreur nettoyage jobs orphelins:", error);
+    console.error('[BlogJob] Erreur nettoyage jobs orphelins:', error);
     return 0;
   }
 }

@@ -51,6 +51,15 @@ model Site {
   analyticsDashboardConfigs AnalyticsDashboardConfig[]
   analyticsScheduledReports AnalyticsScheduledReport[]
 
+  // Relations - Blog Analytics & Tracking
+  blogAnalytics      BlogAnalytics[]
+  blogFaqClicks      BlogFaqClick[]
+  blogCtaClicks      BlogCtaClick[]
+  blogGenerationJobs BlogGenerationJob[]
+  botVisits          BotVisit[]
+  tags               Tag[]
+  appointments       Appointment[]
+
   // Relations - Chat
   chatConversations ChatConversation[]
 
@@ -244,7 +253,12 @@ model Tag {
   createdAt DateTime      @default(now())
   posts     BlogPostTag[]
 
-  @@unique([slug])
+  // Multi-tenancy
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([slug, siteId])
+  @@index([siteId])
 }
 
 /// Many-to-many relation between posts and tags
@@ -496,8 +510,8 @@ model AnalyticsGoal {
   createdAt       DateTime  @default(now())
 
   // Multi-tenancy
-  siteId String?
-  site   Site?  @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   // Relations
   completions AnalyticsGoalCompletion[]
@@ -582,8 +596,8 @@ model AnalyticsAlert {
   updatedAt       DateTime         @updatedAt
 
   // Multi-tenancy
-  siteId String?
-  site   Site?  @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   // Relations
   history AnalyticsAlertHistory[]
@@ -638,8 +652,8 @@ model AnalyticsAnomaly {
   acknowledgedAt DateTime?
 
   // Multi-tenancy
-  siteId String?
-  site   Site?  @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   @@index([siteId, detectedAt])
   @@index([acknowledged])
@@ -666,8 +680,8 @@ model AnalyticsDashboardConfig {
   updatedAt DateTime @updatedAt
 
   // Multi-tenancy
-  siteId String?
-  site   Site?  @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([siteId, userId])
@@ -703,8 +717,8 @@ model AnalyticsScheduledReport {
   updatedAt  DateTime        @updatedAt
 
   // Multi-tenancy
-  siteId String?
-  site   Site?  @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
 
   @@index([siteId, enabled])
   @@index([nextSendAt])
@@ -791,6 +805,11 @@ model Appointment {
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
 
+  // Multi-tenancy
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, startTime])
   @@index([clientEmail])
   @@index([startTime])
   @@index([status])
@@ -865,6 +884,11 @@ model BlogAnalytics {
   /// Whether the article was fully read
   completed         Boolean  @default(false)
 
+  // Multi-tenancy
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, articleSlug])
   @@index([articleSlug])
   @@index([timestamp])
   @@index([sessionId])
@@ -884,6 +908,11 @@ model BlogFaqClick {
   /// FAQ question text (for reporting)
   question    String?
 
+  // Multi-tenancy
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, articleSlug])
   @@index([articleSlug])
   @@index([timestamp])
 }
@@ -900,6 +929,11 @@ model BlogCtaClick {
   /// Event timestamp
   timestamp   DateTime @default(now())
 
+  // Multi-tenancy
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, articleSlug])
   @@index([articleSlug])
   @@index([ctaType])
   @@index([timestamp])
@@ -949,6 +983,11 @@ model BlogGenerationJob {
   /// Slug of created article (for duplicate prevention)
   articleSlug String?
 
+  // Multi-tenancy
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, status])
   @@index([status])
   @@index([createdAt])
 }
@@ -985,6 +1024,11 @@ model BotVisit {
   /// Hashed IP for privacy
   ipHash      String?
 
+  // Multi-tenancy
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@index([siteId, timestamp])
   @@index([timestamp])
   @@index([botName])
   @@index([botType])

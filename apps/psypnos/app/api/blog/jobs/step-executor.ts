@@ -16,6 +16,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 
 import { prisma } from '@/lib/db/prisma';
+import { getSiteId } from '@/lib/db/site';
 
 import {
   generateArticleSectional,
@@ -92,9 +93,11 @@ export interface StepExecutionResult {
  * @returns Le résultat de l'exécution de l'étape
  */
 export async function executeNextStep(jobId: string): Promise<StepExecutionResult> {
+  const siteId = await getSiteId();
+
   // Récupérer le job
-  const job = await prisma.blogGenerationJob.findUnique({
-    where: { id: jobId },
+  const job = await prisma.blogGenerationJob.findFirst({
+    where: { id: jobId, siteId },
   });
 
   if (!job) {

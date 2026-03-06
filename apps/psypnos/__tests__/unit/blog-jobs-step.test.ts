@@ -13,10 +13,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // ─── Mocks hoistés ──
 
-const { mockFindUnique, mockUpdate, mockWithAdminAuth } = vi.hoisted(() => ({
+const { mockFindUnique, mockUpdate, mockWithAdminAuth, mockGetSiteId } = vi.hoisted(() => ({
   mockFindUnique: vi.fn(),
   mockUpdate: vi.fn(),
   mockWithAdminAuth: vi.fn(),
+  mockGetSiteId: vi.fn(),
 }));
 
 // ─── Mocks ──
@@ -35,6 +36,7 @@ vi.mock('@/lib/db/prisma', () => ({
   prisma: {
     blogGenerationJob: {
       findUnique: mockFindUnique,
+      findFirst: mockFindUnique,
       update: mockUpdate,
     },
   },
@@ -42,6 +44,10 @@ vi.mock('@/lib/db/prisma', () => ({
 
 vi.mock('../../../app/api/auth/middleware', () => ({
   withAdminAuth: () => mockWithAdminAuth(),
+}));
+
+vi.mock('@/lib/db/site', () => ({
+  getSiteId: () => mockGetSiteId(),
 }));
 
 // Mock des modules IA pour éviter les appels réels
@@ -122,6 +128,7 @@ describe('executeNextStep', () => {
     vi.clearAllMocks();
     process.env.ANTHROPIC_API_KEY = 'test-key';
     mockUpdate.mockResolvedValue({});
+    mockGetSiteId.mockResolvedValue('site-test-123');
   });
 
   it('doit retourner COMPLETED directement si le job est déjà terminé', async () => {

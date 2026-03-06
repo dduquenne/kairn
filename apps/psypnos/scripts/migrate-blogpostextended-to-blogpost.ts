@@ -48,7 +48,7 @@ async function getOrCreateTag(tagName: string): Promise<string> {
 
   // Try to find existing tag
   const existingTag = await prisma.tag.findUnique({
-    where: { slug },
+    where: { slug_siteId: { slug, siteId: PSYPNOS_SITE_ID } },
   });
 
   if (existingTag) {
@@ -60,6 +60,7 @@ async function getOrCreateTag(tagName: string): Promise<string> {
     data: {
       name: tagName,
       slug,
+      site: { connect: { id: PSYPNOS_SITE_ID } },
     },
   });
 
