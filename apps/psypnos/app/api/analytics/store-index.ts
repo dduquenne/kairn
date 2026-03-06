@@ -1,29 +1,32 @@
 /**
  * Analytics Store Index
  *
- * Direct re-exports from the PostgreSQL store via Prisma.
+ * Re-exports from @kairn/analytics/server (centralized analytics package).
+ * The initialization side-effect import ensures the DI context is configured
+ * with the Psypnos Prisma client, site ID resolver, and Redis cache.
  *
- * Previously this module dynamically selected between JSON file storage and
- * PostgreSQL based on the ANALYTICS_STORAGE_MODE env var (defaulting to JSON).
- * This was the root cause of tracking data never reaching the database:
- * the env var was never set, so all data went to a JSON file on an ephemeral
- * filesystem that was wiped on every deployment.
- *
- * The JSON store is now removed from the data path. PostgreSQL (via Prisma)
- * is the only supported storage backend.
+ * All analytics business logic now lives in @kairn/analytics.
+ * This file is a thin bridge for backwards compatibility with existing imports.
  */
 
+// Side-effect: initialize analytics server context for psypnos
+import '@/lib/analytics-server-init';
+
 // Page Visits
-export { trackPageVisit, getPageVisits, getTopPages } from './store-postgres/page-visits';
+export { trackPageVisit, getPageVisits, getTopPages } from '@kairn/analytics/server';
 
 // Page Exits & Scroll Depth
-export { trackPageExit, trackScrollDepth } from './store-postgres/page-exits';
+export { trackPageExit, trackScrollDepth } from '@kairn/analytics/server';
 
 // Section Times
-export { trackSectionTime, getSectionTimes } from './store-postgres/section-times';
+export { trackSectionTime, getSectionTimes, getSectionTimeStats } from '@kairn/analytics/server';
 
 // Conversions
-export { trackConversionEvent, getConversionEvents } from './store-postgres/conversions';
+export {
+  trackConversionEvent,
+  getConversionEvents,
+  getConversionStats,
+} from '@kairn/analytics/server';
 
 // Analytics
 export {
@@ -33,14 +36,10 @@ export {
   getSectionHeatmap,
   getTrafficSources,
   getDeviceBreakdown,
-} from './store-postgres/analytics';
+} from '@kairn/analytics/server';
 
 // Custom Events
-export {
-  trackCustomEvent,
-  getCustomEvents,
-  getCustomEventsSummary,
-} from './store-postgres/custom-events';
+export { trackCustomEvent, getCustomEvents, getCustomEventsSummary } from '@kairn/analytics/server';
 
 // Goals
 export {
@@ -52,7 +51,7 @@ export {
   trackGoalCompletion,
   getGoalCompletions,
   getGoalsSummary,
-} from './store-postgres/goals';
+} from '@kairn/analytics/server';
 
 // Funnels
 export {
@@ -60,13 +59,13 @@ export {
   getFunnelSteps,
   getFunnelAnalysis,
   getAvailableFunnels,
-} from './store-postgres/funnels';
+} from '@kairn/analytics/server';
 
 // Cohorts
-export { getCohortAnalysis } from './store-postgres/cohorts';
+export { getCohortAnalysis } from '@kairn/analytics/server';
 
 // Attribution
-export { getMarketingAttribution } from './store-postgres/attribution';
+export { getMarketingAttribution } from '@kairn/analytics/server';
 
 // Alerts
 export {
@@ -77,18 +76,19 @@ export {
   deleteAlert,
   addAlertHistory,
   getAlertHistory,
-} from './store-postgres/alerts';
+  getMetricValue,
+  evaluateAlertCondition,
+} from '@kairn/analytics/server';
 
 // Anomalies
 export {
   getAnomalies,
   acknowledgeAnomaly,
-  getMetricValue,
-  evaluateAlertCondition,
+  recordAnomaly,
   calculateBaseline,
-  detectAnomaly,
+  detectAnomalyZScore as detectAnomaly,
   runAnomalyDetection,
-} from './store-postgres/anomalies';
+} from '@kairn/analytics/server';
 
 // Reports
 export {
@@ -97,7 +97,7 @@ export {
   getScheduledReport,
   updateScheduledReport,
   deleteScheduledReport,
-} from './store-postgres/reports';
+} from '@kairn/analytics/server';
 
 // Dashboard
 export {
@@ -107,20 +107,11 @@ export {
   getDefaultDashboardConfig,
   updateDashboardConfig,
   deleteDashboardConfig,
-} from './store-postgres/dashboard';
+  getDefaultWidgets,
+  getStorageInfo,
+} from '@kairn/analytics/server';
 
-// Re-export getDefaultWidgets from store (pure function, no I/O)
-export { getDefaultWidgets } from './store/dashboard';
-
-// Storage info (for diagnostics)
-export function getStorageInfo() {
-  return {
-    mode: 'postgres' as const,
-    description: 'PostgreSQL with Prisma ORM',
-  };
-}
-
-// Re-export types from store-postgres (which re-exports from store/types)
+// Re-export types from @kairn/analytics
 export type {
   PageVisit,
   SectionTime,
@@ -134,4 +125,4 @@ export type {
   DashboardConfig,
   ScheduledReport,
   Anomaly,
-} from './store-postgres';
+} from '@kairn/analytics/server';
