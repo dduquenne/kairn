@@ -36,17 +36,21 @@ export const practitionerSchema = z.object({
   subtitle: z.string().optional(),
   bio: z.string().min(100),
   image: z.string(),
-  credentials: z.array(z.object({
-    title: z.string(),
-    institution: z.string().optional(),
-    year: z.number().optional(),
-  })),
-  socialLinks: z.object({
-    linkedin: z.string().url().optional(),
-    facebook: z.string().url().optional(),
-    instagram: z.string().url().optional(),
-    twitter: z.string().url().optional(),
-  }).optional(),
+  credentials: z.array(
+    z.object({
+      title: z.string(),
+      institution: z.string().optional(),
+      year: z.number().optional(),
+    })
+  ),
+  socialLinks: z
+    .object({
+      linkedin: z.string().url().optional(),
+      facebook: z.string().url().optional(),
+      instagram: z.string().url().optional(),
+      twitter: z.string().url().optional(),
+    })
+    .optional(),
 });
 
 // ============================================================================
@@ -124,23 +128,31 @@ export const integrationsSchema = z.object({
     fromAddress: z.string().email(),
     fromName: z.string(),
   }),
-  storage: z.object({
-    provider: z.enum(['supabase', 'local', 's3']).default('local'),
-    bucket: z.string().optional(),
-    url: z.string().optional(),
-  }).optional(),
-  analytics: z.object({
-    googleAnalyticsId: z.string().optional(),
-    plausibleDomain: z.string().optional(),
-  }).optional(),
-  ai: z.object({
-    openaiApiKey: z.string().optional(),
-    anthropicApiKey: z.string().optional(),
-  }).optional(),
-  recaptcha: z.object({
-    siteKey: z.string(),
-    secretKey: z.string(),
-  }).optional(),
+  storage: z
+    .object({
+      provider: z.enum(['supabase', 'local', 's3']).default('local'),
+      bucket: z.string().optional(),
+      url: z.string().optional(),
+    })
+    .optional(),
+  analytics: z
+    .object({
+      googleAnalyticsId: z.string().optional(),
+      plausibleDomain: z.string().optional(),
+    })
+    .optional(),
+  ai: z
+    .object({
+      openaiApiKey: z.string().optional(),
+      anthropicApiKey: z.string().optional(),
+    })
+    .optional(),
+  recaptcha: z
+    .object({
+      siteKey: z.string(),
+      secretKey: z.string(),
+    })
+    .optional(),
 });
 
 // ============================================================================
@@ -252,3 +264,9 @@ export * from './customization';
 // ============================================================================
 
 export * from './category-colors';
+
+// ============================================================================
+// TONS D'ÉCRITURE (BLOG)
+// ============================================================================
+
+export * from './tones';
