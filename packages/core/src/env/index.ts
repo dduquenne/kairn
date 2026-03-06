@@ -160,10 +160,9 @@ export function assertValidEnv(env: Record<string, unknown> = process.env): Env 
     // eslint-disable-next-line no-console
     console.error('\n');
 
-    if (process.env.NODE_ENV === 'production') {
-      process.exit(1);
-    }
-
+    // In production, log but do NOT call process.exit(1).
+    // On Vercel serverless, process.exit() kills every cold start
+    // and causes 500 on all routes with no recovery path.
     throw new Error('Invalid environment variables');
   }
 

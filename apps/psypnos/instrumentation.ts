@@ -8,10 +8,23 @@
  */
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
-    const { assertValidEnv, checkProductionReadiness, isProduction } = await import('@kairn/core');
+    const { validateEnv, checkProductionReadiness, isProduction } = await import('@kairn/core');
 
-    // Validate env schema (fails fast in production)
-    assertValidEnv();
+    // Validate env schema — log errors but do NOT call process.exit()
+    // On Vercel serverless, process.exit() kills every cold start and
+    // causes 500 on all routes with no recovery path.
+    const envResult = validateEnv();
+
+    if (!envResult.success) {
+      console.error('\n⚠️  Environment variable validation issues:');
+      for (const [key, messages] of Object.entries(envResult.errors || {})) {
+        console.error(`  ${key}:`);
+        for (const message of messages) {
+          console.error(`    - ${message}`);
+        }
+      }
+      console.error('');
+    }
 
     // Additional production readiness checks
     if (isProduction()) {
@@ -19,9 +32,11 @@ export async function register() {
 
       if (!readiness.ready) {
         console.error(
-          `\n❌ Production readiness check failed — missing variables: ${readiness.missing.join(', ')}\n`
+          `\n⚠️  Production readiness — missing variables: ${readiness.missing.join(', ')}`
         );
-        process.exit(1);
+        console.error(
+          'The application will start but features requiring these variables will fail.\n'
+        );
       }
 
       if (readiness.warnings.length > 0) {
