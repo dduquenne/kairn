@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+
 import {
   validateEnv,
   assertValidEnv,
@@ -92,6 +93,29 @@ describe('Environment Validation', () => {
       expect(result.errors).toHaveProperty('EMAIL_FROM_ADDRESS');
     });
 
+    it('should fail with short CSRF_SECRET', () => {
+      const env = {
+        NODE_ENV: 'development',
+        CSRF_SECRET: 'too-short',
+      };
+
+      const result = validateEnv(env);
+
+      expect(result.success).toBe(false);
+      expect(result.errors).toHaveProperty('CSRF_SECRET');
+    });
+
+    it('should accept valid CSRF_SECRET', () => {
+      const env = {
+        NODE_ENV: 'development',
+        CSRF_SECRET: 'csrf-secret-that-is-at-least-32-characters-long',
+      };
+
+      const result = validateEnv(env);
+
+      expect(result.success).toBe(true);
+    });
+
     it('should validate URL format for SUPABASE_URL', () => {
       const result = validateEnv({
         SUPABASE_URL: 'not-a-url',
@@ -131,12 +155,14 @@ describe('Environment Validation', () => {
       expect(result.ready).toBe(false);
       expect(result.missing).toContain('DATABASE_URL');
       expect(result.missing).toContain('JWT_SECRET');
+      expect(result.missing).toContain('CSRF_SECRET');
     });
 
     it('should report ready when required vars are set', () => {
       const env = {
         DATABASE_URL: 'postgresql://prod:prod@localhost:5432/prod',
         JWT_SECRET: 'production-secret-that-is-at-least-32-characters',
+        CSRF_SECRET: 'csrf-secret-that-is-at-least-32-characters-long',
       };
 
       const result = checkProductionReadiness(env);
@@ -153,19 +179,33 @@ describe('Environment Validation', () => {
 
       const result = checkProductionReadiness(env);
 
-      expect(result.warnings.some((w) => w.includes('JWT_ACCESS_SECRET'))).toBe(true);
-      expect(result.warnings.some((w) => w.includes('RESEND_API_KEY'))).toBe(true);
+      expect(result.warnings.some(w => w.includes('JWT_ACCESS_SECRET'))).toBe(true);
+      expect(result.warnings.some(w => w.includes('RESEND_API_KEY'))).toBe(true);
     });
 
     it('should warn about short JWT_SECRET', () => {
       const env = {
         DATABASE_URL: 'postgresql://prod:prod@localhost:5432/prod',
         JWT_SECRET: 'short',
+        CSRF_SECRET: 'csrf-secret-that-is-at-least-32-characters-long',
       };
 
       const result = checkProductionReadiness(env);
 
-      expect(result.warnings.some((w) => w.includes('32 characters'))).toBe(true);
+      expect(result.warnings.some(w => w.includes('32 characters'))).toBe(true);
+    });
+
+    it('should warn when CSRF_SECRET equals JWT_SECRET', () => {
+      const sharedSecret = 'shared-secret-that-is-at-least-32-characters';
+      const env = {
+        DATABASE_URL: 'postgresql://prod:prod@localhost:5432/prod',
+        JWT_SECRET: sharedSecret,
+        CSRF_SECRET: sharedSecret,
+      };
+
+      const result = checkProductionReadiness(env);
+
+      expect(result.warnings.some(w => w.includes('CSRF_SECRET must be different'))).toBe(true);
     });
   });
 
