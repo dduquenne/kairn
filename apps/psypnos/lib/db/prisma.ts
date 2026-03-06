@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Prisma/type incompatibilities to fix
 /**
  * Prisma Client Singleton
  * Phase 4: Scalability & Performance
@@ -9,33 +6,37 @@
  * to be used throughout the application.
  */
 
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
 
-// Declare global type for the Prisma client in development
+// Use a unique global key to avoid conflict with @kairn/core's global `prisma` (typed as PrismaClientLike)
 declare global {
   // eslint-disable-next-line no-var
-  var prisma: PrismaClient | undefined;
+  var __psypnosPrisma: PrismaClient | undefined;
 }
 
-// Create Prisma client with logging configuration
+/**
+ * Create Prisma client with logging configuration
+ */
 const prismaClientSingleton = () => {
   return new PrismaClient({
-    log: ["error"],
-    errorFormat: "pretty",
+    log: ['error'],
+    errorFormat: 'pretty',
   });
 };
 
 // Use global instance in development to prevent too many connections during hot reloading
-const prisma = globalThis.prisma ?? prismaClientSingleton();
+const prisma = globalThis.__psypnosPrisma ?? prismaClientSingleton();
 
-if (process.env.NODE_ENV !== "production") {
-  globalThis.prisma = prisma;
+if (process.env.NODE_ENV !== 'production') {
+  globalThis.__psypnosPrisma = prisma;
 }
 
 export { prisma };
 export default prisma;
 
-// Helper to check if database is configured and connected
+/**
+ * Helper to check if database is configured and connected
+ */
 export async function isDatabaseConnected(): Promise<boolean> {
   if (!process.env.DATABASE_URL) {
     return false;
@@ -49,7 +50,9 @@ export async function isDatabaseConnected(): Promise<boolean> {
   }
 }
 
-// Graceful shutdown helper
+/**
+ * Graceful shutdown helper
+ */
 export async function disconnectPrisma(): Promise<void> {
   await prisma.$disconnect();
 }
