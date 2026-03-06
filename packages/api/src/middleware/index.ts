@@ -61,3 +61,14 @@ export {
   commonSchemas,
   type ValidationResult as BodyValidationResult,
 } from './with-validation';
+
+// CRON auth middleware
+export { withCronAuth, type CronAuthResult } from './with-cron-auth';
+
+// Admin auth middleware (Next.js cookies)
+export {
+  withAdminAuth as withNextAdminAuth,
+  createAdminAuth,
+  type AdminAuthConfig,
+  type AdminAuthResult,
+} from './with-admin-auth';

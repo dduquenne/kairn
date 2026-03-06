@@ -169,5 +169,19 @@ export {
   type SuggestedAction,
 } from './components/chat';
 
+// Hooks
+export {
+  useDebounce,
+  useDebouncedCallback,
+  useDebouncedState,
+  useFormSubmission,
+  useFormSessionStorage,
+  useHydrationSafeAnimation,
+  useHasMounted,
+  type FormSubmissionError,
+  type FormSubmissionOptions,
+  type UseFormSubmissionReturn,
+} from './hooks';
+
 // Utils
 export { cn } from './utils/cn';

@@ -70,6 +70,16 @@ export {
   type RateLimitInfo,
   type RateLimitStore,
   type JWTPayload,
+
+  // CRON auth middleware
+  withCronAuth,
+  type CronAuthResult,
+
+  // Admin auth middleware (Next.js cookies)
+  withNextAdminAuth,
+  createAdminAuth,
+  type AdminAuthConfig,
+  type AdminAuthResult,
 } from './middleware';
 
 // ============================================

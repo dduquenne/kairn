@@ -115,6 +115,21 @@ export {
   type RateLimitStore,
 } from './middleware/rate-limit';
 
+// Next.js Middleware
+export {
+  createMiddleware,
+  getClientIP as getClientIPFromHeaders,
+  generateCSPNonce,
+  buildCSPHeader,
+  EdgeMemoryRateLimitStore,
+  type MiddlewareConfig,
+  type MiddlewareRateLimitConfig,
+  type MiddlewareRouteRule,
+  type CSPDirectives,
+  type MiddlewareRateLimitResult,
+  type EdgeRateLimitStore,
+} from './middleware/next-middleware';
+
 // Cache
 export {
   Cache,
