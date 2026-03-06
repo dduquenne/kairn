@@ -344,3 +344,20 @@ export {
   type SeminarsHandlerConfig,
   type SeminarHandlerResult,
 } from './handlers/seminars';
+
+// ============================================
+// GDPR Handlers
+// ============================================
+
+export {
+  handleGdprDelete,
+  createGdprDeleteHandler,
+
+  // Schema
+  gdprDeleteSchema,
+
+  // Types
+  type GdprDeleteInput,
+  type GdprHandlerConfig,
+  type GdprDeleteResult,
+} from './handlers/gdpr';

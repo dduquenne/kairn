@@ -134,6 +134,7 @@ pnpm tsx scripts/verify-qstash-schedules.ts --site-url https://psypnos.fr
 | `aggregate`              | `30 * * * *`   | Agrégation analytics (toutes les heures à :30)    |
 | `check-alerts`           | `*/15 * * * *` | Vérification alertes (toutes les 15 min)          |
 | `process-reports`        | `45 * * * *`   | Traitement rapports (toutes les heures à :45)     |
+| `rotate-secrets`         | `0 2 * * *`    | Rotation automatique des clés JWT (2h00)          |
 
 ## Étape 3 : Tester les endpoints CRON
 

@@ -38,6 +38,10 @@
       "types": "./dist/handlers/seminars/index.d.ts",
       "import": "./dist/handlers/seminars/index.js"
     },
+    "./handlers/gdpr": {
+      "types": "./dist/handlers/gdpr/index.d.ts",
+      "import": "./dist/handlers/gdpr/index.js"
+    },
     "./utils": {
       "types": "./dist/utils/index.d.ts",
       "import": "./dist/utils/index.js"
