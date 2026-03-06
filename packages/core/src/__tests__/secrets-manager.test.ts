@@ -1,9 +1,10 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
+import { isEncryptedSecret } from '../auth/secret-encryption';
 import {
   DatabaseSecretsManager,
   InMemorySecretsStorage,
   createInMemorySecretsManager,
-  type SecretKeyRecord,
 } from '../auth/secrets-manager';
 
 describe('Secrets Manager', () => {
@@ -91,8 +92,8 @@ describe('Secrets Manager', () => {
 
       const validKeys = await storage.getValidKeys();
       expect(validKeys).toHaveLength(2);
-      expect(validKeys.map((k) => k.kid)).toContain('valid-1');
-      expect(validKeys.map((k) => k.kid)).toContain('valid-2');
+      expect(validKeys.map(k => k.kid)).toContain('valid-1');
+      expect(validKeys.map(k => k.kid)).toContain('valid-2');
     });
 
     it('should filter out expired keys from valid keys', async () => {
@@ -342,7 +343,7 @@ describe('Secrets Manager', () => {
       expect(spy).toHaveBeenCalledTimes(1);
 
       // After cache expires, fetch again
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      await new Promise(resolve => setTimeout(resolve, 150));
       await manager.getSigningKey();
       expect(spy).toHaveBeenCalledTimes(2);
     });
@@ -383,6 +384,111 @@ describe('Secrets Manager', () => {
 
       const algorithm = manager.getCurrentAlgorithm();
       expect(algorithm).toBe('HS512');
+    });
+  });
+
+  describe('DatabaseSecretsManager with envelope encryption', () => {
+    const TEST_KEY = 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2';
+    const originalEnv = process.env;
+    let manager: DatabaseSecretsManager;
+    let storage: InMemorySecretsStorage;
+
+    beforeEach(() => {
+      process.env = { ...originalEnv };
+      storage = new InMemorySecretsStorage();
+      manager = new DatabaseSecretsManager({
+        storage,
+        defaultAlgorithm: 'HS256',
+        keyGracePeriodMs: 1000,
+        enableCache: false,
+      });
+    });
+
+    afterEach(() => {
+      process.env = originalEnv;
+    });
+
+    it('should store secrets in encrypted format when encryption is enabled', async () => {
+      process.env.SECRETS_ENCRYPTION_KEY = TEST_KEY;
+
+      const newKey = await manager.rotateKey();
+
+      expect(isEncryptedSecret(newKey.secret)).toBe(true);
+    });
+
+    it('should store secrets in plaintext when encryption is disabled', async () => {
+      delete process.env.SECRETS_ENCRYPTION_KEY;
+
+      const newKey = await manager.rotateKey();
+
+      expect(isEncryptedSecret(newKey.secret)).toBe(false);
+    });
+
+    it('should decrypt encrypted secrets when getting signing key', async () => {
+      process.env.SECRETS_ENCRYPTION_KEY = TEST_KEY;
+
+      await manager.initialize();
+
+      const signingKey = await manager.getSigningKey();
+      expect(signingKey).toBeInstanceOf(Uint8Array);
+      expect(signingKey.length).toBeGreaterThan(0);
+    });
+
+    it('should decrypt encrypted secrets when getting verification key', async () => {
+      process.env.SECRETS_ENCRYPTION_KEY = TEST_KEY;
+
+      await manager.initialize();
+      const kid = manager.getCurrentKid();
+
+      const verificationKey = await manager.getVerificationKey(kid);
+      expect(verificationKey).toBeInstanceOf(Uint8Array);
+      expect(verificationKey).not.toBeNull();
+      expect((verificationKey as Uint8Array).length).toBeGreaterThan(0);
+    });
+
+    it('should handle rotation with encrypted secrets', async () => {
+      process.env.SECRETS_ENCRYPTION_KEY = TEST_KEY;
+
+      await manager.initialize();
+      const firstKid = manager.getCurrentKid();
+      const firstKey = await manager.getSigningKey();
+
+      await manager.rotateKey();
+      const secondKid = manager.getCurrentKid();
+      const secondKey = await manager.getSigningKey();
+
+      expect(firstKid).not.toBe(secondKid);
+      // Keys should be different byte arrays
+      expect(Buffer.from(firstKey).toString('hex')).not.toBe(
+        Buffer.from(secondKey).toString('hex')
+      );
+
+      // Old key should still be verifiable
+      const oldVerificationKey = await manager.getVerificationKey(firstKid);
+      expect(oldVerificationKey).not.toBeNull();
+    });
+
+    it('should handle backward compatibility with plaintext secrets', async () => {
+      // First, create a key without encryption (simulates pre-migration state)
+      delete process.env.SECRETS_ENCRYPTION_KEY;
+      await storage.createKey({
+        kid: 'legacy-key',
+        secret: 'plaintext-secret-value',
+        algorithm: 'HS256',
+        isCurrent: true,
+        isValid: true,
+        expiresAt: null,
+      });
+
+      // Now enable encryption - should still read the plaintext key
+      process.env.SECRETS_ENCRYPTION_KEY = TEST_KEY;
+      manager.clearCache();
+
+      const signingKey = await manager.getSigningKey();
+      expect(signingKey).toBeInstanceOf(Uint8Array);
+
+      const decoded = new TextDecoder().decode(signingKey);
+      expect(decoded).toBe('plaintext-secret-value');
     });
   });
 });
