@@ -228,13 +228,77 @@ Applicable à tous les modes sauf `LISTE_ISSUES` :
 
 ### Git workflow
 ```bash
-# Travailler directement sur la branche main
+# Mettre à jour main et créer une branche de travail
 git checkout main
 git pull origin main
+git checkout -b fix/<scope>-<description-courte>
+# Exemples : fix/api-contact-validation, feat/blog-seo-meta
 ```
 
 > ⚠️ **NE PAS push immédiatement** après le commit.
 > L'étape 4 (Validation CI & Build) est **obligatoire** avant tout push.
+
+### Vérification des dépendances (obligatoire)
+
+Avant toute modification de code, s'assurer que les dépendances sont
+installées et à jour :
+```bash
+# Installer / synchroniser les dépendances
+pnpm install --frozen-lockfile
+
+# Si le lockfile est désynchronisé (erreur --frozen-lockfile) :
+pnpm install
+# → Commiter le lockfile mis à jour dans le même commit ou un commit dédié
+```
+
+> **Pourquoi ?** Un build Vercel échouera si les dépendances ne sont pas
+> cohérentes avec le lockfile (`pnpm-lock.yaml`). Cette vérification
+> garantit la reproductibilité du build.
+
+### Gestion du schéma Prisma (si applicable)
+
+Si les modifications touchent le schéma Prisma (`packages/db/prisma/schema.prisma`) :
+
+```bash
+# 1. Régénérer le client Prisma après modification du schéma
+pnpm --filter @kairn/db db:generate
+
+# 2. Créer une migration si le schéma a changé structurellement
+#    (nouvelles tables, colonnes, index, relations)
+pnpm --filter @kairn/db prisma migrate dev --name <description-migration>
+# Exemples : --name add-seminar-capacity, --name rename-contact-status
+
+# 3. Vérifier que la migration est cohérente
+pnpm --filter @kairn/db prisma migrate status
+```
+
+> **Règles pour les migrations Prisma :**
+> - Toujours commiter les fichiers de migration générés (`prisma/migrations/`)
+> - Nommer les migrations de façon descriptive (pas de noms génériques)
+> - Vérifier via **MCP Supabase** que le schéma en base correspond après
+>   `prisma migrate deploy` (en production, c'est `migrate deploy` et non
+>   `migrate dev`)
+> - Si la migration est destructive (suppression colonne/table), ajouter
+>   un commentaire dans le commit et avertir dans le reporting final
+> - Vérifier l'isolation multi-tenant (`siteId`) sur tout nouveau modèle
+
+### Mise à jour de CLAUDE.md (checkpoint obligatoire)
+
+Après l'implémentation, vérifier si `CLAUDE.md` doit être mis à jour :
+
+| Changement effectué | Action sur CLAUDE.md |
+|---|---|
+| Nouvelle commande ou script ajouté | Ajouter dans la section « Commandes essentielles » |
+| Nouveau package créé dans `packages/` | Mettre à jour la section « Structure monorepo » |
+| Nouvelle variable d'environnement | Documenter dans la section pertinente |
+| Modification d'une convention de code | Mettre à jour la section « Conventions TypeScript » |
+| Modification du pipeline CI | Mettre à jour la section « Git & CI » |
+| Modification du déploiement Vercel | Mettre à jour la section « Déploiement Vercel » |
+| Aucun des cas ci-dessus | Ne pas modifier CLAUDE.md |
+
+> Ne pas ajouter de modifications cosmétiques ou hors périmètre dans
+> CLAUDE.md. Seules les modifications **nécessaires à la compréhension
+> du changement** par un autre développeur ou par Claude Code.
 
 ### Contraintes de code
 **TypeScript**
@@ -314,6 +378,11 @@ Exécuter **dans cet ordre exact** — chaque étape doit réussir avant de
 passer à la suivante :
 
 ```bash
+# ── 0. Dépendances (pré-requis) ──
+pnpm install --frozen-lockfile
+# Si le schéma Prisma a été modifié :
+# pnpm --filter @kairn/db db:generate
+
 # ── 1. Lint (miroir du job CI "lint") ──
 pnpm turbo run lint --filter='...[HEAD~1]'
 
@@ -360,15 +429,15 @@ Si **n'importe quelle étape** échoue :
    - Pas de `.skip` sur un test qui échoue
    - Pas de `--no-verify` sur le commit ou le push
 
-### 4.4 — Commit et push vers main (uniquement après validation complète)
+### 4.4 — Commit et push de la branche (uniquement après validation complète)
 
 ```bash
 # Commit conventionnel (si pas déjà fait)
 git add <fichiers modifiés — jamais git add .>
 git commit -m "fix(<scope>): <description concise à l'impératif>"
 
-# Push vers main — uniquement après que TOUTES les validations passent
-git push origin main
+# Push de la branche — uniquement après que TOUTES les validations passent
+git push -u origin fix/<scope>-<description-courte>
 ```
 
 > **Résumé de validation pré-push** — Confirme à l'utilisateur :
@@ -376,25 +445,99 @@ git push origin main
 > - ✅ Type-check : passé
 > - ✅ Tests : passés (couverture ≥ 60%)
 > - ✅ Build : passé
-> - Puis procède au push vers `main`.
+> - Puis procède au push de la branche.
 
-## ÉTAPE 5 — VÉRIFICATION POST-PUSH & DÉPLOIEMENT PRODUCTION
+### 4.5 — Création de la Pull Request (via API GitHub)
 
-> Le push vers `main` déclenche automatiquement la CI GitHub **et** le
-> déploiement **production** sur Vercel. Cette étape vérifie les deux.
-
-### 5.1 — Surveillance des checks CI GitHub
-
-Après le push vers `main`, vérifier le statut des checks CI via l'API GitHub :
+Après le push de la branche, créer une PR vers `main` :
 
 ```bash
 REPO=$(git remote get-url origin | sed 's|\.git$||' | awk -F'[/:]' '{print $(NF-1)"/"$NF}')
 GH_API="https://api.github.com/repos/$REPO"
 AUTH=(-H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json")
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+# Créer la PR
+curl -s -X POST "${AUTH[@]}" "$GH_API/pulls" \
+  -d "$(jq -n \
+    --arg title "fix(<scope>): <description concise>" \
+    --arg head "$BRANCH" \
+    --arg base "main" \
+    --arg body "## Résumé\n\n- <Description des modifications>\n\nFixes #<N>\n\n## Validation\n\n- [x] Lint\n- [x] Type-check\n- [x] Tests (couverture ≥ 60%)\n- [x] Build\n\n## Changements\n\n| Fichier | Modification |\n|---|---|\n| <chemin> | <description> |" \
+    '{title: $title, head: $head, base: $base, body: $body}'
+  )"
+```
+
+> **Contenu obligatoire de la PR :**
+> - Titre au format conventionnel : `fix(scope): description` ou
+>   `feat(scope): description`
+> - Lien vers l'issue : `Fixes #N` dans le corps de la PR
+> - Résumé des modifications
+> - Tableau des fichiers modifiés avec justification
+> - Checklist de validation (lint, type-check, tests, build)
+> - Si le schéma Prisma a été modifié : mention explicite + instructions
+>   de migration
+
+### 4.6 — Attente des checks CI sur la PR
+
+Avant de merger, attendre que tous les checks CI passent sur la PR :
+
+```bash
+PR_NUMBER=<numéro de la PR créée>
 SHA=$(git rev-parse HEAD)
 
-# Consulter les check-runs du dernier commit pushé sur main
+# Vérifier les check-runs sur le commit de la PR
 curl -s "${AUTH[@]}" "$GH_API/commits/$SHA/check-runs" | \
+  jq '.check_runs[] | {name, status, conclusion}'
+```
+
+- **Tous les checks `completed` + `success`** → Passer au merge
+- **Un check en échec** → Diagnostiquer, corriger, pousser un commit
+  de correction sur la branche, re-vérifier
+
+### 4.7 — Merge de la PR dans main
+
+Une fois tous les checks verts :
+
+```bash
+# Merge la PR (merge commit par défaut)
+curl -s -X PUT "${AUTH[@]}" "$GH_API/pulls/$PR_NUMBER/merge" \
+  -d '{"merge_method": "squash", "commit_title": "fix(<scope>): <description> (#'"$PR_NUMBER"')"}'
+
+# Vérifier que le merge a réussi
+curl -s "${AUTH[@]}" "$GH_API/pulls/$PR_NUMBER" | jq '{state, merged, merged_at}'
+
+# Nettoyer la branche distante
+curl -s -X DELETE "${AUTH[@]}" "$GH_API/git/refs/heads/$BRANCH"
+```
+
+> **Règles de merge :**
+> - Utiliser `squash` pour garder un historique propre sur `main`
+> - Le titre du squash commit doit référencer le numéro de PR : `(#N)`
+> - Supprimer la branche distante après le merge
+> - Ne jamais forcer le merge si des checks sont en échec
+
+## ÉTAPE 5 — VÉRIFICATION POST-MERGE & DÉPLOIEMENT PRODUCTION
+
+> Le merge de la PR dans `main` déclenche automatiquement la CI GitHub
+> **et** le déploiement **production** sur Vercel. Cette étape vérifie
+> les deux.
+
+### 5.1 — Surveillance des checks CI GitHub sur main
+
+Après le merge dans `main`, vérifier le statut des checks CI via l'API
+GitHub :
+
+```bash
+REPO=$(git remote get-url origin | sed 's|\.git$||' | awk -F'[/:]' '{print $(NF-1)"/"$NF}')
+GH_API="https://api.github.com/repos/$REPO"
+AUTH=(-H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github+json")
+
+# Récupérer le SHA du merge commit sur main
+MERGE_SHA=$(curl -s "${AUTH[@]}" "$GH_API/pulls/$PR_NUMBER" | jq -r '.merge_commit_sha')
+
+# Consulter les check-runs du merge commit
+curl -s "${AUTH[@]}" "$GH_API/commits/$MERGE_SHA/check-runs" | \
   jq '.check_runs[] | {name, status, conclusion}'
 ```
 
@@ -407,7 +550,7 @@ Interpréter les résultats :
   curl -s "${AUTH[@]}" "$GH_API/check-runs/<check_run_id>/annotations" | jq .
 
   # Ou consulter les logs du workflow run
-  curl -s "${AUTH[@]}" "$GH_API/actions/runs?head_sha=$SHA&per_page=5" | \
+  curl -s "${AUTH[@]}" "$GH_API/actions/runs?head_sha=$MERGE_SHA&per_page=5" | \
     jq '.workflow_runs[] | {id, name, status, conclusion, html_url}'
   ```
   Si un job échoue en CI mais passait localement, investiguer les causes
@@ -441,18 +584,32 @@ Utiliser le **MCP Vercel** pour vérifier le déploiement **production**
    - Pas d'erreur dans les logs Serverless (via MCP Vercel)
    - Les API routes répondent correctement (vérifier via `curl` ou MCP)
 
-### 5.3 — Gestion des échecs post-push
+### 5.3 — Gestion des échecs post-merge
 
-Si la CI distante ou le déploiement Vercel production échoue :
+Si la CI distante sur `main` ou le déploiement Vercel production échoue :
 
 1. **Diagnostiquer** l'erreur (logs CI via API GitHub, logs Vercel via MCP)
-2. **Corriger** localement
+2. **Corriger** localement sur une nouvelle branche `fix/<scope>-hotfix`
 3. **Relancer l'étape 4** (validation locale complète)
-4. **Pousser** le commit de correction vers `main`
-5. **Re-vérifier** l'étape 5 jusqu'à ce que tout soit vert
+4. **Créer une nouvelle PR** de correction vers `main`
+5. **Merger** après validation des checks CI
+6. **Re-vérifier** l'étape 5 jusqu'à ce que tout soit vert
 
 > ⚠️ Ne jamais considérer le travail comme terminé si un check CI est
 > en échec ou si le déploiement production Vercel a échoué.
+
+### 5.4 — Stratégie de rollback (si la production est cassée)
+
+Si le déploiement production est fonctionnel mais l'application est
+cassée en runtime :
+
+1. **Rollback immédiat via Vercel** — utiliser le MCP Vercel pour
+   redéployer le déploiement production précédent
+2. **Investiguer** le problème avec les logs Serverless
+3. **Corriger** et suivre le workflow PR standard (étapes 3 → 5)
+
+> Le rollback Vercel est instantané et ne nécessite pas de revert Git.
+> Il redéploie simplement le build précédent.
 
 ## ÉTAPE 6 — LIVRAISON & REPORTING FINAL
 
@@ -485,13 +642,53 @@ Structure de réponse finale :
 | Tests | ✅ / ❌ | couverture : X% |
 | Build | ✅ / ❌ | |
 
-### 5. Push vers `main`
-- Commit SHA : `<sha>`
-- Message de commit : `<message>`
-- Branche : `main`
-- Horodatage du push
+### 5. Tableau de bord d'intégration
 
-### 6. Résultat de la CI distante (étape 5.1)
+> Ce tableau fournit une vue synthétique du parcours complet des
+> modifications, de la branche de travail jusqu'à la production.
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│              TABLEAU DE BORD D'INTÉGRATION                        │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  📋 Issue         : #<N> — <titre>                                │
+│  🔀 Branche       : fix/<scope>-<description>                    │
+│  📝 PR            : #<PR_N> — <titre PR>                         │
+│  🔗 URL PR        : https://github.com/<repo>/pull/<PR_N>        │
+│                                                                   │
+├──────────────┬───────────┬────────────────────────────────────────┤
+│ Étape        │ Statut    │ Détail                                 │
+├──────────────┼───────────┼────────────────────────────────────────┤
+│ Dépendances  │ ✅ / ❌   │ pnpm install                           │
+│ Prisma       │ ✅ / ⬜   │ db:generate + migration (si applicable)│
+│ Lint         │ ✅ / ❌   │                                        │
+│ Type-check   │ ✅ / ❌   │                                        │
+│ Tests        │ ✅ / ❌   │ couverture : X%                        │
+│ Build        │ ✅ / ❌   │                                        │
+│ Push branche │ ✅ / ❌   │ SHA : <sha>                            │
+│ PR créée     │ ✅ / ❌   │ #<PR_N>                                │
+│ CI PR        │ ✅ / ❌   │ tous les checks verts                  │
+│ Merge → main │ ✅ / ❌   │ squash merge                           │
+│ CI main      │ ✅ / ❌   │ tous les checks verts                  │
+│ Deploy Vercel│ ✅ / ❌   │ production — <url>                     │
+│ Runtime OK   │ ✅ / ❌   │ logs Serverless vérifiés               │
+│ CLAUDE.md    │ ✅ / ⬜   │ mis à jour (si applicable)             │
+├──────────────┴───────────┴────────────────────────────────────────┤
+│ ⬜ = non applicable                                               │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### 6. Pull Request & Merge
+- **PR** : #`<PR_N>` — `<titre>`
+- **URL** : `https://github.com/<repo>/pull/<PR_N>`
+- **Branche source** : `fix/<scope>-<description>`
+- **Branche cible** : `main`
+- **Méthode de merge** : squash
+- **Merge commit SHA** : `<sha>`
+- **Horodatage du merge** : `<date>`
+
+### 7. Résultat de la CI distante (étape 5.1)
 | Job | Résultat | Détail |
 |---|---|---|
 | `lint` | ✅ / ❌ | |
@@ -501,33 +698,43 @@ Structure de réponse finale :
 | `e2e` | ✅ / ❌ | (si applicable) |
 | `security` | ✅ / ❌ | |
 
-### 7. Résultat du déploiement production Vercel (étape 5.2)
+### 8. Résultat du déploiement production Vercel (étape 5.2)
 - Build Vercel : ✅ / ❌
 - URL de production : `<url>`
 - Runtime vérifié : ✅ / ❌
 - Logs Serverless : aucune erreur / détail des erreurs
 
-### 8. Vérification base de données (si le fix touche Prisma / les données)
+### 9. Vérification base de données (si le fix touche Prisma / les données)
+- [ ] Schéma Prisma modifié → migration créée et commitée
 - [ ] Via MCP Supabase : schéma cohérent après `prisma migrate deploy`
 - [ ] Via MCP Supabase : requête SQL de validation sur les données impactées
 - [ ] Politiques RLS toujours fonctionnelles après la modification
+- [ ] Isolation multi-tenant (`siteId`) vérifiée sur tout nouveau modèle
 
-### 9. Checklist de validation finale
+### 10. Checklist de validation finale
+- [ ] Dépendances vérifiées (`pnpm install --frozen-lockfile`)
+- [ ] Prisma : `db:generate` + migration (si schéma modifié)
 - [ ] Validation locale complète (lint + type-check + test + build)
-- [ ] Push vers `main` effectué
-- [ ] CI distante : tous les jobs passent
+- [ ] Branche poussée + PR créée
+- [ ] CI sur la PR : tous les checks passent
+- [ ] PR mergée dans `main` (squash)
+- [ ] CI sur `main` : tous les checks passent
 - [ ] Déploiement production Vercel : build réussi + runtime fonctionnel
 - [ ] Isolation multi-tenant vérifiée sur chaque requête DB modifiée
 - [ ] Aucune donnée sensible exposée côté client
 - [ ] Consommateurs des packages partagés modifiés non régressés
+- [ ] CLAUDE.md mis à jour (si applicable)
 - [ ] Nouvelles variables d'environnement documentées dans `.env.example`
   et ajoutées dans les settings Vercel (Production / Preview / Development)
 
-### 10. Chronologie d'exécution
+### 11. Chronologie d'exécution
 Résumé chronologique des actions effectuées :
 1. Investigation : fichiers lus, dépendances analysées
 2. Analyse : cause racine identifiée, approche choisie
-3. Implémentation : modifications effectuées, tests écrits
-4. Validation locale : résultats de chaque étape du pipeline
-5. Push vers `main` : commit et push
-6. CI & déploiement : résultats de la CI et du déploiement production
+3. Dépendances : `pnpm install` vérifié, Prisma régénéré (si applicable)
+4. Implémentation : modifications effectuées, tests écrits
+5. CLAUDE.md : vérifié et mis à jour (si applicable)
+6. Validation locale : résultats de chaque étape du pipeline
+7. Push branche + création PR : branche poussée, PR créée et liée à l'issue
+8. CI PR : checks vérifiés, merge effectué
+9. CI main + déploiement : résultats de la CI et du déploiement production
