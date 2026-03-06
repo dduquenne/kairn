@@ -96,14 +96,20 @@ export interface ForgotPasswordResponse {
  * Auth handler configuration
  */
 export interface AuthHandlerConfig {
-  /** Cookie name for auth token */
+  /** Cookie name for access token */
   cookieName?: string;
-  /** Token expiration time (e.g., '24h') */
+  /** Cookie name for refresh token */
+  refreshCookieName?: string;
+  /** Access token expiration time (default: '15m') */
   tokenExpiration?: string;
+  /** Refresh token expiration time (default: '7d') */
+  refreshTokenExpiration?: string;
   /** Whether to include token in response body */
   includeTokenInBody?: boolean;
   /** Rate limit configuration key */
   rateLimitKey?: string;
+  /** Skip handler-level rate limiting (use when middleware already handles it) */
+  skipRateLimit?: boolean;
   /** User lookup function */
   findUserByEmail: (email: string) => Promise<{
     id: string;
@@ -121,6 +127,27 @@ export interface AuthHandlerConfig {
   generateResetToken?: (email: string) => Promise<string>;
   /** Function to send reset email (returns void, email is sent async) */
   sendResetEmail?: (email: string, resetToken: string) => Promise<void>;
+  /** Function to store a refresh token hash in the database */
+  storeRefreshToken?: (
+    userId: string,
+    tokenHash: string,
+    family: string,
+    expiresAt: Date
+  ) => Promise<void>;
+  /** Function to find and validate a refresh token by hash */
+  findRefreshToken?: (tokenHash: string) => Promise<{
+    id: string;
+    userId: string;
+    family: string;
+    isUsed: boolean;
+    expiresAt: Date;
+  } | null>;
+  /** Function to mark a refresh token as used */
+  markRefreshTokenUsed?: (tokenId: string) => Promise<void>;
+  /** Function to revoke all tokens in a family (replay detection) */
+  revokeTokenFamily?: (family: string) => Promise<void>;
+  /** Function to revoke all refresh tokens for a user */
+  revokeAllUserTokens?: (userId: string) => Promise<void>;
 }
 
 /**

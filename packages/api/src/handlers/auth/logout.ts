@@ -12,10 +12,14 @@ import type { LogoutResponse } from './types';
 export interface LogoutHandlerConfig {
   /** Cookie name for auth token */
   cookieName?: string;
+  /** Cookie name for refresh token */
+  refreshCookieName?: string;
   /** Additional cookies to clear */
   additionalCookies?: string[];
   /** Callback after successful logout */
   onLogout?: (userId?: string) => Promise<void>;
+  /** Function to revoke all refresh tokens for a user */
+  revokeAllUserTokens?: (userId: string) => Promise<void>;
 }
 
 /**
@@ -23,6 +27,7 @@ export interface LogoutHandlerConfig {
  */
 const defaultConfig: LogoutHandlerConfig = {
   cookieName: 'auth_token',
+  refreshCookieName: 'refresh_token',
   additionalCookies: [],
 };
 
@@ -71,7 +76,10 @@ export interface LogoutResult {
  * ```
  */
 export async function handleLogout(config: LogoutHandlerConfig = {}): Promise<LogoutResult> {
-  const { cookieName, additionalCookies, onLogout } = { ...defaultConfig, ...config };
+  const { cookieName, refreshCookieName, additionalCookies, onLogout } = {
+    ...defaultConfig,
+    ...config,
+  };
 
   // Call logout callback if provided
   if (onLogout) {
@@ -80,17 +88,19 @@ export async function handleLogout(config: LogoutHandlerConfig = {}): Promise<Lo
 
   const isProduction = process.env.NODE_ENV === 'production';
 
-  // Build list of cookies to clear
-  const cookiesToClear = [cookieName, ...(additionalCookies || [])].map(name => ({
-    name: name || 'auth_token',
-    options: {
-      maxAge: 0,
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: 'strict' as const,
-      path: '/',
-    },
-  }));
+  // Build list of cookies to clear (include refresh token cookie)
+  const cookiesToClear = [cookieName, refreshCookieName, ...(additionalCookies || [])]
+    .filter(Boolean)
+    .map(name => ({
+      name: name || 'auth_token',
+      options: {
+        maxAge: 0,
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: 'strict' as const,
+        path: '/',
+      },
+    }));
 
   return {
     response: {

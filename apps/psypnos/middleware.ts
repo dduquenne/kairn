@@ -2,35 +2,27 @@
  * Next.js Middleware for Psypnos
  *
  * Implements:
- * - Rate limiting for API routes
- * - Security headers (additional to those in next.config.mjs)
- *
- * Note: CSP is handled by next.config.mjs for consistent script handling.
- * Using nonce-based CSP in middleware requires complex integration with
- * Next.js script rendering that can cause JavaScript hydration failures.
+ * - Nonce-based Content Security Policy (CSP) for XSS protection
+ * - Rate limiting for API routes (single point of enforcement)
+ * - Security headers
  */
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Rate limiting configuration (per 15 minutes window)
+// Rate limiting configuration (per window)
 const RATE_LIMIT_CONFIG = {
-  // General API routes
   api: { maxRequests: 100, windowMs: 15 * 60 * 1000 },
-  // Auth routes (stricter)
   auth: { maxRequests: 10, windowMs: 15 * 60 * 1000 },
-  // Contact form
   contact: { maxRequests: 5, windowMs: 60 * 60 * 1000 },
-  // Admin routes
   admin: { maxRequests: 200, windowMs: 15 * 60 * 1000 },
 } as const;
 
-// In-memory rate limit store (for edge runtime)
-// Note: In production with multiple instances, use Redis or similar
+// In-memory rate limit store (for Edge Runtime)
 const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
 
 /**
- * Extract client IP from request
+ * Extract client IP from request headers
  */
 function getClientIP(request: NextRequest): string {
   const forwardedFor = request.headers.get('x-forwarded-for');
@@ -55,7 +47,7 @@ function getClientIP(request: NextRequest): string {
 }
 
 /**
- * Check rate limit for a request
+ * Check rate limit for a given key
  */
 function checkRateLimit(
   key: string,
@@ -75,13 +67,17 @@ function checkRateLimit(
   }
 
   record.count++;
-  return { allowed: true, remaining: config.maxRequests - record.count, resetAt: record.resetAt };
+  return {
+    allowed: true,
+    remaining: config.maxRequests - record.count,
+    resetAt: record.resetAt,
+  };
 }
 
 /**
- * Clean up expired rate limit entries periodically
+ * Clean up expired rate limit entries
  */
-function cleanupRateLimitStore() {
+function cleanupRateLimitStore(): void {
   const now = Date.now();
   for (const [key, record] of rateLimitStore.entries()) {
     if (now > record.resetAt) {
@@ -90,9 +86,61 @@ function cleanupRateLimitStore() {
   }
 }
 
-// Cleanup every 5 minutes
 let lastCleanup = Date.now();
 const CLEANUP_INTERVAL = 5 * 60 * 1000;
+
+/**
+ * Generate a cryptographic nonce for CSP (Edge Runtime compatible)
+ */
+function generateNonce(): string {
+  const array = new Uint8Array(16);
+  crypto.getRandomValues(array);
+  let hex = '';
+  for (let i = 0; i < array.length; i++) {
+    hex += array[i]!.toString(16).padStart(2, '0');
+  }
+  return btoa(hex);
+}
+
+/**
+ * Build Content Security Policy with nonce
+ *
+ * - script-src uses nonce + strict-dynamic (no unsafe-inline/unsafe-eval)
+ * - style-src keeps unsafe-inline (lower XSS risk, needed for Tailwind/Next.js)
+ */
+function buildCSP(nonce: string): string {
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://www.google.com https://www.gstatic.com https://www.clarity.ms`,
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "img-src 'self' data: https: blob:",
+    "font-src 'self' https://fonts.gstatic.com",
+    "connect-src 'self' https://api.resend.com https://*.supabase.co https://www.google-analytics.com https://api.anthropic.com https://api.openai.com https://www.clarity.ms",
+    "frame-src 'self' https://www.google.com",
+    "frame-ancestors 'none'",
+    "form-action 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    'upgrade-insecure-requests',
+  ].join('; ');
+}
+
+/**
+ * Set common security headers on a response
+ */
+function setSecurityHeaders(response: NextResponse): void {
+  response.headers.set('X-DNS-Prefetch-Control', 'on');
+  response.headers.set('X-Frame-Options', 'SAMEORIGIN');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  response.headers.set(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=(self), interest-cohort=()'
+  );
+  response.headers.set('X-Permitted-Cross-Domain-Policies', 'none');
+  response.headers.set('X-XSS-Protection', '1; mode=block');
+}
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -105,15 +153,19 @@ export function middleware(request: NextRequest) {
     lastCleanup = now;
   }
 
-  // Skip rate limiting for static assets
+  // Skip for static assets
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/images') ||
     pathname.startsWith('/fonts') ||
-    pathname.includes('.') // Static files
+    pathname.includes('.')
   ) {
     return NextResponse.next();
   }
+
+  // Generate nonce for CSP
+  const nonce = generateNonce();
+  const cspHeader = buildCSP(nonce);
 
   // Determine rate limit config based on route
   let rateLimitKey: keyof typeof RATE_LIMIT_CONFIG = 'api';
@@ -160,45 +212,30 @@ export function middleware(request: NextRequest) {
       );
     }
 
-    // Add rate limit headers to successful responses
-    const response = NextResponse.next();
+    // Pass nonce to downstream via request header
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-nonce', nonce);
+
+    const response = NextResponse.next({ request: { headers: requestHeaders } });
     response.headers.set('X-RateLimit-Limit', String(config.maxRequests));
     response.headers.set('X-RateLimit-Remaining', String(result.remaining));
     response.headers.set('X-RateLimit-Reset', String(result.resetAt));
+    response.headers.set('Content-Security-Policy', cspHeader);
+    setSecurityHeaders(response);
     return response;
   }
 
-  // For HTML pages: Don't override CSP from next.config.mjs
-  // The nonce-based CSP requires proper integration with Next.js which is complex
-  // Security headers from next.config.mjs are sufficient for HTML pages
-  // Only add additional security headers here (CSP is already set in next.config.mjs)
-  const response = NextResponse.next();
+  // For HTML pages: set nonce-based CSP and pass nonce via request header
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-nonce', nonce);
 
-  // Additional security headers (CSP is handled by next.config.mjs for consistency)
-  response.headers.set('X-DNS-Prefetch-Control', 'on');
-  response.headers.set('X-Frame-Options', 'SAMEORIGIN');
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-  response.headers.set(
-    'Permissions-Policy',
-    'camera=(), microphone=(), geolocation=(self), interest-cohort=()'
-  );
-  response.headers.set('X-Permitted-Cross-Domain-Policies', 'none');
-  response.headers.set('X-XSS-Protection', '1; mode=block');
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  response.headers.set('Content-Security-Policy', cspHeader);
+  setSecurityHeaders(response);
 
   return response;
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\..*|_next).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\..*|_next).*)'],
 };
