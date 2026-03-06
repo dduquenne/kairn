@@ -42,7 +42,13 @@ import ora from 'ora';
 type SiteTemplateConfig = (typeof SITE_TEMPLATES)[SiteTemplate];
 
 import { buildCommand } from './commands/build';
-import { migrateCommand, seedCommand, pushCommand, generateCommand as dbGenerateCommand, studioCommand } from './commands/db';
+import {
+  migrateCommand,
+  seedCommand,
+  pushCommand,
+  generateCommand as dbGenerateCommand,
+  studioCommand,
+} from './commands/db';
 import { devCommand } from './commands/dev';
 import { generatePageCommand, generateComponentCommand } from './commands/generate';
 import { initCommand } from './commands/init';
@@ -138,7 +144,7 @@ async function createConfig(options: { output?: string; template?: string }): Pr
       type: 'list',
       name: 'template',
       message: 'Choose a template:',
-      choices: Object.keys(SITE_TEMPLATES).map((t) => ({
+      choices: Object.keys(SITE_TEMPLATES).map(t => ({
         name: `${t.charAt(0).toUpperCase() + t.slice(1)} - ${getTemplateDescription(t as SiteTemplate)}`,
         value: t,
       })),
@@ -148,7 +154,7 @@ async function createConfig(options: { output?: string; template?: string }): Pr
       type: 'list',
       name: 'colorPalette',
       message: 'Choose a color palette:',
-      choices: Object.keys(COLOR_PALETTES).map((p) => ({
+      choices: Object.keys(COLOR_PALETTES).map(p => ({
         name: `${p.charAt(0).toUpperCase() + p.slice(1)} - Primary: ${COLOR_PALETTES[p as keyof typeof COLOR_PALETTES].primary}`,
         value: p,
       })),
@@ -255,7 +261,12 @@ async function validateConfig(filePath: string): Promise<void> {
       console.log('\n' + chalk.bold('Configuration Summary:'));
       console.log(`  Domain: ${result.data.domain || 'Not set'}`);
       console.log(`  Locale: ${result.data.locale}`);
-      console.log(`  Features enabled: ${Object.entries(result.data.features).filter(([, v]) => v).map(([k]) => k).join(', ')}`);
+      console.log(
+        `  Features enabled: ${Object.entries(result.data.features)
+          .filter(([, v]) => v)
+          .map(([k]) => k)
+          .join(', ')}`
+      );
       console.log(`  Dark mode: ${result.data.theme.darkModeEnabled ? 'Enabled' : 'Disabled'}`);
       console.log('');
     } else {
@@ -281,10 +292,18 @@ async function validateConfig(filePath: string): Promise<void> {
 function listTemplates(): void {
   header('📋 Available Site Templates');
 
-  for (const [name, template] of Object.entries(SITE_TEMPLATES) as [SiteTemplate, SiteTemplateConfig][]) {
+  for (const [name, template] of Object.entries(SITE_TEMPLATES) as [
+    SiteTemplate,
+    SiteTemplateConfig,
+  ][]) {
     console.log(chalk.cyan(`  ${name}`));
     console.log(`    Description: ${getTemplateDescription(name)}`);
-    console.log(`    Features: ${Object.entries(template.features).filter(([, v]) => v).map(([k]) => k).join(', ')}`);
+    console.log(
+      `    Features: ${Object.entries(template.features)
+        .filter(([, v]) => v)
+        .map(([k]) => k)
+        .join(', ')}`
+    );
     console.log(`    Hero style: ${template.content.hero.style}`);
     console.log('');
   }
@@ -299,8 +318,12 @@ function listPalettes(): void {
   for (const [name, palette] of Object.entries(COLOR_PALETTES) as [string, ColorPalette][]) {
     console.log(chalk.cyan(`  ${name}`));
     console.log(`    Primary:     ${chalk.hex(palette.primary)('████')} ${palette.primary}`);
-    console.log(`    Secondary:   ${palette.secondary ? chalk.hex(palette.secondary)('████') + ' ' + palette.secondary : 'Not set'}`);
-    console.log(`    Accent:      ${palette.accent ? chalk.hex(palette.accent)('████') + ' ' + palette.accent : 'Not set'}`);
+    console.log(
+      `    Secondary:   ${palette.secondary ? chalk.hex(palette.secondary)('████') + ' ' + palette.secondary : 'Not set'}`
+    );
+    console.log(
+      `    Accent:      ${palette.accent ? chalk.hex(palette.accent)('████') + ' ' + palette.accent : 'Not set'}`
+    );
     console.log(`    Background:  ${chalk.hex(palette.background)('████')} ${palette.background}`);
     console.log('');
   }
@@ -352,10 +375,7 @@ async function exportConfig(
 // CLI Setup
 // =============================================================================
 
-program
-  .name('kairn')
-  .description('CLI tool for managing Kairn platform sites')
-  .version('0.1.0');
+program.name('kairn').description('CLI tool for managing Kairn platform sites').version('0.1.0');
 
 // =============================================================================
 // Main Commands
@@ -402,15 +422,15 @@ db.command('push')
 db.command('seed')
   .description('Seed the database with initial data')
   .option('--reset', 'Reset database before seeding')
+  .option('--site <slug>', 'Seed a specific site (requires --name and --domain)')
+  .option('--name <name>', 'Display name of the site')
+  .option('--domain <domain>', 'Domain of the site (e.g. example.fr)')
+  .option('--demo', 'Include demo data (blog post, testimonials)')
   .action(seedCommand);
 
-db.command('generate')
-  .description('Generate Prisma client')
-  .action(dbGenerateCommand);
+db.command('generate').description('Generate Prisma client').action(dbGenerateCommand);
 
-db.command('studio')
-  .description('Open Prisma Studio')
-  .action(studioCommand);
+db.command('studio').description('Open Prisma Studio').action(studioCommand);
 
 // =============================================================================
 // Generate Commands
@@ -461,21 +481,17 @@ config
 // Reference Commands
 // =============================================================================
 
-program
-  .command('templates')
-  .description('List available site templates')
-  .action(listTemplates);
+program.command('templates').description('List available site templates').action(listTemplates);
 
-program
-  .command('palettes')
-  .description('List available color palettes')
-  .action(listPalettes);
+program.command('palettes').description('List available color palettes').action(listPalettes);
 
 // =============================================================================
 // Version and Help
 // =============================================================================
 
-program.addHelpText('after', `
+program.addHelpText(
+  'after',
+  `
 ${chalk.bold('Examples:')}
   ${chalk.gray('$')} kairn init my-site                    ${chalk.gray('# Create a new site')}
   ${chalk.gray('$')} kairn dev --site my-site              ${chalk.gray('# Start dev server')}
@@ -487,6 +503,7 @@ ${chalk.bold('Examples:')}
 
 ${chalk.bold('Documentation:')}
   ${chalk.cyan('https://github.com/your-org/kairn')}
-`);
+`
+);
 
 program.parse();

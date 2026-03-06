@@ -169,6 +169,15 @@ export {
   type SuggestedAction,
 } from './components/chat';
 
+// Cookie Consent Components
+export {
+  CookieConsentBanner,
+  type CookieConsentBannerProps,
+  type CookieConsentColors,
+  type CookieConsentLabels,
+  type ConsentLevel,
+} from './components/cookie-consent';
+
 // Hooks
 export {
   useDebounce,

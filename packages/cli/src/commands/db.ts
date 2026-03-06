@@ -19,6 +19,10 @@ interface MigrateOptions {
 
 interface SeedOptions {
   reset?: boolean;
+  site?: string;
+  name?: string;
+  domain?: string;
+  demo?: boolean;
 }
 
 /**
@@ -64,13 +68,13 @@ export async function migrateCommand(options: MigrateOptions): Promise<void> {
         env: { ...process.env, FORCE_COLOR: '1' },
       });
 
-      child.on('error', (err) => {
+      child.on('error', err => {
         spinner.fail('Migration deployment failed');
         error(err.message);
         process.exit(1);
       });
 
-      child.on('exit', (code) => {
+      child.on('exit', code => {
         if (code === 0) {
           success('Migration deployment completed');
         }
@@ -93,12 +97,12 @@ export async function migrateCommand(options: MigrateOptions): Promise<void> {
         env: { ...process.env, FORCE_COLOR: '1' },
       });
 
-      child.on('error', (err) => {
+      child.on('error', err => {
         error(`Migration failed: ${err.message}`);
         process.exit(1);
       });
 
-      child.on('exit', (code) => {
+      child.on('exit', code => {
         if (code === 0) {
           success('Migration completed');
         }
@@ -141,12 +145,12 @@ export async function pushCommand(): Promise<void> {
       env: { ...process.env, FORCE_COLOR: '1' },
     });
 
-    child.on('error', (err) => {
+    child.on('error', err => {
       error(`Push failed: ${err.message}`);
       process.exit(1);
     });
 
-    child.on('exit', (code) => {
+    child.on('exit', code => {
       if (code === 0) {
         success('Schema push completed');
       }
@@ -160,7 +164,11 @@ export async function pushCommand(): Promise<void> {
 }
 
 /**
- * Seed the database with initial data
+ * Seed the database with initial data.
+ *
+ * Supports two modes:
+ * - Default: runs the global seed.ts (psypnos defaults)
+ * - Per-site: --site <slug> --name <name> --domain <domain> [--demo]
  */
 export async function seedCommand(options: SeedOptions): Promise<void> {
   const spinner = ora('Initializing database seed...').start();
@@ -176,6 +184,58 @@ export async function seedCommand(options: SeedOptions): Promise<void> {
 
     const dbDir = await getDbPackageDir(projectRoot);
     const tsxBin = join(projectRoot, 'node_modules', '.bin', 'tsx');
+
+    // Per-site seeding mode
+    if (options.site) {
+      if (!options.name || !options.domain) {
+        spinner.fail('Missing required options');
+        error('--name and --domain are required when using --site');
+        info('Usage: kairn db seed --site <slug> --name <name> --domain <domain> [--demo]');
+        process.exit(1);
+      }
+
+      const seedSiteFile = join(dbDir, 'src', 'seed-site.ts');
+      if (!(await fileExists(seedSiteFile))) {
+        spinner.fail('Site seed file not found');
+        error('Expected packages/db/src/seed-site.ts');
+        process.exit(1);
+      }
+
+      spinner.succeed(`Seeding site: ${options.site}`);
+      header(`🌱 Kairn Site Seed: ${options.name}`);
+
+      const args = [
+        seedSiteFile,
+        '--slug',
+        options.site,
+        '--name',
+        options.name,
+        '--domain',
+        options.domain,
+      ];
+      if (options.demo) args.push('--demo');
+
+      const child = spawn(tsxBin, args, {
+        cwd: dbDir,
+        stdio: 'inherit',
+        env: { ...process.env, FORCE_COLOR: '1' },
+      });
+
+      child.on('error', err => {
+        error(`Site seed failed: ${err.message}`);
+        process.exit(1);
+      });
+
+      child.on('exit', code => {
+        if (code === 0) {
+          success(`Site "${options.site}" seeded successfully`);
+        }
+        process.exit(code ?? 0);
+      });
+      return;
+    }
+
+    // Global seed mode
     const seedFile = join(dbDir, 'src', 'seed.ts');
 
     if (!(await fileExists(seedFile))) {
@@ -199,12 +259,12 @@ export async function seedCommand(options: SeedOptions): Promise<void> {
         env: { ...process.env, FORCE_COLOR: '1' },
       });
 
-      resetChild.on('error', (err) => {
+      resetChild.on('error', err => {
         error(`Reset failed: ${err.message}`);
         process.exit(1);
       });
 
-      resetChild.on('exit', (code) => {
+      resetChild.on('exit', code => {
         if (code !== 0) {
           process.exit(code ?? 1);
         }
@@ -220,12 +280,12 @@ export async function seedCommand(options: SeedOptions): Promise<void> {
         env: { ...process.env, FORCE_COLOR: '1' },
       });
 
-      child.on('error', (err) => {
+      child.on('error', err => {
         error(`Seed failed: ${err.message}`);
         process.exit(1);
       });
 
-      child.on('exit', (code) => {
+      child.on('exit', code => {
         if (code === 0) {
           success('Database seeded successfully');
         }
@@ -263,13 +323,13 @@ export async function generateCommand(): Promise<void> {
       env: { ...process.env, FORCE_COLOR: '1' },
     });
 
-    child.on('error', (err) => {
+    child.on('error', err => {
       spinner.fail('Generate failed');
       error(err.message);
       process.exit(1);
     });
 
-    child.on('exit', (code) => {
+    child.on('exit', code => {
       if (code === 0) {
         spinner.succeed('Prisma client generated');
       }
@@ -309,12 +369,12 @@ export async function studioCommand(): Promise<void> {
       env: { ...process.env, FORCE_COLOR: '1' },
     });
 
-    child.on('error', (err) => {
+    child.on('error', err => {
       error(`Failed to open studio: ${err.message}`);
       process.exit(1);
     });
 
-    child.on('exit', (code) => {
+    child.on('exit', code => {
       process.exit(code ?? 0);
     });
   } catch (err) {

@@ -33,3 +33,6 @@ export { Prisma } from '@prisma/client';
 
 // Error handling
 export { handlePrismaError, type PrismaErrorResult } from './errors';
+
+// Seeding utilities
+export { seedSite, type SeedSiteConfig, type SeedSiteResult } from './seed-site';

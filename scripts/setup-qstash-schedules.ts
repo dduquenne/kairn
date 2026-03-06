@@ -50,6 +50,9 @@ const DEFAULT_CRON_SCHEDULES: Record<string, string> = {
 
   /** Traitement des rapports programmés - toutes les heures à :45 */
   'process-reports': '45 * * * *',
+
+  /** Rotation automatique des secrets JWT - 2h00 chaque jour */
+  'rotate-secrets': '0 2 * * *',
 };
 
 interface ScheduleResult {
