@@ -1,7 +1,8 @@
 {
   "extends": ["@kairn/eslint-config"],
   "parserOptions": {
-    "project": true
+    "project": ["./tsconfig.json", "./tsconfig.lint.json"],
+    "tsconfigRootDir": "packages/core"
   },
   "rules": {
     "no-console": "off"

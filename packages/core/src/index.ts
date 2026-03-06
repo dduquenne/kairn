@@ -32,6 +32,15 @@ export {
   type SecretsManagerConfig,
 } from './auth/secrets-manager';
 
+// Secret Encryption (envelope encryption for JWT secrets at rest)
+export {
+  encryptSecret,
+  decryptSecret,
+  decryptSecretIfNeeded,
+  isEncryptedSecret,
+  isEncryptionEnabled,
+} from './auth/secret-encryption';
+
 // Logger
 export {
   Logger,

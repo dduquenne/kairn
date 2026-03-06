@@ -18,16 +18,13 @@ const serverEnvSchema = z.object({
   DATABASE_URL: z
     .string()
     .url()
-    .refine((url) => url.startsWith('postgresql://') || url.startsWith('postgres://'), {
+    .refine(url => url.startsWith('postgresql://') || url.startsWith('postgres://'), {
       message: 'DATABASE_URL must be a valid PostgreSQL connection string',
     })
     .optional(),
 
   // Authentication - JWT secrets should be at least 32 characters
-  JWT_SECRET: z
-    .string()
-    .min(32, 'JWT_SECRET must be at least 32 characters')
-    .optional(),
+  JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters').optional(),
   JWT_ACCESS_SECRET: z
     .string()
     .min(32, 'JWT_ACCESS_SECRET must be at least 32 characters')
@@ -59,6 +56,10 @@ const serverEnvSchema = z.object({
   RECAPTCHA_SITE_KEY: z.string().optional(),
   RECAPTCHA_SECRET_KEY: z.string().optional(),
   SOCIAL_ENCRYPTION_KEY: z.string().optional(),
+  SECRETS_ENCRYPTION_KEY: z
+    .string()
+    .regex(/^[0-9a-fA-F]{64}$/, 'SECRETS_ENCRYPTION_KEY must be 64 hex characters (32 bytes)')
+    .optional(),
 
   // Rate Limiting
   RATE_LIMIT_WINDOW_MS: z.coerce.number().positive().optional(),
@@ -69,11 +70,7 @@ const serverEnvSchema = z.object({
  * Schema for client-side (public) environment variables
  */
 const clientEnvSchema = z.object({
-  NEXT_PUBLIC_APP_URL: z
-    .string()
-    .url()
-    .optional()
-    .default('http://localhost:3000'),
+  NEXT_PUBLIC_APP_URL: z.string().url().optional().default('http://localhost:3000'),
   NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
 });
 
@@ -196,6 +193,7 @@ export function checkProductionReadiness(env: Record<string, unknown> = process.
     'JWT_REFRESH_SECRET',
     'RESEND_API_KEY',
     'RECAPTCHA_SECRET_KEY',
+    'SECRETS_ENCRYPTION_KEY',
   ];
   for (const key of recommended) {
     if (!env[key]) {
@@ -218,10 +216,7 @@ export function checkProductionReadiness(env: Record<string, unknown> = process.
 /**
  * Get a typed environment variable with fallback
  */
-export function getEnv<K extends keyof Env>(
-  key: K,
-  fallback?: Env[K]
-): Env[K] | undefined {
+export function getEnv<K extends keyof Env>(key: K, fallback?: Env[K]): Env[K] | undefined {
   const value = process.env[key];
   if (value === undefined || value === '') {
     return fallback;

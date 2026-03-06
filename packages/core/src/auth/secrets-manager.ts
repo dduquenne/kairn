@@ -12,6 +12,7 @@
  */
 
 import { type SecretsManagerInterface } from './jwt';
+import { decryptSecretIfNeeded, encryptSecret, isEncryptionEnabled } from './secret-encryption';
 
 /**
  * Secret key record structure (matches Prisma schema)
@@ -77,7 +78,7 @@ interface SecretsCache {
 function generateSecureSecret(length: number = 64): string {
   const array = new Uint8Array(length);
   crypto.getRandomValues(array);
-  return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
 /**
@@ -140,7 +141,7 @@ export class DatabaseSecretsManager implements SecretsManagerInterface {
   }
 
   /**
-   * Get the current signing key
+   * Get the current signing key, decrypting if envelope encryption is enabled
    */
   async getSigningKey(): Promise<Uint8Array> {
     if (!this.isCacheValid()) {
@@ -152,11 +153,12 @@ export class DatabaseSecretsManager implements SecretsManagerInterface {
       throw new Error('No current signing key available. Initialize keys first.');
     }
 
-    return new TextEncoder().encode(currentKey.secret);
+    const plaintext = decryptSecretIfNeeded(currentKey.secret);
+    return new TextEncoder().encode(plaintext);
   }
 
   /**
-   * Get a verification key by its ID
+   * Get a verification key by its ID, decrypting if envelope encryption is enabled
    */
   async getVerificationKey(kid: string): Promise<Uint8Array | null> {
     if (!this.isCacheValid()) {
@@ -164,9 +166,10 @@ export class DatabaseSecretsManager implements SecretsManagerInterface {
     }
 
     // First check cache
-    const cachedKey = this.cache?.validKeys.find((k) => k.kid === kid);
+    const cachedKey = this.cache?.validKeys.find(k => k.kid === kid);
     if (cachedKey) {
-      return new TextEncoder().encode(cachedKey.secret);
+      const plaintext = decryptSecretIfNeeded(cachedKey.secret);
+      return new TextEncoder().encode(plaintext);
     }
 
     // Fallback to direct storage lookup
@@ -175,7 +178,8 @@ export class DatabaseSecretsManager implements SecretsManagerInterface {
       return null;
     }
 
-    return new TextEncoder().encode(key.secret);
+    const plaintext = decryptSecretIfNeeded(key.secret);
+    return new TextEncoder().encode(plaintext);
   }
 
   /**
@@ -199,7 +203,7 @@ export class DatabaseSecretsManager implements SecretsManagerInterface {
    * Get all valid key versions
    */
   getValidVersions(): Array<{ kid: string }> {
-    return (this.cache?.validKeys || []).map((k) => ({ kid: k.kid }));
+    return (this.cache?.validKeys || []).map(k => ({ kid: k.kid }));
   }
 
   /**
@@ -223,10 +227,13 @@ export class DatabaseSecretsManager implements SecretsManagerInterface {
     // Invalidate any expired keys first
     await this.storage.invalidateExpiredKeys();
 
-    // Generate new key
+    // Generate new key, encrypting the secret if envelope encryption is enabled
+    const rawSecret = generateSecureSecret(64);
+    const storedSecret = isEncryptionEnabled() ? encryptSecret(rawSecret) : rawSecret;
+
     const newKey: Omit<SecretKeyRecord, 'activatedAt'> = {
       kid: generateKid(),
-      secret: generateSecureSecret(64),
+      secret: storedSecret,
       algorithm: this.defaultAlgorithm,
       isCurrent: true,
       isValid: true,
@@ -315,7 +322,7 @@ export class InMemorySecretsStorage implements SecretsStorage {
   async getValidKeys(): Promise<SecretKeyRecord[]> {
     const now = new Date();
     return Array.from(this.keys.values()).filter(
-      (key) => key.isValid && (!key.expiresAt || key.expiresAt > now)
+      key => key.isValid && (!key.expiresAt || key.expiresAt > now)
     );
   }
 
