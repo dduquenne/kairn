@@ -7,6 +7,14 @@ vi.mock('@kairn/core', () => ({
     return null;
   }),
   verifyToken: vi.fn(),
+  createLogger: () => ({
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    child: vi.fn(),
+    withScope: vi.fn(),
+  }),
 }));
 
 import { verifyToken } from '@kairn/core';

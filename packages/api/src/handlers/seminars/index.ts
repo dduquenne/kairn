@@ -4,11 +4,15 @@
  * CRUD operations for seminars/events.
  */
 
+import { createLogger } from '@kairn/core';
+import { handlePrismaError } from '@kairn/db';
 import { z } from 'zod';
 
 import type { ApiRequest, AuthContext } from '../../middleware/types';
 import { withBodyValidation, withQueryValidation } from '../../middleware/with-validation';
 import { error, paginated, success } from '../../utils/response';
+
+const seminarsLogger = createLogger('API:Seminars');
 
 /**
  * Seminar status
@@ -224,7 +228,15 @@ export async function handleGetSeminars(
       },
     };
   } catch (e) {
-    console.error('Error fetching seminars:', e);
+    const prismaResult = handlePrismaError(e, 'fetching seminars');
+    if (prismaResult) {
+      return {
+        response: error(prismaResult.code, prismaResult.message),
+        statusCode: prismaResult.statusCode,
+        headers: {},
+      };
+    }
+    seminarsLogger.error('Error fetching seminars', e);
     return {
       response: error('INTERNAL_ERROR', 'Erreur lors de la récupération des séminaires'),
       statusCode: 500,
@@ -266,7 +278,15 @@ export async function handleGetSeminarBySlug(
       },
     };
   } catch (e) {
-    console.error('Error fetching seminar:', e);
+    const prismaResult = handlePrismaError(e, 'fetching seminar');
+    if (prismaResult) {
+      return {
+        response: error(prismaResult.code, prismaResult.message),
+        statusCode: prismaResult.statusCode,
+        headers: {},
+      };
+    }
+    seminarsLogger.error('Error fetching seminar', e);
     return {
       response: error('INTERNAL_ERROR', 'Erreur lors de la récupération du séminaire'),
       statusCode: 500,
@@ -323,7 +343,15 @@ export async function handleCreateSeminar(
       headers: {},
     };
   } catch (e) {
-    console.error('Error creating seminar:', e);
+    const prismaResult = handlePrismaError(e, 'creating seminar');
+    if (prismaResult) {
+      return {
+        response: error(prismaResult.code, prismaResult.message),
+        statusCode: prismaResult.statusCode,
+        headers: {},
+      };
+    }
+    seminarsLogger.error('Error creating seminar', e);
     return {
       response: error('INTERNAL_ERROR', 'Erreur lors de la création du séminaire'),
       statusCode: 500,
@@ -383,7 +411,15 @@ export async function handleUpdateSeminar(
       headers: {},
     };
   } catch (e) {
-    console.error('Error updating seminar:', e);
+    const prismaResult = handlePrismaError(e, 'updating seminar');
+    if (prismaResult) {
+      return {
+        response: error(prismaResult.code, prismaResult.message),
+        statusCode: prismaResult.statusCode,
+        headers: {},
+      };
+    }
+    seminarsLogger.error('Error updating seminar', e);
     return {
       response: error('INTERNAL_ERROR', 'Erreur lors de la mise à jour du séminaire'),
       statusCode: 500,
@@ -424,7 +460,15 @@ export async function handleDeleteSeminar(
       headers: {},
     };
   } catch (e) {
-    console.error('Error deleting seminar:', e);
+    const prismaResult = handlePrismaError(e, 'deleting seminar');
+    if (prismaResult) {
+      return {
+        response: error(prismaResult.code, prismaResult.message),
+        statusCode: prismaResult.statusCode,
+        headers: {},
+      };
+    }
+    seminarsLogger.error('Error deleting seminar', e);
     return {
       response: error('INTERNAL_ERROR', 'Erreur lors de la suppression du séminaire'),
       statusCode: 500,
@@ -501,7 +545,7 @@ export async function handleRegister(
       try {
         await sendRegistrationConfirmation(registration, seminar);
       } catch (e) {
-        console.error('Failed to send registration confirmation:', e);
+        seminarsLogger.error('Failed to send registration confirmation', e);
       }
     }
 
@@ -511,7 +555,15 @@ export async function handleRegister(
       headers: {},
     };
   } catch (e) {
-    console.error('Error creating registration:', e);
+    const prismaResult = handlePrismaError(e, 'creating registration');
+    if (prismaResult) {
+      return {
+        response: error(prismaResult.code, prismaResult.message),
+        statusCode: prismaResult.statusCode,
+        headers: {},
+      };
+    }
+    seminarsLogger.error('Error creating registration', e);
     return {
       response: error('INTERNAL_ERROR', "Erreur lors de l'inscription"),
       statusCode: 500,

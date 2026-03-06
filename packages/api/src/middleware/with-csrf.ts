@@ -6,7 +6,11 @@
 
 import { createHmac, randomBytes, timingSafeEqual } from 'crypto';
 
+import { createLogger } from '@kairn/core';
+
 import type { ApiErrorResponse, ApiRequest, CSRFConfig } from './types';
+
+const csrfLogger = createLogger('CSRF');
 
 /**
  * CSRF token structure
@@ -140,7 +144,10 @@ export function validateCSRFToken(token: string | null | undefined, config?: CSR
     }
 
     return true;
-  } catch {
+  } catch (err) {
+    csrfLogger.warn('CSRF token validation failed', {
+      error: err instanceof Error ? err.message : String(err),
+    });
     return false;
   }
 }
@@ -178,8 +185,10 @@ async function getCSRFTokenFromRequest(
       const formData = await clonedRequest.formData();
       return formData.get('csrf_token') as string | null;
     }
-  } catch {
-    // Parsing error
+  } catch (err) {
+    csrfLogger.warn('Failed to parse request body for CSRF token', {
+      error: err instanceof Error ? err.message : String(err),
+    });
   }
 
   return null;

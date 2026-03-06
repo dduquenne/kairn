@@ -1,5 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
+vi.mock('@kairn/core', () => ({
+  createLogger: () => ({
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    child: vi.fn(),
+    withScope: vi.fn(),
+  }),
+}));
+
 import { generateCSRFToken, validateCSRFToken } from '../with-csrf';
 
 describe('CSRF Middleware', () => {

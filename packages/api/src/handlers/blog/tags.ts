@@ -4,9 +4,14 @@
  * CRUD operations for blog tags.
  */
 
+import { createLogger } from '@kairn/core';
+import { handlePrismaError } from '@kairn/db';
+
 import type { ApiRequest, AuthContext } from '../../middleware/types';
 import { withBodyValidation } from '../../middleware/with-validation';
 import { error, success } from '../../utils/response';
+
+const tagsLogger = createLogger('API:BlogTags');
 
 import { tagSchema, type BlogHandlerConfig, type Tag, type TagInput } from './types';
 
@@ -49,7 +54,15 @@ export async function handleGetTags(config: BlogHandlerConfig): Promise<TagHandl
       },
     };
   } catch (e) {
-    console.error('Error fetching tags:', e);
+    const prismaResult = handlePrismaError(e, 'fetching tags');
+    if (prismaResult) {
+      return {
+        response: error(prismaResult.code, prismaResult.message),
+        statusCode: prismaResult.statusCode,
+        headers: {},
+      };
+    }
+    tagsLogger.error('Error fetching tags', e);
     return {
       response: error('INTERNAL_ERROR', 'Erreur lors de la récupération des tags'),
       statusCode: 500,
@@ -110,20 +123,17 @@ export async function handleCreateTag(
       headers: {},
     };
   } catch (e) {
-    console.error('Error creating tag:', e);
-    const message = e instanceof Error ? e.message : 'Erreur lors de la création';
-
-    // Check for duplicate error
-    if (message.includes('existe déjà') || message.includes('duplicate')) {
+    const prismaResult = handlePrismaError(e, 'creating tag');
+    if (prismaResult) {
       return {
-        response: error('CONFLICT', 'Un tag avec ce nom ou slug existe déjà'),
-        statusCode: 409,
+        response: error(prismaResult.code, prismaResult.message),
+        statusCode: prismaResult.statusCode,
         headers: {},
       };
     }
-
+    tagsLogger.error('Error creating tag', e);
     return {
-      response: error('INTERNAL_ERROR', message),
+      response: error('INTERNAL_ERROR', 'Erreur lors de la création du tag'),
       statusCode: 500,
       headers: {},
     };
@@ -184,19 +194,17 @@ export async function handleUpdateTag(
       headers: {},
     };
   } catch (e) {
-    console.error('Error updating tag:', e);
-    const message = e instanceof Error ? e.message : 'Erreur lors de la mise à jour';
-
-    if (message.includes('not found') || message.includes('introuvable')) {
+    const prismaResult = handlePrismaError(e, 'updating tag');
+    if (prismaResult) {
       return {
-        response: error('NOT_FOUND', 'Tag non trouvé'),
-        statusCode: 404,
+        response: error(prismaResult.code, prismaResult.message),
+        statusCode: prismaResult.statusCode,
         headers: {},
       };
     }
-
+    tagsLogger.error('Error updating tag', e);
     return {
-      response: error('INTERNAL_ERROR', message),
+      response: error('INTERNAL_ERROR', 'Erreur lors de la mise à jour du tag'),
       statusCode: 500,
       headers: {},
     };
@@ -240,19 +248,17 @@ export async function handleDeleteTag(
       headers: {},
     };
   } catch (e) {
-    console.error('Error deleting tag:', e);
-    const message = e instanceof Error ? e.message : 'Erreur lors de la suppression';
-
-    if (message.includes('not found') || message.includes('introuvable')) {
+    const prismaResult = handlePrismaError(e, 'deleting tag');
+    if (prismaResult) {
       return {
-        response: error('NOT_FOUND', 'Tag non trouvé'),
-        statusCode: 404,
+        response: error(prismaResult.code, prismaResult.message),
+        statusCode: prismaResult.statusCode,
         headers: {},
       };
     }
-
+    tagsLogger.error('Error deleting tag', e);
     return {
-      response: error('INTERNAL_ERROR', message),
+      response: error('INTERNAL_ERROR', 'Erreur lors de la suppression du tag'),
       statusCode: 500,
       headers: {},
     };

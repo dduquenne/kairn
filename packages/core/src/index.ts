@@ -47,10 +47,13 @@ export {
   createLogger,
   logger,
   configureLogger,
+  addErrorReporter,
+  removeAllErrorReporters,
   type LogLevel,
   type LogContext,
   type LogEntry,
   type LoggerConfig,
+  type ErrorReportHandler,
 } from './logger';
 
 // Utils
