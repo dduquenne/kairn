@@ -52,6 +52,9 @@ const serverEnvSchema = z.object({
   OPENAI_API_KEY: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
 
+  // CSRF (must be distinct from JWT secrets)
+  CSRF_SECRET: z.string().min(32, 'CSRF_SECRET must be at least 32 characters').optional(),
+
   // Security
   RECAPTCHA_SITE_KEY: z.string().optional(),
   RECAPTCHA_SECRET_KEY: z.string().optional(),
@@ -164,7 +167,7 @@ export function assertValidEnv(env: Record<string, unknown> = process.env): Env 
     throw new Error('Invalid environment variables');
   }
 
-  return result.data!;
+  return result.data as Env;
 }
 
 /**
@@ -180,7 +183,7 @@ export function checkProductionReadiness(env: Record<string, unknown> = process.
   const warnings: string[] = [];
 
   // Critical for production
-  const required = ['DATABASE_URL', 'JWT_SECRET'];
+  const required = ['DATABASE_URL', 'JWT_SECRET', 'CSRF_SECRET'];
   for (const key of required) {
     if (!env[key]) {
       missing.push(key);
@@ -204,6 +207,10 @@ export function checkProductionReadiness(env: Record<string, unknown> = process.
   // Security checks
   if (env['JWT_SECRET'] && String(env['JWT_SECRET']).length < 32) {
     warnings.push('JWT_SECRET should be at least 32 characters');
+  }
+
+  if (env['CSRF_SECRET'] && env['JWT_SECRET'] && env['CSRF_SECRET'] === env['JWT_SECRET']) {
+    warnings.push('CSRF_SECRET must be different from JWT_SECRET for proper security isolation');
   }
 
   return {

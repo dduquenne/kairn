@@ -32,13 +32,18 @@ const defaultConfig: Required<Omit<CSRFConfig, 'secret'>> = {
 export type CSRFResult = { success: true } | { success: false; error: ApiErrorResponse };
 
 /**
- * Get CSRF secret from config or environment
+ * Get CSRF secret from config or environment.
+ * CSRF_SECRET must be defined independently — no fallback on JWT_SECRET
+ * to prevent a leaked CSRF secret from compromising JWT tokens.
  */
 function getCSRFSecret(config?: CSRFConfig): string {
-  const secret = config?.secret || process.env.CSRF_SECRET || process.env.JWT_SECRET;
+  const secret = config?.secret || process.env.CSRF_SECRET;
 
   if (!secret) {
-    throw new Error('CSRF_SECRET or JWT_SECRET must be defined in environment variables');
+    throw new Error(
+      'CSRF_SECRET must be defined in environment variables. ' +
+        'Do not reuse JWT_SECRET for CSRF protection.'
+    );
   }
 
   return secret;

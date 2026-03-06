@@ -15,6 +15,7 @@ export const AuthErrorCode = {
   UNAUTHORIZED: 'UNAUTHORIZED',
   TOKEN_EXPIRED: 'TOKEN_EXPIRED',
   INVALID_TOKEN: 'INVALID_TOKEN',
+  INSUFFICIENT_PERMISSIONS: 'INSUFFICIENT_PERMISSIONS',
 } as const;
 
 /**
@@ -25,6 +26,7 @@ function createAuthError(code: keyof typeof AuthErrorCode, message?: string): Ap
     UNAUTHORIZED: { msg: 'Authentification requise', status: 401 },
     TOKEN_EXPIRED: { msg: 'Votre session a expiré. Veuillez vous reconnecter', status: 401 },
     INVALID_TOKEN: { msg: 'Token invalide', status: 401 },
+    INSUFFICIENT_PERMISSIONS: { msg: 'Permissions insuffisantes', status: 403 },
   };
 
   const { msg, status } = messages[code];
@@ -155,6 +157,15 @@ export async function withAuth(
       return {
         success: false,
         error: createAuthError('TOKEN_EXPIRED'),
+      };
+    }
+
+    // Check required role if specified
+    const mergedConfig = { ...defaultConfig, ...config };
+    if (mergedConfig.requiredRole && payload.role !== mergedConfig.requiredRole) {
+      return {
+        success: false,
+        error: createAuthError('INSUFFICIENT_PERMISSIONS'),
       };
     }
 

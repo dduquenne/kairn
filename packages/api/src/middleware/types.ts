@@ -66,7 +66,7 @@ export interface CSRFConfig {
   headerName?: string;
   /** Token lifetime in seconds */
   tokenLifetime?: number;
-  /** Secret for signing (defaults to env CSRF_SECRET or JWT_SECRET) */
+  /** Secret for signing (defaults to env CSRF_SECRET — no fallback on JWT_SECRET) */
   secret?: string;
 }
 
