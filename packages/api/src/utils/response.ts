@@ -2,7 +2,17 @@
  * API Response Utilities
  *
  * Helper functions for creating standardized API responses.
+ * Provides a bridge between @kairn/core AppError classes and
+ * the standardized API response format.
  */
+
+import {
+  type AppError,
+  isAppError,
+  normalizeError,
+  RateLimitError,
+  ValidationError,
+} from '@kairn/core';
 
 /**
  * Success response structure
@@ -253,4 +263,118 @@ export function buildHeaders(options: {
   }
 
   return headers;
+}
+
+// ─── AppError codes → ErrorCodes mapping ────────────────────────────────────
+
+/**
+ * Maps AppError.code values to the standardized ErrorCodes constants.
+ * Ensures consistent error codes across @kairn/core and @kairn/api.
+ */
+const APP_ERROR_CODE_MAP: Record<string, string> = {
+  VALIDATION_ERROR: ErrorCodes.VALIDATION_ERROR,
+  AUTHENTICATION_ERROR: ErrorCodes.UNAUTHORIZED,
+  AUTHORIZATION_ERROR: ErrorCodes.INSUFFICIENT_PERMISSIONS,
+  NOT_FOUND: ErrorCodes.NOT_FOUND,
+  CONFLICT: ErrorCodes.CONFLICT,
+  RATE_LIMIT_EXCEEDED: ErrorCodes.TOO_MANY_REQUESTS,
+  INTERNAL_ERROR: ErrorCodes.INTERNAL_ERROR,
+  SERVICE_UNAVAILABLE: ErrorCodes.SERVICE_UNAVAILABLE,
+  CONFIGURATION_ERROR: ErrorCodes.INTERNAL_ERROR,
+};
+
+/**
+ * Convert an AppError code to its standardized ErrorCodes equivalent.
+ *
+ * @param appErrorCode - The code from an AppError instance
+ * @returns The corresponding ErrorCodes constant, or INTERNAL_ERROR as fallback
+ */
+function mapAppErrorCode(appErrorCode: string): string {
+  return APP_ERROR_CODE_MAP[appErrorCode] ?? ErrorCodes.INTERNAL_ERROR;
+}
+
+// ─── AppError → ErrorResponse bridge ────────────────────────────────────────
+
+/**
+ * Result of converting an AppError to an API response.
+ */
+export interface AppErrorResponseResult {
+  /** Standardized error response body */
+  response: ErrorResponse;
+  /** HTTP status code */
+  statusCode: number;
+  /** Optional response headers (e.g. Retry-After) */
+  headers?: Record<string, string>;
+}
+
+/**
+ * Convert an AppError instance to a standardized API error response.
+ * Bridges @kairn/core error classes with @kairn/api response format.
+ *
+ * @param appError - An AppError instance from @kairn/core
+ * @returns Standardized error response with status code and headers
+ *
+ * @example
+ * ```typescript
+ * import { NotFoundError } from '@kairn/core';
+ * import { appErrorToResponse } from '@kairn/api';
+ *
+ * const err = new NotFoundError('Article non trouvé', 'BlogPost');
+ * const { response, statusCode } = appErrorToResponse(err);
+ * return NextResponse.json(response, { status: statusCode });
+ * ```
+ */
+export function appErrorToResponse(appError: AppError): AppErrorResponseResult {
+  const code = mapAppErrorCode(appError.code);
+  const details: Record<string, unknown> = {};
+
+  if (appError instanceof ValidationError && appError.fields) {
+    details.fields = appError.fields;
+  }
+
+  if (appError instanceof RateLimitError && appError.retryAfter) {
+    details.retryAfter = appError.retryAfter;
+  }
+
+  const headers: Record<string, string> = {};
+  if (appError instanceof RateLimitError && appError.retryAfter) {
+    headers['Retry-After'] = String(appError.retryAfter);
+  }
+
+  return {
+    response: error(code, appError.message, Object.keys(details).length > 0 ? details : undefined),
+    statusCode: appError.statusCode,
+    headers: Object.keys(headers).length > 0 ? headers : undefined,
+  };
+}
+
+/**
+ * Catch-all error handler that normalizes any error and returns a
+ * standardized API response. Combines normalizeError() from @kairn/core
+ * with the @kairn/api response format.
+ *
+ * @param err - Any error (AppError, Error, string, unknown)
+ * @returns Standardized error response with status code and headers
+ *
+ * @example
+ * ```typescript
+ * import { handleErrorResponse } from '@kairn/api';
+ *
+ * export async function POST(request: Request) {
+ *   try {
+ *     // ... handler logic
+ *   } catch (err) {
+ *     const { response, statusCode, headers } = handleErrorResponse(err);
+ *     return NextResponse.json(response, { status: statusCode, headers });
+ *   }
+ * }
+ * ```
+ */
+export function handleErrorResponse(err: unknown): AppErrorResponseResult {
+  if (isAppError(err)) {
+    return appErrorToResponse(err);
+  }
+
+  const appError = normalizeError(err);
+  return appErrorToResponse(appError);
 }
