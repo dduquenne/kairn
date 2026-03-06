@@ -6,11 +6,12 @@
  * @description API endpoint pour consulter le statut d'un job de génération spécifique
  */
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
 
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from '@/lib/db/prisma';
+import { getSiteId } from '@/lib/db/site';
 
-import { withAdminAuth } from "../../../auth/middleware";
+import { withAdminAuth } from '../../../auth/middleware';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -36,23 +37,19 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
   const { id } = await params;
 
-  if (!id || typeof id !== "string") {
-    return NextResponse.json(
-      { message: "ID de job invalide" },
-      { status: 400 }
-    );
+  if (!id || typeof id !== 'string') {
+    return NextResponse.json({ message: 'ID de job invalide' }, { status: 400 });
   }
 
   try {
-    const job = await prisma.blogGenerationJob.findUnique({
-      where: { id },
+    const siteId = await getSiteId();
+
+    const job = await prisma.blogGenerationJob.findFirst({
+      where: { id, siteId },
     });
 
     if (!job) {
-      return NextResponse.json(
-        { message: "Job non trouvé" },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: 'Job non trouvé' }, { status: 404 });
     }
 
     // Construire la réponse selon le statut
@@ -86,12 +83,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     };
 
     // Inclure le résultat si le job est terminé
-    if (job.status === "COMPLETED" && job.result) {
+    if (job.status === 'COMPLETED' && job.result) {
       response.result = job.result;
     }
 
     // Inclure l'erreur si le job a échoué
-    if (job.status === "FAILED") {
+    if (job.status === 'FAILED') {
       response.error = job.error;
       // Inclure aussi l'input pour permettre de réessayer
       response.input = job.input;
@@ -100,7 +97,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     // Inclure le topic de l'input pour l'affichage
     if (job.input) {
       response.input = {
-        topic: (job.input as any)?.topic || "Sans titre",
+        topic: (job.input as any)?.topic || 'Sans titre',
         category: (job.input as any)?.category,
       };
     }
@@ -108,9 +105,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json(response);
   } catch (error) {
     console.error(`[BlogJob] Erreur récupération job ${id}:`, error);
-    return NextResponse.json(
-      { message: "Erreur lors de la récupération du job" },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: 'Erreur lors de la récupération du job' }, { status: 500 });
   }
 }

@@ -29,7 +29,6 @@ export const blogPostSchema = z.object({
   publishedAt: z.string().datetime().optional().nullable(),
   metaTitle: z.string().max(70).optional(),
   metaDescription: z.string().max(160).optional(),
-  siteId: z.string().optional(), // For multi-tenant support
 });
 
 export type BlogPostInput = z.infer<typeof blogPostSchema>;
@@ -88,7 +87,6 @@ export const postsQuerySchema = z.object({
     .enum(['true', 'false'])
     .optional()
     .transform(v => v === 'true'),
-  siteId: z.string().optional(),
 });
 
 export type PostsQueryParams = z.infer<typeof postsQuerySchema>;
@@ -130,8 +128,8 @@ export interface Tag {
  * Blog handler configuration
  */
 export interface BlogHandlerConfig {
-  /** Site ID for multi-tenant filtering */
-  siteId?: string;
+  /** Site ID for multi-tenant filtering (required) */
+  siteId: string;
   /** Function to get all posts */
   getAllPosts: (options: {
     page?: number;

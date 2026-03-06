@@ -3,6 +3,7 @@ import { createHmac } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/db/prisma';
+import { getSiteId } from '@/lib/db/site';
 import {
   isMockMode,
   generateMockBlogAnalytics,
@@ -81,10 +82,12 @@ export async function GET(request: NextRequest) {
     // Mode réel - récupérer les vraies données
     console.log('📊 [Blog Analytics] Using REAL data');
 
+    const siteId = await getSiteId();
+
     if (slug) {
       // Retourner les stats d'un article spécifique
       const stats = (await prisma.blogAnalytics.findMany({
-        where: { articleSlug: slug, ...dateFilter },
+        where: { siteId, articleSlug: slug, ...dateFilter },
         orderBy: { timestamp: 'desc' },
         take: 10_000,
       })) as BlogAnalyticsRecord[];
@@ -129,7 +132,7 @@ export async function GET(request: NextRequest) {
     // Retourner toutes les stats triées par nombre de vues (filtrées par période)
     // Limit to 50,000 records to prevent memory exhaustion
     const allAnalytics = (await prisma.blogAnalytics.findMany({
-      where: dateFilter,
+      where: { siteId, ...dateFilter },
       select: {
         articleSlug: true,
         sessionId: true,
@@ -299,21 +302,24 @@ export async function POST(request: NextRequest) {
         ? sessionId
         : hashVisitorId(userAgent, ip);
 
+    const siteId = await getSiteId();
+
     await prisma.blogAnalytics.create({
       data: {
         articleSlug: slug,
         sessionId: finalSessionId,
         timestamp: new Date(),
+        siteId,
       },
     });
 
     // Use count() instead of fetching all records
     const [viewCount, uniqueResult] = await Promise.all([
       prisma.blogAnalytics.count({
-        where: { articleSlug: slug },
+        where: { siteId, articleSlug: slug },
       }),
       prisma.blogAnalytics.findMany({
-        where: { articleSlug: slug },
+        where: { siteId, articleSlug: slug },
         select: { sessionId: true },
         distinct: ['sessionId'],
       }),
@@ -338,12 +344,13 @@ export async function DELETE(request: NextRequest) {
     const authResult = await withAdminAuth();
     if (authResult.error) return authResult.error;
 
+    const siteId = await getSiteId();
     const searchParams = request.nextUrl.searchParams;
     const slug = searchParams.get('slug');
 
     if (slug) {
       const result = await prisma.blogAnalytics.deleteMany({
-        where: { articleSlug: slug },
+        where: { siteId, articleSlug: slug },
       });
 
       return NextResponse.json({
@@ -351,7 +358,9 @@ export async function DELETE(request: NextRequest) {
         deletedCount: result.count,
       });
     } else {
-      const result = await prisma.blogAnalytics.deleteMany({});
+      const result = await prisma.blogAnalytics.deleteMany({
+        where: { siteId },
+      });
 
       return NextResponse.json({
         message: 'All blog analytics stats deleted',

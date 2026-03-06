@@ -36,6 +36,7 @@ import { EventType } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/db/prisma';
+import { getSiteId } from '@/lib/db/site';
 
 // ── Data cleanup configuration ──────────────────────────────────────────────
 
@@ -94,12 +95,14 @@ function daysToCutoff(days: number): Date {
 async function cleanupData(): Promise<{ results: CleanupResult[]; total: number }> {
   const results: CleanupResult[] = [];
   let total = 0;
+  const siteId = await getSiteId();
 
   // 1. Clean up unified AnalyticsEvent table by event type
   for (const [groupName, config] of Object.entries(UNIFIED_RETENTION)) {
     const cutoff = daysToCutoff(config.days);
     const result = await prisma.analyticsEvent.deleteMany({
       where: {
+        siteId,
         type: { in: config.types },
         createdAt: { lt: cutoff },
       },
@@ -115,7 +118,7 @@ async function cleanupData(): Promise<{ results: CleanupResult[]; total: number 
   // 2. Clean up VisitorGeolocation
   const geoCutoff = daysToCutoff(LEGACY_RETENTION.visitorGeolocation);
   const geoResult = await prisma.visitorGeolocation.deleteMany({
-    where: { timestamp: { lt: geoCutoff } },
+    where: { siteId, timestamp: { lt: geoCutoff } },
   });
   results.push({
     table: 'VisitorGeolocation',
@@ -159,7 +162,7 @@ async function cleanupData(): Promise<{ results: CleanupResult[]; total: number 
 
       if (model) {
         const result = await model.deleteMany({
-          where: { [table.field]: { lt: cutoff } },
+          where: { siteId, [table.field]: { lt: cutoff } },
         });
         results.push({ table: table.name, deleted: result.count, retentionDays: table.days });
         total += result.count;
@@ -180,11 +183,13 @@ async function cleanupJobs(): Promise<{
 }> {
   const results: CleanupResult[] = [];
   let total = 0;
+  const siteId = await getSiteId();
 
   // 1. Mark orphaned PROCESSING jobs as FAILED
   const orphanCutoff = new Date(Date.now() - ORPHAN_TIMEOUT_MINUTES * 60 * 1000);
   const orphanedJobs = await prisma.blogGenerationJob.updateMany({
     where: {
+      siteId,
       status: 'PROCESSING',
       startedAt: { lt: orphanCutoff },
     },
@@ -201,6 +206,7 @@ async function cleanupJobs(): Promise<{
   const retentionCutoff = daysToCutoff(JOB_RETENTION_DAYS);
   const deletedJobs = await prisma.blogGenerationJob.deleteMany({
     where: {
+      siteId,
       status: { in: ['COMPLETED', 'FAILED'] },
       completedAt: { lt: retentionCutoff },
     },

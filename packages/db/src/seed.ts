@@ -124,24 +124,34 @@ async function main() {
 
   const tags = await Promise.all([
     prisma.tag.upsert({
-      where: { slug: 'psychotherapie' },
+      where: { slug_siteId: { slug: 'psychotherapie', siteId: site.id } },
       update: {},
-      create: { name: 'Psychothérapie', slug: 'psychotherapie', color: '#4F46E5' },
+      create: { name: 'Psychothérapie', slug: 'psychotherapie', color: '#4F46E5', siteId: site.id },
     }),
     prisma.tag.upsert({
-      where: { slug: 'respiration-holotropique' },
+      where: { slug_siteId: { slug: 'respiration-holotropique', siteId: site.id } },
       update: {},
-      create: { name: 'Respiration Holotropique', slug: 'respiration-holotropique', color: '#059669' },
+      create: {
+        name: 'Respiration Holotropique',
+        slug: 'respiration-holotropique',
+        color: '#059669',
+        siteId: site.id,
+      },
     }),
     prisma.tag.upsert({
-      where: { slug: 'bien-etre' },
+      where: { slug_siteId: { slug: 'bien-etre', siteId: site.id } },
       update: {},
-      create: { name: 'Bien-être', slug: 'bien-etre', color: '#D97706' },
+      create: { name: 'Bien-être', slug: 'bien-etre', color: '#D97706', siteId: site.id },
     }),
     prisma.tag.upsert({
-      where: { slug: 'developpement-personnel' },
+      where: { slug_siteId: { slug: 'developpement-personnel', siteId: site.id } },
       update: {},
-      create: { name: 'Développement Personnel', slug: 'developpement-personnel', color: '#7C3AED' },
+      create: {
+        name: 'Développement Personnel',
+        slug: 'developpement-personnel',
+        color: '#7C3AED',
+        siteId: site.id,
+      },
     }),
   ]);
 
@@ -316,7 +326,7 @@ Bonne lecture !`,
 }
 
 main()
-  .catch((e) => {
+  .catch(e => {
     // eslint-disable-next-line no-console
     console.error('❌ Seed failed:', e);
     process.exit(1);

@@ -98,7 +98,7 @@ export async function handleExport(
     };
   }
 
-  const { startDate, endDate, format, type, siteId: querySiteId } = queryResult.query;
+  const { startDate, endDate, format, type } = queryResult.query;
 
   // Validate dates
   const start = new Date(startDate);
@@ -139,7 +139,7 @@ export async function handleExport(
       endDate: end,
       format,
       type,
-      siteId: querySiteId || configSiteId,
+      siteId: configSiteId,
     });
 
     return {

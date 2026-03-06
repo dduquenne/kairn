@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/db/prisma';
+import { getSiteId } from '@/lib/db/site';
 import { isMockMode, generateMockFaqClicks, logDataMode } from '@/lib/pwaDataMode';
 
 /**
@@ -50,8 +51,11 @@ export async function GET(request: NextRequest) {
     // Mode réel - récupérer les vraies données
     console.log('📊 [FAQ Clicks] Using REAL data');
 
+    const siteId = await getSiteId();
+
     // Build where clause with date filter
     const whereClause: Record<string, unknown> = {
+      siteId,
       timestamp: {
         gte: startDate,
         lte: endDate,
@@ -92,10 +96,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error fetching FAQ clicks:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch FAQ clicks' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch FAQ clicks' }, { status: 500 });
   }
 }
 
@@ -106,11 +107,10 @@ export async function POST(request: NextRequest) {
     const { articleSlug, faqIndex, question, sessionId } = body;
 
     if (!articleSlug || faqIndex === undefined) {
-      return NextResponse.json(
-        { error: 'articleSlug and faqIndex are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'articleSlug and faqIndex are required' }, { status: 400 });
     }
+
+    const siteId = await getSiteId();
 
     // Enregistrer le clic dans PostgreSQL
     const click = await prisma.blogFaqClick.create({
@@ -120,12 +120,14 @@ export async function POST(request: NextRequest) {
         question: question || null,
         sessionId: sessionId || 'anonymous',
         timestamp: new Date(),
+        siteId,
       },
     });
 
     // Calculer le résumé pour ce FAQ
     const totalClicks = await prisma.blogFaqClick.count({
       where: {
+        siteId,
         articleSlug,
         faqIndex: parseInt(faqIndex),
       },
@@ -147,23 +149,21 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error tracking FAQ click:', error);
-    return NextResponse.json(
-      { error: 'Failed to track FAQ click' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to track FAQ click' }, { status: 500 });
   }
 }
 
 // DELETE - Réinitialiser les statistiques
 export async function DELETE(request: NextRequest) {
   try {
+    const siteId = await getSiteId();
     const searchParams = request.nextUrl.searchParams;
     const articleSlug = searchParams.get('articleSlug');
 
     if (articleSlug) {
       // Supprimer les clics pour un article spécifique
       const result = await prisma.blogFaqClick.deleteMany({
-        where: { articleSlug },
+        where: { siteId, articleSlug },
       });
 
       return NextResponse.json({
@@ -171,8 +171,10 @@ export async function DELETE(request: NextRequest) {
         deletedCount: result.count,
       });
     } else {
-      // Supprimer tous les clics FAQ
-      const result = await prisma.blogFaqClick.deleteMany({});
+      // Supprimer tous les clics FAQ du site
+      const result = await prisma.blogFaqClick.deleteMany({
+        where: { siteId },
+      });
 
       return NextResponse.json({
         message: 'All FAQ clicks data deleted',
@@ -181,9 +183,6 @@ export async function DELETE(request: NextRequest) {
     }
   } catch (error) {
     console.error('Error deleting FAQ clicks data:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete FAQ clicks data' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to delete FAQ clicks data' }, { status: 500 });
   }
 }

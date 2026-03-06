@@ -232,11 +232,13 @@ export async function createBlogPost(data: BlogPostPayload): Promise<BlogPostOut
     // Create or get tags
     const tagRecords = await Promise.all(
       tags.map(async tagName => {
-        const slug = tagName.toLowerCase().replace(/\s+/g, '-');
-        let tag = await prisma.tag.findUnique({ where: { slug } });
+        const tagSlug = tagName.toLowerCase().replace(/\s+/g, '-');
+        let tag = await prisma.tag.findUnique({
+          where: { slug_siteId: { slug: tagSlug, siteId } },
+        });
         if (!tag) {
           tag = await prisma.tag.create({
-            data: { name: tagName, slug },
+            data: { name: tagName, slug: tagSlug, siteId },
           });
         }
         return tag;
@@ -320,10 +322,12 @@ export async function updateBlogPost(
       const tagRecords = await Promise.all(
         tags.map(async tagName => {
           const tagSlug = tagName.toLowerCase().replace(/\s+/g, '-');
-          let tag = await prisma.tag.findUnique({ where: { slug: tagSlug } });
+          let tag = await prisma.tag.findUnique({
+            where: { slug_siteId: { slug: tagSlug, siteId } },
+          });
           if (!tag) {
             tag = await prisma.tag.create({
-              data: { name: tagName, slug: tagSlug },
+              data: { name: tagName, slug: tagSlug, siteId },
             });
           }
           return tag;

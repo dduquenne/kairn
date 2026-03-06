@@ -3,6 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/db/prisma';
+import { getSiteId } from '@/lib/db/site';
 import { isMockMode, generateMockCtaClicks, logDataMode } from '@/lib/pwaDataMode';
 
 // Type for blog CTA click record (workaround for ungenerated Prisma client)
@@ -47,8 +48,11 @@ export async function GET(request: NextRequest) {
     // Mode réel - récupérer les vraies données
     console.log('📊 [CTA Clicks] Using REAL data');
 
+    const siteId = await getSiteId();
+
     // Build where clause with date filter
     const whereClause: Record<string, unknown> = {
+      siteId,
       timestamp: {
         gte: startDate,
         lte: endDate,
@@ -59,10 +63,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Récupérer tous les clics CTA depuis PostgreSQL (filtrés par période)
-    const clicks = await prisma.blogCtaClick.findMany({
+    const clicks = (await prisma.blogCtaClick.findMany({
       where: whereClause,
       orderBy: { timestamp: 'desc' },
-    }) as BlogCtaClickRecord[];
+    })) as BlogCtaClickRecord[];
 
     // Construire le résumé par type de CTA
     const summary = {
@@ -70,7 +74,7 @@ export async function GET(request: NextRequest) {
       seminar: 0,
     };
 
-    clicks.forEach((click) => {
+    clicks.forEach(click => {
       if (click.ctaType === 'appointment') {
         summary.appointment += 1;
       } else if (click.ctaType === 'seminar') {
@@ -88,10 +92,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error fetching CTA clicks:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch CTA clicks' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch CTA clicks' }, { status: 500 });
   }
 }
 
@@ -109,26 +110,27 @@ export async function POST(request: NextRequest) {
     }
 
     if (!articleSlug) {
-      return NextResponse.json(
-        { error: 'articleSlug is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'articleSlug is required' }, { status: 400 });
     }
 
+    const siteId = await getSiteId();
+
     // Enregistrer le clic dans PostgreSQL
-    const click = await prisma.blogCtaClick.create({
+    const click = (await prisma.blogCtaClick.create({
       data: {
         articleSlug,
         ctaType: type,
         sessionId: sessionId || 'anonymous',
         timestamp: new Date(),
+        siteId,
       },
-    }) as BlogCtaClickRecord;
+    })) as BlogCtaClickRecord;
 
     // Calculer le résumé après insertion
-    const allClicks = await prisma.blogCtaClick.findMany({
+    const allClicks = (await prisma.blogCtaClick.findMany({
+      where: { siteId },
       select: { ctaType: true },
-    }) as Array<{ ctaType: string }>;
+    })) as Array<{ ctaType: string }>;
 
     const summary = {
       appointment: allClicks.filter(c => c.ctaType === 'appointment').length,
@@ -147,23 +149,21 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error tracking CTA click:', error);
-    return NextResponse.json(
-      { error: 'Failed to track CTA click' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to track CTA click' }, { status: 500 });
   }
 }
 
 // DELETE - Réinitialiser les statistiques
 export async function DELETE(request: NextRequest) {
   try {
+    const siteId = await getSiteId();
     const searchParams = request.nextUrl.searchParams;
     const articleSlug = searchParams.get('articleSlug');
 
     if (articleSlug) {
       // Supprimer les clics pour un article spécifique
       const result = await prisma.blogCtaClick.deleteMany({
-        where: { articleSlug },
+        where: { siteId, articleSlug },
       });
 
       return NextResponse.json({
@@ -171,8 +171,10 @@ export async function DELETE(request: NextRequest) {
         deletedCount: result.count,
       });
     } else {
-      // Supprimer tous les clics CTA
-      const result = await prisma.blogCtaClick.deleteMany({});
+      // Supprimer tous les clics CTA du site
+      const result = await prisma.blogCtaClick.deleteMany({
+        where: { siteId },
+      });
 
       return NextResponse.json({
         message: 'All CTA clicks data deleted',
@@ -181,9 +183,6 @@ export async function DELETE(request: NextRequest) {
     }
   } catch (error) {
     console.error('Error deleting CTA clicks data:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete CTA clicks data' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to delete CTA clicks data' }, { status: 500 });
   }
 }

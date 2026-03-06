@@ -12,10 +12,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // ─── Mocks hoistés — vi.hoisted() évite les erreurs de référence ──
 
-const { mockCreate, mockFindMany, mockWithAdminAuth } = vi.hoisted(() => ({
+const { mockCreate, mockFindMany, mockWithAdminAuth, mockGetSiteId } = vi.hoisted(() => ({
   mockCreate: vi.fn(),
   mockFindMany: vi.fn(),
   mockWithAdminAuth: vi.fn(),
+  mockGetSiteId: vi.fn(),
 }));
 
 // ─── Mocks — déclarés AVANT les imports ───────────────────────────
@@ -41,6 +42,10 @@ vi.mock('@/lib/db/prisma', () => ({
 
 vi.mock('../../app/api/auth/middleware', () => ({
   withAdminAuth: () => mockWithAdminAuth(),
+}));
+
+vi.mock('@/lib/db/site', () => ({
+  getSiteId: () => mockGetSiteId(),
 }));
 
 // ─── Imports (après les mocks) ────────────────────────────────────
@@ -71,6 +76,7 @@ describe('/api/blog/jobs', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockWithAdminAuth.mockResolvedValue({ error: null });
+    mockGetSiteId.mockResolvedValue('site-test-123');
 
     mockCreate.mockResolvedValue({
       id: 'job-abc-123',

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { prisma } from '@/lib/db/prisma';
+import { getSiteId } from '@/lib/db/site';
 
 /**
  * POST - Update reading engagement metrics for a blog article
@@ -32,36 +33,25 @@ export async function POST(request: NextRequest) {
       try {
         body = JSON.parse(text);
       } catch {
-        return NextResponse.json(
-          { error: 'Invalid JSON body' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
       }
     }
 
-    const {
-      slug,
-      sessionId,
-      scrollDepthPercent,
-      timeOnPage,
-      completed,
-      isFinal,
-    } = body;
+    const { slug, sessionId, scrollDepthPercent, timeOnPage, completed, isFinal } = body;
 
     // Validation
     if (!slug || !sessionId) {
-      return NextResponse.json(
-        { error: 'slug and sessionId are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'slug and sessionId are required' }, { status: 400 });
     }
 
     // Find the most recent analytics record for this session and article
     // (created within the last 2 hours to avoid updating old sessions)
+    const siteId = await getSiteId();
     const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
 
     const existingRecord = await prisma.blogAnalytics.findFirst({
       where: {
+        siteId,
         articleSlug: slug,
         sessionId: sessionId,
         timestamp: {
@@ -80,10 +70,7 @@ export async function POST(request: NextRequest) {
         existingRecord.scrollDepthPercent ?? 0,
         scrollDepthPercent ?? 0
       );
-      const newTimeOnPage = Math.max(
-        existingRecord.timeOnPage ?? 0,
-        timeOnPage ?? 0
-      );
+      const newTimeOnPage = Math.max(existingRecord.timeOnPage ?? 0, timeOnPage ?? 0);
       const newCompleted = existingRecord.completed || completed || false;
 
       await prisma.blogAnalytics.update({
@@ -112,6 +99,7 @@ export async function POST(request: NextRequest) {
           scrollDepthPercent: scrollDepthPercent ?? 0,
           timeOnPage: timeOnPage ?? 0,
           completed: completed || false,
+          siteId,
         },
       });
 
@@ -126,9 +114,6 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('Error updating engagement metrics:', error);
-    return NextResponse.json(
-      { error: 'Failed to update engagement metrics' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to update engagement metrics' }, { status: 500 });
   }
 }
