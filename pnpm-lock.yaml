@@ -349,6 +349,9 @@ importers:
       '@kairn/typescript-config':
         specifier: workspace:*
         version: link:../../tooling/typescript-config
+      '@prisma/client':
+        specifier: ^6.0.0
+        version: 6.19.2(prisma@6.19.2(magicast@0.3.5)(typescript@5.9.3))(typescript@5.9.3)
       '@types/react':
         specifier: ^18.2.0
         version: 18.3.27
