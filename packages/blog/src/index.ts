@@ -28,3 +28,15 @@ export {
   paginatePosts,
   getFeaturedPosts,
 } from './utils';
+
+// FAQ extraction
+export { extractFAQFromMarkdown } from './faq';
+
+// Slug generation (advanced, with category support)
+export {
+  cleanStringToSlug,
+  extractSeoTermsFromTitle,
+  generateSlugFromTitleAndCategory,
+  generateSlugFromTitle,
+  validateSlug,
+} from './slug';

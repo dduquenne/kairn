@@ -1,13 +1,12 @@
-"use client";
+'use client';
 
-import { motion } from "framer-motion";
-import { Loader, AlertCircle } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { BlogPostForm } from '@kairn/admin';
+import { motion } from 'framer-motion';
+import { Loader, AlertCircle } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
-import { BlogPost } from "@/lib/blog";
-
-import { BlogPostForm } from "../../_components/BlogPostForm";
+import { BlogPost } from '@/lib/blog';
 
 export default function EditBlogPostPage() {
   const params = useParams();
@@ -25,13 +24,13 @@ export default function EditBlogPostPage() {
         const response = await fetch(`/api/blog/posts/${slug}?includeUnpublished=true`);
 
         if (!response.ok) {
-          throw new Error("Article non trouvé");
+          throw new Error('Article non trouvé');
         }
 
         const data = await response.json();
         setPost(data);
       } catch (err) {
-        console.error("Error loading post:", err);
+        console.error('Error loading post:', err);
         setError(err instanceof Error ? err.message : "Erreur lors du chargement de l'article");
       } finally {
         setIsLoading(false);
@@ -46,13 +45,9 @@ export default function EditBlogPostPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center"
-        >
-          <Loader className="mx-auto h-12 w-12 animate-spin text-gold" />
-          <p className="mt-4 text-lg text-ivory/70">Chargement de l&apos;article...</p>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
+          <Loader className="text-gold mx-auto h-12 w-12 animate-spin" />
+          <p className="text-ivory/70 mt-4 text-lg">Chargement de l&apos;article...</p>
         </motion.div>
       </div>
     );
@@ -67,15 +62,13 @@ export default function EditBlogPostPage() {
           className="max-w-md text-center"
         >
           <AlertCircle className="mx-auto h-16 w-16 text-red-400" />
-          <h2 className="mt-4 text-2xl font-semibold text-ivory">
-            Article non trouvé
-          </h2>
-          <p className="mt-2 text-ivory/70">
+          <h2 className="text-ivory mt-4 text-2xl font-semibold">Article non trouvé</h2>
+          <p className="text-ivory/70 mt-2">
             {error || "L'article que vous recherchez n'existe pas."}
           </p>
           <button
-            onClick={() => router.push("/admin/blog")}
-            className="mt-6 rounded-lg bg-gold/20 px-6 py-3 font-medium text-gold transition hover:bg-gold/30"
+            onClick={() => router.push('/admin/blog')}
+            className="bg-gold/20 text-gold hover:bg-gold/30 mt-6 rounded-lg px-6 py-3 font-medium transition"
           >
             Retour à la liste
           </button>
