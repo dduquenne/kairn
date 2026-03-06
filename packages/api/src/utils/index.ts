@@ -11,6 +11,8 @@ export {
   paginated,
   buildHeaders,
   getStatusForError,
+  appErrorToResponse,
+  handleErrorResponse,
   ErrorCodes,
   HttpStatus,
   ErrorCodeToStatus,
@@ -18,6 +20,7 @@ export {
   type SuccessResponse,
   type ErrorResponse,
   type PaginatedResponse,
+  type AppErrorResponseResult,
 } from './response';
 
 // Pagination utilities

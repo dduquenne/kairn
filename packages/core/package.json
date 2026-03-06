@@ -51,6 +51,11 @@
       "import": "./src/scheduler/index.ts",
       "default": "./src/scheduler/index.ts"
     },
+    "./email": {
+      "types": "./src/email/index.ts",
+      "import": "./src/email/index.ts",
+      "default": "./src/email/index.ts"
+    },
     "./hooks": {
       "types": "./src/hooks/index.ts",
       "import": "./src/hooks/index.ts",
@@ -71,10 +76,14 @@
   },
   "peerDependencies": {
     "@prisma/client": "^6.0.0",
+    "ioredis": "^5.0.0",
     "react": "^18.0.0"
   },
   "peerDependenciesMeta": {
     "@prisma/client": {
+      "optional": true
+    },
+    "ioredis": {
       "optional": true
     },
     "react": {

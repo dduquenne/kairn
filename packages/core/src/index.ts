@@ -147,6 +147,14 @@ export {
   type CacheConfig,
 } from './cache';
 
+// Redis Cache Store
+export {
+  RedisCacheStore,
+  createRedisCache,
+  type RedisCacheStoreConfig,
+  type RedisHealthResult,
+} from './cache/redis-store';
+
 // API Cache
 export {
   ApiCacheManager,
@@ -198,6 +206,29 @@ export {
   type ConfigSource,
   type ConfigLoaderOptions,
 } from './config';
+
+// Email
+export {
+  sendEmail,
+  createEmailSender,
+  buildAdminEmailHtml,
+  buildAdminEmailText,
+  buildConfirmationEmailHtml,
+  buildConfirmationEmailText,
+  escapeHtml,
+  nl2br,
+  formatSubmittedAt,
+  type EmailContent,
+  type SendEmailOptions,
+  type EmailServiceConfig,
+  type SendEmailResult,
+  type EmailField,
+  type EmailSection,
+  type EmailCallout,
+  type AdminEmailOptions,
+  type ConfirmationEmailOptions,
+  type EmailBranding,
+} from './email';
 
 // Scheduler (QStash)
 export {

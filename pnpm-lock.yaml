@@ -500,6 +500,9 @@ importers:
       '@upstash/qstash':
         specifier: ^2.9.0
         version: 2.9.0
+      ioredis:
+        specifier: ^5.0.0
+        version: 5.8.2
       jose:
         specifier: ^5.2.0
         version: 5.10.0
