@@ -42,14 +42,19 @@
       "default": "./src/env/index.ts"
     },
     "./middleware": {
-      "types": "./src/middleware/rate-limit.ts",
-      "import": "./src/middleware/rate-limit.ts",
-      "default": "./src/middleware/rate-limit.ts"
+      "types": "./src/middleware/index.ts",
+      "import": "./src/middleware/index.ts",
+      "default": "./src/middleware/index.ts"
     },
     "./scheduler": {
       "types": "./src/scheduler/index.ts",
       "import": "./src/scheduler/index.ts",
       "default": "./src/scheduler/index.ts"
+    },
+    "./hooks": {
+      "types": "./src/hooks/index.ts",
+      "import": "./src/hooks/index.ts",
+      "default": "./src/hooks/index.ts"
     }
   },
   "scripts": {
@@ -65,16 +70,22 @@
     "zod": "^3.22.0"
   },
   "peerDependencies": {
-    "@prisma/client": "^6.0.0"
+    "@prisma/client": "^6.0.0",
+    "react": "^18.0.0"
   },
   "peerDependenciesMeta": {
     "@prisma/client": {
+      "optional": true
+    },
+    "react": {
       "optional": true
     }
   },
   "devDependencies": {
     "@kairn/typescript-config": "workspace:*",
     "@prisma/client": "^6.0.0",
+    "@types/react": "^18.2.0",
+    "react": "^18.2.0",
     "typescript": "^5.4.0"
   }
 }

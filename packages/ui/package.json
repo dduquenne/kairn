@@ -15,6 +15,11 @@
       "types": "./src/components/*.ts",
       "import": "./src/components/*.ts",
       "default": "./src/components/*.ts"
+    },
+    "./hooks": {
+      "types": "./src/hooks/index.ts",
+      "import": "./src/hooks/index.ts",
+      "default": "./src/hooks/index.ts"
     }
   },
   "scripts": {
