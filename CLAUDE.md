@@ -101,6 +101,8 @@ const posts = await prisma.blogPost.findMany({ where: { siteId, status: 'PUBLISH
 - **CI** (`.github/workflows/ci.yml`) : lint → type-check → test → security → build → e2e
 - Turbo Remote Cache via Vercel (`TURBO_TOKEN` + `TURBO_TEAM`)
 - Pre-commit hooks : lint-staged (ESLint --fix + Prettier)
+- **Workflow `/issue`** : branche → PR → merge squash dans `main` (voir `.claude/commands/issue.md`)
+- **Prisma** : toujours exécuter `pnpm --filter @kairn/db db:generate` après modification du schéma, et commiter les fichiers de migration
 
 ## Déploiement Vercel
 
