@@ -25,7 +25,10 @@ export {
 } from './types';
 
 // Login handler
-export { handleLogin, createLoginHandler, type LoginResult } from './login';
+export { handleLogin, createLoginHandler, parseExpiration, type LoginResult } from './login';
+
+// Token utilities
+export { hashToken } from './token-utils';
 
 // Logout handler
 export {

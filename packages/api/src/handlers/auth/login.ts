@@ -2,7 +2,10 @@
  * Login Handler
  *
  * Handles user authentication with rate limiting and JWT token generation.
+ * Implements access token (short-lived) + refresh token (long-lived) flow.
  */
+
+import { randomUUID } from 'crypto';
 
 import { createToken, type JWTPayload } from '@kairn/core';
 
@@ -11,6 +14,7 @@ import { getClientIP, RATE_LIMIT_PRESETS, withRateLimit } from '../../middleware
 import { withBodyValidation } from '../../middleware/with-validation';
 import { error } from '../../utils/response';
 
+import { hashToken } from './token-utils';
 import {
   getDefaultAuthCookieOptions,
   loginSchema,
@@ -23,10 +27,27 @@ import {
  */
 const defaultConfig: Partial<AuthHandlerConfig> = {
   cookieName: 'auth_token',
-  tokenExpiration: '24h',
+  refreshCookieName: 'refresh_token',
+  tokenExpiration: '15m',
+  refreshTokenExpiration: '7d',
   includeTokenInBody: false,
   rateLimitKey: 'login',
 };
+
+/**
+ * Cookie info for setting on a response
+ */
+interface CookieInfo {
+  name: string;
+  value: string;
+  options: {
+    maxAge: number;
+    httpOnly: boolean;
+    secure: boolean;
+    sameSite: 'strict' | 'lax' | 'none';
+    path: string;
+  };
+}
 
 /**
  * Login handler result
@@ -37,17 +58,8 @@ export interface LoginResult {
     | { success: false; error: { code: string; message: string; details?: unknown } };
   statusCode: number;
   headers: Record<string, string>;
-  cookie?: {
-    name: string;
-    value: string;
-    options: {
-      maxAge: number;
-      httpOnly: boolean;
-      secure: boolean;
-      sameSite: 'strict' | 'lax' | 'none';
-      path: string;
-    };
-  };
+  cookie?: CookieInfo;
+  refreshCookie?: CookieInfo;
 }
 
 /**
@@ -55,33 +67,7 @@ export interface LoginResult {
  *
  * @param request - The incoming request
  * @param config - Handler configuration
- * @returns Login result with response, status code, headers, and optional cookie
- *
- * @example
- * ```typescript
- * export async function POST(request: Request) {
- *   const result = await handleLogin(request, {
- *     cookieName: 'my_app_token',
- *     findUserByEmail: async (email) => {
- *       return prisma.user.findUnique({ where: { email } });
- *     },
- *     comparePassword: async (password, hash) => {
- *       return bcrypt.compare(password, hash);
- *     },
- *   });
- *
- *   const response = NextResponse.json(result.response, {
- *     status: result.statusCode,
- *     headers: result.headers,
- *   });
- *
- *   if (result.cookie) {
- *     response.cookies.set(result.cookie.name, result.cookie.value, result.cookie.options);
- *   }
- *
- *   return response;
- * }
- * ```
+ * @returns Login result with response, status code, headers, and cookies
  */
 export async function handleLogin(
   request: ApiRequest,
@@ -89,37 +75,43 @@ export async function handleLogin(
 ): Promise<LoginResult> {
   const {
     cookieName,
+    refreshCookieName,
     tokenExpiration,
+    refreshTokenExpiration,
     includeTokenInBody,
     rateLimitKey,
     findUserByEmail,
     comparePassword,
     onFailedAttempt,
     onSuccessfulLogin,
+    storeRefreshToken,
+    skipRateLimit,
   } = { ...defaultConfig, ...config };
 
   const clientIP = getClientIP(request);
   const headers: Record<string, string> = {};
 
-  // Check rate limiting
-  const rateLimitResult = await withRateLimit(request, {
-    ...RATE_LIMIT_PRESETS.strict,
-    keyGenerator: () => `${rateLimitKey}:${clientIP}`,
-  });
+  // Check rate limiting (skip if middleware already handles it)
+  if (!skipRateLimit) {
+    const rateLimitResult = await withRateLimit(request, {
+      ...RATE_LIMIT_PRESETS.strict,
+      keyGenerator: () => `${rateLimitKey}:${clientIP}`,
+    });
 
-  Object.assign(headers, rateLimitResult.headers);
+    Object.assign(headers, rateLimitResult.headers);
 
-  if (!rateLimitResult.success) {
-    return {
-      response: error('TOO_MANY_REQUESTS', rateLimitResult.error.message, {
-        retryAfter: rateLimitResult.error.details?.retryAfter,
-      }),
-      statusCode: 429,
-      headers: {
-        ...headers,
-        'Retry-After': String(rateLimitResult.error.details?.retryAfter || 60),
-      },
-    };
+    if (!rateLimitResult.success) {
+      return {
+        response: error('TOO_MANY_REQUESTS', rateLimitResult.error.message, {
+          retryAfter: rateLimitResult.error.details?.retryAfter,
+        }),
+        statusCode: 429,
+        headers: {
+          ...headers,
+          'Retry-After': String(rateLimitResult.error.details?.retryAfter || 60),
+        },
+      };
+    }
   }
 
   // Validate request body
@@ -165,20 +157,19 @@ export async function handleLogin(
   // Clear rate limiting for this user on successful login
   onSuccessfulLogin?.(normalizedEmail, clientIP);
 
-  // Generate JWT token
+  // Generate access token (short-lived)
   const tokenPayload: Omit<JWTPayload, 'iat' | 'exp'> = {
     sub: user.id,
     email: user.email,
     role: user.role,
   };
 
-  const token = await createToken(tokenPayload, {
+  const accessToken = await createToken(tokenPayload, {
     expiresIn: tokenExpiration,
   });
 
-  // Calculate expiration
-  const expiresIn = parseExpiration(tokenExpiration || '24h');
-  const expiresAt = new Date(Date.now() + expiresIn * 1000).toISOString();
+  const accessExpiresIn = parseExpiration(tokenExpiration || '15m');
+  const expiresAt = new Date(Date.now() + accessExpiresIn * 1000).toISOString();
 
   // Build response
   const responseData: LoginResponse = {
@@ -191,42 +182,77 @@ export async function handleLogin(
   };
 
   if (includeTokenInBody) {
-    responseData.token = token;
+    responseData.token = accessToken;
     responseData.expiresAt = expiresAt;
   }
 
   const isProduction = process.env.NODE_ENV === 'production';
-  const cookieOptions = getDefaultAuthCookieOptions(
+  const accessCookieOptions = getDefaultAuthCookieOptions(
     cookieName || 'auth_token',
-    expiresIn,
+    accessExpiresIn,
     isProduction
   );
 
-  return {
+  const result: LoginResult = {
     response: responseData,
     statusCode: 200,
     headers,
     cookie: {
-      name: cookieOptions.name,
-      value: token,
+      name: accessCookieOptions.name,
+      value: accessToken,
       options: {
-        maxAge: cookieOptions.maxAge,
-        httpOnly: cookieOptions.httpOnly,
-        secure: cookieOptions.secure,
-        sameSite: cookieOptions.sameSite,
-        path: cookieOptions.path,
+        maxAge: accessCookieOptions.maxAge,
+        httpOnly: accessCookieOptions.httpOnly,
+        secure: accessCookieOptions.secure,
+        sameSite: accessCookieOptions.sameSite,
+        path: accessCookieOptions.path,
       },
     },
   };
+
+  // Generate refresh token if persistence is configured
+  if (storeRefreshToken) {
+    const refreshExpiresIn = parseExpiration(refreshTokenExpiration || '7d');
+    const family = randomUUID();
+    const rawRefreshToken = randomUUID();
+    const tokenHash = await hashToken(rawRefreshToken);
+
+    await storeRefreshToken(
+      user.id,
+      tokenHash,
+      family,
+      new Date(Date.now() + refreshExpiresIn * 1000)
+    );
+
+    const refreshCookieOptions = getDefaultAuthCookieOptions(
+      refreshCookieName || 'refresh_token',
+      refreshExpiresIn,
+      isProduction
+    );
+
+    result.refreshCookie = {
+      name: refreshCookieOptions.name,
+      value: rawRefreshToken,
+      options: {
+        maxAge: refreshCookieOptions.maxAge,
+        httpOnly: refreshCookieOptions.httpOnly,
+        secure: refreshCookieOptions.secure,
+        sameSite: refreshCookieOptions.sameSite,
+        path: refreshCookieOptions.path,
+      },
+    };
+  }
+
+  return result;
 }
 
 /**
  * Parse expiration string to seconds
  */
-function parseExpiration(exp: string): number {
+export function parseExpiration(exp: string): number {
   const match = exp.match(/^(\d+)([smhd])$/);
   if (!match) {
-    return 86400; // Default 24 hours
+    return 900; // Default 15 minutes
   }
 
   const value = parseInt(match[1] || '1', 10);
@@ -242,7 +268,7 @@ function parseExpiration(exp: string): number {
     case 'd':
       return value * 86400;
     default:
-      return 86400;
+      return 900;
   }
 }
 

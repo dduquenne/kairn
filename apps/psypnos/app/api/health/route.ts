@@ -1,77 +1,45 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
 /**
  * Health Check API Route
- * Phase 4: Monitoring & Observability
  *
  * Provides system health status including:
- * - Database connectivity
- * - Redis connectivity
- * - Memory usage
- * - Uptime
+ * - Database connectivity (PostgreSQL via Prisma)
+ * - Redis connectivity (if configured)
+ * - Process memory usage
  */
-
-import os from 'os';
 
 import { NextResponse } from 'next/server';
 
 import { checkRedisHealth } from '@/lib/cache/redis';
-import { isDatabaseConnected, prisma } from '@/lib/db/prisma';
+import { isDatabaseConnected } from '@/lib/db/prisma';
+
+interface ServiceCheck {
+  status: 'up' | 'down' | 'disabled';
+  latencyMs?: number;
+  error?: string;
+}
 
 interface HealthStatus {
   status: 'healthy' | 'degraded' | 'unhealthy';
   timestamp: string;
-  uptime: number | null;
-  uptimeMessage?: string;
   version: string;
   checks: {
-    database: {
-      status: 'up' | 'down';
-      latencyMs?: number;
-      error?: string;
-    };
-    redis: {
-      status: 'up' | 'down' | 'disabled';
-      latencyMs?: number;
-      error?: string;
-    };
+    database: ServiceCheck;
+    redis: ServiceCheck;
     memory: {
-      heapUsed: number;
-      heapTotal: number;
-      external: number;
-      rss: number;
-      percentUsed: number;
+      heapUsedMB: number;
+      rssMB: number;
     };
   };
-  analyticsMode: string;
 }
 
+/**
+ * GET /api/health — Liveness + basic readiness probe
+ */
 export async function GET(): Promise<NextResponse<HealthStatus>> {
   const timestamp = new Date().toISOString();
 
-  // Récupérer l'uptime depuis le dernier déploiement réussi
-  let uptime: number | null = null;
-  let uptimeMessage: string | undefined;
-
-  try {
-    const lastSuccessfulDeployment = await prisma.deployment.findFirst({
-      where: { status: 'success' },
-      orderBy: { completedAt: 'desc' },
-      select: { completedAt: true },
-    });
-
-    if (lastSuccessfulDeployment?.completedAt) {
-      const now = new Date();
-      uptime = Math.floor((now.getTime() - lastSuccessfulDeployment.completedAt.getTime()) / 1000);
-    } else {
-      uptimeMessage = 'Aucun déploiement enregistré';
-    }
-  } catch {
-    uptimeMessage = "Impossible de récupérer l'uptime";
-  }
-
   // Check database
-  let dbStatus: HealthStatus['checks']['database'];
+  let dbStatus: ServiceCheck;
   const dbStart = Date.now();
   try {
     const connected = await isDatabaseConnected();
@@ -79,16 +47,16 @@ export async function GET(): Promise<NextResponse<HealthStatus>> {
       status: connected ? 'up' : 'down',
       latencyMs: Date.now() - dbStart,
     };
-  } catch (error) {
+  } catch (err) {
     dbStatus = {
       status: 'down',
       latencyMs: Date.now() - dbStart,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: err instanceof Error ? err.message : 'Unknown error',
     };
   }
 
   // Check Redis
-  let redisStatus: HealthStatus['checks']['redis'];
+  let redisStatus: ServiceCheck;
   if (!process.env.REDIS_URL) {
     redisStatus = { status: 'disabled' };
   } else {
@@ -100,30 +68,20 @@ export async function GET(): Promise<NextResponse<HealthStatus>> {
     };
   }
 
-  // Memory usage - use system memory for VPS monitoring
+  // Process memory (safe in Serverless environment)
   const memUsage = process.memoryUsage();
-  const totalMem = os.totalmem();
-  const freeMem = os.freemem();
-  const usedMem = totalMem - freeMem;
   const memory = {
-    heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024),
-    heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024),
-    external: Math.round(memUsage.external / 1024 / 1024),
-    rss: Math.round(memUsage.rss / 1024 / 1024),
-    // Use system memory percentage for accurate VPS monitoring
-    percentUsed: Math.round((usedMem / totalMem) * 100),
+    heapUsedMB: Math.round(memUsage.heapUsed / 1024 / 1024),
+    rssMB: Math.round(memUsage.rss / 1024 / 1024),
   };
 
   // Determine overall status
   let overallStatus: HealthStatus['status'] = 'healthy';
-
-  // Analytics always uses PostgreSQL — if DB is down, it's unhealthy
   if (dbStatus.status === 'down') {
     overallStatus = 'unhealthy';
   } else if (
     (dbStatus.latencyMs && dbStatus.latencyMs > 1000) ||
-    (redisStatus.status === 'down' && process.env.REDIS_URL) ||
-    memory.percentUsed > 90
+    (redisStatus.status === 'down' && process.env.REDIS_URL)
   ) {
     overallStatus = 'degraded';
   }
@@ -131,18 +89,20 @@ export async function GET(): Promise<NextResponse<HealthStatus>> {
   const response: HealthStatus = {
     status: overallStatus,
     timestamp,
-    uptime,
-    ...(uptimeMessage && { uptimeMessage }),
     version: process.env.npm_package_version || '1.0.0',
     checks: {
       database: dbStatus,
       redis: redisStatus,
       memory,
     },
-    analyticsMode,
   };
 
   const httpStatus = overallStatus === 'unhealthy' ? 503 : 200;
 
-  return NextResponse.json(response, { status: httpStatus });
+  return NextResponse.json(response, {
+    status: httpStatus,
+    headers: {
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+    },
+  });
 }
