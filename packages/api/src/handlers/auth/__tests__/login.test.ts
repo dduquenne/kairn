@@ -23,10 +23,18 @@ vi.mock('../../../middleware/with-rate-limit', () => ({
   },
 }));
 
-// Mock @kairn/core for JWT creation
+// Mock @kairn/core for JWT creation and logger
 const mockCreateToken = vi.fn().mockResolvedValue('mock-jwt-token');
 vi.mock('@kairn/core', () => ({
   createToken: (...args: unknown[]) => mockCreateToken(...args),
+  createLogger: () => ({
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    child: vi.fn(),
+    withScope: vi.fn(),
+  }),
 }));
 
 // Import mocked modules after mock setup
@@ -257,6 +265,26 @@ describe('Login Handler', () => {
         },
       });
       expect(onFailedAttempt).toHaveBeenCalledWith('nonexistent@example.com', '127.0.0.1');
+    });
+
+    it('should call comparePassword with dummy hash when user not found (timing protection)', async () => {
+      const comparePassword = vi.fn().mockResolvedValue(false);
+      const config = createMockConfig({
+        findUserByEmail: vi.fn().mockResolvedValue(null),
+        comparePassword,
+      });
+
+      const request = createMockRequest({
+        email: 'nonexistent@example.com',
+        password: 'password123',
+      });
+
+      await handleLogin(request, config);
+
+      // comparePassword should be called even when user doesn't exist
+      // to equalize timing with the valid-user path
+      expect(comparePassword).toHaveBeenCalledTimes(1);
+      expect(comparePassword).toHaveBeenCalledWith('password123', expect.any(String));
     });
 
     it('should return 401 when password is incorrect', async () => {

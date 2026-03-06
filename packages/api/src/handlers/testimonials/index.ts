@@ -4,11 +4,15 @@
  * CRUD operations for testimonials.
  */
 
+import { createLogger } from '@kairn/core';
+import { handlePrismaError } from '@kairn/db';
 import { z } from 'zod';
 
 import type { ApiRequest, AuthContext } from '../../middleware/types';
 import { withBodyValidation, withQueryValidation } from '../../middleware/with-validation';
 import { error, paginated, success } from '../../utils/response';
+
+const testimonialsLogger = createLogger('API:Testimonials');
 
 /**
  * Testimonial schema
@@ -149,7 +153,15 @@ export async function handleGetTestimonials(
       },
     };
   } catch (e) {
-    console.error('Error fetching testimonials:', e);
+    const prismaResult = handlePrismaError(e, 'fetching testimonials');
+    if (prismaResult) {
+      return {
+        response: error(prismaResult.code, prismaResult.message),
+        statusCode: prismaResult.statusCode,
+        headers: {},
+      };
+    }
+    testimonialsLogger.error('Error fetching testimonials', e);
     return {
       response: error('INTERNAL_ERROR', 'Erreur lors de la récupération des témoignages'),
       statusCode: 500,
@@ -186,7 +198,15 @@ export async function handleGetTestimonialById(
       },
     };
   } catch (e) {
-    console.error('Error fetching testimonial:', e);
+    const prismaResult = handlePrismaError(e, 'fetching testimonial');
+    if (prismaResult) {
+      return {
+        response: error(prismaResult.code, prismaResult.message),
+        statusCode: prismaResult.statusCode,
+        headers: {},
+      };
+    }
+    testimonialsLogger.error('Error fetching testimonial', e);
     return {
       response: error('INTERNAL_ERROR', 'Erreur lors de la récupération du témoignage'),
       statusCode: 500,
@@ -233,7 +253,15 @@ export async function handleCreateTestimonial(
       headers: {},
     };
   } catch (e) {
-    console.error('Error creating testimonial:', e);
+    const prismaResult = handlePrismaError(e, 'creating testimonial');
+    if (prismaResult) {
+      return {
+        response: error(prismaResult.code, prismaResult.message),
+        statusCode: prismaResult.statusCode,
+        headers: {},
+      };
+    }
+    testimonialsLogger.error('Error creating testimonial', e);
     return {
       response: error('INTERNAL_ERROR', 'Erreur lors de la création du témoignage'),
       statusCode: 500,
@@ -289,7 +317,15 @@ export async function handleUpdateTestimonial(
       headers: {},
     };
   } catch (e) {
-    console.error('Error updating testimonial:', e);
+    const prismaResult = handlePrismaError(e, 'updating testimonial');
+    if (prismaResult) {
+      return {
+        response: error(prismaResult.code, prismaResult.message),
+        statusCode: prismaResult.statusCode,
+        headers: {},
+      };
+    }
+    testimonialsLogger.error('Error updating testimonial', e);
     return {
       response: error('INTERNAL_ERROR', 'Erreur lors de la mise à jour du témoignage'),
       statusCode: 500,
@@ -330,7 +366,15 @@ export async function handleDeleteTestimonial(
       headers: {},
     };
   } catch (e) {
-    console.error('Error deleting testimonial:', e);
+    const prismaResult = handlePrismaError(e, 'deleting testimonial');
+    if (prismaResult) {
+      return {
+        response: error(prismaResult.code, prismaResult.message),
+        statusCode: prismaResult.statusCode,
+        headers: {},
+      };
+    }
+    testimonialsLogger.error('Error deleting testimonial', e);
     return {
       response: error('INTERNAL_ERROR', 'Erreur lors de la suppression du témoignage'),
       statusCode: 500,

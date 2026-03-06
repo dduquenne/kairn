@@ -7,7 +7,7 @@
 
 import { randomUUID } from 'crypto';
 
-import { createToken, type JWTPayload } from '@kairn/core';
+import { createLogger, createToken, type JWTPayload } from '@kairn/core';
 
 import type { ApiRequest } from '../../middleware/types';
 import { getClientIP, RATE_LIMIT_PRESETS, withRateLimit } from '../../middleware/with-rate-limit';
@@ -21,6 +21,14 @@ import {
   type AuthHandlerConfig,
   type LoginResponse,
 } from './types';
+
+const loginLogger = createLogger('Auth:Login');
+
+/**
+ * Dummy hash used to equalize timing when user is not found.
+ * This prevents user enumeration via timing side-channel attacks.
+ */
+const DUMMY_HASH = '$2b$10$abcdefghijklmnopqrstuuABCDEFGHIJKLMNOPQRSTUVWXYZ012';
 
 /**
  * Default configuration
@@ -134,6 +142,12 @@ export async function handleLogin(
   const user = await findUserByEmail(normalizedEmail);
 
   if (!user) {
+    // Perform dummy comparison to equalize timing with valid-user path
+    await comparePassword(password, DUMMY_HASH);
+    loginLogger.warn('Login attempt for non-existent user', {
+      email: normalizedEmail,
+      ip: clientIP,
+    });
     onFailedAttempt?.(normalizedEmail, clientIP);
     return {
       response: error('INVALID_CREDENTIALS', 'Identifiants invalides'),
@@ -146,6 +160,10 @@ export async function handleLogin(
   const passwordMatches = await comparePassword(password, user.passwordHash);
 
   if (!passwordMatches) {
+    loginLogger.warn('Login attempt with invalid password', {
+      userId: user.id,
+      ip: clientIP,
+    });
     onFailedAttempt?.(normalizedEmail, clientIP);
     return {
       response: error('INVALID_CREDENTIALS', 'Identifiants invalides'),

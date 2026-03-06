@@ -4,9 +4,14 @@
  * CRUD operations for blog posts.
  */
 
+import { createLogger } from '@kairn/core';
+import { handlePrismaError } from '@kairn/db';
+
 import type { ApiRequest, AuthContext } from '../../middleware/types';
 import { withBodyValidation, withQueryValidation } from '../../middleware/with-validation';
 import { error, paginated, success } from '../../utils/response';
+
+const postsLogger = createLogger('API:BlogPosts');
 
 import {
   blogPostSchema,
@@ -93,7 +98,15 @@ export async function handleGetPosts(
       },
     };
   } catch (e) {
-    console.error('Error fetching posts:', e);
+    const prismaResult = handlePrismaError(e, 'fetching posts');
+    if (prismaResult) {
+      return {
+        response: error(prismaResult.code, prismaResult.message),
+        statusCode: prismaResult.statusCode,
+        headers: {},
+      };
+    }
+    postsLogger.error('Error fetching posts', e);
     return {
       response: error('INTERNAL_ERROR', 'Erreur lors de la récupération des articles'),
       statusCode: 500,
@@ -140,7 +153,15 @@ export async function handleGetPostBySlug(
       },
     };
   } catch (e) {
-    console.error('Error fetching post:', e);
+    const prismaResult = handlePrismaError(e, 'fetching post');
+    if (prismaResult) {
+      return {
+        response: error(prismaResult.code, prismaResult.message),
+        statusCode: prismaResult.statusCode,
+        headers: {},
+      };
+    }
+    postsLogger.error('Error fetching post', e);
     return {
       response: error('INTERNAL_ERROR', "Erreur lors de la récupération de l'article"),
       statusCode: 500,
@@ -214,11 +235,17 @@ export async function handleCreatePost(
       headers: {},
     };
   } catch (e) {
-    console.error('Error creating post:', e);
-    const message = e instanceof Error ? e.message : 'Erreur lors de la création';
-
+    const prismaResult = handlePrismaError(e, 'creating post');
+    if (prismaResult) {
+      return {
+        response: error(prismaResult.code, prismaResult.message),
+        statusCode: prismaResult.statusCode,
+        headers: {},
+      };
+    }
+    postsLogger.error('Error creating post', e);
     return {
-      response: error('INTERNAL_ERROR', message),
+      response: error('INTERNAL_ERROR', 'Erreur lors de la création'),
       statusCode: 500,
       headers: {},
     };
@@ -287,11 +314,17 @@ export async function handleUpdatePost(
       headers: {},
     };
   } catch (e) {
-    console.error('Error updating post:', e);
-    const message = e instanceof Error ? e.message : 'Erreur lors de la mise à jour';
-
+    const prismaResult = handlePrismaError(e, 'updating post');
+    if (prismaResult) {
+      return {
+        response: error(prismaResult.code, prismaResult.message),
+        statusCode: prismaResult.statusCode,
+        headers: {},
+      };
+    }
+    postsLogger.error('Error updating post', e);
     return {
-      response: error('INTERNAL_ERROR', message),
+      response: error('INTERNAL_ERROR', 'Erreur lors de la mise à jour'),
       statusCode: 500,
       headers: {},
     };
@@ -337,7 +370,15 @@ export async function handleDeletePost(
       headers: {},
     };
   } catch (e) {
-    console.error('Error deleting post:', e);
+    const prismaResult = handlePrismaError(e, 'deleting post');
+    if (prismaResult) {
+      return {
+        response: error(prismaResult.code, prismaResult.message),
+        statusCode: prismaResult.statusCode,
+        headers: {},
+      };
+    }
+    postsLogger.error('Error deleting post', e);
     return {
       response: error('INTERNAL_ERROR', 'Erreur lors de la suppression'),
       statusCode: 500,

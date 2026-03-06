@@ -5,7 +5,11 @@
  * key rotation and multiple secret versions.
  */
 
-import { jwtVerify, SignJWT, decodeProtectedHeader, type KeyLike } from "jose";
+import { jwtVerify, SignJWT, decodeProtectedHeader, type KeyLike } from 'jose';
+
+import { createLogger } from '../logger';
+
+const jwtLogger = createLogger('JWT');
 
 export interface JWTPayload {
   sub: string; // user ID
@@ -22,7 +26,7 @@ export interface JWTConfig {
   /** Token expiration time (default: "24h") */
   expiresIn?: string;
   /** Algorithm to use (default: "HS256") */
-  algorithm?: "HS256" | "HS384" | "HS512";
+  algorithm?: 'HS256' | 'HS384' | 'HS512';
   /** Issuer claim */
   issuer?: string;
   /** Audience claim */
@@ -68,8 +72,8 @@ function validateConfig(): void {
   if (process.env.NODE_ENV === 'production') {
     if (!jwtConfig?.secret && !secretsManager) {
       throw new Error(
-        "CRITICAL SECURITY ERROR: JWT must be configured. " +
-        "Call configureJWT() or setSecretsManager() before using JWT functions."
+        'CRITICAL SECURITY ERROR: JWT must be configured. ' +
+          'Call configureJWT() or setSecretsManager() before using JWT functions.'
       );
     }
   }
@@ -79,14 +83,14 @@ function validateConfig(): void {
  * Create a JWT token for an authenticated user
  */
 export async function createToken(
-  payload: Omit<JWTPayload, "iat" | "exp">,
+  payload: Omit<JWTPayload, 'iat' | 'exp'>,
   options?: Partial<JWTConfig>
 ): Promise<string> {
   validateConfig();
 
   const config = { ...jwtConfig, ...options };
-  const expiresIn = config?.expiresIn || "24h";
-  const algorithm = config?.algorithm || "HS256";
+  const expiresIn = config?.expiresIn || '24h';
+  const algorithm = config?.algorithm || 'HS256';
 
   // Try to use secrets manager if available
   if (secretsManager) {
@@ -104,15 +108,17 @@ export async function createToken(
       if (config?.audience) builder = builder.setAudience(config.audience);
 
       return builder.sign(signingKey);
-    } catch {
-      // Fall through to legacy secret
+    } catch (err) {
+      jwtLogger.warn('Secrets manager signing failed, falling back to legacy secret', {
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
   }
 
   // Use configured secret
   const secret = config?.secret || process.env.JWT_SECRET;
   if (!secret) {
-    throw new Error("JWT secret not configured");
+    throw new Error('JWT secret not configured');
   }
 
   let builder = new SignJWT(payload)
@@ -138,8 +144,10 @@ export async function verifyToken(token: string): Promise<JWTPayload | null> {
       try {
         const header = decodeProtectedHeader(token);
         kid = header.kid;
-      } catch {
-        // Token invalid or malformed
+      } catch (err) {
+        jwtLogger.warn('Failed to decode token header', {
+          error: err instanceof Error ? err.message : String(err),
+        });
       }
 
       // 2. If we have a kid, try that version
@@ -149,8 +157,11 @@ export async function verifyToken(token: string): Promise<JWTPayload | null> {
           try {
             const verified = await jwtVerify(token, verificationKey);
             return verified.payload as unknown as JWTPayload;
-          } catch {
-            // Continue to try other versions
+          } catch (err) {
+            jwtLogger.warn('Token verification failed for kid, trying other versions', {
+              kid,
+              error: err instanceof Error ? err.message : String(err),
+            });
           }
         }
       }
@@ -164,7 +175,11 @@ export async function verifyToken(token: string): Promise<JWTPayload | null> {
 
           const verified = await jwtVerify(token, verificationKey);
           return verified.payload as unknown as JWTPayload;
-        } catch {
+        } catch (err) {
+          jwtLogger.warn('Token verification failed for version, trying next', {
+            kid: version.kid,
+            error: err instanceof Error ? err.message : String(err),
+          });
           continue;
         }
       }
@@ -178,7 +193,10 @@ export async function verifyToken(token: string): Promise<JWTPayload | null> {
 
     const verified = await jwtVerify(token, getSecretKey(secret));
     return verified.payload as unknown as JWTPayload;
-  } catch {
+  } catch (err) {
+    jwtLogger.warn('Token verification failed', {
+      error: err instanceof Error ? err.message : String(err),
+    });
     return null;
   }
 }
@@ -187,7 +205,7 @@ export async function verifyToken(token: string): Promise<JWTPayload | null> {
  * Extract token from Authorization header
  */
 export function getTokenFromHeader(authHeader?: string): string | null {
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return null;
   }
   return authHeader.slice(7);
@@ -204,9 +222,7 @@ export function decodeToken(token: string): JWTPayload | null {
     const payloadPart = parts[1];
     if (!payloadPart) return null;
 
-    const payload = JSON.parse(
-      Buffer.from(payloadPart, 'base64url').toString('utf-8')
-    );
+    const payload = JSON.parse(Buffer.from(payloadPart, 'base64url').toString('utf-8'));
     return payload as JWTPayload;
   } catch {
     return null;

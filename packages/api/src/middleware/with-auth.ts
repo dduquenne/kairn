@@ -4,9 +4,11 @@
  * Verifies JWT tokens from cookies or Authorization header.
  */
 
-import { getTokenFromHeader, type JWTPayload, verifyToken } from '@kairn/core';
+import { createLogger, getTokenFromHeader, type JWTPayload, verifyToken } from '@kairn/core';
 
 import type { ApiErrorResponse, ApiRequest, AuthMiddlewareConfig, AuthResult } from './types';
+
+const authLogger = createLogger('Auth:Middleware');
 
 /**
  * Error codes for authentication failures
@@ -70,8 +72,10 @@ async function extractToken(
       if (cookie?.value) {
         return cookie.value;
       }
-    } catch {
-      // Cookie access failed
+    } catch (err) {
+      authLogger.warn('Cookie access failed during token extraction', {
+        error: err instanceof Error ? err.message : String(err),
+      });
     }
   }
 
@@ -176,8 +180,10 @@ export async function withAuth(
         token,
       },
     };
-  } catch (error) {
-    console.error('Auth middleware error:', error);
+  } catch (err) {
+    authLogger.error('Unexpected auth middleware error', err, {
+      url: request.url,
+    });
     return {
       success: false,
       error: createAuthError('INVALID_TOKEN'),

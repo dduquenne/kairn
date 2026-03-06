@@ -30,3 +30,6 @@ export type {
 
 // Export Prisma utilities
 export { Prisma } from '@prisma/client';
+
+// Error handling
+export { handlePrismaError, type PrismaErrorResult } from './errors';

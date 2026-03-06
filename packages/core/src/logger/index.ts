@@ -32,6 +32,11 @@ const LOG_LEVELS: Record<LogLevel, number> = {
   error: 3,
 };
 
+/**
+ * Error reporting handler for external monitoring services (Sentry, Axiom, etc.)
+ */
+export type ErrorReportHandler = (entry: LogEntry, originalError?: unknown) => void;
+
 export interface LoggerConfig {
   /** Minimum log level to output */
   minLevel?: LogLevel;
@@ -39,6 +44,8 @@ export interface LoggerConfig {
   output?: (entry: LogEntry) => void;
   /** Enable/disable logging */
   enabled?: boolean;
+  /** External error reporting handlers (Sentry, Axiom, etc.) */
+  errorReporters?: ErrorReportHandler[];
 }
 
 // Global config
@@ -127,11 +134,33 @@ function defaultOutput(entry: LogEntry): void {
 }
 
 /**
+ * Notify external error reporters
+ */
+function notifyReporters(entry: LogEntry, originalError?: unknown): void {
+  const reporters = globalConfig.errorReporters;
+  if (!reporters || reporters.length === 0) return;
+
+  for (const reporter of reporters) {
+    try {
+      reporter(entry, originalError);
+    } catch {
+      // Prevent reporter errors from breaking the application
+      console.warn('[Logger] Error reporter failed for entry:', entry.message);
+    }
+  }
+}
+
+/**
  * Output log entry
  */
-function outputLog(entry: LogEntry): void {
+function outputLog(entry: LogEntry, originalError?: unknown): void {
   const output = globalConfig.output || defaultOutput;
   output(entry);
+
+  // Notify external reporters for error and warn levels
+  if (entry.level === 'error' || entry.level === 'warn') {
+    notifyReporters(entry, originalError);
+  }
 }
 
 /**
@@ -157,7 +186,7 @@ export class Logger {
       error
     );
 
-    outputLog(entry);
+    outputLog(entry, error);
   }
 
   debug(message: string, context?: LogContext): void {
@@ -192,6 +221,23 @@ export class Logger {
   withScope(subScope: string): Logger {
     return new Logger(`${this.scope}:${subScope}`, this.defaultContext);
   }
+}
+
+/**
+ * Register an external error reporter (Sentry, Axiom, etc.)
+ */
+export function addErrorReporter(reporter: ErrorReportHandler): void {
+  if (!globalConfig.errorReporters) {
+    globalConfig.errorReporters = [];
+  }
+  globalConfig.errorReporters.push(reporter);
+}
+
+/**
+ * Remove all error reporters
+ */
+export function removeAllErrorReporters(): void {
+  globalConfig.errorReporters = [];
 }
 
 /**
