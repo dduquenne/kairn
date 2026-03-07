@@ -221,6 +221,66 @@ describe('createMiddleware', () => {
     expect((r2 as { status: number }).status).toBe(429);
   });
 
+  it('isole le rate limiting par siteId', () => {
+    const { handler: handlerA } = createMiddleware({
+      routeRules: [{ pattern: '/api/auth', rateLimit: { maxRequests: 1, windowMs: 60000 } }],
+      siteId: 'site-a',
+    });
+    const { handler: handlerB } = createMiddleware({
+      routeRules: [{ pattern: '/api/auth', rateLimit: { maxRequests: 1, windowMs: 60000 } }],
+      siteId: 'site-b',
+    });
+
+    const request = {
+      headers: new Headers({ 'x-forwarded-for': '1.2.3.4' }),
+      nextUrl: { pathname: '/api/auth/login' },
+    };
+
+    // Exhaust site A
+    handlerA(
+      request,
+      () => ({ headers: new Headers() }),
+      (body, opts) => ({ headers: new Headers(opts.headers), status: opts.status, body })
+    );
+    const r2 = handlerA(
+      request,
+      () => ({ headers: new Headers() }),
+      (body, opts) => ({ headers: new Headers(opts.headers), status: opts.status, body })
+    );
+    expect((r2 as { status: number }).status).toBe(429);
+
+    // Site B should still allow requests (different store)
+    const rB = handlerB(
+      request,
+      () => ({ headers: new Headers() }),
+      (body, opts) => ({ headers: new Headers(opts.headers), status: opts.status, body })
+    );
+    expect((rB as { status?: number }).status).toBeUndefined();
+  });
+
+  it('exclut les routes CRON du rate limiting', () => {
+    const { handler } = createMiddleware({
+      routeRules: [],
+      defaultApiRateLimit: { maxRequests: 1, windowMs: 60000 },
+      rateLimitSkipPatterns: ['/api/cron'],
+    });
+
+    const request = {
+      headers: new Headers({ 'x-forwarded-for': '1.2.3.4' }),
+      nextUrl: { pathname: '/api/cron/cleanup' },
+    };
+
+    // Multiple CRON requests should always be allowed
+    for (let i = 0; i < 5; i++) {
+      const r = handler(
+        request,
+        () => ({ headers: new Headers() }),
+        (body, opts) => ({ headers: new Headers(opts.headers), status: opts.status, body })
+      );
+      expect((r as { status?: number }).status).toBeUndefined();
+    }
+  });
+
   it('utilise le defaultApiRateLimit pour les routes API sans règle spécifique', () => {
     const { handler } = createMiddleware({
       routeRules: [],

@@ -13,6 +13,8 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 const { handler, matcherConfig } = createMiddleware({
+  siteId: 'psypnos',
+  rateLimitSkipPatterns: ['/api/cron'],
   routeRules: [
     { pattern: '/api/auth', rateLimit: { maxRequests: 10, windowMs: 15 * 60 * 1000 } },
     { pattern: '/api/contact', rateLimit: { maxRequests: 5, windowMs: 60 * 60 * 1000 } },

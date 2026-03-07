@@ -1,9 +1,11 @@
-import { MetadataRoute } from 'next'
+import { generateGeoSitemapEntries } from '@kairn/config';
+import { MetadataRoute } from 'next';
 
-import { getAllPostsAsync } from '@/lib/blog'
+import { getAllPostsAsync } from '@/lib/blog';
+import { geoConfig } from '@/lib/geo-config';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://psypnos.fr'
+  const baseUrl = 'https://psypnos.fr';
 
   // Pages statiques principales
   const routes: MetadataRoute.Sitemap = [
@@ -30,19 +32,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: 'monthly' as const,
       priority: 0.9,
-    },
-    // Pages piliers SEO
-    {
-      url: `${baseUrl}/therapies`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.95,
-    },
-    {
-      url: `${baseUrl}/yonne`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.95,
     },
     {
       url: `${baseUrl}/a-propos`,
@@ -74,46 +63,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly' as const,
       priority: 0.9,
     },
-  ]
+  ];
 
-  // Pages géolocalisées - Psychothérapie
-  const psychotherapieGeoPages: MetadataRoute.Sitemap = [
-    'psychotherapie-yonne',
-    'psychotherapie-auxerre',
-    'psychotherapie-sens',
-    'psychotherapie-joigny',
-    'psychotherapie-migennes',
-  ].map((slug) => ({
-    url: `${baseUrl}/${slug}`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly' as const,
-    priority: 0.8,
-  }))
-
-  // Pages géolocalisées - Hypnose
-  const hypnoseGeoPages: MetadataRoute.Sitemap = [
-    'hypnose-yonne',
-    'hypnose-auxerre',
-    'hypnose-sens',
-    'hypnose-joigny',
-    'hypnose-migennes',
-  ].map((slug) => ({
-    url: `${baseUrl}/${slug}`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly' as const,
-    priority: 0.8,
-  }))
-
-  // Pages géolocalisées - Respiration holotropique
-  const respirationGeoPages: MetadataRoute.Sitemap = [
-    'respiration-holotropique-bourgogne',
-    'respiration-holotropique-yonne',
-  ].map((slug) => ({
-    url: `${baseUrl}/${slug}`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly' as const,
-    priority: 0.8,
-  }))
+  // Pages géolocalisées — générées depuis la configuration centralisée
+  const geoPages = generateGeoSitemapEntries(geoConfig);
 
   // Pages légales
   const legalPages: MetadataRoute.Sitemap = [
@@ -129,23 +82,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'yearly' as const,
       priority: 0.3,
     },
-  ]
+  ];
 
   // Articles de blog
-  const posts = await getAllPostsAsync()
-  const blogPosts: MetadataRoute.Sitemap = posts.map((post) => ({
+  const posts = await getAllPostsAsync();
+  const blogPosts: MetadataRoute.Sitemap = posts.map(post => ({
     url: `${baseUrl}/blog/${post.slug}`,
     lastModified: new Date(post.date),
     changeFrequency: 'monthly' as const,
     priority: 0.7,
-  }))
+  }));
 
-  return [
-    ...routes,
-    ...psychotherapieGeoPages,
-    ...hypnoseGeoPages,
-    ...respirationGeoPages,
-    ...legalPages,
-    ...blogPosts,
-  ]
+  return [...routes, ...geoPages, ...legalPages, ...blogPosts];
 }

@@ -53,6 +53,10 @@ export interface MiddlewareConfig {
   routeRules: MiddlewareRouteRule[];
   /** Configuration de rate limiting par défaut pour les routes API */
   defaultApiRateLimit?: MiddlewareRateLimitConfig;
+  /** Site identifier for multi-tenant rate limit isolation */
+  siteId?: string;
+  /** Route patterns to skip rate limiting (e.g., '/api/cron') */
+  rateLimitSkipPatterns?: string[];
   /** Patterns de routes statiques à ignorer */
   staticPatterns?: string[];
   /** Directives CSP personnalisées (fusionnées avec les defaults) */
@@ -292,6 +296,8 @@ export function createMiddleware(middlewareConfig: MiddlewareConfig) {
   const store = middlewareConfig.rateLimitStore ?? new EdgeMemoryRateLimitStore();
   const staticPatterns = middlewareConfig.staticPatterns ?? DEFAULT_STATIC_PATTERNS;
   const cleanupInterval = middlewareConfig.cleanupIntervalMs ?? DEFAULT_CLEANUP_INTERVAL;
+  const siteId = middlewareConfig.siteId;
+  const skipPatterns = middlewareConfig.rateLimitSkipPatterns ?? [];
 
   let lastCleanup = Date.now();
 
@@ -305,6 +311,13 @@ export function createMiddleware(middlewareConfig: MiddlewareConfig) {
       }
     }
     return null;
+  }
+
+  /**
+   * Vérifie si la route doit être exclue du rate limiting (ex: CRON jobs)
+   */
+  function shouldSkipRateLimit(pathname: string): boolean {
+    return skipPatterns.some(p => pathname.startsWith(p));
   }
 
   /**
@@ -360,15 +373,17 @@ export function createMiddleware(middlewareConfig: MiddlewareConfig) {
     const requestHeaders = new Headers(request.headers);
     requestHeaders.set('x-nonce', nonce);
 
-    // Déterminer le rate limiting
+    // Déterminer le rate limiting (skip CRON routes)
     const routeRule = getRouteRule(pathname);
     const isApiRoute = pathname.startsWith('/api');
-    const rateLimitConfig =
-      routeRule?.rateLimit ?? (isApiRoute ? middlewareConfig.defaultApiRateLimit : null);
+    const rateLimitConfig = shouldSkipRateLimit(pathname)
+      ? null
+      : (routeRule?.rateLimit ?? (isApiRoute ? middlewareConfig.defaultApiRateLimit : null));
 
     if (rateLimitConfig) {
       const ip = getClientIP(request.headers);
-      const key = `${routeRule?.pattern ?? 'api'}:${ip}`;
+      const routePrefix = routeRule?.pattern ?? 'api';
+      const key = siteId ? `${siteId}:${routePrefix}:${ip}` : `${routePrefix}:${ip}`;
       const result = store.check(key, rateLimitConfig);
 
       if (!result.allowed) {

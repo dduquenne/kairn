@@ -36,12 +36,13 @@ export const RATE_LIMITS: Record<string, RateLimitConfig> = {
 // ============================================
 
 const REDIS_KEY_PREFIX = 'ratelimit:';
+const SITE_ID = 'psypnos';
 
 /**
- * Build Redis key for rate limiting
+ * Build Redis key for rate limiting with siteId isolation
  */
 function buildRedisKey(type: string, identifier: string): string {
-  return `${REDIS_KEY_PREFIX}${type}:${identifier}`;
+  return `${REDIS_KEY_PREFIX}${SITE_ID}:${type}:${identifier}`;
 }
 
 /**

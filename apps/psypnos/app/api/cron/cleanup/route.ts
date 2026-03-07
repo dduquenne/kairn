@@ -7,30 +7,14 @@
  * Combines data cleanup and job cleanup into a single endpoint
  * to stay within QStash schedule limits.
  *
- * Part 1 - Data cleanup:
- * Purges old analytics data to optimize database performance.
- * Retention strategy for unified AnalyticsEvent table:
- * - PAGE_VIEW / PAGE_EXIT: 90 days
- * - SCROLL_DEPTH / SECTION_VIEW / SECTION_TIME: 60 days
- * - CONVERSION / FUNNEL_STEP: 365 days (business-critical)
- * - CLICK / FORM_SUBMIT / DOWNLOAD: 60 days
- * - CUSTOM / SESSION_START / SESSION_END: 30 days
- *
- * Other tables:
- * - VisitorGeolocation: 60 days
- * - PageVisit (legacy): 90 days
- * - BlogAnalytics (legacy): 90 days
- * - BotVisit (legacy): 30 days
- *
- * Part 2 - Job cleanup:
- * - Marks PROCESSING jobs older than 30 min as FAILED
- * - Deletes COMPLETED/FAILED jobs older than 7 days
- * - Cleans up old social generation logs
+ * Uses centralized retention configuration from @kairn/analytics.
+ * See packages/analytics/src/server/retention.ts for retention policies.
  *
  * Frequency: daily at 3am (0 3 * * *)
  * Security: QStash signature or CRON_SECRET
  */
 
+import { DEFAULT_RETENTION_CONFIG, computeCutoffDate } from '@kairn/analytics/server';
 import { verifyCronAuth } from '@kairn/core/scheduler';
 import { EventType } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
@@ -38,45 +22,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/prisma';
 import { getSiteId } from '@/lib/db/site';
 
-// ── Data cleanup configuration ──────────────────────────────────────────────
-
-const UNIFIED_RETENTION: Record<string, { types: EventType[]; days: number }> = {
-  pageEvents: {
-    types: [EventType.PAGE_VIEW, EventType.PAGE_EXIT],
-    days: 90,
-  },
-  engagementEvents: {
-    types: [EventType.SCROLL_DEPTH, EventType.SECTION_VIEW, EventType.SECTION_TIME],
-    days: 60,
-  },
-  conversionEvents: {
-    types: [EventType.CONVERSION, EventType.FUNNEL_STEP],
-    days: 365,
-  },
-  interactionEvents: {
-    types: [EventType.CLICK, EventType.FORM_SUBMIT, EventType.DOWNLOAD],
-    days: 60,
-  },
-  otherEvents: {
-    types: [EventType.CUSTOM, EventType.SESSION_START, EventType.SESSION_END],
-    days: 30,
-  },
-};
-
-const LEGACY_RETENTION = {
-  visitorGeolocation: 60,
-  pageVisit: 90,
-  blogAnalytics: 90,
-  blogCtaClick: 90,
-  blogFaqClick: 90,
-  botVisit: 30,
-};
-
-// ── Job cleanup configuration ───────────────────────────────────────────────
-
-const ORPHAN_TIMEOUT_MINUTES = 30;
-const JOB_RETENTION_DAYS = 7;
-const SOCIAL_LOG_RETENTION_DAYS = 30;
+// Use centralized retention configuration from @kairn/analytics
+const retentionConfig = DEFAULT_RETENTION_CONFIG;
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -86,74 +33,65 @@ interface CleanupResult {
   retentionDays?: number;
 }
 
-function daysToCutoff(days: number): Date {
-  return new Date(Date.now() - days * 24 * 60 * 60 * 1000);
-}
-
 // ── Data cleanup ────────────────────────────────────────────────────────────
 
+/**
+ * Clean up analytics data based on centralized retention policies
+ */
 async function cleanupData(): Promise<{ results: CleanupResult[]; total: number }> {
   const results: CleanupResult[] = [];
   let total = 0;
   const siteId = await getSiteId();
 
-  // 1. Clean up unified AnalyticsEvent table by event type
-  for (const [groupName, config] of Object.entries(UNIFIED_RETENTION)) {
-    const cutoff = daysToCutoff(config.days);
+  // 1. Clean up unified AnalyticsEvent table by event type group
+  for (const [groupName, policy] of Object.entries(retentionConfig.events)) {
+    const cutoff = computeCutoffDate(policy.days);
+    const eventTypes = policy.types
+      .map(t => EventType[t as keyof typeof EventType])
+      .filter(Boolean);
     const result = await prisma.analyticsEvent.deleteMany({
       where: {
         siteId,
-        type: { in: config.types },
+        type: { in: eventTypes },
         createdAt: { lt: cutoff },
       },
     });
     results.push({
       table: `AnalyticsEvent (${groupName})`,
       deleted: result.count,
-      retentionDays: config.days,
+      retentionDays: policy.days,
     });
     total += result.count;
   }
 
   // 2. Clean up VisitorGeolocation
-  const geoCutoff = daysToCutoff(LEGACY_RETENTION.visitorGeolocation);
+  const geoCutoff = computeCutoffDate(retentionConfig.visitorGeolocationDays);
   const geoResult = await prisma.visitorGeolocation.deleteMany({
     where: { siteId, timestamp: { lt: geoCutoff } },
   });
   results.push({
     table: 'VisitorGeolocation',
     deleted: geoResult.count,
-    retentionDays: LEGACY_RETENTION.visitorGeolocation,
+    retentionDays: retentionConfig.visitorGeolocationDays,
   });
   total += geoResult.count;
 
-  // 3. Clean up legacy tables (graceful — catch errors for models that may not exist)
-  const legacyTables = [
-    { name: 'PageVisit', model: 'pageVisit', field: 'timestamp', days: LEGACY_RETENTION.pageVisit },
-    {
-      name: 'BlogAnalytics',
-      model: 'blogAnalytics',
-      field: 'timestamp',
-      days: LEGACY_RETENTION.blogAnalytics,
-    },
-    {
-      name: 'BlogCtaClick',
-      model: 'blogCtaClick',
-      field: 'timestamp',
-      days: LEGACY_RETENTION.blogCtaClick,
-    },
-    {
-      name: 'BlogFaqClick',
-      model: 'blogFaqClick',
-      field: 'timestamp',
-      days: LEGACY_RETENTION.blogFaqClick,
-    },
-    { name: 'BotVisit', model: 'botVisit', field: 'timestamp', days: LEGACY_RETENTION.botVisit },
-  ];
+  // 3. Clean up old daily summaries
+  const summaryCutoff = computeCutoffDate(retentionConfig.dailySummaryDays);
+  const summaryResult = await prisma.analyticsDailySummary.deleteMany({
+    where: { siteId, date: { lt: summaryCutoff } },
+  });
+  results.push({
+    table: 'AnalyticsDailySummary',
+    deleted: summaryResult.count,
+    retentionDays: retentionConfig.dailySummaryDays,
+  });
+  total += summaryResult.count;
 
-  for (const table of legacyTables) {
+  // 4. Clean up legacy tables (graceful — catch errors for models that may not exist)
+  for (const table of retentionConfig.legacyTables) {
     try {
-      const cutoff = daysToCutoff(table.days);
+      const cutoff = computeCutoffDate(table.days);
       const model = (prisma as unknown as Record<string, unknown>)[table.model] as
         | {
             deleteMany: (args: { where: Record<string, unknown> }) => Promise<{ count: number }>;
@@ -162,9 +100,13 @@ async function cleanupData(): Promise<{ results: CleanupResult[]; total: number 
 
       if (model) {
         const result = await model.deleteMany({
-          where: { siteId, [table.field]: { lt: cutoff } },
+          where: { siteId, [table.dateField]: { lt: cutoff } },
         });
-        results.push({ table: table.name, deleted: result.count, retentionDays: table.days });
+        results.push({
+          table: table.model,
+          deleted: result.count,
+          retentionDays: table.days,
+        });
         total += result.count;
       }
     } catch {
@@ -177,6 +119,9 @@ async function cleanupData(): Promise<{ results: CleanupResult[]; total: number 
 
 // ── Job cleanup ─────────────────────────────────────────────────────────────
 
+/**
+ * Clean up orphaned and old jobs
+ */
 async function cleanupJobs(): Promise<{
   results: CleanupResult[];
   total: number;
@@ -184,9 +129,10 @@ async function cleanupJobs(): Promise<{
   const results: CleanupResult[] = [];
   let total = 0;
   const siteId = await getSiteId();
+  const { orphanTimeoutMinutes, jobRetentionDays, socialLogRetentionDays } = retentionConfig.jobs;
 
   // 1. Mark orphaned PROCESSING jobs as FAILED
-  const orphanCutoff = new Date(Date.now() - ORPHAN_TIMEOUT_MINUTES * 60 * 1000);
+  const orphanCutoff = new Date(Date.now() - orphanTimeoutMinutes * 60 * 1000);
   const orphanedJobs = await prisma.blogGenerationJob.updateMany({
     where: {
       siteId,
@@ -195,7 +141,7 @@ async function cleanupJobs(): Promise<{
     },
     data: {
       status: 'FAILED',
-      error: `Job orphelin - timeout après ${ORPHAN_TIMEOUT_MINUTES} minutes sans activité`,
+      error: `Job orphelin - timeout après ${orphanTimeoutMinutes} minutes sans activité`,
       completedAt: new Date(),
     },
   });
@@ -203,7 +149,7 @@ async function cleanupJobs(): Promise<{
   total += orphanedJobs.count;
 
   // 2. Delete old COMPLETED/FAILED jobs
-  const retentionCutoff = daysToCutoff(JOB_RETENTION_DAYS);
+  const retentionCutoff = computeCutoffDate(jobRetentionDays);
   const deletedJobs = await prisma.blogGenerationJob.deleteMany({
     where: {
       siteId,
@@ -214,19 +160,19 @@ async function cleanupJobs(): Promise<{
   results.push({
     table: 'BlogGenerationJob (old)',
     deleted: deletedJobs.count,
-    retentionDays: JOB_RETENTION_DAYS,
+    retentionDays: jobRetentionDays,
   });
   total += deletedJobs.count;
 
   // 3. Delete old social generation logs
-  const socialLogCutoff = daysToCutoff(SOCIAL_LOG_RETENTION_DAYS);
+  const socialLogCutoff = computeCutoffDate(socialLogRetentionDays);
   const deletedSocialLogs = await prisma.socialGenerationLog.deleteMany({
     where: { createdAt: { lt: socialLogCutoff } },
   });
   results.push({
     table: 'SocialGenerationLog',
     deleted: deletedSocialLogs.count,
-    retentionDays: SOCIAL_LOG_RETENTION_DAYS,
+    retentionDays: socialLogRetentionDays,
   });
   total += deletedSocialLogs.count;
 
@@ -251,11 +197,11 @@ export async function GET(request: NextRequest) {
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
 
     if (totalDeleted > 0) {
-      console.log(`[Cron:cleanup] ${totalDeleted} records processed in ${duration}s`);
+      console.warn(`[Cron:cleanup] ${totalDeleted} records processed in ${duration}s`);
       for (const r of [...dataCleanup.results, ...jobCleanup.results]) {
         if (r.deleted > 0) {
           const retention = r.retentionDays ? ` (>${r.retentionDays} days)` : '';
-          console.log(`  - ${r.table}: ${r.deleted}${retention}`);
+          console.warn(`  - ${r.table}: ${r.deleted}${retention}`);
         }
       }
     }
@@ -265,6 +211,13 @@ export async function GET(request: NextRequest) {
       message: `Cleanup complete: ${totalDeleted} records processed`,
       duration: `${duration}s`,
       processed: totalDeleted,
+      retentionPolicy: {
+        events: Object.fromEntries(
+          Object.entries(retentionConfig.events).map(([k, v]) => [k, `${v.days} days`])
+        ),
+        visitorGeolocation: `${retentionConfig.visitorGeolocationDays} days`,
+        dailySummary: `${retentionConfig.dailySummaryDays} days`,
+      },
       data: {
         total: dataCleanup.total,
         results: dataCleanup.results,
