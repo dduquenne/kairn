@@ -1,56 +1,41 @@
-"use client";
+'use client';
 
-import { motion, AnimatePresence } from "framer-motion";
 import {
-  Settings2,
-  Bell,
-  Target,
-  Share2,
-  Users,
-  Sparkles,
-} from "lucide-react";
-import { useState, useCallback, useEffect } from "react";
+  AlertsTab,
+  ConfigurationTabNavigation,
+  GoalsTab,
+  SocialNetworksTab,
+  UsersTab,
+  type Alert,
+  type ConfigGoal,
+  type ConfigTabId,
+  type SocialAccount,
+  type AdminUser,
+} from '@kairn/admin';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Settings2, Bell, Target, Share2, Users, Sparkles } from 'lucide-react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 
-import type { Alert, Goal } from "../settings/types";
-
-import { AlertsTab } from "./_components/AlertsTab";
-import { ConfigurationTabNavigation, type ConfigTabId } from "./_components/ConfigurationTabNavigation";
-import { GoalsTab } from "./_components/GoalsTab";
-import { SocialNetworksTab } from "./_components/SocialNetworksTab";
-import { UsersTab } from "./_components/UsersTab";
-
-
-interface SocialAccount {
-  id: string;
-  platform: string;
-  accountName: string;
-  isActive: boolean;
-}
-
-interface AdminUser {
-  id: string;
-  email: string;
-  role: "admin";
-  createdAt: string;
-  updatedAt: string;
-}
+import { useToast } from '@/lib/toast-context';
 
 export default function ConfigurationPage() {
-  const [activeTab, setActiveTab] = useState<ConfigTabId>("alerts");
+  const [activeTab, setActiveTab] = useState<ConfigTabId>('alerts');
   const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [goals, setGoals] = useState<Goal[]>([]);
+  const [goals, setGoals] = useState<ConfigGoal[]>([]);
   const [socialAccounts, setSocialAccounts] = useState<SocialAccount[]>([]);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const { addToast } = useToast();
+  const toast = useMemo(() => ({ addToast }), [addToast]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const [alertsRes, goalsRes, socialRes, usersRes] = await Promise.all([
-        fetch("/api/analytics/alerts"),
-        fetch("/api/analytics/goals"),
-        fetch("/api/social/accounts"),
-        fetch("/api/admin/users"),
+        fetch('/api/analytics/alerts'),
+        fetch('/api/analytics/goals'),
+        fetch('/api/social/accounts'),
+        fetch('/api/admin/users'),
       ]);
 
       if (alertsRes.ok) {
@@ -73,7 +58,7 @@ export default function ConfigurationPage() {
         setUsers(Array.isArray(data) ? data : []);
       }
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error('Error fetching data:', error);
     } finally {
       setLoading(false);
     }
@@ -83,16 +68,16 @@ export default function ConfigurationPage() {
     fetchData();
   }, [fetchData]);
 
-  const enabledAlerts = alerts.filter((a) => a.enabled).length;
-  const enabledGoals = goals.filter((g) => g.enabled).length;
-  const activeAccounts = socialAccounts.filter((a) => a.isActive).length;
+  const enabledAlerts = alerts.filter(a => a.enabled).length;
+  const enabledGoals = goals.filter(g => g.enabled).length;
+  const activeAccounts = socialAccounts.filter(a => a.isActive).length;
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="flex flex-col items-center gap-4">
-          <div className="h-10 w-10 animate-spin rounded-full border-2 border-gold border-t-transparent" />
-          <p className="text-sm text-ivory/60">Chargement de la configuration...</p>
+          <div className="border-gold h-10 w-10 animate-spin rounded-full border-2 border-t-transparent" />
+          <p className="text-ivory/60 text-sm">Chargement de la configuration...</p>
         </div>
       </div>
     );
@@ -107,14 +92,12 @@ export default function ConfigurationPage() {
         className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
       >
         <div className="flex items-center gap-4">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-gold/20 to-gold/5 border border-gold/20">
-            <Settings2 className="h-7 w-7 text-gold" />
+          <div className="from-gold/20 to-gold/5 border-gold/20 flex h-14 w-14 items-center justify-center rounded-2xl border bg-gradient-to-br">
+            <Settings2 className="text-gold h-7 w-7" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-ivory">Configuration</h1>
-            <p className="text-sm text-ivory/60">
-              Gérez l'ensemble des paramètres de votre site
-            </p>
+            <h1 className="text-ivory text-2xl font-bold">Configuration</h1>
+            <p className="text-ivory/60 text-sm">Gérez l'ensemble des paramètres de votre site</p>
           </div>
         </div>
       </motion.div>
@@ -124,7 +107,7 @@ export default function ConfigurationPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="grid grid-cols-2 gap-3 rounded-2xl bg-gradient-to-r from-night/80 to-night/60 p-4 sm:p-6 border border-ivory/10 sm:grid-cols-4"
+        className="from-night/80 to-night/60 border-ivory/10 grid grid-cols-2 gap-3 rounded-2xl border bg-gradient-to-r p-4 sm:grid-cols-4 sm:p-6"
       >
         <QuickStat
           icon={Bell}
@@ -147,12 +130,7 @@ export default function ConfigurationPage() {
           total={socialAccounts.length}
           color="text-blue-400"
         />
-        <QuickStat
-          icon={Users}
-          label="Utilisateurs"
-          value={users.length}
-          color="text-purple-400"
-        />
+        <QuickStat icon={Users} label="Utilisateurs" value={users.length} color="text-purple-400" />
       </motion.div>
 
       {/* Tab Navigation */}
@@ -176,33 +154,15 @@ export default function ConfigurationPage() {
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.2 }}
         >
-          {activeTab === "alerts" && (
-            <AlertsTab
-              alerts={alerts}
-              onRefresh={fetchData}
-            />
+          {activeTab === 'alerts' && <AlertsTab alerts={alerts} onRefresh={fetchData} />}
+
+          {activeTab === 'goals' && <GoalsTab goals={goals} onRefresh={fetchData} />}
+
+          {activeTab === 'social' && (
+            <SocialNetworksTab accounts={socialAccounts} onRefresh={fetchData} toast={toast} />
           )}
 
-          {activeTab === "goals" && (
-            <GoalsTab
-              goals={goals}
-              onRefresh={fetchData}
-            />
-          )}
-
-          {activeTab === "social" && (
-            <SocialNetworksTab
-              accounts={socialAccounts}
-              onRefresh={fetchData}
-            />
-          )}
-
-          {activeTab === "users" && (
-            <UsersTab
-              users={users}
-              onRefresh={fetchData}
-            />
-          )}
+          {activeTab === 'users' && <UsersTab users={users} onRefresh={fetchData} toast={toast} />}
         </motion.div>
       </AnimatePresence>
 
@@ -211,37 +171,39 @@ export default function ConfigurationPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="rounded-2xl border border-gold/20 bg-gradient-to-r from-gold/5 to-transparent p-6"
+        className="border-gold/20 from-gold/5 rounded-2xl border bg-gradient-to-r to-transparent p-6"
       >
         <div className="flex items-start gap-4">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gold/20">
-            <Sparkles className="h-5 w-5 text-gold" />
+          <div className="bg-gold/20 flex h-10 w-10 items-center justify-center rounded-xl">
+            <Sparkles className="text-gold h-5 w-5" />
           </div>
           <div>
-            <h3 className="font-semibold text-ivory">Conseils de configuration</h3>
-            <ul className="mt-2 space-y-2 text-sm text-ivory/70">
+            <h3 className="text-ivory font-semibold">Conseils de configuration</h3>
+            <ul className="text-ivory/70 mt-2 space-y-2 text-sm">
               <li className="flex items-start gap-2">
-                <Bell className="mt-0.5 h-4 w-4 text-amber-400 flex-shrink-0" />
+                <Bell className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-400" />
                 <span>
-                  Configurez des alertes pour être notifié en cas de baisse significative du trafic ou des conversions.
+                  Configurez des alertes pour être notifié en cas de baisse significative du trafic
+                  ou des conversions.
                 </span>
               </li>
               <li className="flex items-start gap-2">
-                <Target className="mt-0.5 h-4 w-4 text-emerald-400 flex-shrink-0" />
+                <Target className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-400" />
                 <span>
                   Définissez des objectifs clairs pour suivre vos KPIs et mesurer votre progression.
                 </span>
               </li>
               <li className="flex items-start gap-2">
-                <Share2 className="mt-0.5 h-4 w-4 text-blue-400 flex-shrink-0" />
+                <Share2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-400" />
                 <span>
                   Connectez vos réseaux sociaux pour automatiser la publication de vos contenus.
                 </span>
               </li>
               <li className="flex items-start gap-2">
-                <Users className="mt-0.5 h-4 w-4 text-purple-400 flex-shrink-0" />
+                <Users className="mt-0.5 h-4 w-4 flex-shrink-0 text-purple-400" />
                 <span>
-                  Gérez les accès administrateur et renforcez la sécurité avec des mots de passe forts.
+                  Gérez les accès administrateur et renforcez la sécurité avec des mots de passe
+                  forts.
                 </span>
               </li>
             </ul>
@@ -267,17 +229,17 @@ function QuickStat({
 }) {
   return (
     <div className="flex items-center gap-3">
-      <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-night/60 ${color}`}>
+      <div className={`bg-night/60 flex h-10 w-10 items-center justify-center rounded-xl ${color}`}>
         <Icon className="h-5 w-5" />
       </div>
       <div>
-        <p className="text-xl font-bold text-ivory">
+        <p className="text-ivory text-xl font-bold">
           {value}
           {total !== undefined && (
-            <span className="text-sm font-normal text-ivory/40">/{total}</span>
+            <span className="text-ivory/40 text-sm font-normal">/{total}</span>
           )}
         </p>
-        <p className="text-xs text-ivory/50">{label}</p>
+        <p className="text-ivory/50 text-xs">{label}</p>
       </div>
     </div>
   );

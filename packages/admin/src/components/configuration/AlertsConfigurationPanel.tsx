@@ -28,13 +28,13 @@ import {
 } from 'lucide-react';
 import { useState, useCallback } from 'react';
 
-import type { Alert, AlertHistory, AlertCondition, AlertTemplate } from '../types';
-import { METRIC_LABELS, TIME_WINDOW_LABELS, ALERT_TEMPLATES } from '../types';
-
 import { AlertFormModal } from './AlertFormModal';
 import { DeleteConfirmationModal } from './DeleteConfirmationModal';
+import type { Alert, AlertHistory, AlertCondition, AlertTemplate } from './types';
+import { METRIC_LABELS, TIME_WINDOW_LABELS, ALERT_TEMPLATES } from './types';
 
-interface AlertsConfigurationPanelProps {
+/** Props du composant AlertsConfigurationPanel */
+export interface AlertsConfigurationPanelProps {
   alerts: Alert[];
   onBack: () => void;
   onRefresh: () => void;
@@ -54,6 +54,10 @@ const TEMPLATE_ICONS: Record<string, React.ComponentType<{ className?: string }>
   'calendar-check': CalendarCheck,
 };
 
+/**
+ * Panneau de configuration des alertes avec bouton retour.
+ * Variante du AlertsTab utilisée dans la page settings avec navigation.
+ */
 export function AlertsConfigurationPanel({
   alerts,
   onBack,
@@ -69,6 +73,7 @@ export function AlertsConfigurationPanel({
   const [showTemplates, setShowTemplates] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  /** Bascule l'état actif/inactif d'une alerte */
   const handleToggleEnabled = useCallback(
     async (alert: Alert) => {
       try {
@@ -88,6 +93,7 @@ export function AlertsConfigurationPanel({
     [onRefresh]
   );
 
+  /** Supprime l'alerte sélectionnée */
   const handleDelete = useCallback(async () => {
     if (!deletingAlert) return;
 
@@ -105,6 +111,7 @@ export function AlertsConfigurationPanel({
     }
   }, [deletingAlert, onRefresh]);
 
+  /** Sauvegarde une alerte (création ou mise à jour) */
   const handleSave = useCallback(
     async (data: Partial<Alert>) => {
       setIsSubmitting(true);
@@ -135,6 +142,7 @@ export function AlertsConfigurationPanel({
     [editingAlert, onRefresh]
   );
 
+  /** Charge et affiche/masque l'historique d'une alerte */
   const handleLoadHistory = useCallback(
     async (alertId: string) => {
       if (expandedHistory === alertId) {
@@ -164,6 +172,7 @@ export function AlertsConfigurationPanel({
     [expandedHistory, alertHistories]
   );
 
+  /** Sélectionne un modèle prédéfini et ouvre le formulaire */
   const handleSelectTemplate = (template: AlertTemplate) => {
     setSelectedTemplate(template);
     setShowTemplates(false);
@@ -172,7 +181,7 @@ export function AlertsConfigurationPanel({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header with Back Button */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
           <button
@@ -223,7 +232,9 @@ export function AlertsConfigurationPanel({
             className="overflow-hidden"
           >
             <div className="border-gold/20 from-gold/5 rounded-2xl border bg-gradient-to-r to-transparent p-6">
-              <h3 className="text-gold mb-4 text-sm font-semibold">Modèles d'alertes prédéfinis</h3>
+              <h3 className="text-gold mb-4 text-sm font-semibold">
+                Modèles d&apos;alertes prédéfinis
+              </h3>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {ALERT_TEMPLATES.map(template => {
                   const Icon = TEMPLATE_ICONS[template.icon] || AlertTriangle;
@@ -333,6 +344,7 @@ interface AlertCardProps {
   onToggleHistory: () => void;
 }
 
+/** Carte d'alerte avec historique dépliable */
 function AlertCard({
   alert,
   index,
@@ -344,6 +356,7 @@ function AlertCard({
   onDelete,
   onToggleHistory,
 }: AlertCardProps) {
+  /** Retourne le symbole de la condition */
   const getConditionSymbol = (condition: AlertCondition) => {
     switch (condition) {
       case 'greater_than':
@@ -357,17 +370,18 @@ function AlertCard({
     }
   };
 
-  const formatThreshold = (alert: Alert) => {
-    if (alert.condition === 'change_percent') {
-      return `${alert.threshold > 0 ? '+' : ''}${alert.threshold}%`;
+  /** Formate le seuil selon la métrique */
+  const formatThreshold = (a: Alert) => {
+    if (a.condition === 'change_percent') {
+      return `${a.threshold > 0 ? '+' : ''}${a.threshold}%`;
     }
-    if (alert.metric === 'conversion_rate' || alert.metric === 'bounce_rate') {
-      return `${alert.threshold}%`;
+    if (a.metric === 'conversion_rate' || a.metric === 'bounce_rate') {
+      return `${a.threshold}%`;
     }
-    if (alert.metric === 'avg_time') {
-      return `${alert.threshold}s`;
+    if (a.metric === 'avg_time') {
+      return `${a.threshold}s`;
     }
-    return alert.threshold.toLocaleString();
+    return a.threshold.toLocaleString();
   };
 
   return (
@@ -383,7 +397,6 @@ function AlertCard({
     >
       <div className="p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          {/* Alert Info */}
           <div className="flex items-start gap-4">
             <button
               onClick={onToggle}
@@ -408,7 +421,6 @@ function AlertCard({
                 <p className="text-ivory/60 mt-1 text-sm">{alert.description}</p>
               )}
 
-              {/* Condition Preview */}
               <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
                 <span className="bg-ivory/10 text-ivory/70 rounded-lg px-2.5 py-1">
                   {METRIC_LABELS[alert.metric]}
@@ -423,7 +435,6 @@ function AlertCard({
                 </span>
               </div>
 
-              {/* Channels */}
               <div className="mt-3 flex items-center gap-2">
                 {alert.channels.includes('email') && (
                   <div className="flex items-center gap-1.5 rounded-lg bg-blue-500/10 px-2.5 py-1 text-xs text-blue-400">
@@ -441,7 +452,6 @@ function AlertCard({
             </div>
           </div>
 
-          {/* Actions */}
           <div className="flex items-center gap-2 sm:shrink-0">
             {alert.triggerCount > 0 && (
               <button
@@ -473,7 +483,6 @@ function AlertCard({
         </div>
       </div>
 
-      {/* History Section */}
       <AnimatePresence>
         {expanded && (
           <motion.div

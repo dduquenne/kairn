@@ -17,10 +17,11 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-import type { Goal, GoalType, GoalComparison, GoalTemplate } from '../types';
-import { GOAL_TYPE_LABELS, GOAL_TYPE_DESCRIPTIONS, COMPARISON_LABELS } from '../types';
+import type { Goal, GoalType, GoalComparison, GoalTemplate } from './types';
+import { GOAL_TYPE_LABELS, GOAL_TYPE_DESCRIPTIONS, COMPARISON_LABELS } from './types';
 
-interface GoalFormModalProps {
+/** Props du modal de formulaire d'objectif */
+export interface GoalFormModalProps {
   goal?: Goal | null;
   template?: GoalTemplate | null;
   isSubmitting: boolean;
@@ -44,6 +45,11 @@ const GOAL_TYPE_ICONS: Record<GoalType, React.ComponentType<{ className?: string
   pages_per_session: Layers,
 };
 
+/**
+ * Modal de création/édition d'objectif avec wizard multi-étapes.
+ *
+ * Étapes : Type → Détails → Valeur → Confirmation.
+ */
 export function GoalFormModal({
   goal,
   template,
@@ -68,7 +74,6 @@ export function GoalFormModal({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Initialize from goal or template
   useEffect(() => {
     if (goal) {
       setFormData({
@@ -84,7 +89,6 @@ export function GoalFormModal({
         value: goal.value || 0,
         enabled: goal.enabled,
       });
-      // Skip to details if editing
       setStep('details');
     } else if (template) {
       setFormData(prev => ({
@@ -92,17 +96,16 @@ export function GoalFormModal({
         name: template.name,
         ...template.preset,
       }));
-      // Go to details since type is pre-selected
       setStep('details');
     }
   }, [goal, template]);
 
+  /** Valide les champs de l'étape courante */
   const validateStep = (currentStep: Step): boolean => {
     const newErrors: Record<string, string> = {};
 
     switch (currentStep) {
       case 'type':
-        // Type is always valid (pre-selected)
         break;
       case 'details':
         if (!formData.name.trim()) {
@@ -120,7 +123,6 @@ export function GoalFormModal({
         }
         break;
       case 'value':
-        // Value is optional, always valid
         break;
     }
 
@@ -128,6 +130,7 @@ export function GoalFormModal({
     return Object.keys(newErrors).length === 0;
   };
 
+  /** Passe à l'étape suivante après validation */
   const handleNext = () => {
     if (!validateStep(step)) return;
 
@@ -138,6 +141,7 @@ export function GoalFormModal({
     }
   };
 
+  /** Revient à l'étape précédente */
   const handleBack = () => {
     const stepIndex = STEPS.findIndex(s => s.id === step);
     const prevStep = STEPS[stepIndex - 1];
@@ -146,6 +150,7 @@ export function GoalFormModal({
     }
   };
 
+  /** Soumet le formulaire */
   const handleSubmit = () => {
     const data: Partial<Goal> = {
       name: formData.name.trim(),
@@ -153,7 +158,6 @@ export function GoalFormModal({
       enabled: formData.enabled,
     };
 
-    // Add type-specific fields
     switch (formData.type) {
       case 'destination':
         data.destinationUrl = formData.destinationUrl.trim();
@@ -173,7 +177,6 @@ export function GoalFormModal({
         break;
     }
 
-    // Add value if set
     if (formData.value > 0) {
       data.value = formData.value;
     }
@@ -183,6 +186,7 @@ export function GoalFormModal({
 
   const currentStepIndex = STEPS.findIndex(s => s.id === step);
 
+  /** Génère un aperçu texte de l'objectif configuré */
   const getGoalPreview = () => {
     switch (formData.type) {
       case 'destination':
@@ -231,7 +235,7 @@ export function GoalFormModal({
               {template && !goal && (
                 <p className="text-xs text-emerald-400">
                   <Sparkles className="mr-1 inline h-3 w-3" />
-                  Basé sur "{template.name}"
+                  Basé sur &quot;{template.name}&quot;
                 </p>
               )}
             </div>
@@ -296,7 +300,7 @@ export function GoalFormModal({
               className="space-y-4"
             >
               <p className="text-ivory/70 text-sm">
-                Choisissez le type d'objectif que vous souhaitez suivre
+                Choisissez le type d&apos;objectif que vous souhaitez suivre
               </p>
 
               <div className="grid gap-3 sm:grid-cols-2">
@@ -345,7 +349,6 @@ export function GoalFormModal({
               animate={{ opacity: 1, x: 0 }}
               className="space-y-5"
             >
-              {/* Goal Preview */}
               <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
                 <div className="flex items-center gap-2 text-xs text-emerald-400">
                   <Info className="h-3.5 w-3.5" />
@@ -356,7 +359,7 @@ export function GoalFormModal({
 
               <div>
                 <label className="text-ivory mb-2 block text-sm font-medium">
-                  Nom de l'objectif <span className="text-red-400">*</span>
+                  Nom de l&apos;objectif <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="text"
@@ -368,7 +371,6 @@ export function GoalFormModal({
                 {errors.name && <p className="mt-1.5 text-sm text-red-400">{errors.name}</p>}
               </div>
 
-              {/* Type-specific fields */}
               {formData.type === 'destination' && (
                 <div>
                   <label className="text-ivory mb-2 block text-sm font-medium">
@@ -388,7 +390,7 @@ export function GoalFormModal({
                   )}
                   <p className="text-ivory/50 mt-2 flex items-start gap-2 text-xs">
                     <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                    L'objectif sera déclenché quand un visiteur atteint cette page
+                    L&apos;objectif sera déclenché quand un visiteur atteint cette page
                   </p>
                 </div>
               )}
@@ -397,7 +399,7 @@ export function GoalFormModal({
                 <>
                   <div>
                     <label className="text-ivory mb-2 block text-sm font-medium">
-                      Catégorie d'événement
+                      Catégorie d&apos;événement
                     </label>
                     <input
                       type="text"
@@ -596,7 +598,7 @@ export function GoalFormModal({
               className="space-y-5"
             >
               <div className="border-ivory/20 bg-night/60 rounded-xl border p-5">
-                <h3 className="text-ivory mb-4 font-semibold">Récapitulatif de l'objectif</h3>
+                <h3 className="text-ivory mb-4 font-semibold">Récapitulatif de l&apos;objectif</h3>
 
                 <div className="space-y-4">
                   <div className="border-ivory/10 flex justify-between border-b pb-3">
@@ -633,7 +635,7 @@ export function GoalFormModal({
                 <div>
                   <p className="text-ivory font-medium">Prêt à créer</p>
                   <p className="text-ivory/60 text-sm">
-                    L'objectif sera activé immédiatement après création
+                    L&apos;objectif sera activé immédiatement après création
                   </p>
                 </div>
               </div>
