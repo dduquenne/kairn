@@ -159,36 +159,46 @@ describe('Création de post — fallback Vercel CRON', () => {
 });
 
 // ─── Test 7 : getScheduledPosts — requête correcte ───────────────
+// NOTE: Implémentation maintenant dans @kairn/social/store (social-store.ts)
 
 describe('getScheduledPosts — requête Prisma', () => {
-  const storeSource = readFileSync(join(APP_DIR, 'lib/social/store.ts'), 'utf-8');
+  const socialStorePath = join(APP_DIR, '../../packages/social/src/store/social-store.ts');
+  const storeSource = readFileSync(socialStorePath, 'utf-8');
 
   it('devrait filtrer les posts SCHEDULED avec scheduledAt <= now', () => {
-    const funcStart = storeSource.indexOf('export async function getScheduledPosts');
-    const funcBody = storeSource.slice(funcStart, storeSource.indexOf('\nexport ', funcStart + 1));
+    const funcStart = storeSource.indexOf('async getScheduledPosts');
+    const afterFunc = storeSource.slice(funcStart);
+    const funcEnd = afterFunc.indexOf('\n    async ');
+    const funcBody = funcEnd > 0 ? afterFunc.slice(0, funcEnd) : afterFunc;
 
     expect(funcBody).toContain("status: 'SCHEDULED'");
     expect(funcBody).toContain('lte: now');
   });
 
   it('devrait inclure les posts bloqués en PUBLISHING (stuck recovery)', () => {
-    const funcStart = storeSource.indexOf('export async function getScheduledPosts');
-    const funcBody = storeSource.slice(funcStart, storeSource.indexOf('\nexport ', funcStart + 1));
+    const funcStart = storeSource.indexOf('async getScheduledPosts');
+    const afterFunc = storeSource.slice(funcStart);
+    const funcEnd = afterFunc.indexOf('\n    async ');
+    const funcBody = funcEnd > 0 ? afterFunc.slice(0, funcEnd) : afterFunc;
 
     expect(funcBody).toContain("status: 'PUBLISHING'");
     expect(funcBody).toContain('stuckThreshold');
   });
 
   it('devrait utiliser OR pour combiner les deux conditions', () => {
-    const funcStart = storeSource.indexOf('export async function getScheduledPosts');
-    const funcBody = storeSource.slice(funcStart, storeSource.indexOf('\nexport ', funcStart + 1));
+    const funcStart = storeSource.indexOf('async getScheduledPosts');
+    const afterFunc = storeSource.slice(funcStart);
+    const funcEnd = afterFunc.indexOf('\n    async ');
+    const funcBody = funcEnd > 0 ? afterFunc.slice(0, funcEnd) : afterFunc;
 
     expect(funcBody).toContain('OR:');
   });
 
   it('devrait trier par scheduledAt ascendant', () => {
-    const funcStart = storeSource.indexOf('export async function getScheduledPosts');
-    const funcBody = storeSource.slice(funcStart, storeSource.indexOf('\nexport ', funcStart + 1));
+    const funcStart = storeSource.indexOf('async getScheduledPosts');
+    const afterFunc = storeSource.slice(funcStart);
+    const funcEnd = afterFunc.indexOf('\n    async ');
+    const funcBody = funcEnd > 0 ? afterFunc.slice(0, funcEnd) : afterFunc;
 
     expect(funcBody).toContain("orderBy: { scheduledAt: 'asc' }");
   });

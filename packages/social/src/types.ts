@@ -87,6 +87,72 @@ export type LinkedInPostFormat =
   | 'temoignage_terrain';
 
 // ===========================================
+// Platform-specific levels
+// ===========================================
+
+/**
+ * Authenticity level for Instagram posts (1-5)
+ */
+export type AuthenticityLevel = 1 | 2 | 3 | 4 | 5;
+
+/**
+ * Authenticity level for Threads posts (1-5)
+ */
+export type ThreadsAuthenticityLevel = 1 | 2 | 3 | 4 | 5;
+
+/**
+ * Tone level for Facebook posts (1-4)
+ */
+export type FacebookToneLevel = 1 | 2 | 3 | 4;
+
+/**
+ * Expertise level for LinkedIn posts (1-5)
+ */
+export type LinkedInExpertiseLevel = 1 | 2 | 3 | 4 | 5;
+
+// ===========================================
+// Seminar-specific post formats
+// ===========================================
+
+/** Instagram formats for seminar promotion */
+export type SeminarInstagramFormat =
+  | 'compte_rebours'
+  | 'apercu_experience'
+  | 'temoignage_passe'
+  | 'question_reflexive'
+  | 'liste_benefices'
+  | 'coulisses';
+
+/** LinkedIn formats for seminar promotion */
+export type SeminarLinkedInFormat =
+  | 'annonce_expert'
+  | 'probleme_solution'
+  | 'observation_terrain'
+  | 'invitation_reflexion'
+  | 'programme_detaille'
+  | 'derniere_chance';
+
+/** Facebook formats for seminar promotion */
+export type SeminarFacebookFormat =
+  | 'invitation_chaleureuse'
+  | 'histoire_transformation'
+  | 'question_engagement'
+  | 'details_pratiques'
+  | 'derniers_jours'
+  | 'partage_vision';
+
+/** Threads formats for seminar promotion */
+export type SeminarThreadsFormat =
+  | 'pensee_spontanee'
+  | 'micro_confession'
+  | 'question_ouverte'
+  | 'fragment_anticipation'
+  | 'rappel_humain';
+
+/** Urgency level for seminar posts (1-5) */
+export type SeminarUrgencyLevel = 1 | 2 | 3 | 4 | 5;
+
+// ===========================================
 // Social Accounts
 // ===========================================
 
@@ -185,9 +251,13 @@ export interface SocialPostMetadata {
   angle?: ContentAngle;
   customInstructions?: string;
   instagramFormat?: InstagramPostFormat;
+  authenticityLevel?: AuthenticityLevel;
   threadsFormat?: ThreadsPostFormat;
+  threadsAuthenticityLevel?: ThreadsAuthenticityLevel;
   facebookFormat?: FacebookPostFormat;
+  facebookToneLevel?: FacebookToneLevel;
   linkedinFormat?: LinkedInPostFormat;
+  linkedinExpertiseLevel?: LinkedInExpertiseLevel;
   articleCategory?: string;
   articleTags?: string[];
   publishAttempts?: number;
@@ -401,3 +471,236 @@ export const OPTIMAL_POSTING_TIMES: Record<SocialPlatform, OptimalTimeSlot[]> = 
     { dayOfWeek: 3, hour: 10, priority: 'primary' },
   ],
 };
+
+// ===========================================
+// Post CRUD Types
+// ===========================================
+
+/**
+ * Post with loaded relations
+ */
+export interface SocialPostWithRelations extends SocialPost {
+  account: SocialAccountPublic;
+  analytics: SocialPostAnalytics | null;
+}
+
+/**
+ * Input for creating a social post
+ */
+export interface CreateSocialPostInput {
+  accountId: string;
+  platform: SocialPlatform;
+  content: string;
+  blogSlug?: string;
+  blogTitle?: string;
+  mediaUrls?: string[];
+  hashtags?: string[];
+  linkUrl?: string;
+  scheduledAt?: Date;
+  generatedBy?: GenerationSource;
+  aiPrompt?: string;
+  aiModel?: string;
+  metadata?: SocialPostMetadata;
+}
+
+/**
+ * Input for updating a social post
+ */
+export interface UpdateSocialPostInput {
+  content?: string;
+  mediaUrls?: string[];
+  hashtags?: string[];
+  linkUrl?: string;
+  scheduledAt?: Date | null;
+  status?: PostStatus;
+  externalPostId?: string;
+  platformUrl?: string | null;
+  errorMessage?: string | null;
+  retryCount?: number;
+  metadata?: SocialPostMetadata;
+}
+
+/**
+ * Filters for querying social posts
+ */
+export interface SocialPostFilters {
+  platform?: SocialPlatform;
+  status?: PostStatus;
+  accountId?: string;
+  blogSlug?: string;
+  scheduledFrom?: Date;
+  scheduledTo?: Date;
+  limit?: number;
+  offset?: number;
+}
+
+/**
+ * Input for updating post analytics
+ */
+export interface UpdateSocialPostAnalyticsInput {
+  impressions?: number;
+  reach?: number;
+  engagements?: number;
+  likes?: number;
+  comments?: number;
+  shares?: number;
+  saves?: number;
+  clicks?: number;
+  rawData?: Record<string, unknown>;
+}
+
+// ===========================================
+// Templates
+// ===========================================
+
+/**
+ * Generation template
+ */
+export interface SocialTemplate {
+  id: string;
+  name: string;
+  platform: SocialPlatform;
+  description: string | null;
+  promptTemplate: string;
+  defaultTone: ContentTone | null;
+  defaultHashtags: string[];
+  isDefault: boolean;
+  usageCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Input for creating a template
+ */
+export interface CreateSocialTemplateInput {
+  name: string;
+  platform: SocialPlatform;
+  description?: string;
+  promptTemplate: string;
+  defaultTone?: ContentTone;
+  defaultHashtags?: string[];
+  isDefault?: boolean;
+}
+
+/**
+ * Input for updating a template
+ */
+export interface UpdateSocialTemplateInput {
+  name?: string;
+  description?: string | null;
+  promptTemplate?: string;
+  defaultTone?: ContentTone | null;
+  defaultHashtags?: string[];
+  isDefault?: boolean;
+}
+
+// ===========================================
+// Generation Logs
+// ===========================================
+
+/**
+ * AI generation log
+ */
+export interface SocialGenerationLog {
+  id: string;
+  blogSlug: string;
+  platform: SocialPlatform;
+  inputContent: string;
+  promptUsed: string;
+  generatedContent: string;
+  tokensUsed: number | null;
+  wasAccepted: boolean;
+  wasModified: boolean;
+  createdAt: Date;
+}
+
+/**
+ * Input for creating a generation log
+ */
+export interface CreateSocialGenerationLogInput {
+  blogSlug: string;
+  platform: SocialPlatform;
+  inputContent: string;
+  promptUsed: string;
+  generatedContent: string;
+  tokensUsed?: number;
+}
+
+// ===========================================
+// Content Generation
+// ===========================================
+
+/**
+ * Generation options
+ */
+export interface GenerationOptions {
+  tone: ContentTone;
+  angle: ContentAngle;
+  customInstructions?: string;
+  templateId?: string;
+  instagramFormat?: InstagramPostFormat;
+  authenticityLevel?: AuthenticityLevel;
+  threadsFormat?: ThreadsPostFormat;
+  threadsAuthenticityLevel?: ThreadsAuthenticityLevel;
+  facebookFormat?: FacebookPostFormat;
+  facebookToneLevel?: FacebookToneLevel;
+  linkedinFormat?: LinkedInPostFormat;
+  linkedinExpertiseLevel?: LinkedInExpertiseLevel;
+}
+
+/**
+ * Generated content for a single platform
+ */
+export interface GeneratedContent {
+  platform: SocialPlatform;
+  content: string;
+  hashtags: string[];
+  suggestedMediaUrl?: string;
+  tokensUsed?: number;
+}
+
+/**
+ * Multi-platform generation request
+ */
+export interface GenerateContentRequest {
+  blogSlug: string;
+  platforms: SocialPlatform[];
+  options: GenerationOptions;
+}
+
+/**
+ * Multi-platform generation response
+ */
+export interface GenerateContentResponse {
+  generations: GeneratedContent[];
+  totalTokensUsed: number;
+}
+
+/**
+ * Batch publish result (for CRON jobs)
+ */
+export interface PublishBatchResult {
+  processed: number;
+  successful: number;
+  failed: number;
+  errors: Array<{
+    postId: string;
+    platform: SocialPlatform;
+    error: string;
+  }>;
+}
+
+// ===========================================
+// Suggested Times
+// ===========================================
+
+/**
+ * Suggested posting time slot
+ */
+export interface SuggestedTime {
+  date: Date;
+  label: string;
+  isPrimary: boolean;
+  isIdeal: boolean;
+}

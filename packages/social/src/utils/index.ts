@@ -4,3 +4,4 @@
 
 export * from './crypto';
 export * from './utm';
+export * from './suggested-times';

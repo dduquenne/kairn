@@ -48,6 +48,26 @@ export * from './types';
 export * as oauth from './oauth';
 export * as posting from './posting';
 export * as utils from './utils';
+export * as prompts from './prompts';
+export * as store from './store';
+
+// Convenience re-exports from prompts
+export {
+  PLATFORM_GENERATION_SPECS,
+  CONTENT_TONES,
+  CONTENT_ANGLES,
+  buildSystemPrompt,
+  buildUserPrompt,
+  parseGenerationResponse,
+  parseMultiPlatformResponse,
+  estimateTokens,
+} from './prompts';
+
+// Convenience re-exports from store
+export { createSocialStore, type SocialStore, type SocialPrismaClient } from './store';
+
+// Convenience re-exports from utils
+export { computeSuggestedTimes, formatSlotLabel } from './utils';
 
 // Convenience re-exports from oauth
 export {
