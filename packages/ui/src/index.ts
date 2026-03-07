@@ -211,10 +211,42 @@ export {
   useFormSessionStorage,
   useHydrationSafeAnimation,
   useHasMounted,
+  useHapticFeedback,
+  usePullToRefresh,
+  useNotifications,
   type FormSubmissionError,
   type FormSubmissionOptions,
   type UseFormSubmissionReturn,
+  type HapticStyle,
+  type UsePullToRefreshReturn,
+  type PullToRefreshOptions,
+  type SendNotificationOptions,
+  type UseNotificationsReturn,
 } from './hooks';
+
+// PWA Components
+export {
+  InstallPrompt,
+  PullToRefresh,
+  type InstallPromptProps,
+  type PullToRefreshProps,
+} from './components/pwa';
+
+// Error Boundary
+export {
+  ErrorBoundary,
+  type ErrorBoundaryProps,
+  type ErrorBoundaryColors,
+  type ErrorBoundaryLabels,
+  type ErrorReportCallback,
+} from './components/error-boundary';
+
+// Version Checker
+export {
+  VersionChecker,
+  type VersionCheckerProps,
+  type VersionInfo,
+} from './components/version-checker';
 
 // Utils
 export { cn } from './utils/cn';
