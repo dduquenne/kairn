@@ -96,28 +96,28 @@ describe('TestimonialsCarousel', () => {
     it('should render navigation dots by default', () => {
       renderCarousel();
 
-      const dots = screen.getAllByRole('button', { name: /go to testimonial/i });
+      const dots = screen.getAllByRole('button', { name: /aller au témoignage/i });
       expect(dots).toHaveLength(3);
     });
 
     it('should not render dots when showDots is false', () => {
       renderCarousel({ showDots: false });
 
-      const dots = screen.queryAllByRole('button', { name: /go to testimonial/i });
+      const dots = screen.queryAllByRole('button', { name: /aller au témoignage/i });
       expect(dots).toHaveLength(0);
     });
 
     it('should not render dots for single testimonial', () => {
       renderCarousel({ testimonials: createMockTestimonials(1) });
 
-      const dots = screen.queryAllByRole('button', { name: /go to testimonial/i });
+      const dots = screen.queryAllByRole('button', { name: /aller au témoignage/i });
       expect(dots).toHaveLength(0);
     });
 
     it('should navigate to specific slide when dot is clicked', () => {
       renderCarousel({ autoplayInterval: 0 }); // Disable autoplay
 
-      const dots = screen.getAllByRole('button', { name: /go to testimonial/i });
+      const dots = screen.getAllByRole('button', { name: /aller au témoignage/i });
       expect(dots.length).toBeGreaterThan(2);
 
       // Click on third dot (index 2)
@@ -133,7 +133,7 @@ describe('TestimonialsCarousel', () => {
     it('should show current slide indicator', () => {
       renderCarousel();
 
-      const dots = screen.getAllByRole('button', { name: /go to testimonial/i });
+      const dots = screen.getAllByRole('button', { name: /aller au témoignage/i });
       // First dot should be current
       expect(dots[0]).toHaveAttribute('aria-current', 'true');
     });
@@ -143,15 +143,15 @@ describe('TestimonialsCarousel', () => {
     it('should not render arrows by default', () => {
       renderCarousel();
 
-      expect(screen.queryByRole('button', { name: /previous/i })).not.toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: /next/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /précédent/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /suivant/i })).not.toBeInTheDocument();
     });
 
     it('should render arrows when showArrows is true', () => {
       renderCarousel({ showArrows: true });
 
-      expect(screen.getByRole('button', { name: /previous/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /next/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /précédent/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /suivant/i })).toBeInTheDocument();
     });
 
     it('should not render arrows for single testimonial', () => {
@@ -160,39 +160,39 @@ describe('TestimonialsCarousel', () => {
         showArrows: true,
       });
 
-      expect(screen.queryByRole('button', { name: /previous/i })).not.toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: /next/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /précédent/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /suivant/i })).not.toBeInTheDocument();
     });
 
     it('should go to next slide when next arrow is clicked', () => {
       renderCarousel({ showArrows: true, autoplayInterval: 0 });
 
-      const nextButton = screen.getByRole('button', { name: /next/i });
+      const nextButton = screen.getByRole('button', { name: /suivant/i });
       act(() => {
         fireEvent.click(nextButton);
       });
 
-      const dots = screen.getAllByRole('button', { name: /go to testimonial/i });
+      const dots = screen.getAllByRole('button', { name: /aller au témoignage/i });
       expect(dots[1]).toHaveAttribute('aria-current', 'true');
     });
 
     it('should go to previous slide when previous arrow is clicked', () => {
       renderCarousel({ showArrows: true, autoplayInterval: 0 });
 
-      const prevButton = screen.getByRole('button', { name: /previous/i });
+      const prevButton = screen.getByRole('button', { name: /précédent/i });
       act(() => {
         fireEvent.click(prevButton);
       });
 
       // Should wrap to last slide
-      const dots = screen.getAllByRole('button', { name: /go to testimonial/i });
+      const dots = screen.getAllByRole('button', { name: /aller au témoignage/i });
       expect(dots[2]).toHaveAttribute('aria-current', 'true');
     });
 
     it('should wrap around from last to first slide', () => {
       renderCarousel({ showArrows: true, autoplayInterval: 0 });
 
-      const nextButton = screen.getByRole('button', { name: /next/i });
+      const nextButton = screen.getByRole('button', { name: /suivant/i });
 
       // Each click must be in its own act() so React commits the state
       // between clicks (handleNext depends on currentIndex via closure)
@@ -206,19 +206,19 @@ describe('TestimonialsCarousel', () => {
         fireEvent.click(nextButton);
       }); // Go back to slide 1 (wrap)
 
-      const dots = screen.getAllByRole('button', { name: /go to testimonial/i });
+      const dots = screen.getAllByRole('button', { name: /aller au témoignage/i });
       expect(dots[0]).toHaveAttribute('aria-current', 'true');
     });
 
     it('should wrap around from first to last slide', () => {
       renderCarousel({ showArrows: true, autoplayInterval: 0 });
 
-      const prevButton = screen.getByRole('button', { name: /previous/i });
+      const prevButton = screen.getByRole('button', { name: /précédent/i });
       act(() => {
         fireEvent.click(prevButton);
       });
 
-      const dots = screen.getAllByRole('button', { name: /go to testimonial/i });
+      const dots = screen.getAllByRole('button', { name: /aller au témoignage/i });
       expect(dots[2]).toHaveAttribute('aria-current', 'true');
     });
   });
@@ -228,7 +228,7 @@ describe('TestimonialsCarousel', () => {
       renderCarousel({ autoplayInterval: 5000 });
 
       // Initial state - first slide
-      let dots = screen.getAllByRole('button', { name: /go to testimonial/i });
+      let dots = screen.getAllByRole('button', { name: /aller au témoignage/i });
       expect(dots[0]).toHaveAttribute('aria-current', 'true');
 
       // Advance time by 5 seconds
@@ -237,7 +237,7 @@ describe('TestimonialsCarousel', () => {
       });
 
       // Should now be on second slide
-      dots = screen.getAllByRole('button', { name: /go to testimonial/i });
+      dots = screen.getAllByRole('button', { name: /aller au témoignage/i });
       expect(dots[1]).toHaveAttribute('aria-current', 'true');
     });
 
@@ -250,7 +250,7 @@ describe('TestimonialsCarousel', () => {
       });
 
       // Should be back to first slide
-      const dots = screen.getAllByRole('button', { name: /go to testimonial/i });
+      const dots = screen.getAllByRole('button', { name: /aller au témoignage/i });
       expect(dots[0]).toHaveAttribute('aria-current', 'true');
     });
 
@@ -262,7 +262,7 @@ describe('TestimonialsCarousel', () => {
       });
 
       // Should still be on first slide
-      const dots = screen.getAllByRole('button', { name: /go to testimonial/i });
+      const dots = screen.getAllByRole('button', { name: /aller au témoignage/i });
       expect(dots[0]).toHaveAttribute('aria-current', 'true');
     });
 
@@ -284,21 +284,21 @@ describe('TestimonialsCarousel', () => {
       renderCarousel(); // Default autoplayInterval
 
       // First slide initially
-      let dots = screen.getAllByRole('button', { name: /go to testimonial/i });
+      let dots = screen.getAllByRole('button', { name: /aller au témoignage/i });
       expect(dots[0]).toHaveAttribute('aria-current', 'true');
 
       // Advance 4999ms - should still be on first slide
       act(() => {
         vi.advanceTimersByTime(4999);
       });
-      dots = screen.getAllByRole('button', { name: /go to testimonial/i });
+      dots = screen.getAllByRole('button', { name: /aller au témoignage/i });
       expect(dots[0]).toHaveAttribute('aria-current', 'true');
 
       // Advance 1 more ms (total 5000ms) - should move to second slide
       act(() => {
         vi.advanceTimersByTime(1);
       });
-      dots = screen.getAllByRole('button', { name: /go to testimonial/i });
+      dots = screen.getAllByRole('button', { name: /aller au témoignage/i });
       expect(dots[1]).toHaveAttribute('aria-current', 'true');
     });
 
@@ -389,7 +389,7 @@ describe('TestimonialsCarousel', () => {
       );
 
       // Navigate to slide 3
-      const nextButton = screen.getByRole('button', { name: /next/i });
+      const nextButton = screen.getByRole('button', { name: /suivant/i });
       act(() => {
         nextButton.click();
         nextButton.click();
@@ -405,7 +405,7 @@ describe('TestimonialsCarousel', () => {
       );
 
       // Should reset to first slide
-      const dots = screen.getAllByRole('button', { name: /go to testimonial/i });
+      const dots = screen.getAllByRole('button', { name: /aller au témoignage/i });
       expect(dots[0]).toHaveAttribute('aria-current', 'true');
     });
   });
@@ -420,22 +420,22 @@ describe('TestimonialsCarousel', () => {
     it('should have proper button labels for navigation', () => {
       renderCarousel({ showArrows: true });
 
-      expect(screen.getByRole('button', { name: /previous testimonial/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /next testimonial/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /témoignage précédent/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /témoignage suivant/i })).toBeInTheDocument();
     });
 
     it('should have proper labels for dot navigation', () => {
       renderCarousel();
 
-      expect(screen.getByRole('button', { name: 'Go to testimonial 1' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Go to testimonial 2' })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Go to testimonial 3' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Aller au témoignage 1' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Aller au témoignage 2' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Aller au témoignage 3' })).toBeInTheDocument();
     });
 
     it('should indicate current slide with aria-current', () => {
       renderCarousel();
 
-      const dots = screen.getAllByRole('button', { name: /go to testimonial/i });
+      const dots = screen.getAllByRole('button', { name: /aller au témoignage/i });
       expect(dots[0]).toHaveAttribute('aria-current', 'true');
       expect(dots[1]).not.toHaveAttribute('aria-current');
     });

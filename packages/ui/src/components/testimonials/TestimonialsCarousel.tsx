@@ -1,11 +1,11 @@
-"use client";
+'use client';
 
-import { useEffect, useState, useCallback, type ElementType } from "react";
+import { useEffect, useState, useCallback, type ElementType } from 'react';
 
-import { cn } from "../../utils/cn";
+import { cn } from '../../utils/cn';
 
-import { TestimonialCard } from "./TestimonialCard";
-import type { Testimonial } from "./types";
+import { TestimonialCard } from './TestimonialCard';
+import type { Testimonial } from './types';
 
 export interface TestimonialsCarouselProps {
   /** Testimonials to display */
@@ -64,7 +64,7 @@ export function TestimonialsCarousel({
     }
 
     const timer = window.setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % totalSlides);
+      setCurrentIndex(prev => (prev + 1) % totalSlides);
     }, autoplayInterval);
 
     return () => {
@@ -93,16 +93,17 @@ export function TestimonialsCarousel({
     return null;
   }
 
-  const CardWrapper = Motion ?? "div";
+  const CardWrapper = Motion ?? 'div';
 
   return (
-    <section className={cn("relative", className)}>
+    <section
+      className={cn('relative', className)}
+      role="region"
+      aria-roledescription="carousel"
+      aria-label={title || 'Témoignages'}
+    >
       {/* Title */}
-      {title && (
-        <h2 className="mb-8 text-center text-2xl font-semibold text-ivory">
-          {title}
-        </h2>
-      )}
+      {title && <h2 className="text-ivory mb-8 text-center text-2xl font-semibold">{title}</h2>}
 
       {/* Carousel */}
       <div className="relative">
@@ -112,12 +113,12 @@ export function TestimonialsCarousel({
             type="button"
             onClick={handlePrevious}
             className={cn(
-              "absolute left-0 top-1/2 z-10 -translate-x-4 -translate-y-1/2",
-              "rounded-full border border-gold/30 bg-night/90 p-3 text-gold",
-              "backdrop-blur-sm transition-all hover:border-gold hover:bg-night hover:scale-110",
-              "focus:outline-none focus:ring-2 focus:ring-gold"
+              'absolute left-0 top-1/2 z-10 -translate-x-4 -translate-y-1/2',
+              'border-gold/30 bg-night/90 text-gold rounded-full border p-3',
+              'hover:border-gold hover:bg-night backdrop-blur-sm transition-all hover:scale-110',
+              'focus:ring-gold focus:outline-none focus:ring-2'
             )}
-            aria-label="Previous testimonial"
+            aria-label="Témoignage précédent"
           >
             <svg
               className="h-5 w-5"
@@ -125,33 +126,25 @@ export function TestimonialsCarousel({
               viewBox="0 0 24 24"
               stroke="currentColor"
               strokeWidth={2}
+              aria-hidden="true"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15 19l-7-7 7-7"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
         )}
 
         {/* Slides container */}
-        <div className="overflow-hidden">
+        <div className="overflow-hidden" aria-live="polite" aria-atomic="true">
           <div
             className="flex transition-transform duration-500 ease-out"
             style={{ transform: `translateX(-${currentIndex * 100}%)` }}
           >
-            {testimonials.map((testimonial) => (
-              <div
-                key={testimonial.id}
-                className="w-full shrink-0 px-1 sm:px-2"
-              >
+            {testimonials.map(testimonial => (
+              <div key={testimonial.id} className="w-full shrink-0 px-1 sm:px-2">
                 <CardWrapper
                   initial={Motion ? { opacity: 0.4, scale: 0.98 } : undefined}
                   animate={Motion ? { opacity: 1, scale: 1 } : undefined}
-                  transition={
-                    Motion ? { duration: 0.4, ease: "easeOut" } : undefined
-                  }
+                  transition={Motion ? { duration: 0.4, ease: 'easeOut' } : undefined}
                   className="flex justify-center"
                 >
                   <TestimonialCard
@@ -160,7 +153,7 @@ export function TestimonialsCarousel({
                     role={testimonial.role}
                     image={testimonial.image}
                     rating={testimonial.rating}
-                    className={cn("max-w-2xl", cardClassName)}
+                    className={cn('max-w-2xl', cardClassName)}
                     motionComponent={Motion}
                     animateOnScroll={false}
                   />
@@ -176,12 +169,12 @@ export function TestimonialsCarousel({
             type="button"
             onClick={handleNext}
             className={cn(
-              "absolute right-0 top-1/2 z-10 translate-x-4 -translate-y-1/2",
-              "rounded-full border border-gold/30 bg-night/90 p-3 text-gold",
-              "backdrop-blur-sm transition-all hover:border-gold hover:bg-night hover:scale-110",
-              "focus:outline-none focus:ring-2 focus:ring-gold"
+              'absolute right-0 top-1/2 z-10 -translate-y-1/2 translate-x-4',
+              'border-gold/30 bg-night/90 text-gold rounded-full border p-3',
+              'hover:border-gold hover:bg-night backdrop-blur-sm transition-all hover:scale-110',
+              'focus:ring-gold focus:outline-none focus:ring-2'
             )}
-            aria-label="Next testimonial"
+            aria-label="Témoignage suivant"
           >
             <svg
               className="h-5 w-5"
@@ -189,12 +182,9 @@ export function TestimonialsCarousel({
               viewBox="0 0 24 24"
               stroke="currentColor"
               strokeWidth={2}
+              aria-hidden="true"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9 5l7 7-7 7"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           </button>
         )}
@@ -209,13 +199,11 @@ export function TestimonialsCarousel({
               type="button"
               onClick={() => goToSlide(index)}
               className={cn(
-                "h-2 rounded-full transition-all",
-                index === currentIndex
-                  ? "w-8 bg-gold"
-                  : "w-2 bg-ivory/30 hover:bg-ivory/50"
+                'h-2 rounded-full transition-all',
+                index === currentIndex ? 'bg-gold w-8' : 'bg-ivory/30 hover:bg-ivory/50 w-2'
               )}
-              aria-label={`Go to testimonial ${index + 1}`}
-              aria-current={index === currentIndex ? "true" : undefined}
+              aria-label={`Aller au témoignage ${index + 1}`}
+              aria-current={index === currentIndex ? 'true' : undefined}
             />
           ))}
         </div>
@@ -223,4 +211,3 @@ export function TestimonialsCarousel({
     </section>
   );
 }
-

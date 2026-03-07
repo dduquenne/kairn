@@ -293,6 +293,9 @@ export function ChatWidget({
         <div
           className="mb-4 flex h-[500px] w-[380px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl shadow-2xl"
           style={{ backgroundColor: colors.secondary }}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Chat avec ${siteName}`}
         >
           {/* Header */}
           <div
@@ -325,7 +328,7 @@ export function ChatWidget({
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex-1 overflow-y-auto p-4" role="log" aria-live="polite">
             <div className="space-y-4">
               {messages.map(message => (
                 <div
@@ -369,12 +372,17 @@ export function ChatWidget({
 
               {/* Loading indicator */}
               {isLoading && (
-                <div className="flex justify-start">
+                <div className="flex justify-start" role="status" aria-label="Réponse en cours">
                   <div
                     className="rounded-2xl rounded-bl-md px-4 py-3"
                     style={{ backgroundColor: colors.surface }}
                   >
-                    <Loader2 className="animate-spin" size={20} style={{ color: colors.primary }} />
+                    <Loader2
+                      className="animate-spin"
+                      size={20}
+                      style={{ color: colors.primary }}
+                      aria-hidden="true"
+                    />
                   </div>
                 </div>
               )}
@@ -393,16 +401,18 @@ export function ChatWidget({
                       onClick={() => handleFeedback(true)}
                       className="flex items-center gap-1 rounded-full px-3 py-1 transition-colors hover:bg-green-500/20"
                       style={{ color: '#22c55e' }}
+                      aria-label="Oui, la conversation était utile"
                     >
-                      <ThumbsUp size={16} />
+                      <ThumbsUp size={16} aria-hidden="true" />
                       <span className="text-sm">Oui</span>
                     </button>
                     <button
                       onClick={() => handleFeedback(false)}
                       className="flex items-center gap-1 rounded-full px-3 py-1 transition-colors hover:bg-red-500/20"
                       style={{ color: '#ef4444' }}
+                      aria-label="Non, la conversation n'était pas utile"
                     >
-                      <ThumbsDown size={16} />
+                      <ThumbsDown size={16} aria-hidden="true" />
                       <span className="text-sm">Non</span>
                     </button>
                   </div>
@@ -465,8 +475,9 @@ export function ChatWidget({
                   backgroundColor: input.trim() ? colors.primary : 'transparent',
                   color: input.trim() ? colors.secondary : colors.textMuted,
                 }}
+                aria-label="Envoyer le message"
               >
-                <Send size={18} />
+                <Send size={18} aria-hidden="true" />
               </button>
             </div>
             <p className="mt-2 text-center text-xs" style={{ color: colors.textMuted }}>

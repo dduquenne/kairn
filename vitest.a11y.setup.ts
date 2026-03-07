@@ -4,10 +4,11 @@
  * Configures jsdom environment and vitest-axe matchers
  */
 
+import '@testing-library/jest-dom/vitest';
 import { beforeAll, afterAll, afterEach, expect, vi } from 'vitest';
 import * as matchers from 'vitest-axe/matchers';
 
-// Extend vitest matchers with axe accessibility matchers
+// Extend vitest matchers with axe accessibility matchers and jest-dom
 expect.extend(matchers);
 
 // Mock window.matchMedia for responsive components
