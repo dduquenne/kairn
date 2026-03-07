@@ -142,6 +142,26 @@ export {
 
 // Typography Components
 export { PageTitle, type PageTitleProps } from './components/page-title';
+export { SectionTitle, type SectionTitleProps } from './components/section-title';
+
+// Marquee
+export { Marquee, type MarqueeProps } from './components/marquee';
+
+// Page Sections
+export {
+  TestimonialsSection,
+  type TestimonialsSectionProps,
+  type TestimonialSectionItem,
+  BlogSection,
+  type BlogSectionProps,
+  type BlogSectionPost,
+  type BlogCategoryColor,
+  ContactSection,
+  type ContactSectionProps,
+  SeminarsSection,
+  type SeminarsSectionProps,
+  type SeminarSectionItem,
+} from './components/sections';
 
 // Floating Contact Button
 export {
