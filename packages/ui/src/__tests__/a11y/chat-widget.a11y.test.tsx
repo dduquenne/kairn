@@ -52,6 +52,9 @@ vi.mock('lucide-react', () => ({
 // Mock fetch
 global.fetch = vi.fn();
 
+// Mock scrollIntoView (not implemented in jsdom)
+Element.prototype.scrollIntoView = vi.fn();
+
 afterEach(cleanup);
 
 /**
