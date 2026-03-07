@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   createRateLimiter,
+  createSiteKeyGenerator,
   MemoryRateLimitStore,
   RATE_LIMIT_PRESETS,
   rateLimiters,
@@ -149,7 +150,7 @@ describe('Rate Limiting', () => {
         {
           maxRequests: 1,
           windowMs: 60000,
-          skip: (req) => req.url === '/api/health',
+          skip: req => req.url === '/api/health',
         },
         store
       );
@@ -260,6 +261,72 @@ describe('Rate Limiting', () => {
 
     it('should have contact limiter', () => {
       expect(rateLimiters.contact).toBeDefined();
+    });
+  });
+
+  describe('createSiteKeyGenerator', () => {
+    it('should prefix keys with siteId', () => {
+      const keyGen = createSiteKeyGenerator('psypnos');
+      const request: RateLimitRequest = {
+        ip: '192.168.1.1',
+        headers: { get: () => null },
+      };
+
+      const key = keyGen(request);
+      expect(key).toBe('site:psypnos:192.168.1.1');
+    });
+
+    it('should use custom base generator', () => {
+      const keyGen = createSiteKeyGenerator('unanima', () => 'custom-key');
+      const request: RateLimitRequest = {
+        ip: '192.168.1.1',
+        headers: { get: () => null },
+      };
+
+      const key = keyGen(request);
+      expect(key).toBe('site:unanima:custom-key');
+    });
+  });
+
+  describe('siteId rate limit isolation', () => {
+    it('should isolate rate limits by siteId', async () => {
+      const store = new MemoryRateLimitStore();
+      const limiterSiteA = createRateLimiter(
+        { maxRequests: 2, windowMs: 60000, siteId: 'site-a' },
+        store
+      );
+      const limiterSiteB = createRateLimiter(
+        { maxRequests: 2, windowMs: 60000, siteId: 'site-b' },
+        store
+      );
+
+      const request: RateLimitRequest = {
+        ip: '127.0.0.1',
+        headers: { get: () => null },
+      };
+
+      // Exhaust site A's limit
+      await limiterSiteA.checkRateLimit(request);
+      await limiterSiteA.checkRateLimit(request);
+      await expect(limiterSiteA.checkRateLimit(request)).rejects.toThrow();
+
+      // Site B should still have capacity
+      const info = await limiterSiteB.checkRateLimit(request);
+      expect(info.remaining).toBe(1);
+    });
+
+    it('should use default key generator when no siteId', async () => {
+      const store = new MemoryRateLimitStore();
+      const limiter = createRateLimiter({ maxRequests: 5, windowMs: 60000 }, store);
+
+      const request: RateLimitRequest = {
+        ip: '10.0.0.1',
+        headers: { get: () => null },
+      };
+
+      const info = await limiter.checkRateLimit(request);
+      expect(info.limit).toBe(5);
+      expect(info.remaining).toBe(4);
     });
   });
 

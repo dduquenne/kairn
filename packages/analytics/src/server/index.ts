@@ -163,3 +163,14 @@ export {
 
 // Anomaly Detector
 export { AnomalyDetector, type AnomalyThresholds, type DetectedAnomaly } from './anomaly-detector';
+
+// Retention
+export {
+  DEFAULT_RETENTION_CONFIG,
+  computeCutoffDate,
+  mergeRetentionConfig,
+  type RetentionConfig,
+  type EventRetentionPolicy,
+  type LegacyTableRetention,
+  type JobCleanupConfig,
+} from './retention';

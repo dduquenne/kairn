@@ -15,6 +15,8 @@ export interface RateLimitConfig {
   windowMs: number;
   /** Maximum requests per window (default: 100) */
   maxRequests: number;
+  /** Site identifier for multi-tenant isolation */
+  siteId?: string;
   /** Function to generate a unique key for the client */
   keyGenerator?: (request: RateLimitRequest) => string;
   /** Skip rate limiting for certain requests */
@@ -154,6 +156,20 @@ function defaultKeyGenerator(request: RateLimitRequest): string {
 }
 
 /**
+ * Create a key generator that prepends siteId for multi-tenant isolation
+ *
+ * @param siteId - Site identifier for tenant isolation
+ * @param baseGenerator - Base key generator (defaults to IP-based)
+ * @returns Key generator function with siteId prefix
+ */
+export function createSiteKeyGenerator(
+  siteId: string,
+  baseGenerator: (request: RateLimitRequest) => string = defaultKeyGenerator
+): (request: RateLimitRequest) => string {
+  return (request: RateLimitRequest) => `site:${siteId}:${baseGenerator(request)}`;
+}
+
+/**
  * Preset rate limit configurations
  */
 export const RATE_LIMIT_PRESETS = {
@@ -193,10 +209,18 @@ export function createRateLimiter(
   const {
     windowMs = 15 * 60 * 1000,
     maxRequests = 100,
-    keyGenerator = defaultKeyGenerator,
+    siteId,
+    keyGenerator: customKeyGenerator,
     skip,
     onLimitReached,
   } = config;
+
+  // Use siteId-scoped key generator when siteId is provided
+  const keyGenerator = customKeyGenerator
+    ? customKeyGenerator
+    : siteId
+      ? createSiteKeyGenerator(siteId)
+      : defaultKeyGenerator;
 
   /**
    * Check rate limit for a request
@@ -224,7 +248,7 @@ export function createRateLimiter(
     const entry = await store.get(key);
 
     // Filter timestamps within the current window
-    const validTimestamps = entry?.timestamps.filter((ts) => ts > windowStart) || [];
+    const validTimestamps = entry?.timestamps.filter(ts => ts > windowStart) || [];
 
     // Calculate rate limit info
     const resetTime = validTimestamps.length > 0 ? validTimestamps[0]! + windowMs : now + windowMs;

@@ -146,12 +146,13 @@ export function createRateLimitMiddleware(
  * Create a key generator that combines IP with a custom identifier
  *
  * @param prefix - Prefix for the rate limit key (e.g., 'login', 'contact')
+ * @param siteId - Optional site identifier for multi-tenant isolation
  * @returns Key generator function
  */
-export function createKeyGenerator(prefix: string) {
+export function createKeyGenerator(prefix: string, siteId?: string) {
   return (request: RateLimitRequest) => {
     const ip = getClientIP(request);
-    return `${prefix}:${ip}`;
+    return siteId ? `${siteId}:${prefix}:${ip}` : `${prefix}:${ip}`;
   };
 }
 

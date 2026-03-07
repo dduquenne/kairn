@@ -7,6 +7,7 @@
 // Rate limiting
 export {
   createRateLimiter,
+  createSiteKeyGenerator,
   MemoryRateLimitStore,
   RATE_LIMIT_PRESETS,
   rateLimiters,
