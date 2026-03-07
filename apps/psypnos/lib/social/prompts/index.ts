@@ -1,15 +1,11 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * Module de prompts pour la génération de contenu social
+ *
+ * MIGRATION: Ce module réexporte depuis @kairn/social/prompts
+ * pour centraliser les définitions de prompts.
  */
 
-export * from './platform-specs';
-export * from './builder';
-export * from './seminar-builder';
-export * from './instagram-specs';
-export * from './threads-specs';
-export * from './facebook-specs';
-export * from './linkedin-specs';
-export * from './seminar-platform-specs';
+// Re-export everything from @kairn/social/prompts
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
+export * from '@kairn/social/prompts';

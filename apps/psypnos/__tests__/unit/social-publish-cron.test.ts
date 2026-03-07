@@ -68,19 +68,22 @@ describe('routes CRON - compatibilité QStash POST', () => {
 });
 
 // ─── Test 2 : markPostAsFailed sans double incrémentation ──────────
+// NOTE: La logique CRUD est maintenant dans @kairn/social/store (social-store.ts)
+// Les tests vérifient l'implémentation dans le package partagé.
+
+const SOCIAL_STORE_PATH = join(__dirname, '../../../../packages/social/src/store/social-store.ts');
 
 describe('markPostAsFailed - pas de double incrémentation retryCount', () => {
   it('ne devrait PAS contenir retryCount: { increment } dans markPostAsFailed', () => {
-    const storePath = join(__dirname, '../../lib/social/store.ts');
-    const content = readFileSync(storePath, 'utf-8');
+    const content = readFileSync(SOCIAL_STORE_PATH, 'utf-8');
 
     // Extraire le corps de la fonction markPostAsFailed
-    const funcStart = content.indexOf('export async function markPostAsFailed');
+    const funcStart = content.indexOf('async markPostAsFailed');
     expect(funcStart).toBeGreaterThan(-1);
 
-    // Trouver la fin de la fonction (première occurrence de "export" après le début)
-    const afterFunc = content.slice(funcStart + 50);
-    const funcEnd = afterFunc.indexOf('\nexport ');
+    // Trouver la fin de la fonction
+    const afterFunc = content.slice(funcStart + 30);
+    const funcEnd = afterFunc.indexOf('\n    async ');
     const funcBody = funcEnd > 0 ? afterFunc.slice(0, funcEnd) : afterFunc;
 
     // Vérifier que retryCount n'est PAS incrémenté dans cette fonction
@@ -88,12 +91,11 @@ describe('markPostAsFailed - pas de double incrémentation retryCount', () => {
   });
 
   it('devrait toujours contenir status: FAILED et errorMessage', () => {
-    const storePath = join(__dirname, '../../lib/social/store.ts');
-    const content = readFileSync(storePath, 'utf-8');
+    const content = readFileSync(SOCIAL_STORE_PATH, 'utf-8');
 
-    const funcStart = content.indexOf('export async function markPostAsFailed');
+    const funcStart = content.indexOf('async markPostAsFailed');
     const afterFunc = content.slice(funcStart);
-    const funcEnd = afterFunc.indexOf('\nexport ');
+    const funcEnd = afterFunc.indexOf('\n    async ');
     const funcBody = funcEnd > 0 ? afterFunc.slice(0, funcEnd) : afterFunc;
 
     expect(funcBody).toContain("status: 'FAILED'");
@@ -220,23 +222,22 @@ describe('PrismaPostStorage - implémentation PostStorage', () => {
 // ─── Test 7 : claimPostForPublishing — verrouillage atomique ────────
 
 describe('claimPostForPublishing - verrouillage atomique', () => {
-  it('devrait exister dans le store', () => {
+  it('devrait être exporté depuis le store (wrapper ou direct)', () => {
     const storePath = join(__dirname, '../../lib/social/store.ts');
     const content = readFileSync(storePath, 'utf-8');
 
-    expect(content).toContain('export async function claimPostForPublishing');
+    expect(content).toContain('claimPostForPublishing');
   });
 
-  it('devrait utiliser updateMany avec filtre sur le status', () => {
-    const storePath = join(__dirname, '../../lib/social/store.ts');
-    const content = readFileSync(storePath, 'utf-8');
+  it('devrait utiliser updateMany avec filtre sur le status dans @kairn/social', () => {
+    const content = readFileSync(SOCIAL_STORE_PATH, 'utf-8');
 
     // Extraire le corps de la fonction
-    const funcStart = content.indexOf('export async function claimPostForPublishing');
+    const funcStart = content.indexOf('async claimPostForPublishing');
     expect(funcStart).toBeGreaterThan(-1);
 
     const afterFunc = content.slice(funcStart);
-    const funcEnd = afterFunc.indexOf('\nexport ');
+    const funcEnd = afterFunc.indexOf('\n    async ');
     const funcBody = funcEnd > 0 ? afterFunc.slice(0, funcEnd) : afterFunc;
 
     // Doit utiliser updateMany (pas update simple) pour l'atomicité
@@ -256,36 +257,45 @@ describe('claimPostForPublishing - verrouillage atomique', () => {
 });
 
 // ─── Test 8 : getScheduledPosts — requête correcte ────────────────
+// NOTE: Implémentation maintenant dans @kairn/social/store
 
 describe('getScheduledPosts — requête Prisma', () => {
-  const storeSource = readFileSync(join(__dirname, '../../lib/social/store.ts'), 'utf-8');
+  const storeSource = readFileSync(SOCIAL_STORE_PATH, 'utf-8');
 
   it('devrait filtrer les posts SCHEDULED avec scheduledAt <= now', () => {
-    const funcStart = storeSource.indexOf('export async function getScheduledPosts');
-    const funcBody = storeSource.slice(funcStart, storeSource.indexOf('\nexport ', funcStart + 1));
+    const funcStart = storeSource.indexOf('async getScheduledPosts');
+    const afterFunc = storeSource.slice(funcStart);
+    const funcEnd = afterFunc.indexOf('\n    async ');
+    const funcBody = funcEnd > 0 ? afterFunc.slice(0, funcEnd) : afterFunc;
 
     expect(funcBody).toContain("status: 'SCHEDULED'");
     expect(funcBody).toContain('lte: now');
   });
 
   it('devrait inclure les posts bloqués en PUBLISHING (stuck recovery)', () => {
-    const funcStart = storeSource.indexOf('export async function getScheduledPosts');
-    const funcBody = storeSource.slice(funcStart, storeSource.indexOf('\nexport ', funcStart + 1));
+    const funcStart = storeSource.indexOf('async getScheduledPosts');
+    const afterFunc = storeSource.slice(funcStart);
+    const funcEnd = afterFunc.indexOf('\n    async ');
+    const funcBody = funcEnd > 0 ? afterFunc.slice(0, funcEnd) : afterFunc;
 
     expect(funcBody).toContain("status: 'PUBLISHING'");
     expect(funcBody).toContain('stuckThreshold');
   });
 
   it('devrait utiliser OR pour combiner les deux conditions', () => {
-    const funcStart = storeSource.indexOf('export async function getScheduledPosts');
-    const funcBody = storeSource.slice(funcStart, storeSource.indexOf('\nexport ', funcStart + 1));
+    const funcStart = storeSource.indexOf('async getScheduledPosts');
+    const afterFunc = storeSource.slice(funcStart);
+    const funcEnd = afterFunc.indexOf('\n    async ');
+    const funcBody = funcEnd > 0 ? afterFunc.slice(0, funcEnd) : afterFunc;
 
     expect(funcBody).toContain('OR:');
   });
 
   it('devrait trier par scheduledAt ascendant', () => {
-    const funcStart = storeSource.indexOf('export async function getScheduledPosts');
-    const funcBody = storeSource.slice(funcStart, storeSource.indexOf('\nexport ', funcStart + 1));
+    const funcStart = storeSource.indexOf('async getScheduledPosts');
+    const afterFunc = storeSource.slice(funcStart);
+    const funcEnd = afterFunc.indexOf('\n    async ');
+    const funcBody = funcEnd > 0 ? afterFunc.slice(0, funcEnd) : afterFunc;
 
     expect(funcBody).toContain("orderBy: { scheduledAt: 'asc' }");
   });
