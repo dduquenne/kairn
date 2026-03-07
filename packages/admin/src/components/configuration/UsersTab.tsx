@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Edit2,
   Trash2,
@@ -18,69 +18,71 @@ import {
   Lock,
   RefreshCw,
   User,
-} from "lucide-react";
-import { useState, FormEvent, useEffect } from "react";
+} from 'lucide-react';
+import { useState, FormEvent, useEffect } from 'react';
 
-import { useToast } from "@/lib/toast-context";
+import type { ToastHandler, AdminUser } from './types';
 
-interface AdminUser {
-  id: string;
-  email: string;
-  role: "admin";
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface UsersTabProps {
+/** Props du composant UsersTab */
+export interface UsersTabProps {
   users: AdminUser[];
   onRefresh: () => void;
+  toast: ToastHandler;
 }
 
-export function UsersTab({ users, onRefresh }: UsersTabProps) {
+/**
+ * Onglet de gestion des utilisateurs administrateurs.
+ * Permet la création, modification, suppression et réinitialisation de mots de passe.
+ */
+export function UsersTab({ users, onRefresh, toast }: UsersTabProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [drawerMode, setDrawerMode] = useState<"create" | "edit" | "password">("create");
+  const [drawerMode, setDrawerMode] = useState<'create' | 'edit' | 'password'>('create');
   const [currentUser, setCurrentUser] = useState<AdminUser | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
-  const { addToast } = useToast();
 
   const sortedUsers = [...users].sort((a, b) =>
-    a.email.localeCompare(b.email, "fr", { sensitivity: "base" })
+    a.email.localeCompare(b.email, 'fr', { sensitivity: 'base' })
   );
 
+  /** Ouvre le tiroir en mode création */
   const openCreateDrawer = () => {
-    setDrawerMode("create");
+    setDrawerMode('create');
     setCurrentUser(null);
     setGeneratedPassword(null);
     setDrawerOpen(true);
   };
 
+  /** Ouvre le tiroir en mode édition */
   const openEditDrawer = (user: AdminUser) => {
-    setDrawerMode("edit");
+    setDrawerMode('edit');
     setCurrentUser(user);
     setGeneratedPassword(null);
     setDrawerOpen(true);
   };
 
+  /** Ouvre le tiroir en mode changement de mot de passe */
   const openPasswordDrawer = (user: AdminUser) => {
-    setDrawerMode("password");
+    setDrawerMode('password');
     setCurrentUser(user);
     setGeneratedPassword(null);
     setDrawerOpen(true);
   };
 
+  /** Ferme le tiroir */
   const closeDrawer = () => {
     setDrawerOpen(false);
     setGeneratedPassword(null);
   };
 
+  /** Crée un nouvel utilisateur */
   const handleCreate = async (values: { email: string; password: string }) => {
     setIsSubmitting(true);
     try {
-      const response = await fetch("/api/admin/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
       });
 
@@ -89,31 +91,32 @@ export function UsersTab({ users, onRefresh }: UsersTabProps) {
         throw new Error(payload.error ?? "Impossible de créer l'utilisateur");
       }
 
-      addToast({
-        title: "Utilisateur créé",
-        description: "Les accès administrateur ont été générés",
-        variant: "success",
+      toast.addToast({
+        title: 'Utilisateur créé',
+        description: 'Les accès administrateur ont été générés',
+        variant: 'success',
       });
       closeDrawer();
       onRefresh();
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Erreur lors de la création";
-      addToast({
-        title: "Erreur",
+      const message = error instanceof Error ? error.message : 'Erreur lors de la création';
+      toast.addToast({
+        title: 'Erreur',
         description: message,
-        variant: "error",
+        variant: 'error',
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  /** Met à jour les informations d'un utilisateur */
   const handleUpdate = async (id: string, values: { email: string }) => {
     setIsSubmitting(true);
     try {
       const response = await fetch(`/api/admin/users/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
       });
 
@@ -122,98 +125,104 @@ export function UsersTab({ users, onRefresh }: UsersTabProps) {
         throw new Error(payload.error ?? "Impossible de mettre à jour l'utilisateur");
       }
 
-      addToast({
-        title: "Utilisateur mis à jour",
-        description: "Les informations ont été enregistrées",
-        variant: "success",
+      toast.addToast({
+        title: 'Utilisateur mis à jour',
+        description: 'Les informations ont été enregistrées',
+        variant: 'success',
       });
       closeDrawer();
       onRefresh();
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Erreur lors de la mise à jour";
-      addToast({
-        title: "Erreur",
+      const message = error instanceof Error ? error.message : 'Erreur lors de la mise à jour';
+      toast.addToast({
+        title: 'Erreur',
         description: message,
-        variant: "error",
+        variant: 'error',
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleChangePassword = async (id: string, values: { currentPassword?: string; newPassword: string }) => {
+  /** Change le mot de passe d'un utilisateur */
+  const handleChangePassword = async (
+    id: string,
+    values: { currentPassword?: string; newPassword: string }
+  ) => {
     setIsSubmitting(true);
     try {
       const response = await fetch(`/api/admin/users/${id}/change-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
       });
 
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
-        throw new Error(payload.error ?? "Impossible de changer le mot de passe");
+        throw new Error(payload.error ?? 'Impossible de changer le mot de passe');
       }
 
-      addToast({
-        title: "Mot de passe modifié",
-        description: "Le nouveau mot de passe a été enregistré",
-        variant: "success",
+      toast.addToast({
+        title: 'Mot de passe modifié',
+        description: 'Le nouveau mot de passe a été enregistré',
+        variant: 'success',
       });
       closeDrawer();
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Erreur lors du changement";
-      addToast({
-        title: "Erreur",
+      const message = error instanceof Error ? error.message : 'Erreur lors du changement';
+      toast.addToast({
+        title: 'Erreur',
         description: message,
-        variant: "error",
+        variant: 'error',
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  /** Réinitialise le mot de passe avec un mot de passe temporaire généré */
   const handleResetPassword = async (user: AdminUser) => {
     setIsSubmitting(true);
     try {
       const response = await fetch(`/api/admin/users/${user.id}/reset-password`, {
-        method: "POST",
+        method: 'POST',
       });
 
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
-        throw new Error(payload.error ?? "Impossible de réinitialiser le mot de passe");
+        throw new Error(payload.error ?? 'Impossible de réinitialiser le mot de passe');
       }
 
       const payload = await response.json();
       setGeneratedPassword(payload.temporaryPassword);
       setCurrentUser(user);
-      setDrawerMode("password");
+      setDrawerMode('password');
       setDrawerOpen(true);
 
-      addToast({
-        title: "Mot de passe réinitialisé",
-        description: "Un nouveau mot de passe temporaire a été généré",
-        variant: "success",
+      toast.addToast({
+        title: 'Mot de passe réinitialisé',
+        description: 'Un nouveau mot de passe temporaire a été généré',
+        variant: 'success',
       });
       onRefresh();
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Erreur lors de la réinitialisation";
-      addToast({
-        title: "Erreur",
+      const message = error instanceof Error ? error.message : 'Erreur lors de la réinitialisation';
+      toast.addToast({
+        title: 'Erreur',
         description: message,
-        variant: "error",
+        variant: 'error',
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  /** Supprime un utilisateur */
   const handleDelete = async (id: string) => {
     setIsSubmitting(true);
     try {
       const response = await fetch(`/api/admin/users/${id}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
 
       if (!response.ok) {
@@ -221,30 +230,31 @@ export function UsersTab({ users, onRefresh }: UsersTabProps) {
         throw new Error(payload.error ?? "Impossible de supprimer l'utilisateur");
       }
 
-      addToast({
-        title: "Utilisateur supprimé",
+      toast.addToast({
+        title: 'Utilisateur supprimé',
         description: "L'accès administrateur a été révoqué",
-        variant: "success",
+        variant: 'success',
       });
       setDeleteTarget(null);
       onRefresh();
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Erreur lors de la suppression";
-      addToast({
-        title: "Erreur",
+      const message = error instanceof Error ? error.message : 'Erreur lors de la suppression';
+      toast.addToast({
+        title: 'Erreur',
         description: message,
-        variant: "error",
+        variant: 'error',
       });
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  /** Formate une date en format français court */
   const formatDate = (dateStr: string): string => {
-    return new Date(dateStr).toLocaleDateString("fr-FR", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
+    return new Date(dateStr).toLocaleDateString('fr-FR', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
     });
   };
 
@@ -253,9 +263,10 @@ export function UsersTab({ users, onRefresh }: UsersTabProps) {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl font-bold text-ivory">Gestion des utilisateurs</h2>
-          <p className="text-sm text-ivory/60">
-            {users.length} utilisateur{users.length !== 1 ? "s" : ""} administrateur{users.length !== 1 ? "s" : ""}
+          <h2 className="text-ivory text-xl font-bold">Gestion des utilisateurs</h2>
+          <p className="text-ivory/60 text-sm">
+            {users.length} utilisateur{users.length !== 1 ? 's' : ''} administrateur
+            {users.length !== 1 ? 's' : ''}
           </p>
         </div>
 
@@ -276,8 +287,8 @@ export function UsersTab({ users, onRefresh }: UsersTabProps) {
               <UsersIcon className="h-5 w-5 text-purple-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-ivory">{users.length}</p>
-              <p className="text-xs text-ivory/50">Total</p>
+              <p className="text-ivory text-2xl font-bold">{users.length}</p>
+              <p className="text-ivory/50 text-xs">Total</p>
             </div>
           </div>
         </div>
@@ -287,19 +298,19 @@ export function UsersTab({ users, onRefresh }: UsersTabProps) {
               <Shield className="h-5 w-5 text-blue-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-ivory">{users.length}</p>
-              <p className="text-xs text-ivory/50">Administrateurs</p>
+              <p className="text-ivory text-2xl font-bold">{users.length}</p>
+              <p className="text-ivory/50 text-xs">Administrateurs</p>
             </div>
           </div>
         </div>
-        <div className="hidden sm:block rounded-xl border border-green-500/20 bg-green-500/5 p-4">
+        <div className="hidden rounded-xl border border-green-500/20 bg-green-500/5 p-4 sm:block">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/20">
               <CheckCircle className="h-5 w-5 text-green-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-ivory">{users.length}</p>
-              <p className="text-xs text-ivory/50">Actifs</p>
+              <p className="text-ivory text-2xl font-bold">{users.length}</p>
+              <p className="text-ivory/50 text-xs">Actifs</p>
             </div>
           </div>
         </div>
@@ -310,15 +321,13 @@ export function UsersTab({ users, onRefresh }: UsersTabProps) {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-ivory/20 bg-night/40 py-16"
+          className="border-ivory/20 bg-night/40 flex flex-col items-center justify-center rounded-2xl border border-dashed py-16"
         >
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-purple-500/10">
             <UsersIcon className="h-8 w-8 text-purple-400" />
           </div>
-          <h3 className="mt-4 text-lg font-medium text-ivory">Aucun utilisateur</h3>
-          <p className="mt-2 text-sm text-ivory/60">
-            Créez le premier utilisateur administrateur
-          </p>
+          <h3 className="text-ivory mt-4 text-lg font-medium">Aucun utilisateur</h3>
+          <p className="text-ivory/60 mt-2 text-sm">Créez le premier utilisateur administrateur</p>
           <button
             onClick={openCreateDrawer}
             className="mt-6 flex items-center gap-2 rounded-xl bg-purple-500 px-6 py-3 text-sm font-medium text-white transition-all hover:bg-purple-600"
@@ -328,25 +337,37 @@ export function UsersTab({ users, onRefresh }: UsersTabProps) {
           </button>
         </motion.div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-ivory/10 bg-night/40">
-          <table className="min-w-full divide-y divide-ivory/10">
+        <div className="border-ivory/10 bg-night/40 overflow-hidden rounded-2xl border">
+          <table className="divide-ivory/10 min-w-full divide-y">
             <thead className="bg-night/60">
               <tr>
-                <th scope="col" className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-gold">
+                <th
+                  scope="col"
+                  className="text-gold px-6 py-4 text-left text-xs font-medium uppercase tracking-wider"
+                >
                   Utilisateur
                 </th>
-                <th scope="col" className="hidden sm:table-cell px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-gold">
+                <th
+                  scope="col"
+                  className="text-gold hidden px-6 py-4 text-left text-xs font-medium uppercase tracking-wider sm:table-cell"
+                >
                   Créé le
                 </th>
-                <th scope="col" className="hidden md:table-cell px-6 py-4 text-left text-xs font-medium uppercase tracking-wider text-gold">
+                <th
+                  scope="col"
+                  className="text-gold hidden px-6 py-4 text-left text-xs font-medium uppercase tracking-wider md:table-cell"
+                >
                   Mis à jour
                 </th>
-                <th scope="col" className="px-6 py-4 text-right text-xs font-medium uppercase tracking-wider text-gold">
+                <th
+                  scope="col"
+                  className="text-gold px-6 py-4 text-right text-xs font-medium uppercase tracking-wider"
+                >
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ivory/10">
+            <tbody className="divide-ivory/10 divide-y">
               {sortedUsers.map((user, index) => (
                 <motion.tr
                   key={user.id}
@@ -361,25 +382,25 @@ export function UsersTab({ users, onRefresh }: UsersTabProps) {
                         <User className="h-5 w-5 text-purple-400" />
                       </div>
                       <div>
-                        <p className="font-medium text-ivory">{user.email}</p>
-                        <p className="text-xs text-ivory/50 flex items-center gap-1">
+                        <p className="text-ivory font-medium">{user.email}</p>
+                        <p className="text-ivory/50 flex items-center gap-1 text-xs">
                           <Shield className="h-3 w-3" />
                           Administrateur
                         </p>
                       </div>
                     </div>
                   </td>
-                  <td className="hidden sm:table-cell px-6 py-4 text-sm text-ivory/60">
+                  <td className="text-ivory/60 hidden px-6 py-4 text-sm sm:table-cell">
                     {formatDate(user.createdAt)}
                   </td>
-                  <td className="hidden md:table-cell px-6 py-4 text-sm text-ivory/60">
+                  <td className="text-ivory/60 hidden px-6 py-4 text-sm md:table-cell">
                     {formatDate(user.updatedAt)}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-end gap-2">
                       <button
                         onClick={() => handleResetPassword(user)}
-                        className="flex h-9 items-center gap-1.5 rounded-lg border border-gold/30 bg-gold/10 px-3 text-xs font-medium text-gold transition hover:bg-gold/20"
+                        className="border-gold/30 bg-gold/10 text-gold hover:bg-gold/20 flex h-9 items-center gap-1.5 rounded-lg border px-3 text-xs font-medium transition"
                         title="Réinitialiser le mot de passe"
                       >
                         <Key className="h-3.5 w-3.5" />
@@ -387,14 +408,14 @@ export function UsersTab({ users, onRefresh }: UsersTabProps) {
                       </button>
                       <button
                         onClick={() => openPasswordDrawer(user)}
-                        className="flex h-9 w-9 items-center justify-center rounded-lg border border-ivory/10 text-ivory/60 transition hover:bg-ivory/5 hover:text-ivory"
+                        className="border-ivory/10 text-ivory/60 hover:bg-ivory/5 hover:text-ivory flex h-9 w-9 items-center justify-center rounded-lg border transition"
                         title="Changer le mot de passe"
                       >
                         <Lock className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => openEditDrawer(user)}
-                        className="flex h-9 w-9 items-center justify-center rounded-lg border border-ivory/10 text-ivory/60 transition hover:bg-ivory/5 hover:text-ivory"
+                        className="border-ivory/10 text-ivory/60 hover:bg-ivory/5 hover:text-ivory flex h-9 w-9 items-center justify-center rounded-lg border transition"
                         title="Modifier"
                       >
                         <Edit2 className="h-4 w-4" />
@@ -427,7 +448,7 @@ export function UsersTab({ users, onRefresh }: UsersTabProps) {
               <li>• Utilisez des mots de passe forts (au moins 12 caractères)</li>
               <li>• Ne partagez jamais vos identifiants de connexion</li>
               <li>• Changez régulièrement vos mots de passe</li>
-              <li>• Limitez le nombre d'administrateurs au strict nécessaire</li>
+              <li>• Limitez le nombre d&apos;administrateurs au strict nécessaire</li>
             </ul>
           </div>
         </div>
@@ -456,23 +477,24 @@ export function UsersTab({ users, onRefresh }: UsersTabProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
           >
             <motion.div
               initial={{ scale: 0.95 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.95 }}
-              className="w-full max-w-md rounded-2xl border border-gold/20 bg-night p-6"
+              className="border-gold/20 bg-night w-full max-w-md rounded-2xl border p-6"
             >
-              <h3 className="text-lg font-semibold text-ivory">Supprimer l'utilisateur</h3>
-              <p className="mt-2 text-sm text-ivory/60">
-                Êtes-vous sûr de vouloir supprimer <span className="font-medium text-ivory">{deleteTarget.email}</span> ?
-                Cette action retire définitivement l'accès administrateur.
+              <h3 className="text-ivory text-lg font-semibold">Supprimer l&apos;utilisateur</h3>
+              <p className="text-ivory/60 mt-2 text-sm">
+                Êtes-vous sûr de vouloir supprimer{' '}
+                <span className="text-ivory font-medium">{deleteTarget.email}</span> ? Cette action
+                retire définitivement l&apos;accès administrateur.
               </p>
               <div className="mt-6 flex justify-end gap-3">
                 <button
                   onClick={() => setDeleteTarget(null)}
-                  className="rounded-lg px-4 py-2 text-sm font-medium text-ivory/70 transition hover:text-ivory"
+                  className="text-ivory/70 hover:text-ivory rounded-lg px-4 py-2 text-sm font-medium transition"
                 >
                   Annuler
                 </button>
@@ -481,7 +503,7 @@ export function UsersTab({ users, onRefresh }: UsersTabProps) {
                   disabled={isSubmitting}
                   className="rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-600 disabled:opacity-50"
                 >
-                  {isSubmitting ? "Suppression..." : "Supprimer"}
+                  {isSubmitting ? 'Suppression...' : 'Supprimer'}
                 </button>
               </div>
             </motion.div>
@@ -493,7 +515,7 @@ export function UsersTab({ users, onRefresh }: UsersTabProps) {
 }
 
 interface UserDrawerProps {
-  mode: "create" | "edit" | "password";
+  mode: 'create' | 'edit' | 'password';
   user: AdminUser | null;
   generatedPassword: string | null;
   isSubmitting: boolean;
@@ -503,6 +525,7 @@ interface UserDrawerProps {
   onChangePassword: (id: string, values: { currentPassword?: string; newPassword: string }) => void;
 }
 
+/** Tiroir latéral pour la création/édition d'un utilisateur */
 function UserDrawer({
   mode,
   user,
@@ -513,45 +536,50 @@ function UserDrawer({
   onUpdate,
   onChangePassword,
 }: UserDrawerProps) {
-  const [email, setEmail] = useState(user?.email || "");
-  const [password, setPassword] = useState("");
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [email, setEmail] = useState(user?.email || '');
+  const [password, setPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [passwordCopied, setPasswordCopied] = useState(false);
 
   useEffect(() => {
-    setEmail(user?.email || "");
-    setPassword("");
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
+    setEmail(user?.email || '');
+    setPassword('');
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
   }, [user, mode]);
 
+  /** Gère la soumission du formulaire */
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
-    if (mode === "create") {
+    if (mode === 'create') {
       onCreate({ email, password });
-    } else if (mode === "edit" && user) {
+    } else if (mode === 'edit' && user) {
       onUpdate(user.id, { email });
-    } else if (mode === "password" && user) {
+    } else if (mode === 'password' && user) {
       if (newPassword !== confirmPassword) {
         return;
       }
-      onChangePassword(user.id, { currentPassword: currentPassword || undefined, newPassword });
+      onChangePassword(user.id, {
+        currentPassword: currentPassword || undefined,
+        newPassword,
+      });
     }
   };
 
+  /** Génère un mot de passe aléatoire */
   const generateRandomPassword = () => {
-    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
-    let result = "";
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+    let result = '';
     for (let i = 0; i < 16; i++) {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    if (mode === "create") {
+    if (mode === 'create') {
       setPassword(result);
     } else {
       setNewPassword(result);
@@ -559,39 +587,42 @@ function UserDrawer({
     }
   };
 
+  /** Copie un mot de passe dans le presse-papier */
   const copyPassword = async (pwd: string) => {
     try {
       await navigator.clipboard.writeText(pwd);
       setPasswordCopied(true);
       setTimeout(() => setPasswordCopied(false), 2000);
-    } catch (error) {
-      console.error("Failed to copy password");
+    } catch {
+      console.error('Failed to copy password');
     }
   };
 
   const passwordsMatch = newPassword === confirmPassword;
 
+  /** Retourne le titre du tiroir selon le mode */
   const getTitle = () => {
     switch (mode) {
-      case "create":
-        return "Nouvel utilisateur";
-      case "edit":
+      case 'create':
+        return 'Nouvel utilisateur';
+      case 'edit':
         return "Modifier l'utilisateur";
-      case "password":
-        return generatedPassword ? "Mot de passe réinitialisé" : "Changer le mot de passe";
+      case 'password':
+        return generatedPassword ? 'Mot de passe réinitialisé' : 'Changer le mot de passe';
     }
   };
 
+  /** Retourne la description du tiroir selon le mode */
   const getDescription = () => {
     switch (mode) {
-      case "create":
-        return "Créer un accès administrateur en définissant un mot de passe temporaire.";
-      case "edit":
-        return "Mettre à jour les informations de connexion.";
-      case "password":
+      case 'create':
+        return 'Créer un accès administrateur en définissant un mot de passe temporaire.';
+      case 'edit':
+        return 'Mettre à jour les informations de connexion.';
+      case 'password':
         return generatedPassword
-          ? "Un nouveau mot de passe temporaire a été généré. Copiez-le et partagez-le de manière sécurisée."
-          : "Définissez un nouveau mot de passe pour cet utilisateur.";
+          ? 'Un nouveau mot de passe temporaire a été généré. Copiez-le et partagez-le de manière sécurisée.'
+          : 'Définissez un nouveau mot de passe pour cet utilisateur.';
     }
   };
 
@@ -603,70 +634,75 @@ function UserDrawer({
       className="fixed inset-0 z-50 flex items-center justify-end bg-black/60"
     >
       <motion.div
-        initial={{ x: "100%" }}
+        initial={{ x: '100%' }}
         animate={{ x: 0 }}
-        exit={{ x: "100%" }}
-        transition={{ type: "spring", damping: 30, stiffness: 300 }}
-        className="h-full w-full max-w-md overflow-y-auto border-l border-gold/20 bg-night/95 p-6 shadow-xl"
+        exit={{ x: '100%' }}
+        transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+        className="border-gold/20 bg-night/95 h-full w-full max-w-md overflow-y-auto border-l p-6 shadow-xl"
       >
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-xl font-semibold text-ivory">{getTitle()}</h3>
-            <p className="text-sm text-ivory/70">{getDescription()}</p>
+            <h3 className="text-ivory text-xl font-semibold">{getTitle()}</h3>
+            <p className="text-ivory/70 text-sm">{getDescription()}</p>
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-2 text-ivory/70 transition hover:bg-ivory/10 hover:text-ivory"
+            className="text-ivory/70 hover:bg-ivory/10 hover:text-ivory rounded-lg p-2 transition"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Generated Password Display */}
-        {generatedPassword && mode === "password" && (
+        {generatedPassword && mode === 'password' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mt-6 rounded-xl border border-gold/30 bg-gold/10 p-4"
+            className="border-gold/30 bg-gold/10 mt-6 rounded-xl border p-4"
           >
-            <p className="text-sm font-medium text-gold mb-2">Mot de passe temporaire :</p>
+            <p className="text-gold mb-2 text-sm font-medium">Mot de passe temporaire :</p>
             <div className="flex items-center gap-2">
-              <code className="flex-1 rounded-lg bg-night/60 px-3 py-2 font-mono text-sm text-ivory">
+              <code className="bg-night/60 text-ivory flex-1 rounded-lg px-3 py-2 font-mono text-sm">
                 {generatedPassword}
               </code>
               <button
                 onClick={() => copyPassword(generatedPassword)}
                 className={`rounded-lg p-2 transition ${
                   passwordCopied
-                    ? "bg-green-500/20 text-green-400"
-                    : "bg-gold/20 text-gold hover:bg-gold/30"
+                    ? 'bg-green-500/20 text-green-400'
+                    : 'bg-gold/20 text-gold hover:bg-gold/30'
                 }`}
               >
-                {passwordCopied ? <CheckCircle className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                {passwordCopied ? (
+                  <CheckCircle className="h-4 w-4" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
               </button>
             </div>
-            <p className="mt-2 text-xs text-gold/70">
-              Partagez ce mot de passe de manière sécurisée. L'utilisateur pourra le modifier après connexion.
+            <p className="text-gold/70 mt-2 text-xs">
+              Partagez ce mot de passe de manière sécurisée. L&apos;utilisateur pourra le modifier
+              après connexion.
             </p>
           </motion.div>
         )}
 
         <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
           {/* Email Field */}
-          {(mode === "create" || mode === "edit") && (
+          {(mode === 'create' || mode === 'edit') && (
             <div className="space-y-2">
-              <label htmlFor="user-email" className="text-sm font-medium text-ivory">
+              <label htmlFor="user-email" className="text-ivory text-sm font-medium">
                 Adresse email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ivory/40" />
+                <Mail className="text-ivory/40 absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                 <input
                   id="user-email"
                   type="email"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-lg border border-ivory/20 bg-night/60 pl-10 pr-3 py-2.5 text-sm text-ivory outline-none transition focus:border-gold focus:ring-1 focus:ring-gold"
+                  onChange={e => setEmail(e.target.value)}
+                  className="border-ivory/20 bg-night/60 text-ivory focus:border-gold focus:ring-gold w-full rounded-lg border py-2.5 pl-10 pr-3 text-sm outline-none transition focus:ring-1"
                   placeholder="admin@example.com"
                 />
               </div>
@@ -674,78 +710,83 @@ function UserDrawer({
           )}
 
           {/* Password Field for Create */}
-          {mode === "create" && (
+          {mode === 'create' && (
             <div className="space-y-2">
-              <label htmlFor="user-password" className="text-sm font-medium text-ivory">
+              <label htmlFor="user-password" className="text-ivory text-sm font-medium">
                 Mot de passe temporaire
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ivory/40" />
+                <Lock className="text-ivory/40 absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                 <input
                   id="user-password"
-                  type={showPassword ? "text" : "password"}
+                  type={showPassword ? 'text' : 'password'}
                   minLength={8}
                   required
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-lg border border-ivory/20 bg-night/60 pl-10 pr-20 py-2.5 text-sm text-ivory outline-none transition focus:border-gold focus:ring-1 focus:ring-gold"
+                  onChange={e => setPassword(e.target.value)}
+                  className="border-ivory/20 bg-night/60 text-ivory focus:border-gold focus:ring-gold w-full rounded-lg border py-2.5 pl-10 pr-20 text-sm outline-none transition focus:ring-1"
                   placeholder="Au moins 8 caractères"
                 />
-                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="rounded p-1 text-ivory/40 hover:text-ivory"
+                    className="text-ivory/40 hover:text-ivory rounded p-1"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                   <button
                     type="button"
                     onClick={generateRandomPassword}
-                    className="rounded p-1 text-ivory/40 hover:text-gold"
+                    className="text-ivory/40 hover:text-gold rounded p-1"
                     title="Générer un mot de passe"
                   >
                     <RefreshCw className="h-4 w-4" />
                   </button>
                 </div>
               </div>
-              <p className="text-xs text-ivory/50">
-                Partagez ce mot de passe avec l'utilisateur. Il pourra le modifier après connexion.
+              <p className="text-ivory/50 text-xs">
+                Partagez ce mot de passe avec l&apos;utilisateur. Il pourra le modifier après
+                connexion.
               </p>
             </div>
           )}
 
           {/* Password Change Fields */}
-          {mode === "password" && !generatedPassword && (
+          {mode === 'password' && !generatedPassword && (
             <>
               <div className="space-y-2">
-                <label htmlFor="new-password" className="text-sm font-medium text-ivory">
+                <label htmlFor="new-password" className="text-ivory text-sm font-medium">
                   Nouveau mot de passe
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ivory/40" />
+                  <Lock className="text-ivory/40 absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                   <input
                     id="new-password"
-                    type={showNewPassword ? "text" : "password"}
+                    type={showNewPassword ? 'text' : 'password'}
                     minLength={8}
                     required
                     value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full rounded-lg border border-ivory/20 bg-night/60 pl-10 pr-20 py-2.5 text-sm text-ivory outline-none transition focus:border-gold focus:ring-1 focus:ring-gold"
+                    onChange={e => setNewPassword(e.target.value)}
+                    className="border-ivory/20 bg-night/60 text-ivory focus:border-gold focus:ring-gold w-full rounded-lg border py-2.5 pl-10 pr-20 text-sm outline-none transition focus:ring-1"
                     placeholder="Au moins 8 caractères"
                   />
-                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
                     <button
                       type="button"
                       onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="rounded p-1 text-ivory/40 hover:text-ivory"
+                      className="text-ivory/40 hover:text-ivory rounded p-1"
                     >
-                      {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      {showNewPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
                     </button>
                     <button
                       type="button"
                       onClick={generateRandomPassword}
-                      className="rounded p-1 text-ivory/40 hover:text-gold"
+                      className="text-ivory/40 hover:text-gold rounded p-1"
                       title="Générer un mot de passe"
                     >
                       <RefreshCw className="h-4 w-4" />
@@ -755,22 +796,22 @@ function UserDrawer({
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="confirm-password" className="text-sm font-medium text-ivory">
+                <label htmlFor="confirm-password" className="text-ivory text-sm font-medium">
                   Confirmer le mot de passe
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ivory/40" />
+                  <Lock className="text-ivory/40 absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
                   <input
                     id="confirm-password"
-                    type={showNewPassword ? "text" : "password"}
+                    type={showNewPassword ? 'text' : 'password'}
                     minLength={8}
                     required
                     value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className={`w-full rounded-lg border bg-night/60 pl-10 pr-3 py-2.5 text-sm text-ivory outline-none transition focus:ring-1 ${
+                    onChange={e => setConfirmPassword(e.target.value)}
+                    className={`bg-night/60 text-ivory w-full rounded-lg border py-2.5 pl-10 pr-3 text-sm outline-none transition focus:ring-1 ${
                       confirmPassword && !passwordsMatch
-                        ? "border-red-500 focus:border-red-500 focus:ring-red-500"
-                        : "border-ivory/20 focus:border-gold focus:ring-gold"
+                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                        : 'border-ivory/20 focus:border-gold focus:ring-gold'
                     }`}
                     placeholder="Répétez le mot de passe"
                   />
@@ -787,27 +828,27 @@ function UserDrawer({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg px-4 py-2 text-sm font-medium text-ivory/70 transition hover:text-ivory"
+              className="text-ivory/70 hover:text-ivory rounded-lg px-4 py-2 text-sm font-medium transition"
             >
-              {generatedPassword ? "Fermer" : "Annuler"}
+              {generatedPassword ? 'Fermer' : 'Annuler'}
             </button>
             {!generatedPassword && (
               <button
                 type="submit"
                 disabled={
                   isSubmitting ||
-                  (mode === "create" && password.length < 8) ||
-                  (mode === "password" && (!passwordsMatch || newPassword.length < 8))
+                  (mode === 'create' && password.length < 8) ||
+                  (mode === 'password' && (!passwordsMatch || newPassword.length < 8))
                 }
                 className="rounded-lg bg-purple-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-purple-600 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isSubmitting
-                  ? "Enregistrement..."
-                  : mode === "create"
-                  ? "Créer"
-                  : mode === "edit"
-                  ? "Mettre à jour"
-                  : "Changer le mot de passe"}
+                  ? 'Enregistrement...'
+                  : mode === 'create'
+                    ? 'Créer'
+                    : mode === 'edit'
+                      ? 'Mettre à jour'
+                      : 'Changer le mot de passe'}
               </button>
             )}
           </div>

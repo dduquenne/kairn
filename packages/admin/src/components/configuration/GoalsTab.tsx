@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Plus,
   Target,
@@ -18,23 +18,16 @@ import {
   Mail,
   MailPlus,
   CalendarCheck,
-} from "lucide-react";
-import { useState, useCallback } from "react";
+} from 'lucide-react';
+import { useState, useCallback } from 'react';
 
-import { DeleteConfirmationModal } from "../../settings/components/DeleteConfirmationModal";
-import { GoalFormModal } from "../../settings/components/GoalFormModal";
-import type {
-  Goal,
-  GoalType,
-  GoalTemplate,
-} from "../../settings/types";
-import {
-  GOAL_TYPE_LABELS,
-  GOAL_TYPE_DESCRIPTIONS,
-  GOAL_TEMPLATES,
-} from "../../settings/types";
+import { DeleteConfirmationModal } from './DeleteConfirmationModal';
+import { GoalFormModal } from './GoalFormModal';
+import type { Goal, GoalType, GoalTemplate } from './types';
+import { GOAL_TYPE_LABELS, GOAL_TYPE_DESCRIPTIONS, GOAL_TEMPLATES } from './types';
 
-interface GoalsTabProps {
+/** Props du composant GoalsTab */
+export interface GoalsTabProps {
   goals: Goal[];
   onRefresh: () => void;
 }
@@ -48,13 +41,17 @@ const GOAL_TYPE_ICONS: Record<GoalType, React.ComponentType<{ className?: string
 
 const TEMPLATE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   mail: Mail,
-  "mail-plus": MailPlus,
-  "check-circle": CheckCircle,
+  'mail-plus': MailPlus,
+  'check-circle': CheckCircle,
   clock: Clock,
   layers: Layers,
-  "calendar-check": CalendarCheck,
+  'calendar-check': CalendarCheck,
 };
 
+/**
+ * Onglet de gestion des objectifs analytics.
+ * Affiche la liste des objectifs, les modèles prédéfinis et permet la création/édition/suppression.
+ */
 export function GoalsTab({ goals, onRefresh }: GoalsTabProps) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
@@ -63,28 +60,33 @@ export function GoalsTab({ goals, onRefresh }: GoalsTabProps) {
   const [showTemplates, setShowTemplates] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleToggleEnabled = useCallback(async (goal: Goal) => {
-    try {
-      const response = await fetch(`/api/analytics/goals?id=${goal.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled: !goal.enabled }),
-      });
+  /** Bascule l'état actif/inactif d'un objectif */
+  const handleToggleEnabled = useCallback(
+    async (goal: Goal) => {
+      try {
+        const response = await fetch(`/api/analytics/goals?id=${goal.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled: !goal.enabled }),
+        });
 
-      if (response.ok) {
-        onRefresh();
+        if (response.ok) {
+          onRefresh();
+        }
+      } catch (error) {
+        console.error('Error toggling goal:', error);
       }
-    } catch (error) {
-      console.error("Error toggling goal:", error);
-    }
-  }, [onRefresh]);
+    },
+    [onRefresh]
+  );
 
+  /** Supprime l'objectif sélectionné */
   const handleDelete = useCallback(async () => {
     if (!deletingGoal) return;
 
     try {
       const response = await fetch(`/api/analytics/goals?id=${deletingGoal.id}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
 
       if (response.ok) {
@@ -92,65 +94,71 @@ export function GoalsTab({ goals, onRefresh }: GoalsTabProps) {
         setDeletingGoal(null);
       }
     } catch (error) {
-      console.error("Error deleting goal:", error);
+      console.error('Error deleting goal:', error);
     }
   }, [deletingGoal, onRefresh]);
 
-  const handleSave = useCallback(async (data: Partial<Goal>) => {
-    setIsSubmitting(true);
-    try {
-      const url = editingGoal
-        ? `/api/analytics/goals?id=${editingGoal.id}`
-        : "/api/analytics/goals";
-      const method = editingGoal ? "PUT" : "POST";
+  /** Sauvegarde un objectif (création ou mise à jour) */
+  const handleSave = useCallback(
+    async (data: Partial<Goal>) => {
+      setIsSubmitting(true);
+      try {
+        const url = editingGoal
+          ? `/api/analytics/goals?id=${editingGoal.id}`
+          : '/api/analytics/goals';
+        const method = editingGoal ? 'PUT' : 'POST';
 
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
+        const response = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
 
-      if (response.ok) {
-        onRefresh();
-        setShowCreateModal(false);
-        setEditingGoal(null);
-        setSelectedTemplate(null);
+        if (response.ok) {
+          onRefresh();
+          setShowCreateModal(false);
+          setEditingGoal(null);
+          setSelectedTemplate(null);
+        }
+      } catch (error) {
+        console.error('Error saving goal:', error);
+      } finally {
+        setIsSubmitting(false);
       }
-    } catch (error) {
-      console.error("Error saving goal:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [editingGoal, onRefresh]);
+    },
+    [editingGoal, onRefresh]
+  );
 
+  /** Sélectionne un modèle prédéfini et ouvre le formulaire */
   const handleSelectTemplate = (template: GoalTemplate) => {
     setSelectedTemplate(template);
     setShowTemplates(false);
     setShowCreateModal(true);
   };
 
+  /** Génère la description d'un objectif selon son type */
   const getGoalDescription = (goal: Goal) => {
     switch (goal.type) {
-      case "destination":
+      case 'destination':
         return `Page: ${goal.destinationUrl}`;
-      case "event":
+      case 'event':
         return [
           goal.eventCategory && `Catégorie: ${goal.eventCategory}`,
           goal.eventAction && `Action: ${goal.eventAction}`,
           goal.eventLabel && `Label: ${goal.eventLabel}`,
         ]
           .filter(Boolean)
-          .join(" • ");
-      case "duration":
-        return `${goal.comparison === "greater_than" ? ">" : "<"} ${goal.durationSeconds}s`;
-      case "pages_per_session":
-        return `${goal.comparison === "greater_than" ? ">" : "<"} ${goal.pagesCount} pages`;
+          .join(' • ');
+      case 'duration':
+        return `${goal.comparison === 'greater_than' ? '>' : '<'} ${goal.durationSeconds}s`;
+      case 'pages_per_session':
+        return `${goal.comparison === 'greater_than' ? '>' : '<'} ${goal.pagesCount} pages`;
       default:
-        return "";
+        return '';
     }
   };
 
-  const enabledGoals = goals.filter((g) => g.enabled);
+  const enabledGoals = goals.filter(g => g.enabled);
   const totalValue = goals.reduce((sum, g) => sum + (g.value || 0), 0);
 
   return (
@@ -158,9 +166,11 @@ export function GoalsTab({ goals, onRefresh }: GoalsTabProps) {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl font-bold text-ivory">Configuration des objectifs</h2>
-          <p className="text-sm text-ivory/60">
-            {goals.length} objectif{goals.length !== 1 ? "s" : ""} configuré{goals.length !== 1 ? "s" : ""}, {enabledGoals.length} actif{enabledGoals.length !== 1 ? "s" : ""}
+          <h2 className="text-ivory text-xl font-bold">Configuration des objectifs</h2>
+          <p className="text-ivory/60 text-sm">
+            {goals.length} objectif{goals.length !== 1 ? 's' : ''} configuré
+            {goals.length !== 1 ? 's' : ''}, {enabledGoals.length} actif
+            {enabledGoals.length !== 1 ? 's' : ''}
           </p>
         </div>
 
@@ -195,8 +205,8 @@ export function GoalsTab({ goals, onRefresh }: GoalsTabProps) {
               <Target className="h-5 w-5 text-emerald-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-ivory">{enabledGoals.length}</p>
-              <p className="text-xs text-ivory/50">Objectifs actifs</p>
+              <p className="text-ivory text-2xl font-bold">{enabledGoals.length}</p>
+              <p className="text-ivory/50 text-xs">Objectifs actifs</p>
             </div>
           </div>
         </div>
@@ -206,19 +216,19 @@ export function GoalsTab({ goals, onRefresh }: GoalsTabProps) {
               <TrendingUp className="h-5 w-5 text-blue-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-ivory">{goals.length}</p>
-              <p className="text-xs text-ivory/50">Total définis</p>
+              <p className="text-ivory text-2xl font-bold">{goals.length}</p>
+              <p className="text-ivory/50 text-xs">Total définis</p>
             </div>
           </div>
         </div>
-        <div className="rounded-xl border border-gold/20 bg-gold/5 p-4">
+        <div className="border-gold/20 bg-gold/5 rounded-xl border p-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gold/20">
-              <DollarSign className="h-5 w-5 text-gold" />
+            <div className="bg-gold/20 flex h-10 w-10 items-center justify-center rounded-lg">
+              <DollarSign className="text-gold h-5 w-5" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-ivory">{totalValue}€</p>
-              <p className="text-xs text-ivory/50">Valeur totale</p>
+              <p className="text-ivory text-2xl font-bold">{totalValue}€</p>
+              <p className="text-ivory/50 text-xs">Valeur totale</p>
             </div>
           </div>
         </div>
@@ -229,29 +239,29 @@ export function GoalsTab({ goals, onRefresh }: GoalsTabProps) {
         {showTemplates && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
+            animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
             <div className="rounded-2xl border border-emerald-500/20 bg-gradient-to-r from-emerald-500/5 to-transparent p-6">
               <h3 className="mb-4 text-sm font-semibold text-emerald-400">
-                Modèles d'objectifs prédéfinis
+                Modèles d&apos;objectifs prédéfinis
               </h3>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {GOAL_TEMPLATES.map((template) => {
+                {GOAL_TEMPLATES.map(template => {
                   const Icon = TEMPLATE_ICONS[template.icon] || Target;
                   return (
                     <button
                       key={template.id}
                       onClick={() => handleSelectTemplate(template)}
-                      className="group flex items-start gap-3 rounded-xl border border-ivory/10 bg-night/40 p-4 text-left transition-all hover:border-emerald-500/30 hover:bg-night/60"
+                      className="border-ivory/10 bg-night/40 hover:bg-night/60 group flex items-start gap-3 rounded-xl border p-4 text-left transition-all hover:border-emerald-500/30"
                     >
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-400">
                         <Icon className="h-5 w-5" />
                       </div>
                       <div className="min-w-0">
-                        <p className="font-medium text-ivory">{template.name}</p>
-                        <p className="mt-0.5 text-xs text-ivory/50 line-clamp-2">
+                        <p className="text-ivory font-medium">{template.name}</p>
+                        <p className="text-ivory/50 mt-0.5 line-clamp-2 text-xs">
                           {template.description}
                         </p>
                       </div>
@@ -269,13 +279,13 @@ export function GoalsTab({ goals, onRefresh }: GoalsTabProps) {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-ivory/20 bg-night/40 py-16"
+          className="border-ivory/20 bg-night/40 flex flex-col items-center justify-center rounded-2xl border border-dashed py-16"
         >
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10">
             <Target className="h-8 w-8 text-emerald-400" />
           </div>
-          <h3 className="mt-4 text-lg font-medium text-ivory">Aucun objectif configuré</h3>
-          <p className="mt-2 text-sm text-ivory/60">
+          <h3 className="text-ivory mt-4 text-lg font-medium">Aucun objectif configuré</h3>
+          <p className="text-ivory/60 mt-2 text-sm">
             Créez votre premier objectif pour mesurer vos performances
           </p>
           <button
@@ -298,8 +308,8 @@ export function GoalsTab({ goals, onRefresh }: GoalsTabProps) {
                 transition={{ delay: index * 0.05 }}
                 className={`rounded-2xl border transition-all ${
                   goal.enabled
-                    ? "border-ivory/20 bg-gradient-to-br from-night/80 to-night/60"
-                    : "border-ivory/10 bg-night/40 opacity-70"
+                    ? 'border-ivory/20 from-night/80 to-night/60 bg-gradient-to-br'
+                    : 'border-ivory/10 bg-night/40 opacity-70'
                 }`}
               >
                 <div className="p-5">
@@ -308,41 +318,39 @@ export function GoalsTab({ goals, onRefresh }: GoalsTabProps) {
                       <div
                         className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-all ${
                           goal.enabled
-                            ? "bg-emerald-500/20 text-emerald-400"
-                            : "bg-ivory/10 text-ivory/40"
+                            ? 'bg-emerald-500/20 text-emerald-400'
+                            : 'bg-ivory/10 text-ivory/40'
                         }`}
                       >
                         <TypeIcon className="h-6 w-6" />
                       </div>
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="font-semibold text-ivory">{goal.name}</h3>
+                          <h3 className="text-ivory font-semibold">{goal.name}</h3>
                           <span
                             className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                               goal.enabled
-                                ? "bg-green-500/20 text-green-400"
-                                : "bg-ivory/10 text-ivory/50"
+                                ? 'bg-green-500/20 text-green-400'
+                                : 'bg-ivory/10 text-ivory/50'
                             }`}
                           >
-                            {goal.enabled ? "Actif" : "Inactif"}
+                            {goal.enabled ? 'Actif' : 'Inactif'}
                           </span>
                         </div>
 
                         <div className="mt-2 flex flex-wrap items-center gap-2">
-                          <span className="rounded-lg bg-ivory/10 px-2.5 py-1 text-xs text-ivory/70">
+                          <span className="bg-ivory/10 text-ivory/70 rounded-lg px-2.5 py-1 text-xs">
                             {GOAL_TYPE_LABELS[goal.type]}
                           </span>
                           {goal.value !== undefined && goal.value > 0 && (
-                            <span className="flex items-center gap-1 rounded-lg bg-gold/10 px-2.5 py-1 text-xs text-gold">
+                            <span className="bg-gold/10 text-gold flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs">
                               <DollarSign className="h-3 w-3" />
                               {goal.value}€
                             </span>
                           )}
                         </div>
 
-                        <p className="mt-2 text-sm text-ivory/50">
-                          {getGoalDescription(goal)}
-                        </p>
+                        <p className="text-ivory/50 mt-2 text-sm">{getGoalDescription(goal)}</p>
                       </div>
                     </div>
 
@@ -351,16 +359,16 @@ export function GoalsTab({ goals, onRefresh }: GoalsTabProps) {
                         onClick={() => handleToggleEnabled(goal)}
                         className={`flex h-9 w-9 items-center justify-center rounded-lg border transition-colors ${
                           goal.enabled
-                            ? "border-green-500/20 text-green-400 hover:bg-green-500/10"
-                            : "border-ivory/10 text-ivory/40 hover:bg-ivory/5"
+                            ? 'border-green-500/20 text-green-400 hover:bg-green-500/10'
+                            : 'border-ivory/10 text-ivory/40 hover:bg-ivory/5'
                         }`}
-                        title={goal.enabled ? "Désactiver" : "Activer"}
+                        title={goal.enabled ? 'Désactiver' : 'Activer'}
                       >
                         <Power className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => setEditingGoal(goal)}
-                        className="flex h-9 w-9 items-center justify-center rounded-lg border border-ivory/10 text-ivory/60 transition-colors hover:bg-ivory/5 hover:text-ivory"
+                        className="border-ivory/10 text-ivory/60 hover:bg-ivory/5 hover:text-ivory flex h-9 w-9 items-center justify-center rounded-lg border transition-colors"
                         title="Modifier"
                       >
                         <Edit2 className="h-4 w-4" />
@@ -383,36 +391,29 @@ export function GoalsTab({ goals, onRefresh }: GoalsTabProps) {
 
       {/* Goal Types Guide */}
       {goals.length > 0 && (
-        <div className="rounded-2xl border border-ivory/10 bg-night/40 p-6">
-          <h3 className="mb-4 text-sm font-semibold text-ivory/70">
-            Types d'objectifs disponibles
+        <div className="border-ivory/10 bg-night/40 rounded-2xl border p-6">
+          <h3 className="text-ivory/70 mb-4 text-sm font-semibold">
+            Types d&apos;objectifs disponibles
           </h3>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {(Object.keys(GOAL_TYPE_LABELS) as GoalType[]).map((type) => {
+            {(Object.keys(GOAL_TYPE_LABELS) as GoalType[]).map(type => {
               const Icon = GOAL_TYPE_ICONS[type];
-              const count = goals.filter((g) => g.type === type).length;
+              const count = goals.filter(g => g.type === type).length;
               return (
-                <div
-                  key={type}
-                  className="flex items-start gap-3 rounded-xl bg-night/60 p-3"
-                >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-ivory/10">
-                    <Icon className="h-4 w-4 text-ivory/60" />
+                <div key={type} className="bg-night/60 flex items-start gap-3 rounded-xl p-3">
+                  <div className="bg-ivory/10 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
+                    <Icon className="text-ivory/60 h-4 w-4" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-ivory">
-                        {GOAL_TYPE_LABELS[type]}
-                      </p>
+                      <p className="text-ivory text-sm font-medium">{GOAL_TYPE_LABELS[type]}</p>
                       {count > 0 && (
                         <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.5 text-xs text-emerald-400">
                           {count}
                         </span>
                       )}
                     </div>
-                    <p className="mt-0.5 text-xs text-ivory/50">
-                      {GOAL_TYPE_DESCRIPTIONS[type]}
-                    </p>
+                    <p className="text-ivory/50 mt-0.5 text-xs">{GOAL_TYPE_DESCRIPTIONS[type]}</p>
                   </div>
                 </div>
               );
