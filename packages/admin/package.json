@@ -85,6 +85,7 @@
     "@kairn/analytics": "workspace:*",
     "@kairn/blog": "workspace:*",
     "@kairn/social": "workspace:*",
+    "zod": "^3.22.0",
     "@uiw/react-md-editor": "^4.0.11",
     "framer-motion": "^11.0.0",
     "lucide-react": "^0.330.0",

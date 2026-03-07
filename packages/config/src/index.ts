@@ -81,6 +81,38 @@ export const serviceSchema = z.object({
 });
 
 // ============================================================================
+// SÉMINAIRES
+// ============================================================================
+
+/**
+ * Schéma pour un type de séminaire configurable par site
+ */
+export const seminarTypeOptionSchema = z.object({
+  value: z.string().min(1),
+  label: z.string().min(1),
+});
+
+/**
+ * Schéma de configuration des séminaires pour un site
+ */
+export const seminarsConfigSchema = z.object({
+  /** Types de séminaires disponibles pour ce site */
+  types: z.array(seminarTypeOptionSchema).default([]),
+  /** Nombre d'intervenants requis par séminaire */
+  speakersCount: z.number().int().min(1).default(2),
+  /** Capacité par défaut */
+  defaultCapacity: z.number().int().min(1).default(24),
+  /** Devise pour les prix */
+  currency: z.string().length(3).default('EUR'),
+  /** Activer l'upload de vignettes */
+  thumbnailUpload: z.boolean().default(true),
+  /** Activer le champ acompte */
+  depositEnabled: z.boolean().default(false),
+  /** Activer le champ commanditaire */
+  orderEnabled: z.boolean().default(false),
+});
+
+// ============================================================================
 // FEATURE FLAGS
 // ============================================================================
 
@@ -215,6 +247,9 @@ export const siteConfigSchema = z.object({
 
   // Thème visuel
   theme: themeSchema,
+
+  // Configuration séminaires (optionnel, si features.seminars = true)
+  seminars: seminarsConfigSchema.optional(),
 });
 
 // ============================================================================
@@ -230,6 +265,8 @@ export type Service = z.infer<typeof serviceSchema>;
 export type Features = z.infer<typeof featuresSchema>;
 export type SEOConfig = z.infer<typeof seoSchema>;
 export type Integrations = z.infer<typeof integrationsSchema>;
+export type SeminarTypeOption = z.infer<typeof seminarTypeOptionSchema>;
+export type SeminarsConfig = z.infer<typeof seminarsConfigSchema>;
 export type ThemeColors = z.infer<typeof themeColorsSchema>;
 export type ThemeFonts = z.infer<typeof themeFontsSchema>;
 export type Theme = z.infer<typeof themeSchema>;

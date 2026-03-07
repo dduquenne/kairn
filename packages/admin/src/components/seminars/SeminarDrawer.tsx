@@ -1,34 +1,83 @@
-"use client";
+'use client';
 
-import { Drawer, DrawerProps } from "../common/Drawer";
-import { SeminarForm, SeminarFormData } from "./SeminarForm";
+import { Drawer } from '../common/Drawer';
 
-export interface SeminarDrawerProps extends Omit<DrawerProps, "children" | "footer"> {
-  /** Initial form data */
-  initialData?: Partial<SeminarFormData>;
-  /** Callback when form is submitted */
-  onSubmit: (data: SeminarFormData) => Promise<void>;
-  /** Whether form is loading */
-  isLoading?: boolean;
-}
+import { SeminarForm } from './SeminarForm';
+import type { SeminarFormData, SeminarFormProps } from './SeminarForm';
 
 /**
- * SeminarDrawer - Drawer wrapper for seminar form
+ * Props for the SeminarDrawer component
+ */
+export interface SeminarDrawerProps extends Pick<
+  SeminarFormProps,
+  | 'initialData'
+  | 'onSubmit'
+  | 'isLoading'
+  | 'speakersCount'
+  | 'seminarTypes'
+  | 'seminarId'
+  | 'onThumbnailUpload'
+  | 'showDeposit'
+  | 'showOrder'
+  | 'renderThumbnail'
+> {
+  /** Whether the drawer is open */
+  open: boolean;
+  /** Mode: create or edit */
+  mode: 'create' | 'edit';
+  /** Callback when the drawer should close */
+  onClose: () => void;
+  /** Custom drawer class name */
+  className?: string;
+}
+
+const HEADINGS = {
+  create: { title: 'Créer un séminaire', submitLabel: 'Créer' },
+  edit: { title: 'Modifier le séminaire', submitLabel: 'Mettre à jour' },
+} as const;
+
+/**
+ * SeminarDrawer - Drawer wrapper for the seminar form
+ *
+ * Uses the shared Drawer component and passes all SeminarForm config through.
  */
 export function SeminarDrawer({
+  open,
+  mode,
+  onClose,
+  className,
   initialData,
   onSubmit,
   isLoading,
-  ...drawerProps
+  speakersCount,
+  seminarTypes,
+  seminarId,
+  onThumbnailUpload,
+  showDeposit,
+  showOrder,
+  renderThumbnail,
 }: SeminarDrawerProps) {
+  const { title, submitLabel } = HEADINGS[mode];
+
   return (
-    <Drawer {...drawerProps} width="lg">
+    <Drawer open={open} onClose={onClose} width="lg" className={className}>
       <SeminarForm
         initialData={initialData}
+        heading={title}
+        submitLabel={submitLabel}
         onSubmit={onSubmit}
-        onCancel={drawerProps.onClose}
+        onCancel={onClose}
         isLoading={isLoading}
+        speakersCount={speakersCount}
+        seminarTypes={seminarTypes}
+        seminarId={seminarId}
+        onThumbnailUpload={onThumbnailUpload}
+        showDeposit={showDeposit}
+        showOrder={showOrder}
+        renderThumbnail={renderThumbnail}
       />
     </Drawer>
   );
 }
+
+export type { SeminarFormData };
