@@ -4,11 +4,13 @@
  * Tests WCAG 2.1 AA compliance for site navigation
  */
 
-import { render } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { render, cleanup } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { axe } from 'vitest-axe';
 
 import { Header } from '../../components/header';
+
+afterEach(cleanup);
 
 // Mock next/link
 vi.mock('next/link', () => ({
@@ -29,7 +31,11 @@ vi.mock('next/link', () => ({
 
 // Mock lucide-react
 vi.mock('lucide-react', () => ({
-  ArrowLeft: () => <span data-testid="arrow-left">←</span>,
+  ArrowLeft: (props: Record<string, unknown>) => (
+    <span data-testid="arrow-left" {...props}>
+      ←
+    </span>
+  ),
 }));
 
 describe('Header - Accessibility', () => {

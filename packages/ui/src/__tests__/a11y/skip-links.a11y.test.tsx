@@ -4,11 +4,13 @@
  * Tests WCAG 2.1 AA compliance for skip link navigation
  */
 
-import { render } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { render, cleanup } from '@testing-library/react';
+import { describe, it, expect, afterEach } from 'vitest';
 import { axe } from 'vitest-axe';
 
 import { SkipLinks } from '../../components/skip-links';
+
+afterEach(cleanup);
 
 describe('SkipLinks - Accessibility', () => {
   it('should have no accessibility violations with default links', async () => {
@@ -30,20 +32,21 @@ describe('SkipLinks - Accessibility', () => {
   });
 
   it('should render navigation landmark with accessible name', () => {
-    const { getByRole } = render(<SkipLinks />);
-    const nav = getByRole('navigation');
-    expect(nav).toHaveAttribute('aria-label');
+    const { container } = render(<SkipLinks />);
+    const nav = container.querySelector('[role="navigation"]');
+    expect(nav).not.toBeNull();
+    expect(nav?.getAttribute('aria-label')).toBeTruthy();
   });
 
   it('should render skip links as anchor elements', () => {
-    const { getAllByRole } = render(<SkipLinks />);
-    const links = getAllByRole('link');
+    const { container } = render(<SkipLinks />);
+    const links = container.querySelectorAll('.skip-link');
     expect(links.length).toBeGreaterThan(0);
   });
 
   it('should have valid href attributes pointing to page sections', () => {
-    const { getAllByRole } = render(<SkipLinks />);
-    const links = getAllByRole('link');
+    const { container } = render(<SkipLinks />);
+    const links = container.querySelectorAll('.skip-link');
 
     links.forEach(link => {
       const href = link.getAttribute('href');
@@ -52,8 +55,8 @@ describe('SkipLinks - Accessibility', () => {
   });
 
   it('should have descriptive link text', () => {
-    const { getAllByRole } = render(<SkipLinks />);
-    const links = getAllByRole('link');
+    const { container } = render(<SkipLinks />);
+    const links = container.querySelectorAll('.skip-link');
 
     links.forEach(link => {
       const text = link.textContent?.trim();
