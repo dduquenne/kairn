@@ -116,6 +116,9 @@ jobs:
       - name: Run UI component tests
         run: pnpm test:ui
 
+      - name: Run accessibility tests
+        run: pnpm test:a11y
+
       - name: Check coverage threshold
         run: |
           # Extract coverage percentage from coverage summary

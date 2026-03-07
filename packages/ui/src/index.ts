@@ -119,6 +119,10 @@ export {
 
 // Accessibility Components
 export { SkipLinks, type SkipLinksProps, type SkipLink } from './components/skip-links';
+export {
+  AxeAccessibilityChecker,
+  type AxeAccessibilityCheckerProps,
+} from './components/axe-accessibility-checker';
 
 // SEO Components
 export {
