@@ -60,6 +60,21 @@
       "types": "./src/hooks/index.ts",
       "import": "./src/hooks/index.ts",
       "default": "./src/hooks/index.ts"
+    },
+    "./storage": {
+      "types": "./src/storage/index.ts",
+      "import": "./src/storage/index.ts",
+      "default": "./src/storage/index.ts"
+    },
+    "./storage/image-utils": {
+      "types": "./src/storage/image-utils.ts",
+      "import": "./src/storage/image-utils.ts",
+      "default": "./src/storage/image-utils.ts"
+    },
+    "./deployment": {
+      "types": "./src/deployment/index.ts",
+      "import": "./src/deployment/index.ts",
+      "default": "./src/deployment/index.ts"
     }
   },
   "scripts": {

@@ -230,6 +230,53 @@ export {
   type EmailBranding,
 } from './email';
 
+// Storage
+export {
+  StorageService,
+  createStorageService,
+  createLocalStorageProvider,
+  createSupabaseStorageProvider,
+  BLUR_DATA_URL,
+  BLUR_DATA_URL_GOLD,
+  IMAGE_DIMENSIONS,
+  ASPECT_RATIOS,
+  getPlaceholderProps,
+  getImageProps,
+  type StorageProvider,
+  type StorageServiceConfig,
+  type LocalStorageConfig,
+  type SupabaseStorageConfig,
+  type UploadResult,
+  type DeleteResult,
+  type SupabaseStorageClient,
+} from './storage';
+
+// Deployment
+export {
+  ALLOWED_REFS,
+  VERSION_TAG_PATTERN,
+  isAllowedRef,
+  generateDeployToken,
+  getTokenExpiration,
+  isTokenValid,
+  formatDuration,
+  sanitizeLogs,
+  getStatusColor,
+  getPhaseDisplayName,
+  writeMaintenanceFlag,
+  removeMaintenanceFlag,
+  setMaintenanceInactive,
+  setMaintenanceActive,
+  type DeploymentStatus,
+  type DeploymentPhase,
+  type DeploymentInfo,
+  type DeploymentTriggerRequest,
+  type DeploymentTriggerResponse,
+  type MaintenanceModeInfo,
+  type BranchInfo,
+  type MaintenanceFlag,
+} from './deployment';
+
 // Scheduler (QStash)
 export {
   // Client

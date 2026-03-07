@@ -1,11 +1,10 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * Supabase module exports
+ *
+ * Re-exports storage operations backed by @kairn/core/storage.
  */
 
-export { supabase, isSupabaseStorageConfigured } from "./client";
+export { supabase, isSupabaseStorageConfigured } from './client';
 export {
   uploadImage,
   deleteImage,
@@ -14,4 +13,4 @@ export {
   migrateImageToSupabase,
   BUCKETS,
   type BucketName,
-} from "./storage";
+} from './storage';
