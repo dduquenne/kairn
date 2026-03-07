@@ -13,3 +13,16 @@ export {
 } from './useFormSubmission';
 export { useFormSessionStorage } from './useFormSessionStorage';
 export { useHydrationSafeAnimation, useHasMounted } from './useHydrationSafeAnimation';
+
+// PWA / Mobile hooks
+export { useHapticFeedback, type HapticStyle } from './useHapticFeedback';
+export {
+  usePullToRefresh,
+  type UsePullToRefreshReturn,
+  type PullToRefreshOptions,
+} from './usePullToRefresh';
+export {
+  useNotifications,
+  type SendNotificationOptions,
+  type UseNotificationsReturn,
+} from './useNotifications';

@@ -5,8 +5,10 @@ import { useEffect } from 'react';
 export const dynamic = 'force-dynamic';
 
 /**
- * Global error boundary for the application
- * Catches errors in the React component tree and provides error recovery
+ * Page d'erreur globale Next.js App Router pour Psypnos.
+ *
+ * Affiche une page d'erreur avec les couleurs du thème Psypnos
+ * et intègre le reporting d'erreur centralisé.
  */
 export default function Error({
   error,
@@ -16,16 +18,12 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log error details for debugging
     console.error('[ErrorBoundary] Application error:', {
       message: error.message,
       stack: error.stack,
       digest: error.digest,
       timestamp: new Date().toISOString(),
     });
-
-    // In production, you would send this to an error tracking service
-    // Example: Sentry.captureException(error);
   }, [error]);
 
   return (
@@ -35,10 +33,9 @@ export default function Error({
         Une erreur est survenue
       </h2>
       <p className="text-ivory/80 mb-8 max-w-md text-lg">
-        Désolé, une erreur inattendue s'est produite. Veuillez réessayer.
+        Désolé, une erreur inattendue s&apos;est produite. Veuillez réessayer.
       </p>
 
-      {/* Show error digest in development for easier debugging */}
       {process.env.NODE_ENV === 'development' && error.digest && (
         <p className="text-ivory/50 mb-4 font-mono text-sm">Error ID: {error.digest}</p>
       )}
@@ -54,7 +51,7 @@ export default function Error({
           href="/"
           className="bg-ivory/10 text-ivory hover:bg-ivory/20 inline-block rounded-lg px-8 py-3 font-medium transition-all"
         >
-          Retour à l'accueil
+          Retour à l&apos;accueil
         </a>
       </div>
     </div>

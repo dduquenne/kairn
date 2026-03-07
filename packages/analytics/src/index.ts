@@ -10,6 +10,10 @@ export {
   SessionManager,
   getSessionManager,
   resetSessionManager,
+  WebVitalsReporter,
+  evaluateMetricRating,
+  type WebVitalsReporterProps,
+  type WebVitalMetric,
 } from './client';
 
 // Consent management
