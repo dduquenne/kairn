@@ -3,11 +3,20 @@
  */
 
 export {
+  formatDuration,
+  formatDurationMs,
+  formatTimestamp,
+  formatRelativeTime,
+  getVercelStateColor,
+  getVercelStateLabel,
+  getCIColor,
+  getCILabel,
+  sanitizeLogs,
+  checkDeploymentConfig,
+  // Legacy
   generateDeployToken,
   getTokenExpiration,
   isTokenValid,
-  formatDuration,
-  sanitizeLogs,
   getStatusColor,
   getPhaseDisplayName,
 } from '@kairn/core/deployment';
