@@ -1,9 +1,8 @@
 /**
- * Maintenance Flag File Manager — re-exports from @kairn/core/deployment
+ * Maintenance Flag — re-exports from @kairn/core/deployment
  *
- * Gère un fichier statique dans /public/ pour indiquer le statut de maintenance.
- * Ce fichier est servi directement par Next.js sans passer par le middleware,
- * évitant ainsi le problème de requête auto-référentielle en Edge Runtime.
+ * @deprecated On Vercel, filesystem-based maintenance flags are not persistent.
+ * Use the DB-backed MaintenanceMode model instead (via /api/admin/deployment/maintenance).
  */
 
 export {

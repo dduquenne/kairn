@@ -3,12 +3,32 @@
  */
 
 export type {
+  VercelDeploymentState,
+  VercelDeploymentTarget,
+  VercelGitMeta,
+  VercelDeployment,
+  VercelProjectInfo,
+  GitHubRunStatus,
+  GitHubRunConclusion,
+  GitHubCheckRun,
+  GitHubWorkflowRun,
+  ServiceHealth,
+  RuntimeHealth,
+  MaintenanceModeInfo,
+  DeploymentConfig,
+  DeploymentDashboardData,
+  DiagnosticFinding,
+  DiagnosticRecommendation,
+  DiagnosticAnalysis,
+} from '@kairn/core/deployment';
+
+// Legacy types (backward compatibility)
+export type {
   DeploymentStatus,
   DeploymentPhase,
   DeploymentInfo,
   DeploymentTriggerRequest,
   DeploymentTriggerResponse,
-  MaintenanceModeInfo,
   BranchInfo,
 } from '@kairn/core/deployment';
 

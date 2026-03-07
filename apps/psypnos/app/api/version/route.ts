@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * Version API Route
  *
@@ -10,13 +7,9 @@
  * IMPORTANT: Cet endpoint ne doit JAMAIS être mis en cache.
  */
 
-import * as fs from "fs";
-import * as path from "path";
+import { NextResponse } from 'next/server';
 
-import { NextResponse } from "next/server";
-
-// Force dynamic pour éviter le cache
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 interface VersionResponse {
@@ -26,64 +19,30 @@ interface VersionResponse {
   environment: string;
 }
 
-// Cache le BUILD_ID en mémoire pour éviter les lectures répétées
-let cachedBuildId: string | null = null;
-
-function getBuildId(): string {
-  if (cachedBuildId) return cachedBuildId;
-
-  try {
-    // En production standalone, le BUILD_ID est dans .next/BUILD_ID
-    const buildIdPath = path.join(process.cwd(), ".next", "BUILD_ID");
-    if (fs.existsSync(buildIdPath)) {
-      cachedBuildId = fs.readFileSync(buildIdPath, "utf-8").trim();
-      return cachedBuildId;
-    }
-  } catch {
-    // Ignorer les erreurs de lecture
-  }
-
-  // Fallback : utiliser la variable d'environnement ou un ID par défaut
-  cachedBuildId = process.env.BUILD_ID || process.env.NEXT_BUILD_ID || "development";
-  return cachedBuildId;
-}
-
-// Lecture de la version depuis package.json (au démarrage)
-let appVersion: string = "1.0.0";
-try {
-  const packageJsonPath = path.join(process.cwd(), "package.json");
-  if (fs.existsSync(packageJsonPath)) {
-    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8"));
-    appVersion = packageJson.version || "1.0.0";
-  }
-} catch {
-  // Utiliser la version par défaut
-}
-
-// Horodatage du démarrage du serveur (approximation du build time)
+/** Server start time (approximation of build time for Serverless) */
 const serverStartTime = new Date().toISOString();
 
+/** GET /api/version — Return current app version and build info */
 export async function GET(): Promise<NextResponse<VersionResponse>> {
-  const buildId = getBuildId();
+  const version = process.env.npm_package_version || '1.0.0';
+  const buildId = process.env.NEXT_BUILD_ID || process.env.VERCEL_DEPLOYMENT_ID || 'development';
 
   const response: VersionResponse = {
-    version: appVersion,
-    buildId: buildId,
+    version,
+    buildId,
     buildTime: serverStartTime,
-    environment: process.env.NODE_ENV || "development",
+    environment: process.env.NODE_ENV || 'development',
   };
 
   return NextResponse.json(response, {
     status: 200,
     headers: {
-      // CRUCIAL: Empêcher tout mise en cache de cet endpoint
-      "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
-      "Pragma": "no-cache",
-      "Expires": "0",
-      "Surrogate-Control": "no-store",
-      // Ajouter un timestamp pour prouver que c'est frais
-      "X-Build-Id": buildId,
-      "X-App-Version": appVersion,
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+      Pragma: 'no-cache',
+      Expires: '0',
+      'Surrogate-Control': 'no-store',
+      'X-Build-Id': buildId,
+      'X-App-Version': version,
     },
   });
 }

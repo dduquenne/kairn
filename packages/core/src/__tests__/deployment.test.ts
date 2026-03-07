@@ -73,15 +73,9 @@ describe('Deployment Module', () => {
   });
 
   describe('generateDeployToken', () => {
-    it('should generate a 64-char hex token', () => {
+    it('should return empty string (deprecated VPS stub)', () => {
       const token = generateDeployToken();
-      expect(token).toMatch(/^[a-f0-9]{64}$/);
-    });
-
-    it('should generate unique tokens', () => {
-      const token1 = generateDeployToken();
-      const token2 = generateDeployToken();
-      expect(token1).not.toBe(token2);
+      expect(token).toBe('');
     });
   });
 
