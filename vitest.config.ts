@@ -88,6 +88,7 @@ export default defineConfig({
     alias: {
       '@kairn/core': path.resolve(__dirname, 'packages/core/src'),
       '@kairn/config': path.resolve(__dirname, 'packages/config/src'),
+      '@kairn/db': path.resolve(__dirname, 'packages/db/src'),
       '@kairn/ui': path.resolve(__dirname, 'packages/ui/src'),
     },
   },
