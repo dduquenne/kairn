@@ -61,6 +61,11 @@
       "import": "./src/components/customization/index.ts",
       "default": "./src/components/customization/index.ts"
     },
+    "./components/chatbot": {
+      "types": "./src/components/chatbot/index.ts",
+      "import": "./src/components/chatbot/index.ts",
+      "default": "./src/components/chatbot/index.ts"
+    },
     "./hooks": {
       "types": "./src/hooks/index.ts",
       "import": "./src/hooks/index.ts",

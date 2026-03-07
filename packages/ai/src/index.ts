@@ -164,6 +164,15 @@ export {
   LINKEDIN_FORMATS,
   type SocialPromptConfig,
 
+  // Chatbot prompts
+  buildChatbotSystemPrompt,
+  parseSuggestedActions,
+  sanitizeMessageHistory,
+  ACTION_PATTERN,
+  type ChatbotPromptConfig,
+  type ChatbotActionType,
+  type ChatbotSuggestedAction,
+
   // Image prompts
   buildImagePrompt,
   buildBrandedImagePrompt,

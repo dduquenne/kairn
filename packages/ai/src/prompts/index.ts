@@ -30,6 +30,17 @@ export {
   type SocialPromptConfig,
 } from './social-post.js';
 
+// Chatbot prompts
+export {
+  buildChatbotSystemPrompt,
+  parseSuggestedActions,
+  sanitizeMessageHistory,
+  ACTION_PATTERN,
+  type ChatbotPromptConfig,
+  type ChatbotActionType,
+  type ChatbotSuggestedAction,
+} from './chatbot.js';
+
 // Image prompts
 export {
   buildImagePrompt,

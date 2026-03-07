@@ -33,3 +33,6 @@ export * from './configuration';
 
 // Customization components
 export * from './customization';
+
+// Chatbot admin components
+export * from './chatbot';

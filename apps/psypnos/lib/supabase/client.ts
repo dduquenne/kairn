@@ -1,14 +1,12 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 /**
  * Supabase Client Singleton
- * Used for Supabase Storage (images)
+ *
+ * Used for Supabase Storage (images).
+ * Storage operations are delegated to @kairn/core/storage.
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// Declare global type for the Supabase client in development
 declare global {
   // eslint-disable-next-line no-var
   var supabase: SupabaseClient | undefined;
