@@ -1,181 +1,263 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Edit, Trash2, Users, Calendar, MapPin, Eye, EyeOff } from "lucide-react";
-import { cn } from "@kairn/ui";
-import { ConfirmDialog } from "../common/ConfirmDialog";
+import { cn } from '@kairn/ui';
+import { Edit, Trash2, Share2, Calendar } from 'lucide-react';
+import { useState } from 'react';
 
+import { ConfirmDialog } from '../common/ConfirmDialog';
+
+/**
+ * Speaker information for a seminar
+ */
+export interface SeminarSpeaker {
+  firstName: string;
+  lastName: string;
+}
+
+/**
+ * Seminar data shape used by the admin table.
+ * Supports both simple (date/location) and enriched (speakers/startAt/endAt) models.
+ */
 export interface Seminar {
   id: string;
   title: string;
   description?: string;
-  date: Date;
+  speakers?: SeminarSpeaker[];
+  startAt?: string;
+  endAt?: string;
+  date?: Date;
   endDate?: Date;
-  location: string;
+  location?: string;
+  capacity?: number;
   maxParticipants?: number;
-  currentParticipants: number;
-  isPublished: boolean;
+  currentParticipants?: number;
   price?: number;
-  image?: string;
+  deposit?: number;
+  order?: string;
+  tags?: string[];
+  thumbnail?: string;
+  seminarType?: string;
+  isPublished?: boolean;
+  status?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
+/**
+ * Props for the SeminarsTable component
+ */
 export interface SeminarsTableProps {
   /** Seminars to display */
   seminars: Seminar[];
   /** Callback when edit is clicked */
   onEdit?: (seminar: Seminar) => void;
   /** Callback when delete is clicked */
-  onDelete?: (id: string) => Promise<void>;
-  /** Callback when visibility is toggled */
-  onToggleVisibility?: (id: string, isPublished: boolean) => Promise<void>;
-  /** Callback when participants is clicked */
-  onViewParticipants?: (seminar: Seminar) => void;
+  onDelete?: (seminar: Seminar) => void;
+  /** Callback when share is clicked */
+  onShare?: (seminar: Seminar) => void;
+  /** Whether to show delete confirmation inline */
+  showDeleteConfirm?: boolean;
+  /** Custom delete handler (used with showDeleteConfirm) */
+  onDeleteConfirm?: (id: string) => Promise<void>;
   /** Whether actions are loading */
   isLoading?: boolean;
   /** Custom class names */
   className?: string;
+  /** Custom empty state message */
+  emptyMessage?: string;
 }
 
 /**
- * SeminarsTable - Table for managing seminars/events
+ * SeminarsTable - Configurable table for managing seminars/events
+ *
+ * Supports both simple (date/location) and enriched (speakers/startAt/endAt) seminar models.
  */
 export function SeminarsTable({
   seminars,
   onEdit,
   onDelete,
-  onToggleVisibility,
-  onViewParticipants,
+  onShare,
+  showDeleteConfirm = false,
+  onDeleteConfirm,
   isLoading = false,
   className,
+  emptyMessage = 'Aucun séminaire pour le moment. Cliquez sur « Créer » pour en ajouter un.',
 }: SeminarsTableProps) {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const hasSpeakers = seminars.some(s => s.speakers && s.speakers.length > 0);
+  const hasLocation = seminars.some(s => s.location);
+
+  /** @internal */
   const handleDelete = async () => {
-    if (!deleteId || !onDelete) return;
+    if (!deleteId || !onDeleteConfirm) return;
     setIsDeleting(true);
     try {
-      await onDelete(deleteId);
+      await onDeleteConfirm(deleteId);
     } finally {
       setIsDeleting(false);
       setDeleteId(null);
     }
   };
 
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString("fr-FR", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
+  /** @internal */
+  const handleDeleteClick = (seminar: Seminar) => {
+    if (showDeleteConfirm && onDeleteConfirm) {
+      setDeleteId(seminar.id);
+    } else if (onDelete) {
+      onDelete(seminar);
+    }
   };
+
+  if (seminars.length === 0) {
+    return (
+      <div className="border-night/40 bg-night/60 text-ivory/70 rounded-lg border p-10 text-center text-sm">
+        {emptyMessage}
+      </div>
+    );
+  }
 
   return (
     <>
-      <div className={cn("overflow-x-auto rounded-xl border border-gold/20 bg-night/60", className)}>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gold/20">
-              <th className="px-4 py-3 text-left font-semibold text-ivory/70">Seminaire</th>
-              <th className="px-4 py-3 text-left font-semibold text-ivory/70">Date</th>
-              <th className="px-4 py-3 text-left font-semibold text-ivory/70">Lieu</th>
-              <th className="px-4 py-3 text-center font-semibold text-ivory/70">Participants</th>
-              <th className="px-4 py-3 text-center font-semibold text-ivory/70">Statut</th>
-              <th className="px-4 py-3 text-right font-semibold text-ivory/70">Actions</th>
+      <div
+        className={cn(
+          'border-night/40 bg-night/60 shadow-aurora/40 overflow-x-auto rounded-xl border',
+          className
+        )}
+      >
+        <table className="divide-night/40 min-w-full divide-y text-sm">
+          <thead className="bg-night/80 text-ivory/60 text-xs uppercase tracking-wide">
+            <tr>
+              <th scope="col" className="px-3 py-3 text-left font-medium sm:px-4">
+                Titre
+              </th>
+              {hasSpeakers && (
+                <th
+                  scope="col"
+                  className="hidden px-3 py-3 text-left font-medium sm:table-cell sm:px-4"
+                >
+                  Intervenants
+                </th>
+              )}
+              {hasLocation && (
+                <th
+                  scope="col"
+                  className="hidden px-3 py-3 text-left font-medium sm:table-cell sm:px-4"
+                >
+                  Lieu
+                </th>
+              )}
+              <th
+                scope="col"
+                className="hidden px-3 py-3 text-left font-medium md:table-cell md:px-4"
+              >
+                Période
+              </th>
+              <th
+                scope="col"
+                className="hidden px-3 py-3 text-left font-medium lg:table-cell lg:px-4"
+              >
+                Capacité
+              </th>
+              <th scope="col" className="px-3 py-3 text-right font-medium sm:px-4">
+                Actions
+              </th>
             </tr>
           </thead>
-          <tbody>
-            {seminars.map((seminar) => (
-              <tr
-                key={seminar.id}
-                className="border-b border-gold/10 hover:bg-gold/5 transition"
-              >
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    {seminar.image ? (
-                      <img
-                        src={seminar.image}
-                        alt={seminar.title}
-                        className="h-12 w-12 rounded-lg object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gold/20 text-gold">
-                        <Calendar size={20} />
+          <tbody className="divide-night/40 divide-y">
+            {seminars.map(seminar => (
+              <tr key={seminar.id} className="bg-night/40 text-ivory/90">
+                <td className="px-3 py-3 sm:px-4">
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-3">
+                      {seminar.thumbnail ? (
+                        <img
+                          src={seminar.thumbnail}
+                          alt={seminar.title}
+                          className="h-10 w-10 rounded-lg object-cover"
+                        />
+                      ) : null}
+                      <div>
+                        <span className="text-ivory font-medium">{seminar.title}</span>
+                        {seminar.price !== undefined && (
+                          <p className="text-gold text-xs">
+                            {seminar.price === 0 ? 'Gratuit' : `${seminar.price}€`}
+                          </p>
+                        )}
                       </div>
-                    )}
-                    <div>
-                      <p className="font-medium text-ivory">{seminar.title}</p>
-                      {seminar.price !== undefined && (
-                        <p className="text-xs text-gold">
-                          {seminar.price === 0 ? "Gratuit" : `${seminar.price}€`}
-                        </p>
-                      )}
                     </div>
-                  </div>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2 text-ivory/70">
-                    <Calendar size={14} className="text-gold/70" />
-                    <span>{formatDate(seminar.date)}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2 text-ivory/70">
-                    <MapPin size={14} className="text-gold/70" />
-                    <span className="max-w-[150px] truncate">{seminar.location}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-center">
-                  <button
-                    onClick={() => onViewParticipants?.(seminar)}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-gold/10 px-3 py-1 text-xs font-medium text-gold transition hover:bg-gold/20"
-                  >
-                    <Users size={12} />
-                    {seminar.currentParticipants}
-                    {seminar.maxParticipants && ` / ${seminar.maxParticipants}`}
-                  </button>
-                </td>
-                <td className="px-4 py-3 text-center">
-                  <span
-                    className={cn(
-                      "inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium",
-                      seminar.isPublished
-                        ? "bg-green-500/20 text-green-400"
-                        : "bg-ivory/10 text-ivory/50"
+                    {seminar.tags && seminar.tags.length > 0 && (
+                      <span className="text-ivory/60 text-xs">{seminar.tags.join(', ')}</span>
                     )}
-                  >
-                    {seminar.isPublished ? <Eye size={12} /> : <EyeOff size={12} />}
-                    {seminar.isPublished ? "Publie" : "Brouillon"}
+                    {hasSpeakers && (
+                      <span className="text-ivory/50 text-xs sm:hidden">
+                        {renderSpeakers(seminar)}
+                      </span>
+                    )}
+                    <span className="text-ivory/50 text-xs md:hidden">
+                      {formatDateRange(seminar)}
+                    </span>
+                  </div>
+                </td>
+                {hasSpeakers && (
+                  <td className="text-ivory/80 hidden px-3 py-3 sm:table-cell sm:px-4">
+                    {renderSpeakers(seminar)}
+                  </td>
+                )}
+                {hasLocation && (
+                  <td className="hidden px-3 py-3 sm:table-cell sm:px-4">
+                    <span className="text-ivory/70 max-w-[150px] truncate">{seminar.location}</span>
+                  </td>
+                )}
+                <td className="text-ivory/80 hidden px-3 py-3 md:table-cell md:px-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar size={14} className="text-gold/70" />
+                    {formatDateRange(seminar)}
+                  </div>
+                </td>
+                <td className="hidden px-3 py-3 lg:table-cell lg:px-4">
+                  <span className="bg-night/60 text-gold rounded-full px-3 py-1 text-xs font-semibold">
+                    {seminar.capacity ?? seminar.maxParticipants ?? '—'}
+                    {seminar.currentParticipants !== undefined &&
+                      ` (${seminar.currentParticipants} inscrits)`}
                   </span>
                 </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center justify-end gap-1">
-                    {onToggleVisibility && (
+                <td className="px-3 py-3 sm:px-4">
+                  <div className="flex flex-col items-end gap-1 sm:flex-row sm:items-center sm:gap-2">
+                    {onShare && (
                       <button
-                        onClick={() => onToggleVisibility(seminar.id, !seminar.isPublished)}
+                        type="button"
+                        onClick={() => onShare(seminar)}
                         disabled={isLoading}
-                        className="rounded-md p-2 text-ivory/50 transition hover:bg-gold/10 hover:text-gold disabled:opacity-50"
-                        title={seminar.isPublished ? "Masquer" : "Publier"}
+                        className="border-gold/40 text-gold/70 hover:border-gold hover:bg-gold/10 hover:text-gold rounded-md border p-1.5 transition disabled:opacity-50"
+                        title="Diffuser sur les réseaux sociaux"
                       >
-                        {seminar.isPublished ? <EyeOff size={16} /> : <Eye size={16} />}
+                        <Share2 className="h-4 w-4" />
                       </button>
                     )}
                     {onEdit && (
                       <button
+                        type="button"
                         onClick={() => onEdit(seminar)}
-                        className="rounded-md p-2 text-ivory/50 transition hover:bg-gold/10 hover:text-gold"
+                        disabled={isLoading}
+                        className="border-night/40 text-ivory/70 hover:border-gold/60 hover:text-gold rounded-md border px-3 py-1 text-xs font-medium transition disabled:opacity-50"
                         title="Modifier"
                       >
-                        <Edit size={16} />
+                        <span className="hidden sm:inline">Modifier</span>
+                        <Edit size={16} className="sm:hidden" />
                       </button>
                     )}
-                    {onDelete && (
+                    {(onDelete || (showDeleteConfirm && onDeleteConfirm)) && (
                       <button
-                        onClick={() => setDeleteId(seminar.id)}
-                        className="rounded-md p-2 text-red-400/50 transition hover:bg-red-500/10 hover:text-red-400"
+                        type="button"
+                        onClick={() => handleDeleteClick(seminar)}
+                        disabled={isLoading}
+                        className="rounded-md border border-rose-500/40 px-3 py-1 text-xs font-medium text-rose-300 transition hover:border-rose-400 hover:text-rose-200 disabled:opacity-50"
                         title="Supprimer"
                       >
-                        <Trash2 size={16} />
+                        <span className="hidden sm:inline">Supprimer</span>
+                        <Trash2 size={16} className="sm:hidden" />
                       </button>
                     )}
                   </div>
@@ -186,15 +268,76 @@ export function SeminarsTable({
         </table>
       </div>
 
-      <ConfirmDialog
-        open={!!deleteId}
-        title="Supprimer le seminaire ?"
-        description="Cette action supprimera egalement toutes les inscriptions. Elle est irreversible."
-        onCancel={() => setDeleteId(null)}
-        onConfirm={handleDelete}
-        loading={isDeleting}
-        variant="danger"
-      />
+      {showDeleteConfirm && (
+        <ConfirmDialog
+          open={!!deleteId}
+          title="Supprimer le séminaire ?"
+          description="Cette action supprimera également toutes les inscriptions. Elle est irréversible."
+          onCancel={() => setDeleteId(null)}
+          onConfirm={handleDelete}
+          loading={isDeleting}
+          variant="danger"
+        />
+      )}
     </>
   );
+}
+
+/**
+ * Format speakers list as a display string
+ */
+function renderSpeakers(seminar: Seminar): string {
+  if (!seminar.speakers || seminar.speakers.length === 0) return '';
+  return seminar.speakers
+    .map(speaker => `${speaker.firstName} ${speaker.lastName}`.trim())
+    .join(' & ');
+}
+
+/**
+ * Format date range for display
+ */
+function formatDateRange(seminar: Seminar): string {
+  const startRaw = seminar.startAt ?? seminar.date?.toISOString();
+  const endRaw = seminar.endAt ?? seminar.endDate?.toISOString();
+
+  if (!startRaw) return '—';
+
+  try {
+    const start = new Date(startRaw);
+    if (Number.isNaN(start.getTime())) return startRaw;
+
+    if (!endRaw) {
+      return new Intl.DateTimeFormat('fr-FR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      }).format(start);
+    }
+
+    const end = new Date(endRaw);
+    if (Number.isNaN(end.getTime())) return startRaw;
+
+    const sameMonth =
+      start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear();
+
+    if (sameMonth) {
+      const monthFormatter = new Intl.DateTimeFormat('fr-FR', {
+        month: 'short',
+        year: 'numeric',
+      });
+      const startDay = new Intl.DateTimeFormat('fr-FR', { day: '2-digit' }).format(start);
+      const endDay = new Intl.DateTimeFormat('fr-FR', { day: '2-digit' }).format(end);
+      return `${startDay}-${endDay} ${monthFormatter.format(start)}`;
+    }
+
+    const dateFormatter = new Intl.DateTimeFormat('fr-FR', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+
+    return `${dateFormatter.format(start)} – ${dateFormatter.format(end)}`;
+  } catch {
+    return startRaw;
+  }
 }

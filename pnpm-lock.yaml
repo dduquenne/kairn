@@ -295,6 +295,9 @@ importers:
       recharts:
         specifier: ^2.12.0
         version: 2.15.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      zod:
+        specifier: ^3.22.0
+        version: 3.25.76
     devDependencies:
       '@kairn/typescript-config':
         specifier: workspace:*

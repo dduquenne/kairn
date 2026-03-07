@@ -169,6 +169,25 @@ ses patients avec bienveillance et professionnalisme dans leur cheminement perso
     },
   },
 
+  // Configuration séminaires
+  seminars: {
+    types: [
+      { value: 'respiration-holotropique', label: 'Respiration holotropique' },
+      { value: 'breathwork', label: 'Breathwork' },
+      { value: 'rebirth', label: 'Rebirth' },
+      { value: 'meditation', label: 'Méditation' },
+      { value: 'yoga', label: 'Yoga' },
+      { value: 'developpement-personnel', label: 'Développement personnel' },
+      { value: 'autre', label: 'Autre' },
+    ],
+    speakersCount: 2,
+    defaultCapacity: 24,
+    currency: 'EUR',
+    thumbnailUpload: true,
+    depositEnabled: true,
+    orderEnabled: true,
+  },
+
   // Thème visuel (référence theme.config.ts pour les détails)
   theme: {
     colors: {

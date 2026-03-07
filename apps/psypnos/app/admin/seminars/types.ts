@@ -1,4 +1,4 @@
-import type { SeminarAttributes, SeminarStore } from "../../api/seminars/store";
+import type { SeminarAttributes, SeminarOutput } from '../../api/seminars/prisma-store';
 
-export type Seminar = SeminarStore;
+export type Seminar = SeminarOutput;
 export type SeminarFormValues = SeminarAttributes;
