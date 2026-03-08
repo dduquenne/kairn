@@ -228,18 +228,20 @@ function QuickStat({
   color: string;
 }) {
   return (
-    <div className="flex items-center gap-3">
-      <div className={`bg-night/60 flex h-10 w-10 items-center justify-center rounded-xl ${color}`}>
-        <Icon className="h-5 w-5" />
+    <div className="flex items-center gap-2 sm:gap-3">
+      <div
+        className={`bg-night/60 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg sm:h-10 sm:w-10 sm:rounded-xl ${color}`}
+      >
+        <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
       </div>
-      <div>
-        <p className="text-ivory text-xl font-bold">
+      <div className="min-w-0">
+        <p className="text-ivory text-lg font-bold sm:text-xl">
           {value}
           {total !== undefined && (
             <span className="text-ivory/40 text-sm font-normal">/{total}</span>
           )}
         </p>
-        <p className="text-ivory/50 text-xs">{label}</p>
+        <p className="text-ivory/50 truncate text-[11px] sm:text-xs">{label}</p>
       </div>
     </div>
   );

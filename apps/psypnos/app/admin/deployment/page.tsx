@@ -184,10 +184,10 @@ function ConfigAlert({ config }: { config: DeploymentConfig }) {
 /** Latest deployment hero card */
 function LatestDeploymentCard({ deployment }: { deployment: VercelDeployment }) {
   return (
-    <div className="border-night/50 rounded-xl border bg-gradient-to-br from-gray-900/50 to-gray-800/30 p-6">
-      <div className="flex items-center justify-between">
+    <div className="border-night/50 rounded-xl border bg-gradient-to-br from-gray-900/50 to-gray-800/30 p-4 sm:p-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <div className="bg-gold/10 rounded-lg p-2.5">
+          <div className="bg-gold/10 shrink-0 rounded-lg p-2.5">
             <Globe className="text-gold h-5 w-5" />
           </div>
           <div>
@@ -196,7 +196,7 @@ function LatestDeploymentCard({ deployment }: { deployment: VercelDeployment }) 
           </div>
         </div>
         <span
-          className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-medium ${stateClasses(deployment.state)}`}
+          className={`inline-flex shrink-0 items-center gap-1.5 self-start rounded-full border px-3 py-1 text-sm font-medium sm:self-auto ${stateClasses(deployment.state)}`}
         >
           <StateIcon state={deployment.state} />
           {stateLabel(deployment.state)}
@@ -275,13 +275,25 @@ function LatestDeploymentCard({ deployment }: { deployment: VercelDeployment }) 
 /** Deployment timeline row */
 function DeploymentRow({ dep }: { dep: VercelDeployment }) {
   return (
-    <div className="border-night/30 flex items-center gap-3 border-b px-4 py-3 transition last:border-0 hover:bg-white/[0.02]">
-      <span
-        className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${stateClasses(dep.state)}`}
-      >
-        <StateIcon state={dep.state} />
-        {stateLabel(dep.state)}
-      </span>
+    <div className="border-night/30 flex flex-col gap-2 border-b px-4 py-3 transition last:border-0 hover:bg-white/[0.02] sm:flex-row sm:items-center sm:gap-3">
+      <div className="flex items-center gap-3">
+        <span
+          className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${stateClasses(dep.state)}`}
+        >
+          <StateIcon state={dep.state} />
+          {stateLabel(dep.state)}
+        </span>
+        {dep.inspectorUrl && (
+          <a
+            href={dep.inspectorUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-ivory/30 hover:text-gold shrink-0 transition sm:hidden"
+          >
+            <ExternalLink className="h-4 w-4" />
+          </a>
+        )}
+      </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="truncate text-sm text-white">{dep.git?.commitMessage || dep.url}</span>
@@ -291,11 +303,11 @@ function DeploymentRow({ dep }: { dep: VercelDeployment }) {
             </span>
           )}
         </div>
-        <div className="text-ivory/40 mt-0.5 flex items-center gap-3 text-xs">
+        <div className="text-ivory/40 mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs">
           {dep.git?.commitRef && (
             <span className="flex items-center gap-1">
               <GitBranch className="h-3 w-3" />
-              {dep.git.commitRef}
+              <span className="max-w-[120px] truncate sm:max-w-none">{dep.git.commitRef}</span>
             </span>
           )}
           {dep.git?.commitSha && <span className="font-mono">{shortSha(dep.git.commitSha)}</span>}
@@ -308,7 +320,7 @@ function DeploymentRow({ dep }: { dep: VercelDeployment }) {
           href={dep.inspectorUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-ivory/30 hover:text-gold shrink-0 transition"
+          className="text-ivory/30 hover:text-gold hidden shrink-0 transition sm:block"
         >
           <ExternalLink className="h-4 w-4" />
         </a>
@@ -344,11 +356,11 @@ function CIPipelineCard({ run, loading }: { run: GitHubWorkflowRun | null; loadi
 
   return (
     <div className="border-night/50 rounded-xl border bg-gray-900/30">
-      <div className="p-6">
-        <div className="flex items-center justify-between">
+      <div className="p-4 sm:p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div
-              className={`rounded-lg p-2.5 ${
+              className={`shrink-0 rounded-lg p-2.5 ${
                 run.conclusion === 'success'
                   ? 'bg-emerald-500/10'
                   : run.conclusion === 'failure'
@@ -366,9 +378,9 @@ function CIPipelineCard({ run, loading }: { run: GitHubWorkflowRun | null; loadi
                 }`}
               />
             </div>
-            <div>
-              <h2 className="font-semibold text-white">{run.name}</h2>
-              <p className="text-ivory/50 text-sm">
+            <div className="min-w-0">
+              <h2 className="truncate font-semibold text-white">{run.name}</h2>
+              <p className="text-ivory/50 truncate text-sm">
                 {run.headBranch} &middot; {shortSha(run.headSha)} &middot;{' '}
                 {relativeTime(run.createdAt)}
               </p>
@@ -435,7 +447,7 @@ function CIPipelineCard({ run, loading }: { run: GitHubWorkflowRun | null; loadi
           {run.jobs.map((job: GitHubCheckRun) => (
             <div
               key={job.id}
-              className="border-night/20 flex items-center justify-between border-b px-6 py-2.5 last:border-0"
+              className="border-night/20 flex items-center justify-between border-b px-4 py-2.5 last:border-0 sm:px-6"
             >
               <div className="flex items-center gap-2">
                 {job.conclusion === 'success' ? (
@@ -502,15 +514,15 @@ function HealthCard({
         : 'text-red-400';
 
   return (
-    <div className="border-night/50 space-y-4 rounded-xl border bg-gray-900/30 p-6">
-      <div className="flex items-center justify-between">
+    <div className="border-night/50 space-y-4 rounded-xl border bg-gray-900/30 p-4 sm:p-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <div className="rounded-lg bg-white/5 p-2.5">
+          <div className="shrink-0 rounded-lg bg-white/5 p-2.5">
             <Server className="text-gold h-5 w-5" />
           </div>
-          <div>
+          <div className="min-w-0">
             <h2 className="font-semibold text-white">Santé de l&apos;application</h2>
-            <p className="text-ivory/50 text-sm">
+            <p className="text-ivory/50 truncate text-sm">
               v{health.version} &middot;{' '}
               {health.region ? `Région ${health.region}` : health.environment}
             </p>
@@ -702,19 +714,19 @@ function MaintenancePanel({
   onToggle: (active: boolean) => void;
 }) {
   return (
-    <div className="border-night/50 rounded-xl border bg-gray-900/30 p-6">
-      <div className="flex items-center justify-between">
+    <div className="border-night/50 rounded-xl border bg-gray-900/30 p-4 sm:p-6">
+      <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div
-            className={`rounded-lg p-2.5 ${maintenance.isActive ? 'bg-amber-500/10' : 'bg-white/5'}`}
+            className={`shrink-0 rounded-lg p-2.5 ${maintenance.isActive ? 'bg-amber-500/10' : 'bg-white/5'}`}
           >
             <Shield
               className={`h-5 w-5 ${maintenance.isActive ? 'text-amber-400' : 'text-ivory/50'}`}
             />
           </div>
-          <div>
+          <div className="min-w-0">
             <h2 className="font-semibold text-white">Mode maintenance</h2>
-            <p className="text-ivory/50 text-sm">
+            <p className="text-ivory/50 truncate text-sm">
               {maintenance.isActive
                 ? `Activé par ${maintenance.activatedBy ?? 'système'}`
                 : 'Désactivé'}
@@ -893,7 +905,7 @@ export default function DeploymentPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-gold text-2xl font-bold">Déploiement</h1>
           <p className="text-ivory/50 text-sm">Suivi des déploiements Vercel et pipeline CI/CD</p>
@@ -901,7 +913,7 @@ export default function DeploymentPage() {
         <button
           onClick={() => void refreshAll()}
           disabled={refreshing}
-          className="bg-gold/10 text-gold hover:bg-gold/20 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition disabled:opacity-50"
+          className="bg-gold/10 text-gold hover:bg-gold/20 inline-flex items-center gap-2 self-start rounded-lg px-4 py-2 text-sm font-medium transition disabled:opacity-50 sm:self-auto"
         >
           <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
           Actualiser
@@ -910,19 +922,19 @@ export default function DeploymentPage() {
 
       {config && <ConfigAlert config={config} />}
 
-      <div className="border-night/50 flex gap-1 border-b pb-px">
+      <div className="scrollbar-hide border-night/50 -mx-4 flex gap-1 overflow-x-auto border-b px-4 pb-px sm:mx-0 sm:px-0">
         {tabs.map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 rounded-t-lg px-4 py-2.5 text-sm font-medium transition ${
+            className={`flex shrink-0 items-center gap-2 whitespace-nowrap rounded-t-lg px-3 py-2.5 text-sm font-medium transition sm:px-4 ${
               activeTab === tab.id
                 ? 'text-gold border-gold border-b-2 bg-white/5'
                 : 'text-ivory/50 hover:text-ivory/80 border-b-2 border-transparent'
             }`}
           >
             {tab.icon}
-            {tab.label}
+            <span className="xs:inline hidden sm:inline">{tab.label}</span>
           </button>
         ))}
       </div>
@@ -948,7 +960,7 @@ export default function DeploymentPage() {
 
           {deployments.length > 1 && (
             <div className="border-night/50 rounded-xl border bg-gray-900/30">
-              <div className="flex items-center justify-between px-6 py-4">
+              <div className="flex items-center justify-between px-4 py-4 sm:px-6">
                 <h3 className="font-semibold text-white">Historique des déploiements</h3>
                 <button
                   onClick={() => setShowAllDeployments(!showAllDeployments)}
