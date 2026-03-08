@@ -355,7 +355,7 @@ export function AlertFormModal({
                 <label className="text-ivory mb-2 block text-sm font-medium">
                   Type d&apos;alerte
                 </label>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3">
                   {(Object.keys(ALERT_TYPE_LABELS) as AlertType[]).map(type => (
                     <button
                       key={type}

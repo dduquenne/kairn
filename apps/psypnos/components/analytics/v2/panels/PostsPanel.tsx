@@ -644,25 +644,37 @@ export function PostsPanel({ data, isLoading = false }: PostsPanelProps) {
           </div>
         ) : (
           <div className="-mx-4 overflow-x-auto sm:mx-0">
-            <table className="w-full min-w-[800px] text-sm">
+            <table className="w-full min-w-[480px] text-sm">
               <thead>
                 <tr className="border-gold/20 border-b">
-                  <th className="text-ivory/70 px-4 py-3 text-left font-semibold">#</th>
-                  <th className="text-ivory/70 px-4 py-3 text-left font-semibold">Plateforme</th>
-                  <th className="text-ivory/70 px-4 py-3 text-left font-semibold">Contenu</th>
-                  <th className="text-ivory/70 px-4 py-3 text-center font-semibold">Type</th>
-                  <th className="text-ivory/70 px-4 py-3 text-center font-semibold">Portée</th>
-                  <th className="text-ivory/70 px-4 py-3 text-center font-semibold">
+                  <th className="text-ivory/70 px-3 py-3 text-left font-semibold sm:px-4">#</th>
+                  <th className="text-ivory/70 px-3 py-3 text-left font-semibold sm:px-4">
+                    Plateforme
+                  </th>
+                  <th className="text-ivory/70 px-3 py-3 text-left font-semibold sm:px-4">
+                    Contenu
+                  </th>
+                  <th className="text-ivory/70 hidden px-4 py-3 text-center font-semibold md:table-cell">
+                    Type
+                  </th>
+                  <th className="text-ivory/70 px-3 py-3 text-center font-semibold sm:px-4">
+                    Portée
+                  </th>
+                  <th className="text-ivory/70 px-3 py-3 text-center font-semibold sm:px-4">
                     <Heart size={14} className="inline text-pink-400" />
                   </th>
-                  <th className="text-ivory/70 px-4 py-3 text-center font-semibold">
+                  <th className="text-ivory/70 hidden px-4 py-3 text-center font-semibold sm:table-cell">
                     <MessageCircle size={14} className="inline text-blue-400" />
                   </th>
-                  <th className="text-ivory/70 px-4 py-3 text-center font-semibold">
+                  <th className="text-ivory/70 hidden px-4 py-3 text-center font-semibold sm:table-cell">
                     <Repeat2 size={14} className="inline text-green-400" />
                   </th>
-                  <th className="text-ivory/70 px-4 py-3 text-center font-semibold">Taux</th>
-                  <th className="text-ivory/70 px-4 py-3 text-left font-semibold">Date</th>
+                  <th className="text-ivory/70 px-3 py-3 text-center font-semibold sm:px-4">
+                    Taux
+                  </th>
+                  <th className="text-ivory/70 hidden px-4 py-3 text-left font-semibold lg:table-cell">
+                    Date
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -697,33 +709,36 @@ export function PostsPanel({ data, isLoading = false }: PostsPanelProps) {
                         <PlatformIcon platform={post.platform} size={16} className="text-white" />
                       </div>
                     </td>
-                    <td className="px-4 py-3">
-                      <p className="text-ivory max-w-[200px] truncate text-sm" title={post.content}>
+                    <td className="px-3 py-3 sm:px-4">
+                      <p
+                        className="text-ivory max-w-[120px] truncate text-sm sm:max-w-[200px]"
+                        title={post.content}
+                      >
                         {truncateText(post.content, 50)}
                       </p>
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="hidden px-4 py-3 text-center md:table-cell">
                       <div className="flex items-center justify-center gap-1">
                         <PostTypeIcon type={post.type} />
                         <span className="text-ivory/60 text-xs capitalize">{post.type}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-3 py-3 text-center sm:px-4">
                       <div className="flex items-center justify-center gap-1">
                         <Eye size={14} className="text-blue-400/60" />
                         <span className="text-ivory font-semibold">{formatNumber(post.reach)}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-center font-medium text-pink-400">
+                    <td className="px-3 py-3 text-center font-medium text-pink-400 sm:px-4">
                       {formatNumber(post.likes)}
                     </td>
-                    <td className="px-4 py-3 text-center font-medium text-blue-400">
+                    <td className="hidden px-4 py-3 text-center font-medium text-blue-400 sm:table-cell">
                       {formatNumber(post.comments)}
                     </td>
-                    <td className="px-4 py-3 text-center font-medium text-green-400">
+                    <td className="hidden px-4 py-3 text-center font-medium text-green-400 sm:table-cell">
                       {formatNumber(post.shares)}
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-3 py-3 text-center sm:px-4">
                       <span
                         className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
                           post.engagementRate >= 5
@@ -736,7 +751,7 @@ export function PostsPanel({ data, isLoading = false }: PostsPanelProps) {
                         {post.engagementRate.toFixed(1)}%
                       </span>
                     </td>
-                    <td className="text-ivory/60 px-4 py-3 text-xs">
+                    <td className="text-ivory/60 hidden px-4 py-3 text-xs lg:table-cell">
                       {formatDate(post.publishedAt)}
                     </td>
                   </motion.tr>
