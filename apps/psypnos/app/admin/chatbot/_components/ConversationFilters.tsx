@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 interface ConversationFiltersProps {
   search: string;
@@ -24,17 +24,17 @@ export function ConversationFilters({
         <input
           type="text"
           value={search}
-          onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Rechercher dans les conversations..."
-          className="w-full rounded-lg border border-gold/20 bg-night/60 px-3 py-2 text-sm text-ivory placeholder:text-ivory/30 focus:border-gold/50 focus:outline-none focus:ring-1 focus:ring-gold/30"
+          onChange={e => onSearchChange(e.target.value)}
+          placeholder="Rechercher..."
+          className="border-gold/20 bg-night/60 text-ivory placeholder:text-ivory/30 focus:border-gold/50 focus:ring-gold/30 w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1"
         />
       </div>
 
       {/* Status filter */}
       <select
         value={statusFilter}
-        onChange={(e) => onStatusFilterChange(e.target.value)}
-        className="rounded-lg border border-gold/20 bg-night/60 px-3 py-2 text-sm text-ivory focus:border-gold/50 focus:outline-none focus:ring-1 focus:ring-gold/30"
+        onChange={e => onStatusFilterChange(e.target.value)}
+        className="border-gold/20 bg-night/60 text-ivory focus:border-gold/50 focus:ring-gold/30 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1"
       >
         <option value="">Tous les statuts</option>
         <option value="active">En cours</option>
@@ -45,8 +45,8 @@ export function ConversationFilters({
       {/* Satisfaction filter */}
       <select
         value={satisfactionFilter}
-        onChange={(e) => onSatisfactionFilterChange(e.target.value)}
-        className="rounded-lg border border-gold/20 bg-night/60 px-3 py-2 text-sm text-ivory focus:border-gold/50 focus:outline-none focus:ring-1 focus:ring-gold/30"
+        onChange={e => onSatisfactionFilterChange(e.target.value)}
+        className="border-gold/20 bg-night/60 text-ivory focus:border-gold/50 focus:ring-gold/30 rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-1"
       >
         <option value="">Toute satisfaction</option>
         <option value="satisfied">Satisfait</option>

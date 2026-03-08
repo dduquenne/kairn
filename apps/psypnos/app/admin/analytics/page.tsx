@@ -245,7 +245,7 @@ function AnalyticsPageContent() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="border-gold/20 bg-night/95 fixed right-4 top-24 z-50 w-48 overflow-hidden rounded-xl border shadow-2xl backdrop-blur-xl"
+            className="border-gold/20 bg-night/95 fixed right-2 top-24 z-50 w-48 overflow-hidden rounded-xl border shadow-2xl backdrop-blur-xl sm:right-4"
           >
             <div className="p-2">
               <button

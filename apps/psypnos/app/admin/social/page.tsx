@@ -74,52 +74,55 @@ export default function SocialPage() {
   // Data Loading
   // ===========================================
 
-  const loadData = useCallback(async (year?: number, month?: number) => {
-    try {
-      // Build date range for the target month
-      const targetYear = year ?? calendarYear;
-      const targetMonth = month ?? calendarMonth;
-      const from = new Date(targetYear, targetMonth, 1).toISOString();
-      const to = new Date(targetYear, targetMonth + 1, 0, 23, 59, 59, 999).toISOString();
+  const loadData = useCallback(
+    async (year?: number, month?: number) => {
+      try {
+        // Build date range for the target month
+        const targetYear = year ?? calendarYear;
+        const targetMonth = month ?? calendarMonth;
+        const from = new Date(targetYear, targetMonth, 1).toISOString();
+        const to = new Date(targetYear, targetMonth + 1, 0, 23, 59, 59, 999).toISOString();
 
-      // Load posts scoped to the calendar month
-      const params = new URLSearchParams({
-        t: Date.now().toString(),
-        from,
-        to,
-      });
-      const postsRes = await fetch(`/api/social/posts?${params}`, {
-        cache: 'no-store',
-      });
-      if (postsRes.ok) {
-        const postsData = await postsRes.json();
-        setPosts(postsData.posts || []);
-      }
-
-      // Load analytics
-      const analyticsRes = await fetch('/api/social/analytics?days=30&t=' + Date.now(), {
-        cache: 'no-store',
-      });
-      if (analyticsRes.ok) {
-        const analyticsData = await analyticsRes.json();
-        if (analyticsData.stats) {
-          setAnalytics({
-            impressions: analyticsData.stats.totalImpressions || 0,
-            engagements: analyticsData.stats.totalEngagements || 0,
-            reach: analyticsData.stats.totalReach || 0,
-            likes: analyticsData.stats.totalLikes || 0,
-            comments: analyticsData.stats.totalComments || 0,
-            shares: analyticsData.stats.totalShares || 0,
-            engagementRate: analyticsData.stats.averageEngagementRate || 0,
-          });
+        // Load posts scoped to the calendar month
+        const params = new URLSearchParams({
+          t: Date.now().toString(),
+          from,
+          to,
+        });
+        const postsRes = await fetch(`/api/social/posts?${params}`, {
+          cache: 'no-store',
+        });
+        if (postsRes.ok) {
+          const postsData = await postsRes.json();
+          setPosts(postsData.posts || []);
         }
+
+        // Load analytics
+        const analyticsRes = await fetch('/api/social/analytics?days=30&t=' + Date.now(), {
+          cache: 'no-store',
+        });
+        if (analyticsRes.ok) {
+          const analyticsData = await analyticsRes.json();
+          if (analyticsData.stats) {
+            setAnalytics({
+              impressions: analyticsData.stats.totalImpressions || 0,
+              engagements: analyticsData.stats.totalEngagements || 0,
+              reach: analyticsData.stats.totalReach || 0,
+              likes: analyticsData.stats.totalLikes || 0,
+              comments: analyticsData.stats.totalComments || 0,
+              shares: analyticsData.stats.totalShares || 0,
+              engagementRate: analyticsData.stats.averageEngagementRate || 0,
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error loading data:', error);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Error loading data:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [calendarYear, calendarMonth]);
+    },
+    [calendarYear, calendarMonth]
+  );
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -389,7 +392,7 @@ export default function SocialPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="border-gold/20 from-night/60 to-night/40 flex flex-wrap items-center gap-6 rounded-lg border bg-gradient-to-r px-6 py-4"
+        className="border-gold/20 from-night/60 to-night/40 flex flex-wrap items-center gap-4 rounded-lg border bg-gradient-to-r px-4 py-4 sm:gap-6 sm:px-6"
       >
         <div className="flex items-center gap-3">
           <div className="bg-gold/10 rounded-lg p-2">
@@ -418,7 +421,7 @@ export default function SocialPage() {
         {analytics && (
           <>
             <div className="bg-gold/20 hidden h-8 w-px sm:block" />
-            <div className="flex hidden items-center gap-2 sm:flex">
+            <div className="hidden items-center gap-2 sm:flex">
               <span className="text-ivory/50 text-sm">Engagements:</span>
               <span className="text-gold text-sm font-medium">
                 {analytics.engagements.toLocaleString()}
@@ -436,46 +439,37 @@ export default function SocialPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15 }}
-        className="flex items-center gap-2"
+        className="scrollbar-hide -mx-4 flex items-center gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0"
       >
         <button
           onClick={() => setViewMode('calendar')}
-          className={`
-            inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition
-            ${
-              viewMode === 'calendar'
-                ? 'bg-gold/20 text-gold'
-                : 'text-ivory/60 hover:bg-gold/10 hover:text-ivory'
-            }
-          `}
+          className={`inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition sm:px-4 ${
+            viewMode === 'calendar'
+              ? 'bg-gold/20 text-gold'
+              : 'text-ivory/60 hover:bg-gold/10 hover:text-ivory'
+          }`}
         >
           <Calendar className="h-4 w-4" />
           Calendrier
         </button>
         <button
           onClick={() => setViewMode('history')}
-          className={`
-            inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition
-            ${
-              viewMode === 'history'
-                ? 'bg-gold/20 text-gold'
-                : 'text-ivory/60 hover:bg-gold/10 hover:text-ivory'
-            }
-          `}
+          className={`inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition sm:px-4 ${
+            viewMode === 'history'
+              ? 'bg-gold/20 text-gold'
+              : 'text-ivory/60 hover:bg-gold/10 hover:text-ivory'
+          }`}
         >
           <History className="h-4 w-4" />
           Historique
         </button>
         <button
           onClick={() => setViewMode('insights')}
-          className={`
-            inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition
-            ${
-              viewMode === 'insights'
-                ? 'bg-gold/20 text-gold'
-                : 'text-ivory/60 hover:bg-gold/10 hover:text-ivory'
-            }
-          `}
+          className={`inline-flex shrink-0 items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition sm:px-4 ${
+            viewMode === 'insights'
+              ? 'bg-gold/20 text-gold'
+              : 'text-ivory/60 hover:bg-gold/10 hover:text-ivory'
+          }`}
         >
           <BarChart3 className="h-4 w-4" />
           Insights
