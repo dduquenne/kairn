@@ -1,7 +1,5 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-
 import { motion } from 'framer-motion';
 import {
   Eye,
@@ -17,6 +15,7 @@ import {
   ChevronUp,
   ChevronDown,
 } from 'lucide-react';
+import { useState, useMemo } from 'react';
 
 export interface BlogArticleStats {
   slug: string;
@@ -348,42 +347,44 @@ export function BlogPanel({ data, isLoading = false }: BlogPanelProps) {
           </div>
         ) : (
           <div className="-mx-4 overflow-x-auto sm:mx-0">
-            <table className="w-full min-w-[640px] text-sm">
+            <table className="w-full min-w-[400px] text-sm">
               <thead>
                 <tr className="border-gold/20 border-b">
-                  <th className="text-ivory/70 px-4 py-3 text-left font-semibold">#</th>
+                  <th className="text-ivory/70 px-3 py-3 text-left font-semibold sm:px-4">#</th>
                   <th
-                    className="text-ivory/70 hover:text-gold cursor-pointer select-none px-4 py-3 text-center font-semibold transition-colors"
+                    className="text-ivory/70 hover:text-gold cursor-pointer select-none px-3 py-3 text-center font-semibold transition-colors sm:px-4"
                     onClick={() => handleSort('score')}
                   >
                     Score <SortIcon column="score" />
                   </th>
-                  <th className="text-ivory/70 px-4 py-3 text-left font-semibold">Article</th>
+                  <th className="text-ivory/70 px-3 py-3 text-left font-semibold sm:px-4">
+                    Article
+                  </th>
                   <th
-                    className="text-ivory/70 hover:text-gold cursor-pointer select-none px-4 py-3 text-center font-semibold transition-colors"
+                    className="text-ivory/70 hover:text-gold cursor-pointer select-none px-3 py-3 text-center font-semibold transition-colors sm:px-4"
                     onClick={() => handleSort('views')}
                   >
                     Vues <SortIcon column="views" />
                   </th>
                   <th
-                    className="text-ivory/70 hover:text-gold cursor-pointer select-none px-4 py-3 text-center font-semibold transition-colors"
+                    className="text-ivory/70 hover:text-gold hidden cursor-pointer select-none px-4 py-3 text-center font-semibold transition-colors sm:table-cell"
                     onClick={() => handleSort('uniqueVisitors')}
                   >
                     Visiteurs <SortIcon column="uniqueVisitors" />
                   </th>
                   <th
-                    className="text-ivory/70 hover:text-gold cursor-pointer select-none px-4 py-3 text-center font-semibold transition-colors"
+                    className="text-ivory/70 hover:text-gold hidden cursor-pointer select-none px-4 py-3 text-center font-semibold transition-colors md:table-cell"
                     onClick={() => handleSort('avgTimeOnPage')}
                   >
                     Durée moy. <SortIcon column="avgTimeOnPage" />
                   </th>
                   <th
-                    className="text-ivory/70 hover:text-gold cursor-pointer select-none px-4 py-3 text-center font-semibold transition-colors"
+                    className="text-ivory/70 hover:text-gold hidden cursor-pointer select-none px-4 py-3 text-center font-semibold transition-colors md:table-cell"
                     onClick={() => handleSort('avgScrollDepth')}
                   >
                     % Lecture <SortIcon column="avgScrollDepth" />
                   </th>
-                  <th className="text-ivory/70 px-4 py-3 text-left font-semibold">
+                  <th className="text-ivory/70 hidden px-4 py-3 text-left font-semibold lg:table-cell">
                     Dernière visite
                   </th>
                 </tr>
@@ -397,7 +398,7 @@ export function BlogPanel({ data, isLoading = false }: BlogPanelProps) {
                     transition={{ delay: index * 0.03 }}
                     className="border-gold/10 hover:bg-ivory/5 border-b transition-colors"
                   >
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-3 sm:px-4">
                       <span
                         className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${
                           index === 0
@@ -412,24 +413,24 @@ export function BlogPanel({ data, isLoading = false }: BlogPanelProps) {
                         {index + 1}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-3 py-3 text-center sm:px-4">
                       <div className="flex items-center justify-center gap-1">
                         <Trophy size={14} className="text-gold/60" />
                         <span className="text-gold font-bold">{article.score}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-3 sm:px-4">
                       <a
                         href={`/blog/${article.slug}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-ivory hover:text-gold block max-w-[200px] truncate font-medium transition-colors"
+                        className="text-ivory hover:text-gold block max-w-[120px] truncate font-medium transition-colors sm:max-w-[200px]"
                         title={article.title || article.slug}
                       >
                         {article.title || article.slug}
                       </a>
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-3 py-3 text-center sm:px-4">
                       <div className="flex items-center justify-center gap-1.5">
                         <Eye size={14} className="text-gold/60" />
                         <span className="text-ivory font-semibold">
@@ -437,7 +438,7 @@ export function BlogPanel({ data, isLoading = false }: BlogPanelProps) {
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="hidden px-4 py-3 text-center sm:table-cell">
                       <div className="flex items-center justify-center gap-1.5">
                         <Users size={14} className="text-blue-400/60" />
                         <span className="text-ivory/80">
@@ -445,7 +446,7 @@ export function BlogPanel({ data, isLoading = false }: BlogPanelProps) {
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="hidden px-4 py-3 text-center md:table-cell">
                       <div className="flex items-center justify-center gap-1.5">
                         <Clock size={14} className="text-green-400/60" />
                         <span className="text-ivory/80">
@@ -453,7 +454,7 @@ export function BlogPanel({ data, isLoading = false }: BlogPanelProps) {
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="hidden px-4 py-3 text-center md:table-cell">
                       {article.avgScrollDepth !== null ? (
                         <div className="flex items-center justify-center gap-2">
                           <div className="bg-night/40 h-1.5 w-12 overflow-hidden rounded-full">
@@ -468,7 +469,7 @@ export function BlogPanel({ data, isLoading = false }: BlogPanelProps) {
                         <span className="text-ivory/40">—</span>
                       )}
                     </td>
-                    <td className="text-ivory/60 px-4 py-3 text-xs">
+                    <td className="text-ivory/60 hidden px-4 py-3 text-xs lg:table-cell">
                       {formatDate(article.lastViewed)}
                     </td>
                   </motion.tr>

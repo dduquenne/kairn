@@ -467,7 +467,7 @@ export function SocialInsights({ posts, analytics, isCompact = false }: SocialIn
 
       {/* Analytics Breakdown */}
       {analytics && (
-        <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           <div className="border-gold/10 bg-night/20 rounded-lg border p-3 text-center">
             <Eye className="text-gold/70 mx-auto mb-1 h-4 w-4" />
             <p className="text-ivory text-lg font-semibold">
