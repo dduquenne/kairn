@@ -47,7 +47,7 @@ const generateArticleSchema = z.object({
   seoQuery: z.string().trim().optional(),
   searchIntent: z.string().trim().optional(),
   readerPersona: z.string().optional(),
-  useAppréciez Votre VieStyle: z.boolean().optional(),
+  useAvvStyle: z.boolean().optional(),
   meta: z.object({ honeypot: z.string() }).optional(),
 
   // Ancien schema pour rétrocompatibilité
@@ -135,7 +135,7 @@ export async function POST(request: Request) {
       searchIntent: payload.searchIntent || payload.searchIntention || '',
       readerPersona: payload.readerPersona || payload.persona || '',
       specificTone: singleTone as ArticleGenerationOptions['specificTone'],
-      useAppréciez Votre VieStyle: payload.useAppréciez Votre VieStyle !== false,
+      useAvvStyle: payload.useAvvStyle !== false,
       targetLength: (payload.targetLength || 'long') as 'short' | 'medium' | 'long',
       preferredTones: allTones, // Utiliser les tons fusionnés
     };

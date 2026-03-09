@@ -135,7 +135,7 @@ describe('buildSeminarMultiPlatformPrompt', () => {
     const prompt = buildSeminarMultiPlatformPrompt(BASE_SEMINAR, platforms, DEFAULT_OPTIONS);
 
     expect(prompt).toContain(INSCRIPTION_URL);
-    expect(prompt).toContain(RESPIRATION_URL);
+    expect(prompt).toContain(BREATHWORK_URL);
   });
 
   it('contient le thumbnail quand il est fourni', () => {

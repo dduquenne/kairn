@@ -43,7 +43,7 @@ const generateArticleSchema = z.object({
   seoQuery: z.string().trim().optional(),
   searchIntent: z.string().trim().optional(),
   readerPersona: z.string().optional(),
-  useAppréciez Votre VieStyle: z.boolean().optional().default(true),
+  useAvvStyle: z.boolean().optional().default(true),
   // Pour rétrocompatibilité
   subject: z.string().trim().optional(),
   seoKeyword: z.string().trim().optional(),
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
     searchIntent: payload.searchIntent || payload.searchIntention || '',
     readerPersona: payload.readerPersona || payload.persona || '',
     preferredTones: allTones,
-    useAppréciez Votre VieStyle: payload.useAppréciez Votre VieStyle,
+    useAvvStyle: payload.useAvvStyle,
   };
 
   // Mode streaming avec SSE

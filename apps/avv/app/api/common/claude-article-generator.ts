@@ -53,7 +53,7 @@ export interface ArticleGenerationOptions {
     | 'pragmatique';
   // Nouveaux tons préférés (multi-sélection)
   preferredTones?: string[];
-  useAppréciez Votre VieStyle?: boolean; // Activer le style rédactionnel AVV complet (default: true)
+  useAvvStyle?: boolean; // Activer le style rédactionnel AVV complet (default: true)
 }
 
 export interface GeneratedArticle {
@@ -301,7 +301,7 @@ export async function generateArticleWithClaude(
     });
 
     // Utiliser le style AVV par défaut (sauf désactivation explicite)
-    const useAppréciez Votre VieStyle = options.useAppréciez Votre VieStyle !== false;
+    const useAvvStyle = options.useAvvStyle !== false;
 
     // Construire le prompt selon les options
     const targetLength = options.targetLength || 'medium';
@@ -312,7 +312,7 @@ export async function generateArticleWithClaude(
     let editorialContext = '';
     let tonInstructions = '';
 
-    if (useAppréciez Votre VieStyle) {
+    if (useAvvStyle) {
       // Formater les tons préférés et créer les instructions
       if (options.preferredTones && options.preferredTones.length > 0) {
         // Créer un contexte riche pour les tons multiples
@@ -375,7 +375,7 @@ ${options.readerPersona ? `**Persona lecteur** : ${options.readerPersona}` : ''}
     }
 
     // Construire le prompt utilisateur
-    const prompt = useAppréciez Votre VieStyle
+    const prompt = useAvvStyle
       ? `${AVV_TECHNICAL_INSTRUCTIONS}
 
 ${editorialContext}
@@ -537,7 +537,7 @@ Génère maintenant l'article complet.`;
           max_tokens: maxTokensByLength[targetLength],
           temperature: 0.7,
           // ✨ Utiliser le system prompt AVV si activé
-          ...(useAppréciez Votre VieStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),
+          ...(useAvvStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),
           messages: [
             {
               role: 'user',
@@ -558,7 +558,7 @@ Génère maintenant l'article complet.`;
     }
 
     // Vérifier si la réponse a été tronquée (toutes les balises XML requises)
-    const requiredTags = useAppréciez Votre VieStyle
+    const requiredTags = useAvvStyle
       ? ['TITLE', 'DESCRIPTION', 'CONTENT', 'TAGS', 'FAQ', 'IMAGE_PROMPT']
       : ['TITLE', 'DESCRIPTION', 'CONTENT', 'TAGS'];
 
@@ -723,21 +723,21 @@ Génère maintenant l'article complet.`;
  * @param existingContent - Contenu existant de l'article
  * @param improvementPrompt - Instructions spécifiques pour l'amélioration
  * @param apiKey - Clé API Anthropic
- * @param useAppréciez Votre VieStyle - Utiliser le style AVV complet (default: true)
+ * @param useAvvStyle - Utiliser le style AVV complet (default: true)
  * @returns L'article amélioré
  */
 export async function improveArticleWithClaude(
   existingContent: string,
   improvementPrompt: string,
   apiKey: string,
-  useAppréciez Votre VieStyle = true
+  useAvvStyle = true
 ): Promise<GeneratedArticle> {
   try {
     const anthropic = new Anthropic({
       apiKey: apiKey,
     });
 
-    const prompt = useAppréciez Votre VieStyle
+    const prompt = useAvvStyle
       ? `${AVV_TECHNICAL_INSTRUCTIONS}
 
 ## CONTENU ACTUEL DE L'ARTICLE
@@ -781,7 +781,7 @@ Retourne uniquement le contenu amélioré en Markdown, sans balises additionnell
           max_tokens: 6000, // Même limite que la génération
           temperature: 0.7,
           // ✨ Utiliser le system prompt AVV si activé
-          ...(useAppréciez Votre VieStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),
+          ...(useAvvStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),
           messages: [
             {
               role: 'user',

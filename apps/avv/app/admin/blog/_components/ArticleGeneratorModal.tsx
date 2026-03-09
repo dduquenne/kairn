@@ -78,7 +78,7 @@ export function ArticleGeneratorModal({
   const [seoQuery, setSeoQuery] = useState('');
   const [searchIntent, setSearchIntent] = useState('');
   const [readerPersona, setReaderPersona] = useState('');
-  const [useAppréciez Votre VieStyle, setUseAppréciez Votre VieStyle] = useState(true);
+  const [useAvvStyle, setUseAvvStyle] = useState(true);
 
   const [error, setError] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -259,7 +259,7 @@ export function ArticleGeneratorModal({
           seoQuery: seoQuery.trim() || undefined,
           searchIntent: searchIntent.trim() || undefined,
           readerPersona: readerPersona.trim() || undefined,
-          useAppréciez Votre VieStyle,
+          useAvvStyle,
         }),
       });
 
@@ -295,7 +295,7 @@ export function ArticleGeneratorModal({
     setSeoQuery('');
     setSearchIntent('');
     setReaderPersona('');
-    setUseAppréciez Votre VieStyle(true);
+    setUseAvvStyle(true);
     setError(null);
     setIsGenerating(false);
     setGenerationProgress(0);
@@ -573,13 +573,13 @@ export function ArticleGeneratorModal({
             <div className="flex items-center gap-3">
               <input
                 type="checkbox"
-                id="useAppréciez Votre VieStyle"
-                checked={useAppréciez Votre VieStyle}
-                onChange={e => setUseAppréciez Votre VieStyle(e.target.checked)}
+                id="useAvvStyle"
+                checked={useAvvStyle}
+                onChange={e => setUseAvvStyle(e.target.checked)}
                 disabled={isGenerating}
                 className="border-gold/20 text-gold focus:ring-gold h-4 w-4 rounded disabled:opacity-50"
               />
-              <label htmlFor="useAppréciez Votre VieStyle" className="text-ivory text-sm font-medium">
+              <label htmlFor="useAvvStyle" className="text-ivory text-sm font-medium">
                 Utiliser le style rédactionnel AVV
               </label>
             </div>

@@ -112,8 +112,7 @@ j'accompagne désormais les adultes dans une démarche de ré-enchantement de le
       id: 'breathwork',
       name: 'Breathwork & Rebirth',
       slug: 'breathwork',
-      shortDescription:
-        'Techniques de respiration pour un voyage intérieur profond et libérateur.',
+      shortDescription: 'Techniques de respiration pour un voyage intérieur profond et libérateur.',
       icon: 'Wind',
       enabled: true,
       order: 3,
@@ -123,7 +122,7 @@ j'accompagne désormais les adultes dans une démarche de ré-enchantement de le
       name: 'Cohérence Cardiaque',
       slug: 'coherence-cardiaque',
       shortDescription:
-        'Exercices de respiration rythmée pour réguler le stress et harmoniser le corps et l\'esprit.',
+        "Exercices de respiration rythmée pour réguler le stress et harmoniser le corps et l'esprit.",
       icon: 'HeartPulse',
       enabled: true,
       order: 4,
@@ -158,7 +157,7 @@ j'accompagne désormais les adultes dans une démarche de ré-enchantement de le
       'Appréciez Votre Vie - Sophrologie, Relaxation & Somatothérapie | Saint-Julien-du-Sault, Yonne',
     titleTemplate: '%s | Appréciez Votre Vie',
     description:
-      'Nathalie Duquenne, sophrologue et somatothérapeute à Saint-Julien-du-Sault (89). Sophrologie, relaxation, somatothérapie, breathwork, cohérence cardiaque et reiki.',
+      'Nathalie Duquenne, sophrologue et somatothérapeute à Saint-Julien-du-Sault (89). Sophrologie, relaxation, somatothérapie, breathwork et reiki.',
     keywords: [
       'sophrologie',
       'relaxation',

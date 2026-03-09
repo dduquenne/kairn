@@ -108,7 +108,7 @@ const BASE_JOB = {
     category: 'Comprendre',
     targetLength: 'medium',
     preferredTones: ['pédagogique'],
-    useAppréciez Votre VieStyle: true,
+    useAvvStyle: true,
   },
   partialResult: null,
   result: null,

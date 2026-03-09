@@ -23,15 +23,15 @@ export const CATEGORY_COLORS = defineCategoryColors({
   Comprendre: COLOR_PRESETS.blue,
   Traverser: COLOR_PRESETS.green,
   Découvrir: COLOR_PRESETS.purple,
-  Cheminer: COLOR_PRESETS.mauve,
+  Cheminer: COLOR_PRESETS.pink,
 });
 
 export type Category = keyof typeof CATEGORY_COLORS;
 
 /**
- * Get colors for a category, falling back to mauve (Cheminer)
+ * Get colors for a category, falling back to pink (Cheminer)
  */
 export const getCategoryColors = createCategoryColorGetter(
   CATEGORY_COLORS,
-  COLOR_PRESETS.mauve // Default fallback for AVV
+  COLOR_PRESETS.pink // Default fallback for AVV
 );
