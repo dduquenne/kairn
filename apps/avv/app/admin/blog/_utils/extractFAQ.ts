@@ -1,0 +1,106 @@
+import { FAQItem } from "@/lib/blog";
+
+/**
+ * Génère un ID unique simple
+ */
+function generateId(): string {
+  return `faq-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
+/**
+ * Extrait les FAQ du contenu Markdown généré
+ * Supporte 2 formats:
+ *
+ * Format 1 (ancien):
+ * ## Questions fréquentes (ou ## FAQ)
+ * 1. **Question 1?**
+ *    Réponse 1
+ * 2. **Question 2?**
+ *    Réponse 2
+ *
+ * Format 2 (nouveau - Claude):
+ * ## FAQ : Vos questions sur [sujet]
+ * **1. La question est-elle bien formulée?**
+ * Réponse détaillée...
+ * **2. Deuxième question?**
+ * Réponse détaillée...
+ */
+export function extractFAQFromMarkdown(markdown: string): { faqList: FAQItem[]; contentWithoutFAQ: string } {
+  const faqList: FAQItem[] = [];
+  let contentWithoutFAQ = markdown;
+
+  // Chercher la section FAQ (supporte plusieurs variantes)
+  const faqMatch = markdown.match(/##\s+(?:FAQ|Questions?\s+fr[eé]quentes|FAQ\s*[:)].*?)\s*\n([\s\S]*?)(?=##|---|\*\*[^*]|\$|$)/i);
+
+  if (!faqMatch) {
+    return { faqList: [], contentWithoutFAQ: markdown };
+  }
+
+  const faqSection = faqMatch[1];
+  if (!faqSection) {
+    return { faqList: [], contentWithoutFAQ: markdown };
+  }
+  const lines = faqSection.split('\n');
+
+  let currentQuestion = '';
+  let currentAnswer = '';
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line) continue;
+
+    // Format 1: "1. **Question?**"
+    const format1Match = line.match(/^\s*\d+\.\s+\*\*([^*]+)\*\*\s*$/);
+    // Format 2: "**1. Question?**" ou "**Question?**"
+    const format2Match = line.match(/^\s*\*\*\d+\.\s*([^*]+)\*\*\s*$/);
+    // Format 2b: "**Question directe?**"
+    const format2bMatch = line.match(/^\s*\*\*([^*]+\?)\*\*\s*$/);
+
+    const questionMatch = format1Match || format2Match || format2bMatch;
+
+    if (questionMatch) {
+      // Sauvegarder la question/réponse précédente si elle existe
+      if (currentQuestion && currentAnswer.trim()) {
+        faqList.push({
+          id: generateId(),
+          question: currentQuestion.trim(),
+          answer: currentAnswer.trim(),
+        });
+      }
+      // Extraire le texte sans le numéro de format 2
+      let questionText = questionMatch[1] ?? '';
+      // Retirer le numéro s'il est présent (format2Match)
+      if (format2Match) {
+        questionText = questionText.replace(/^\d+\.\s*/, '');
+      }
+      currentQuestion = questionText;
+      currentAnswer = '';
+    } else if (currentQuestion && line.trim() && !line.match(/^---/) && !line.match(/^##/)) {
+      // Ajouter à la réponse courante si on a une question active
+      currentAnswer += (currentAnswer ? '\n' : '') + line.trim();
+    }
+  }
+
+  // Sauvegarder la dernière question/réponse
+  if (currentQuestion && currentAnswer.trim()) {
+    faqList.push({
+      id: generateId(),
+      question: currentQuestion.trim(),
+      answer: currentAnswer.trim(),
+    });
+  }
+
+  // Retirer la section FAQ du contenu (supporte plusieurs variantes)
+  contentWithoutFAQ = markdown.replace(/##\s+(?:FAQ|Questions?\s+fr[eé]quentes|FAQ\s*[:)].*?)\s*\n[\s\S]*?(?=##|---|\*\*[^*]|\$|$)/i, '').trim();
+
+  // Également retirer le bloc de code Description s'il existe
+  // Format: ```\nDescription : [texte]\n```
+  contentWithoutFAQ = contentWithoutFAQ.replace(/```\s*\nDescription\s*:.*?\n```\s*/i, '').trim();
+
+  // Retirer les blocs de code orphelins (Prompt image IA) de la fin si FAQ était présent
+  if (faqMatch) {
+    contentWithoutFAQ = contentWithoutFAQ.replace(/```\s*\nPrompt image IA.*?\n```\s*$/i, '').trim();
+  }
+
+  return { faqList, contentWithoutFAQ };
+}

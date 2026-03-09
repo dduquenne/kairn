@@ -1,0 +1,932 @@
+/**
+ * ============================================================================
+ * STYLES POUR LE CONTENU MARKDOWN DES ARTICLES
+ * ============================================================================
+ *
+ * Ce fichier centralise tous les styles pour l'affichage du contenu Markdown.
+ * Les couleurs sont appliquées via CSS variables déclarées dans:
+ * - ArticleThemeDark.tsx (pour le mode NUIT)
+ * - ArticleThemeLight.tsx (pour le mode JOUR)
+ *
+ * Les variables CSS utilisées sont définies dans les composants thème et
+ * correspondent aux constantes dans:
+ * app/blog/_constants/themeConstants.ts
+ *
+ * ============================================================================
+ * VARIABLES CSS DISPONIBLES (définies par les composants thème)
+ * ============================================================================
+ *
+ * TYPOGRAPHIE:
+ * --article-text-color          : Couleur du texte principal
+ * --article-heading-color       : Couleur des titres (h1, h2, h4-h6)
+ * --article-heading-h3-color    : Couleur spécifique des titres h3
+ * --article-muted-text          : Couleur du texte secondaire
+ * --article-link-color          : Couleur des liens
+ * --article-link-hover-color    : Couleur des liens au survol
+ *
+ * COMPOSANTS:
+ * --article-code-inline-bg      : Fond du code inline
+ * --article-code-inline-text    : Texte du code inline
+ * --article-code-block-bg       : Fond des blocs de code
+ * --article-code-block-text     : Texte des blocs de code
+ * --article-blockquote-border   : Bordure des citations
+ * --article-blockquote-text     : Texte des citations
+ * --article-table-border        : Bordure des tableaux
+ * --article-table-header-bg     : Fond de l'en-tête du tableau
+ * --article-table-header-text   : Texte de l'en-tête du tableau
+ * --article-table-body-text     : Texte du corps du tableau
+ * --article-list-text           : Couleur du texte des listes
+ * --article-list-marker         : Couleur des marqueurs de liste
+ * --article-hr-color            : Couleur des séparateurs horizontaux
+ * --article-mark-bg             : Fond des highlights/marks
+ * --article-mark-text           : Texte des highlights/marks
+ *
+ * ESPACEMENT:
+ * --article-paragraph-margin-bottom   : Marge sous les paragraphes
+ * --article-heading-margin-top        : Marge au-dessus des titres
+ * --article-heading-margin-bottom     : Marge sous les titres
+ * --article-code-inline-padding       : Padding du code inline
+ * --article-code-block-padding        : Padding des blocs de code
+ *
+ * AUTRES:
+ * --article-line-height        : Hauteur de ligne
+ * --article-letter-spacing     : Espacement des lettres
+ *
+ * ============================================================================
+ * COMMENT MODIFIER LES COULEURS
+ * ============================================================================
+ *
+ * Pour le MODE NUIT (dark):
+ *   1. Ouvrez: app/blog/_constants/themeConstants.ts
+ *   2. Trouvez: export const THEME_DARK = { ... }
+ *   3. Modifiez les couleurs dans les sections:
+ *      - typography
+ *      - components
+ *      - spacing
+ *      - other
+ *   4. Les changements s'appliqueront automatiquement via ArticleThemeDark.tsx
+ *
+ * Pour le MODE JOUR (light):
+ *   1. Ouvrez: app/blog/_constants/themeConstants.ts
+ *   2. Trouvez: export const THEME_LIGHT = { ... }
+ *   3. Modifiez les couleurs dans les mêmes sections
+ *   4. Les changements s'appliqueront automatiquement via ArticleThemeLight.tsx
+ *
+ * ============================================================================
+ */
+
+/* ============================================================================
+   STYLES GÉNÉRIQUES POUR LE CONTENU MARKDOWN
+   ============================================================================
+   Ces styles s'appliquent à tous les éléments markdown. Les couleurs sont
+   fournies par les variables CSS définies dans les composants thème.
+*/
+
+/* Container principal - Optimisé pour la lecture confortable */
+.blog-content {
+  font-size: 18px;
+  line-height: var(--article-line-height, 1.75) !important;
+  letter-spacing: var(--article-letter-spacing, 0.01em) !important;
+  color: var(--article-text-color) !important;
+}
+
+/* Headings - Hiérarchie claire et respiration - AMÉLIORÉ */
+.blog-content h1,
+.blog-content h2,
+.blog-content h3,
+.blog-content h4,
+.blog-content h5,
+.blog-content h6 {
+  margin-bottom: var(--article-heading-margin-bottom, 1rem) !important;
+  color: var(--article-heading-color) !important;
+}
+
+/* H1 - Titre principal très distinctif */
+.blog-content h1 {
+  font-size: 2.5rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--article-heading-color) !important;
+  border-bottom: 2px solid var(--article-heading-color) !important;
+  padding-bottom: 1rem;
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+}
+
+/* H2 - Section majeure, bien distincte de H3 */
+.blog-content h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  border-bottom: 1px solid var(--article-heading-h3-color) !important;
+  padding-bottom: 0.75rem;
+  scroll-margin-top: 6rem;
+  margin-top: 3rem;
+  margin-bottom: 1.5rem;
+}
+
+/* H3 - Sous-section */
+.blog-content h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--article-heading-h3-color) !important;
+  scroll-margin-top: 6rem;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+/* H4 - Subdivision */
+.blog-content h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--article-heading-color) !important;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+/* H5 - Petit titre */
+.blog-content h5 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--article-heading-color) !important;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+/* H6 - Étiquette */
+.blog-content h6 {
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--article-heading-color) !important;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Paragraphes - Respiration généreuse - AMÉLIORÉ */
+.blog-content p {
+  margin-bottom: 2rem !important;
+  color: var(--article-text-color) !important;
+  text-align: justify;
+}
+
+/* LEAD PARAGRAPH - Premier paragraphe distinctif et captivant */
+/* Exclure les paragraphes à l'intérieur des callouts et citations */
+.blog-content > p:first-of-type:not(.blockquote-first-p),
+.blog-content blockquote + p:first-of-type {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.6;
+  color: var(--article-lead-color, var(--article-heading-color));
+  background: var(--article-lead-bg, rgba(199, 169, 98, 0.05));
+  border-left: 4px solid var(--article-link-color);
+  padding: 1.5rem;
+  margin: 0 0 2.5rem 0;
+  border-radius: 0.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* S'assurer que les paragraphes dans les callouts et citations ne sont pas stylisés comme lead */
+.blog-content blockquote p:first-of-type,
+.blog-content blockquote p {
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  background: transparent !important;
+  border-left: none !important;
+  padding: 0 !important;
+  margin: 0.5rem 0 !important;
+  box-shadow: none !important;
+}
+
+/* Liens */
+.blog-content a {
+  color: var(--article-link-color) !important;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.3s ease;
+}
+
+.blog-content a:hover {
+  color: var(--article-link-hover-color) !important;
+}
+
+/* Listes - AMÉLIORÉ avec puces custom et meilleur espacement */
+.blog-content ul,
+.blog-content ol {
+  margin-top: 1.5rem;
+  margin-bottom: 2rem;
+  padding-left: 0;
+}
+
+/* Listes non-ordonnées avec puces custom */
+.blog-content ul {
+  list-style: none !important;
+}
+
+.blog-content ul > li {
+  margin-left: 1.75rem;
+  margin-bottom: 0.75rem;
+  position: relative;
+  line-height: 1.6;
+  color: var(--article-list-text) !important;
+  list-style: none !important;
+}
+
+/* Puces custom - Triangles dorés */
+.blog-content ul > li::before {
+  content: '▸';
+  position: absolute;
+  left: -1.75rem;
+  color: var(--article-list-unordered-marker);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+/* Listes ordonnées avec numéros circulaires */
+.blog-content ol {
+  counter-reset: item;
+  list-style: none !important;
+}
+
+.blog-content ol > li {
+  counter-increment: item;
+  margin-bottom: 0.75rem;
+  margin-left: 0;
+  padding-left: 2.75rem;
+  position: relative;
+  line-height: 1.6;
+  color: var(--article-list-text) !important;
+  list-style: none !important;
+}
+
+/* Numéros dans cercle */
+.blog-content ol > li::before {
+  content: counter(item);
+  position: absolute;
+  left: 0;
+  top: -0.125rem;
+  background: var(--article-list-ordered-marker-bg);
+  color: var(--article-list-ordered-marker-text);
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+  flex-shrink: 0;
+}
+
+/* Listes imbriquées */
+.blog-content ul ul,
+.blog-content ol ol,
+.blog-content ul ol,
+.blog-content ol ul {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  margin-left: 1.5rem;
+  padding-left: 0;
+}
+
+/* Puces secondaires - Petits points */
+.blog-content ul ul > li::before {
+  content: '◦';
+  font-size: 1rem;
+  opacity: 0.7;
+}
+
+/* Paragraphes dans listes */
+.blog-content li > p {
+  margin: 0.5rem 0;
+}
+
+.blog-content li > p:first-child {
+  margin-top: 0;
+}
+
+.blog-content li > p:last-child {
+  margin-bottom: 0;
+}
+
+/* Blockquotes & Callouts - AMÉLIORÉ avec couleurs distinctes */
+
+/* Base de tous les blockquotes */
+.blog-content blockquote {
+  border-left: 4px solid var(--article-blockquote-border) !important;
+  padding: 1.5rem;
+  margin: 2rem 0;
+  border-radius: 0.5rem;
+  background-color: var(--article-blockquote-bg) !important;
+  font-style: italic;
+  text-align: justify;
+  color: var(--article-blockquote-text) !important;
+  position: relative;
+}
+
+/* Override styles pour les callouts data-alert */
+.blog-content blockquote[data-alert] {
+  border-left: 4px solid !important;
+  padding: 1.5rem !important;
+  margin: 2rem 0 !important;
+  border-radius: 0.5rem !important;
+  font-style: normal !important;
+  text-align: left !important;
+  position: relative !important;
+  background-color: transparent !important;
+}
+
+.blog-content blockquote p {
+  margin-bottom: 0.5rem;
+  color: inherit !important;
+  text-align: inherit;
+  font-style: inherit;
+  line-height: inherit;
+}
+
+/* Paragraphes à l'intérieur des callouts */
+.blog-content blockquote[data-alert] p {
+  margin-bottom: 0.5rem !important;
+  margin-top: 0 !important;
+  text-align: left !important;
+  font-style: normal !important;
+}
+
+.blog-content blockquote cite {
+  font-style: normal;
+  font-size: 0.875rem;
+  display: block;
+  margin-top: 0.75rem;
+  opacity: 0.8;
+}
+
+.blog-content blockquote cite::before {
+  content: '— ';
+}
+
+/* NOTE CALLOUT (Bleu) */
+.blog-content blockquote[data-alert='note'] {
+  border-left-color: var(--article-callout-note-border) !important;
+  background: var(--article-callout-note-bg) !important;
+  color: var(--article-callout-note-text) !important;
+  font-style: normal !important;
+  padding-top: 2.5rem !important;
+  position: relative;
+}
+
+.blog-content blockquote[data-alert='note']::before {
+  content: 'ℹ️ Note';
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  display: block;
+  font-weight: 700;
+  color: var(--article-callout-note-icon);
+  font-size: 0.875rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 0;
+}
+
+.blog-content blockquote[data-alert='note'] p {
+  color: var(--article-callout-note-text) !important;
+}
+
+/* TIP CALLOUT (Vert) */
+.blog-content blockquote[data-alert='tip'] {
+  border-left-color: var(--article-callout-tip-border) !important;
+  background: var(--article-callout-tip-bg) !important;
+  color: var(--article-callout-tip-text) !important;
+  font-style: normal !important;
+  padding-top: 2.5rem !important;
+  position: relative;
+}
+
+.blog-content blockquote[data-alert='tip']::before {
+  content: '💡 Conseil';
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  display: block;
+  font-weight: 700;
+  color: var(--article-callout-tip-icon);
+  font-size: 0.875rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 0;
+}
+
+.blog-content blockquote[data-alert='tip'] p {
+  color: var(--article-callout-tip-text) !important;
+}
+
+/* WARNING CALLOUT (Orange) */
+.blog-content blockquote[data-alert='warning'] {
+  border-left-color: var(--article-callout-warning-border) !important;
+  background: var(--article-callout-warning-bg) !important;
+  color: var(--article-callout-warning-text) !important;
+  font-style: normal !important;
+  padding-top: 2.5rem !important;
+  position: relative;
+}
+
+.blog-content blockquote[data-alert='warning']::before {
+  content: '⚠️ Important';
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  display: block;
+  font-weight: 700;
+  color: var(--article-callout-warning-icon);
+  font-size: 0.875rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 0;
+}
+
+.blog-content blockquote[data-alert='warning'] p {
+  color: var(--article-callout-warning-text) !important;
+}
+
+/* QUOTE CALLOUT (Violet) */
+/* Note: :contains() is not valid CSS, using only the class selector */
+.blog-content blockquote.callout-quote {
+  border-left-color: var(--article-callout-quote-border);
+  background: var(--article-callout-quote-bg) !important;
+  color: var(--article-callout-quote-text);
+  font-style: italic;
+}
+
+.blog-content blockquote.callout-quote::before {
+  content: '✦ CITATION';
+  display: block;
+  font-weight: 700;
+  color: var(--article-callout-quote-icon);
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  font-style: normal;
+}
+/* Code inline */
+.blog-content code:not(pre code) {
+  background-color: var(--article-code-inline-bg) !important;
+  color: var(--article-code-inline-text) !important;
+  padding: var(--article-code-inline-padding, 0.25rem 0.5rem) !important;
+  border-radius: 0.375rem;
+  font-size: 0.9em;
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+}
+
+/* Code blocks - AMÉLIORÉ avec label et styling */
+.blog-content pre {
+  background-color: var(--article-code-block-bg) !important;
+  color: var(--article-code-block-text) !important;
+  padding: 1.5rem;
+  margin: 2.5rem 0;
+  border-radius: 0.75rem;
+  border: 1px solid rgba(199, 169, 98, 0.1);
+  overflow-x: auto;
+  box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.25);
+  position: relative;
+}
+
+/* Label de langage dans coin supérieur droit */
+.blog-content pre::before {
+  content: attr(data-language, 'CODE');
+  position: absolute;
+  top: 0.75rem;
+  right: 1rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--article-code-inline-text);
+  opacity: 0.6;
+  letter-spacing: 0.05em;
+  pointer-events: none;
+}
+
+.blog-content pre code {
+  background: none !important;
+  color: inherit !important;
+  padding: 0;
+  border: none;
+  font-size: 0.875rem;
+  display: block;
+  white-space: pre;
+  word-break: break-all;
+  word-wrap: break-word;
+}
+
+/* Highlight syntaxique (Highlight.js) */
+.blog-content code.hljs {
+  padding: 0;
+  background: transparent;
+  color: var(--article-code-block-text);
+}
+
+/* Tables - AMÉLIORÉ avec rayures et hover */
+.blog-content table {
+  width: 100%;
+  margin: 2.5rem 0;
+  border-collapse: collapse;
+  border: 1px solid var(--article-table-border);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: transparent;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  font-size: 0.95rem;
+}
+
+/* Table head */
+.blog-content thead {
+  background: var(--article-table-header-bg) !important;
+  border-bottom: 2px solid var(--article-table-border) !important;
+}
+
+.blog-content th {
+  color: var(--article-table-header-text) !important;
+  padding: 1.25rem 1rem;
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-right: 1px solid var(--article-table-border);
+}
+
+.blog-content th:last-child {
+  border-right: none;
+}
+
+/* Table body */
+.blog-content td {
+  padding: 1rem;
+  border: 1px solid var(--article-table-border);
+  color: var(--article-table-body-text) !important;
+  line-height: 1.6;
+}
+
+/* Rayures alternées pour meilleure lisibilité */
+.blog-content tbody tr:nth-child(even) {
+  background: rgba(199, 169, 98, 0.08) !important;
+}
+
+/* Hover effect */
+.blog-content tbody tr:hover {
+  background: rgba(199, 169, 98, 0.15) !important;
+}
+
+/* Responsive: Rendre tableaux empilés sur mobile */
+@media (max-width: 768px) {
+  .blog-content table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .blog-content table,
+  .blog-content thead,
+  .blog-content tbody,
+  .blog-content tr,
+  .blog-content th,
+  .blog-content td {
+    display: block;
+  }
+
+  .blog-content thead {
+    display: none;
+  }
+
+  .blog-content tr {
+    margin-bottom: 1rem;
+    border: 1px solid var(--article-table-border);
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  .blog-content td {
+    display: flex;
+    align-items: center;
+    text-align: right;
+    padding: 0.75rem;
+    border: none;
+  }
+
+  .blog-content td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    margin-right: 1rem;
+    text-align: left;
+    flex: 0 0 30%;
+  }
+}
+
+/* Images - AMÉLIORÉ */
+.blog-content img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 2.5rem auto;
+  border-radius: 0.75rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(199, 169, 98, 0.1);
+}
+
+/* Images côte à côte (optionnel) */
+.blog-content p > img + img {
+  margin-left: 1rem;
+}
+
+/* Figures avec captions */
+.blog-content figure {
+  margin: 2.5rem 0;
+  padding: 1.5rem;
+  background: rgba(199, 169, 98, 0.02);
+  border: 1px solid rgba(199, 169, 98, 0.1);
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+}
+
+.blog-content figure img {
+  margin: 0 0 1rem 0;
+  border-radius: 0.5rem;
+}
+
+.blog-content figcaption {
+  font-size: 0.875rem;
+  color: var(--article-muted-text);
+  line-height: 1.6;
+  text-align: center;
+}
+
+.blog-content figcaption > strong {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--article-heading-color);
+  font-weight: 700;
+}
+
+.blog-content figcaption > small {
+  display: block;
+  margin-top: 0.5rem;
+  opacity: 0.7;
+  font-style: italic;
+}
+
+/* Responsive images */
+@media (max-width: 768px) {
+  .blog-content img {
+    margin: 2rem auto;
+    border-radius: 0.5rem;
+  }
+
+  .blog-content p > img + img {
+    margin-left: 0;
+    margin-top: 1rem;
+  }
+
+  .blog-content figure {
+    margin: 2rem 0;
+    padding: 1rem;
+  }
+
+  .blog-content figcaption {
+    font-size: 0.8rem;
+  }
+}
+
+/* Séparateurs - AMÉLIORÉ avec variantes progressives */
+
+/* Séparateur léger (par défaut) */
+.blog-content hr {
+  height: 1px;
+  border: none;
+  background: linear-gradient(90deg, transparent 0%, var(--article-hr-color) 50%, transparent 100%);
+  margin: 2.5rem 0;
+  opacity: 0.3;
+}
+
+/* Séparateur majeur (avant h2) */
+.blog-content h2 + hr,
+.blog-content h2 ~ hr:first-of-type {
+  height: 2px;
+  background: var(--article-hr-color);
+  margin: 3rem 0;
+  opacity: 0.4;
+}
+
+/* Séparateur décoratif (fin d'article) */
+.blog-content hr:last-of-type {
+  width: 20%;
+  height: 3px;
+  margin: 3rem auto;
+  background: var(--article-heading-h3-color, var(--article-link-color));
+  border-radius: 2px;
+  opacity: 0.3;
+}
+
+/* Strong et emphasis */
+.blog-content strong {
+  font-weight: 700;
+  color: var(--article-heading-color) !important;
+}
+
+.blog-content em {
+  font-style: italic;
+}
+
+/* Highlights/Marks */
+.blog-content mark {
+  background-color: var(--article-mark-bg) !important;
+  color: var(--article-mark-text) !important;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.25rem;
+}
+
+/* Éléments sémantiques */
+.blog-content abbr {
+  cursor: help;
+  text-decoration: underline dotted;
+  text-decoration-color: var(--article-text-color);
+}
+
+.blog-content cite {
+  font-style: italic;
+  color: var(--article-muted-text);
+}
+
+.blog-content dl {
+  margin: 1.5rem 0;
+}
+
+.blog-content dt {
+  font-weight: 600;
+  color: var(--article-heading-color);
+  margin-bottom: 0.5rem;
+}
+
+.blog-content dd {
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--article-muted-text);
+}
+
+.blog-content kbd {
+  background-color: var(--article-code-inline-bg);
+  color: var(--article-code-inline-text);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.blog-content var {
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  font-style: italic;
+  color: var(--article-code-inline-text);
+}
+
+/* Responsivité - Priorité absolue pour mobile (60% des lectures) */
+@media (max-width: 600px) {
+  .blog-content {
+    font-size: 17px; /* 16-17px sur mobile */
+  }
+
+  .blog-content h1 {
+    font-size: 2rem;
+    font-weight: 900;
+    margin-top: 2rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .blog-content h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+  }
+
+  .blog-content h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .blog-content h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+
+  /* Lead paragraph sur mobile */
+  .blog-content p:first-of-type {
+    font-size: 1.125rem;
+    padding: 1.25rem;
+    margin: 0 0 2rem 0;
+  }
+
+  .blog-content pre {
+    padding: 1rem;
+    font-size: 0.8rem;
+    margin: 1.5rem 0;
+  }
+
+  .blog-content blockquote {
+    padding: 1.25rem;
+    margin: 1.5rem 0;
+    border-left-width: 3px;
+  }
+
+  .blog-content ul,
+  .blog-content ol {
+    margin: 1rem 0 1.5rem 0;
+  }
+
+  .blog-content ul > li {
+    margin-left: 1.5rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .blog-content ul > li::before {
+    left: -1.5rem;
+    font-size: 1rem;
+  }
+
+  .blog-content ol > li {
+    padding-left: 2.25rem;
+  }
+
+  .blog-content ol > li::before {
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 0.75rem;
+  }
+
+  .blog-content table {
+    font-size: 0.85rem;
+  }
+
+  .blog-content th {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  .blog-content td {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .blog-content img {
+    margin: 1.5rem auto;
+  }
+
+  .blog-content figure {
+    margin: 1.5rem 0;
+    padding: 1rem;
+  }
+
+  .blog-content hr {
+    margin: 2rem 0;
+  }
+}
+
+/* Optimisation de l'impression */
+@media print {
+  .blog-content {
+    color: black;
+  }
+
+  .blog-content h1,
+  .blog-content h2,
+  .blog-content h3,
+  .blog-content h4,
+  .blog-content h5,
+  .blog-content h6 {
+    color: black;
+    page-break-after: avoid;
+  }
+
+  .blog-content pre,
+  .blog-content blockquote {
+    page-break-inside: avoid;
+  }
+
+  .blog-content a {
+    color: black;
+    text-decoration: underline;
+  }
+
+  .blog-content a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.75rem;
+  }
+}
