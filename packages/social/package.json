@@ -50,7 +50,7 @@
   "devDependencies": {
     "@kairn/eslint-config": "workspace:*",
     "@kairn/typescript-config": "workspace:*",
-    "@types/node": "^20.10.0",
+    "@types/node": "^25.3.5",
     "typescript": "^5.4.0"
   },
   "keywords": [
