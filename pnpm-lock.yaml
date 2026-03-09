@@ -73,6 +73,187 @@ importers:
         specifier: ^0.1.0
         version: 0.1.0(vitest@2.1.9(@types/node@20.19.30)(jsdom@28.0.0))
 
+  apps/avv:
+    dependencies:
+      '@anthropic-ai/sdk':
+        specifier: ^0.78.0
+        version: 0.78.0(zod@3.25.76)
+      '@kairn/admin':
+        specifier: workspace:*
+        version: link:../../packages/admin
+      '@kairn/ai':
+        specifier: workspace:*
+        version: link:../../packages/ai
+      '@kairn/analytics':
+        specifier: workspace:*
+        version: link:../../packages/analytics
+      '@kairn/api':
+        specifier: workspace:*
+        version: link:../../packages/api
+      '@kairn/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@kairn/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@kairn/experiments':
+        specifier: workspace:*
+        version: link:../../packages/experiments
+      '@kairn/social':
+        specifier: workspace:*
+        version: link:../../packages/social
+      '@kairn/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@prisma/client':
+        specifier: ^6.0.0
+        version: 6.19.2(prisma@6.19.2(magicast@0.3.5)(typescript@5.9.3))(typescript@5.9.3)
+      '@supabase/supabase-js':
+        specifier: ^2.91.0
+        version: 2.91.0
+      '@uiw/react-md-editor':
+        specifier: ^4.0.11
+        version: 4.0.11(@types/react@18.3.27)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      bcryptjs:
+        specifier: ^3.0.3
+        version: 3.0.3
+      framer-motion:
+        specifier: ^11.0.0
+        version: 11.18.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      highlight.js:
+        specifier: ^11.11.1
+        version: 11.11.1
+      ioredis:
+        specifier: ^5.8.2
+        version: 5.8.2
+      isomorphic-dompurify:
+        specifier: ^2.35.0
+        version: 2.35.0
+      jose:
+        specifier: ^5.2.0
+        version: 5.10.0
+      lucide-react:
+        specifier: ^0.400.0
+        version: 0.400.0(react@18.3.1)
+      next:
+        specifier: ^16.1.6
+        version: 16.1.6(@playwright/test@1.58.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      openai:
+        specifier: ^6.25.0
+        version: 6.25.0(ws@8.18.3)(zod@3.25.76)
+      pg:
+        specifier: ^8.17.2
+        version: 8.17.2
+      react:
+        specifier: ^18.2.0
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.2.0
+        version: 18.3.1(react@18.3.1)
+      reading-time:
+        specifier: ^1.5.0
+        version: 1.5.0
+      recharts:
+        specifier: ^2.12.0
+        version: 2.15.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rehype-autolink-headings:
+        specifier: ^7.0.0
+        version: 7.1.0
+      rehype-highlight:
+        specifier: ^7.0.0
+        version: 7.0.2
+      rehype-slug:
+        specifier: ^6.0.0
+        version: 6.0.0
+      rehype-stringify:
+        specifier: ^10.0.0
+        version: 10.0.1
+      remark-gfm:
+        specifier: ^4.0.0
+        version: 4.0.1
+      remark-parse:
+        specifier: ^11.0.0
+        version: 11.0.0
+      remark-rehype:
+        specifier: ^11.0.0
+        version: 11.1.2
+      sharp:
+        specifier: ^0.34.5
+        version: 0.34.5
+      swr:
+        specifier: ^2.4.0
+        version: 2.4.0(react@18.3.1)
+      ua-parser-js:
+        specifier: ^1.0.37
+        version: 1.0.41
+      unified:
+        specifier: ^11.0.0
+        version: 11.0.5
+      unist-util-visit:
+        specifier: ^5.0.0
+        version: 5.0.0
+      web-push:
+        specifier: ^3.6.7
+        version: 3.6.7
+      web-vitals:
+        specifier: ^5.1.0
+        version: 5.1.0
+      xlsx:
+        specifier: ^0.18.5
+        version: 0.18.5
+      zod:
+        specifier: ^3.23.0
+        version: 3.25.76
+    devDependencies:
+      '@kairn/tailwind-preset':
+        specifier: workspace:*
+        version: link:../../tooling/tailwind-preset
+      '@kairn/typescript-config':
+        specifier: workspace:*
+        version: link:../../tooling/typescript-config
+      '@next/bundle-analyzer':
+        specifier: ^16.1.6
+        version: 16.1.6
+      '@playwright/test':
+        specifier: ^1.50.0
+        version: 1.58.1
+      '@types/bcrypt':
+        specifier: ^6.0.0
+        version: 6.0.0
+      '@types/bcryptjs':
+        specifier: ^3.0.0
+        version: 3.0.0
+      '@types/node':
+        specifier: ^20.11.0
+        version: 20.19.30
+      '@types/pg':
+        specifier: ^8.16.0
+        version: 8.16.0
+      '@types/react':
+        specifier: ^18.2.0
+        version: 18.3.27
+      '@types/react-dom':
+        specifier: ^18.2.0
+        version: 18.3.7(@types/react@18.3.27)
+      '@types/ua-parser-js':
+        specifier: ^0.7.39
+        version: 0.7.39
+      '@types/web-push':
+        specifier: ^3.6.4
+        version: 3.6.4
+      autoprefixer:
+        specifier: ^10.4.0
+        version: 10.4.23(postcss@8.5.6)
+      postcss:
+        specifier: ^8.4.0
+        version: 8.5.6
+      tailwindcss:
+        specifier: ^3.4.0
+        version: 3.4.19(tsx@4.21.0)(yaml@2.8.2)
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+
   apps/psypnos:
     dependencies:
       '@anthropic-ai/sdk':
@@ -6457,7 +6638,7 @@ snapshots:
   autoprefixer@10.4.23(postcss@8.5.6):
     dependencies:
       browserslist: 4.28.1
-      caniuse-lite: 1.0.30001765
+      caniuse-lite: 1.0.30001768
       fraction.js: 5.3.4
       picocolors: 1.1.1
       postcss: 8.5.6
@@ -6520,7 +6701,7 @@ snapshots:
   browserslist@4.28.1:
     dependencies:
       baseline-browser-mapping: 2.9.19
-      caniuse-lite: 1.0.30001765
+      caniuse-lite: 1.0.30001768
       electron-to-chromium: 1.5.267
       node-releases: 2.0.27
       update-browserslist-db: 1.2.3(browserslist@4.28.1)
