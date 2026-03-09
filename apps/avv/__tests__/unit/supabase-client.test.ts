@@ -29,8 +29,8 @@ describe('supabase/client', () => {
     vi.resetModules();
     vi.clearAllMocks();
     process.env = { ...originalEnv };
-    // Supprimer le singleton global
-    delete (globalThis as Record<string, unknown>).supabase;
+    // Supprimer le singleton global (clé isolée par site)
+    delete (globalThis as Record<string, unknown>).__avvSupabase;
   });
 
   afterEach(() => {

@@ -17,8 +17,12 @@ env:
 jobs:
   # Lint and type-check run in parallel
   lint:
-    name: Lint
+    name: Lint (${{ matrix.app }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [psypnos, avv]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -45,14 +49,18 @@ jobs:
       - name: Lint
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            pnpm turbo run lint --filter='...[origin/main]'
+            pnpm turbo run lint --filter='@kairn/${{ matrix.app }}...[origin/main]'
           else
-            pnpm lint
+            pnpm turbo run lint --filter='@kairn/${{ matrix.app }}...'
           fi
 
   type-check:
-    name: Type Check
+    name: Type Check (${{ matrix.app }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [psypnos, avv]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -79,9 +87,9 @@ jobs:
       - name: Type check
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            pnpm turbo run type-check --filter='...[origin/main]'
+            pnpm turbo run type-check --filter='@kairn/${{ matrix.app }}...[origin/main]'
           else
-            pnpm type-check
+            pnpm turbo run type-check --filter='@kairn/${{ matrix.app }}...'
           fi
 
   test:
@@ -225,11 +233,15 @@ jobs:
           head: HEAD
           extra_args: --only-verified
 
-  # Build runs after all checks pass
+  # Build runs after all checks pass — each app builds independently
   build:
-    name: Build
+    name: Build (${{ matrix.app }})
     runs-on: ubuntu-latest
     needs: [lint, type-check, test, security]
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [psypnos, avv]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -250,10 +262,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build packages
+      - name: Generate Prisma client
+        run: pnpm --filter @kairn/db db:generate
+
+      - name: Build
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            pnpm turbo run build --filter='...[origin/main]'
+            pnpm turbo run build --filter='@kairn/${{ matrix.app }}...[origin/main]' --env-mode=loose
           else
-            pnpm build
+            pnpm turbo run build --filter='@kairn/${{ matrix.app }}...' --env-mode=loose
           fi
