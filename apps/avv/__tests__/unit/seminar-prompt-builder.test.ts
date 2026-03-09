@@ -2,7 +2,7 @@
  * Tests unitaires pour le constructeur de prompts de séminaires.
  *
  * Vérifie que les prompts générés contiennent :
- * - Les URLs du site (inscription et respiration holotropique)
+ * - Les URLs du site (inscription et breathwork)
  * - Le thumbnail du séminaire quand il est fourni
  * - Les informations essentielles du séminaire
  */
@@ -24,9 +24,9 @@ type SocialPlatform = 'FACEBOOK' | 'LINKEDIN' | 'INSTAGRAM' | 'TWITTER' | 'THREA
 const BASE_SEMINAR: SeminarInput = {
   id: 'test-seminar-1',
   title: "Séminaire Retrouver l'Essentiel",
-  description: 'Un week-end immersif de respiration holotropique.',
+  description: 'Un week-end immersif de breathwork & rebirth.',
   speakers: [
-    { firstName: 'David', lastName: 'Duquenne' },
+    { firstName: 'Nathalie', lastName: 'Duquenne' },
     { firstName: 'Marie', lastName: 'Dupont' },
   ],
   startAt: '2026-04-15T09:00:00Z',
@@ -48,7 +48,7 @@ const DEFAULT_OPTIONS: SeminarGenerationOptions = {
 };
 
 const INSCRIPTION_URL = 'https://www.appreciezvotrevie.fr/inscription-seminaire';
-const RESPIRATION_URL = 'https://www.appreciezvotrevie.fr/respiration-holotropique';
+const BREATHWORK_URL = 'https://www.appreciezvotrevie.fr/breathwork';
 
 // ─── Tests du prompt système ─────────────────────────────────────
 
@@ -56,7 +56,7 @@ describe('buildSeminarSystemPrompt', () => {
   it('contient les URLs du site', () => {
     const prompt = buildSeminarSystemPrompt();
 
-    expect(prompt).toContain(RESPIRATION_URL);
+    expect(prompt).toContain(BREATHWORK_URL);
     expect(prompt).toContain(INSCRIPTION_URL);
   });
 
@@ -80,10 +80,10 @@ describe('buildSeminarUserPrompt', () => {
       expect(prompt).toContain(INSCRIPTION_URL);
     });
 
-    it("contient l'URL respiration holotropique", () => {
+    it("contient l'URL breathwork", () => {
       const prompt = buildSeminarUserPrompt(BASE_SEMINAR, platform, DEFAULT_OPTIONS);
 
-      expect(prompt).toContain(RESPIRATION_URL);
+      expect(prompt).toContain(BREATHWORK_URL);
     });
 
     it('contient le thumbnail quand il est fourni', () => {

@@ -411,7 +411,7 @@ const BLOG_ARTICLE_SLUGS = [
   'comprendre-mecanismes-defense',
   'comprendre-corps-emotions-corps',
   'decouvrir-etats-modifies-conscience',
-  'decouvrir-respiration-holotropique',
+  'decouvrir-breathwork',
   'comprendre-stress-travail-apport',
   'comprendre-blessures-attachement',
   'comprendre-crise-de-vie',

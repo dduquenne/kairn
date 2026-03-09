@@ -2,7 +2,7 @@
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
 export const SEMINAR_TYPES = [
-  { value: "respiration-holotropique", label: "Breathwork & rebirth" },
+  { value: "breathwork-rebirth", label: "Breathwork & rebirth" },
   { value: "breathwork", label: "Breathwork" },
   { value: "rebirth", label: "Rebirth" },
   { value: "meditation", label: "Méditation" },

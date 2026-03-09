@@ -9,7 +9,7 @@ import { SectionTitle } from '../../../components/SectionTitle';
 export function RespirationSection() {
   return (
     <section
-      id="respiration-holotropique"
+      id="breathwork"
       className="from-night via-night/95 to-night bg-gradient-to-br px-6 py-20 sm:px-10 lg:px-16"
       data-track-section="respiration"
       data-track-section-name="Breathwork & rebirth"
