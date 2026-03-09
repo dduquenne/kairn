@@ -1,0 +1,64 @@
+# https://www.robotstxt.org/robotstxt.html
+# Robots.txt pour Appréciez Votre Vie - Sophrologie, Relaxation & Somatothérapie
+
+# Règles pour tous les robots
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /login
+Disallow: /_next/
+Disallow: /offline
+Crawl-delay: 1
+
+# Googlebot - accès complet aux ressources
+User-agent: Googlebot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /login
+
+# Googlebot Images - permettre l'indexation des images
+User-agent: Googlebot-Image
+Allow: /images/
+Allow: /*.webp$
+Allow: /*.png$
+Allow: /*.jpg$
+Allow: /*.svg$
+
+# Bingbot
+User-agent: Bingbot
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /login
+Crawl-delay: 1
+
+# Robots de réseaux sociaux
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+# Bloquer les robots malveillants connus
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+# Sitemap
+Sitemap: https://appreciezvotrevie.fr/sitemap.xml
+
+# Host préféré
+Host: https://appreciezvotrevie.fr

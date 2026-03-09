@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  /* Default fonts - will be overridden by CustomizationProvider */
+  --font-display: var(--font-display-default, 'Playfair Display'), serif;
+  --font-body: var(--font-sans, 'Inter'), sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+html,
+body {
+  @apply bg-night text-ivory;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+.fade-mask {
+  -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+
+.edge-fade {
+  -webkit-mask-image: radial-gradient(
+    circle at center,
+    black 65%,
+    transparent 70%
+  );
+  mask-image: radial-gradient(circle at center, black 65%, transparent 70%);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+
+.circle-image {
+  border-radius: 50%;
+  overflow: hidden;
+}

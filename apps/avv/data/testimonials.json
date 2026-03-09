@@ -1,0 +1,39 @@
+{
+  "testimonials": [
+    {
+      "id": "0952cdbc-7355-48ac-a8fc-778c670db37d",
+      "quote": "Des actions concrètes, sous la conduite d'une très grande bienveillance de David.",
+      "author": "Paule",
+      "createdAt": "2025-11-18T12:24:41.431Z",
+      "updatedAt": "2025-11-18T12:24:41.431Z"
+    },
+    {
+      "id": "1a6fbcdc-2565-4bd3-9a52-3776629c2a6c",
+      "quote": "J'ai avancé d'un pas de géant dans l'alignement de mon projet.",
+      "author": "Ariana",
+      "createdAt": "2025-11-18T12:25:08.234Z",
+      "updatedAt": "2025-11-18T12:25:08.234Z"
+    },
+    {
+      "id": "2c883dbc-1eba-457b-a72c-9ad72521fbe2",
+      "quote": "Intime, connecté, et du travail sur soi. de la clarté en résulte :-) ce qui me rend... serein.",
+      "author": "Luc",
+      "createdAt": "2025-11-18T12:25:39.094Z",
+      "updatedAt": "2025-11-18T12:25:39.094Z"
+    },
+    {
+      "id": "4423c0ab-2554-4930-b88b-6981ab0ea465",
+      "quote": "J'ai pu trouver des moyens plus simples pour concrétiser mes objectifs dans la vie.",
+      "author": "Lijou",
+      "createdAt": "2025-11-18T12:26:02.534Z",
+      "updatedAt": "2025-11-18T12:26:02.534Z"
+    },
+    {
+      "quote": "L'approche de David vous amène doucement mais sûrement au cœur du sujet et offre des clés et des pistes de résolutions immédiates.",
+      "author": "Aurélia",
+      "id": "fe80bc5f-ac53-4966-89d9-411a508cb2ec",
+      "createdAt": "2025-11-18T12:26:20.013Z",
+      "updatedAt": "2025-11-18T12:26:20.013Z"
+    }
+  ]
+}

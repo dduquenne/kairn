@@ -1,0 +1,8 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "pnpm install",
+  "buildCommand": "cd ../.. && pnpm --filter @kairn/db exec prisma generate && pnpm turbo run build --filter=@kairn/avv --env-mode=loose",
+  "outputDirectory": ".next",
+  "regions": ["cdg1"]
+}
