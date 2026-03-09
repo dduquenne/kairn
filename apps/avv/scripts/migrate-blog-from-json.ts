@@ -41,7 +41,7 @@ const AVV_BASE_URL = 'https://appreciezvotrevie.fr';
 // Types
 // ============================================
 
-interface Appréciez Votre VieBlogPost {
+interface AvvBlogPost {
   id: string;
   slug: string;
   title: string;
@@ -103,7 +103,7 @@ const kairnSupabase = createKairnSupabase();
 /**
  * Load articles from JSON file
  */
-async function loadArticlesFromJson(): Promise<Appréciez Votre VieBlogPost[]> {
+async function loadArticlesFromJson(): Promise<AvvBlogPost[]> {
   try {
     const content = await fs.readFile(DATA_FILE, 'utf-8');
     const data = JSON.parse(content);
@@ -270,7 +270,7 @@ function parseJsonField(value: string | unknown): unknown {
  * Create article in KAIRN database
  */
 async function createKairnArticle(
-  article: Appréciez Votre VieBlogPost,
+  article: AvvBlogPost,
   newImageUrl: string | null
 ): Promise<boolean> {
   try {

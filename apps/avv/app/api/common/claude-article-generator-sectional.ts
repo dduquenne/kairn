@@ -54,7 +54,7 @@ export interface SectionalGenerationOptions {
   editorialCategory?: 'Comprendre' | 'Traverser' | 'Découvrir' | 'Cheminer';
   readerPersona?: string;
   preferredTones?: string[];
-  useAppréciez Votre VieStyle?: boolean;
+  useAvvStyle?: boolean;
   onProgress?: (step: GenerationProgress) => void | Promise<void>;
 }
 
@@ -214,7 +214,7 @@ function buildEditorialContext(options: SectionalGenerationOptions): string {
 async function generateDetailedOutline(
   anthropic: Anthropic,
   options: SectionalGenerationOptions,
-  useAppréciez Votre VieStyle: boolean
+  useAvvStyle: boolean
 ): Promise<DetailedOutline> {
   const lengthConfig = LENGTH_CONFIG[options.targetLength || 'medium'];
   const editorialContext = buildEditorialContext(options);
@@ -279,7 +279,7 @@ IMPORTANT:
         model: 'claude-sonnet-4-5-20250929',
         max_tokens: 5000, // Augmenté de 2000 à 5000 pour éviter la troncature du JSON
         temperature: 0.7,
-        ...(useAppréciez Votre VieStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),
+        ...(useAvvStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),
         messages: [{ role: 'user', content: prompt }],
       }),
     API_TIMEOUT_MS,
@@ -306,7 +306,7 @@ async function generateIntroduction(
   anthropic: Anthropic,
   options: SectionalGenerationOptions,
   outline: DetailedOutline,
-  useAppréciez Votre VieStyle: boolean
+  useAvvStyle: boolean
 ): Promise<string> {
   const lengthConfig = LENGTH_CONFIG[options.targetLength || 'medium'];
   const editorialContext = buildEditorialContext(options);
@@ -352,7 +352,7 @@ IMPORTANT: Rédige UNIQUEMENT l'introduction en Markdown, sans balises ni commen
         model: 'claude-sonnet-4-5-20250929',
         max_tokens: 1000,
         temperature: 0.7,
-        ...(useAppréciez Votre VieStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),
+        ...(useAvvStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),
         messages: [{ role: 'user', content: prompt }],
       }),
     API_TIMEOUT_MS,
@@ -372,7 +372,7 @@ async function generateSection(
   outline: DetailedOutline,
   sectionIndex: number,
   previousSectionsContent: string,
-  useAppréciez Votre VieStyle: boolean
+  useAvvStyle: boolean
 ): Promise<string> {
   const lengthConfig = LENGTH_CONFIG[options.targetLength || 'medium'];
   const section = outline.sections[sectionIndex];
@@ -436,7 +436,7 @@ IMPORTANT: Rédige UNIQUEMENT cette section en Markdown (titre H2 inclus), sans 
         model: 'claude-sonnet-4-5-20250929',
         max_tokens: lengthConfig.maxTokensPerSection,
         temperature: 0.7,
-        ...(useAppréciez Votre VieStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),
+        ...(useAvvStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),
         messages: [{ role: 'user', content: prompt }],
       }),
     API_TIMEOUT_MS,
@@ -455,7 +455,7 @@ async function generateConclusion(
   options: SectionalGenerationOptions,
   outline: DetailedOutline,
   fullContentSoFar: string,
-  useAppréciez Votre VieStyle: boolean
+  useAvvStyle: boolean
 ): Promise<string> {
   const lengthConfig = LENGTH_CONFIG[options.targetLength || 'medium'];
   const editorialContext = buildEditorialContext(options);
@@ -498,7 +498,7 @@ IMPORTANT: Rédige UNIQUEMENT la conclusion en Markdown (titre H2 inclus), sans 
         model: 'claude-sonnet-4-5-20250929',
         max_tokens: 1000,
         temperature: 0.7,
-        ...(useAppréciez Votre VieStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),
+        ...(useAvvStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),
         messages: [{ role: 'user', content: prompt }],
       }),
     API_TIMEOUT_MS,
@@ -517,7 +517,7 @@ async function reviseForCoherence(
   options: SectionalGenerationOptions,
   fullContent: string,
   outline: DetailedOutline,
-  useAppréciez Votre VieStyle: boolean
+  useAvvStyle: boolean
 ): Promise<{ revisedContent: string; coherenceScore: number }> {
   const editorialContext = buildEditorialContext(options);
 
@@ -569,7 +569,7 @@ Le coherenceScore est une note de 0 à 100 évaluant la cohérence de l'article.
         model: 'claude-sonnet-4-5-20250929',
         max_tokens: 8000,
         temperature: 0.3, // Température basse pour la révision
-        ...(useAppréciez Votre VieStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),
+        ...(useAvvStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),
         messages: [{ role: 'user', content: prompt }],
       }),
     COHERENCE_TIMEOUT_MS,
@@ -605,7 +605,7 @@ async function generateTitleAndDescription(
   options: SectionalGenerationOptions,
   content: string,
   outline: DetailedOutline,
-  useAppréciez Votre VieStyle: boolean
+  useAvvStyle: boolean
 ): Promise<{ title: string; description: string }> {
   const contentPreview = content.slice(0, 2000);
 
@@ -648,7 +648,7 @@ Réponds UNIQUEMENT avec le JSON.`;
         model: 'claude-sonnet-4-5-20250929',
         max_tokens: 500,
         temperature: 0.7,
-        ...(useAppréciez Votre VieStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),
+        ...(useAvvStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),
         messages: [{ role: 'user', content: prompt }],
       }),
     API_TIMEOUT_MS,
@@ -743,7 +743,7 @@ async function generateFAQ(
   options: SectionalGenerationOptions,
   content: string,
   title: string,
-  useAppréciez Votre VieStyle: boolean
+  useAvvStyle: boolean
 ): Promise<Array<{ question: string; answer: string }>> {
   const contentPreview = content.slice(0, 2000);
 
@@ -784,7 +784,7 @@ Réponds UNIQUEMENT avec le JSON.`;
         model: 'claude-sonnet-4-5-20250929',
         max_tokens: 1500,
         temperature: 0.7,
-        ...(useAppréciez Votre VieStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),
+        ...(useAvvStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),
         messages: [{ role: 'user', content: prompt }],
       }),
     API_TIMEOUT_MS,
@@ -920,7 +920,7 @@ export async function generateArticleSectional(
   apiKey: string
 ): Promise<GeneratedSectionalArticle> {
   const anthropic = createAnthropicClient(apiKey);
-  const useAppréciez Votre VieStyle = options.useAppréciez Votre VieStyle !== false;
+  const useAvvStyle = options.useAvvStyle !== false;
   const lengthConfig = LENGTH_CONFIG[options.targetLength || 'medium'];
 
   // Calcul du nombre total d'étapes
@@ -983,7 +983,7 @@ export async function generateArticleSectional(
       "Création de la structure de l'article..."
     );
     try {
-      outline = await generateDetailedOutline(anthropic, options, useAppréciez Votre VieStyle);
+      outline = await generateDetailedOutline(anthropic, options, useAvvStyle);
       await safeNotifyProgress('Génération du plan détaillé', 'completed');
     } catch (error) {
       console.error('Erreur étape 1 (outline):', error);
@@ -999,7 +999,7 @@ export async function generateArticleSectional(
       'Création du chapo introductif...'
     );
     try {
-      const intro = await generateIntroduction(anthropic, options, outline, useAppréciez Votre VieStyle);
+      const intro = await generateIntroduction(anthropic, options, outline, useAvvStyle);
       content = intro;
       await safeNotifyProgress("Rédaction de l'introduction", 'completed');
     } catch (error) {
@@ -1027,7 +1027,7 @@ export async function generateArticleSectional(
           outline,
           i,
           content,
-          useAppréciez Votre VieStyle
+          useAvvStyle
         );
         content += '\n\n' + sectionContent;
         sectionsGenerated++;
@@ -1055,7 +1055,7 @@ export async function generateArticleSectional(
         options,
         outline,
         content,
-        useAppréciez Votre VieStyle
+        useAvvStyle
       );
       content += '\n\n' + conclusion;
       await safeNotifyProgress('Rédaction de la conclusion', 'completed');
@@ -1073,13 +1073,7 @@ export async function generateArticleSectional(
       'Amélioration des transitions...'
     );
     try {
-      const revision = await reviseForCoherence(
-        anthropic,
-        options,
-        content,
-        outline,
-        useAppréciez Votre VieStyle
-      );
+      const revision = await reviseForCoherence(anthropic, options, content, outline, useAvvStyle);
       // Seulement utiliser le contenu révisé s'il est non vide et de longueur raisonnable
       if (revision.revisedContent && revision.revisedContent.length > content.length * 0.5) {
         content = revision.revisedContent;
@@ -1111,7 +1105,7 @@ export async function generateArticleSectional(
         options,
         content,
         outline,
-        useAppréciez Votre VieStyle
+        useAvvStyle
       );
       title = titleDesc.title;
       description = titleDesc.description;
@@ -1142,7 +1136,7 @@ export async function generateArticleSectional(
       'Génération des questions fréquentes...'
     );
     try {
-      faq = await generateFAQ(anthropic, options, content, title, useAppréciez Votre VieStyle);
+      faq = await generateFAQ(anthropic, options, content, title, useAvvStyle);
       await safeNotifyProgress('Création de la FAQ', 'completed', `${faq.length} questions`);
     } catch (error) {
       console.error('Erreur FAQ:', error);

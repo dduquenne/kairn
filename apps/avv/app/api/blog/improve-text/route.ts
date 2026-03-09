@@ -2,8 +2,8 @@ import Anthropic from '@anthropic-ai/sdk';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { validateCSRFMiddleware } from '../../common/csrf-middleware';
 import { AVV_STYLE_SYSTEM_PROMPT } from '../../common/avv-system-prompt';
+import { validateCSRFMiddleware } from '../../common/csrf-middleware';
 import { recordAttemptAsync, getClientIP } from '../../common/rate-limiter';
 
 // Vercel serverless function timeout — single Claude API call
@@ -12,7 +12,7 @@ export const maxDuration = 60;
 const improveTextSchema = z.object({
   selectedText: z.string().trim().min(1).max(10000),
   improvementInstructions: z.string().trim().min(1).max(1000),
-  useAppréciez Votre VieStyle: z.boolean().optional().default(true),
+  useAvvStyle: z.boolean().optional().default(true),
   meta: z
     .object({
       honeypot: z
@@ -85,7 +85,7 @@ export async function POST(request: Request) {
       apiKey: apiKey,
     });
 
-    const prompt = payload.useAppréciez Votre VieStyle
+    const prompt = payload.useAvvStyle
       ? `## TEXTE SÉLECTIONNÉ
 
 ${payload.selectedText}
@@ -127,7 +127,7 @@ Retourne uniquement le texte amélioré, sans balises additionnelles, sans préa
       model: 'claude-sonnet-4-5-20250929',
       max_tokens: 8000,
       temperature: 0.7,
-      ...(payload.useAppréciez Votre VieStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),
+      ...(payload.useAvvStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),
       messages: [
         {
           role: 'user',

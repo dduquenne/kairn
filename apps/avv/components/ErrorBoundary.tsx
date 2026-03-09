@@ -13,7 +13,7 @@ import { ErrorBoundary as SharedErrorBoundary } from '@kairn/ui';
 import type { ErrorInfo, ReactNode } from 'react';
 
 /** Props du wrapper ErrorBoundary Appréciez Votre Vie */
-interface Appréciez Votre VieErrorBoundaryProps {
+interface AvvErrorBoundaryProps {
   /** Contenu enfant */
   children: ReactNode;
   /** Composant fallback personnalisé */
@@ -57,14 +57,9 @@ function handleError(error: Error, errorInfo: ErrorInfo, context?: Record<string
  * </ErrorBoundary>
  * ```
  */
-export function ErrorBoundary({ children, fallback }: Appréciez Votre VieErrorBoundaryProps) {
+export function ErrorBoundary({ children, fallback }: AvvErrorBoundaryProps) {
   return (
-    <SharedErrorBoundary
-      fallback={fallback}
-      onError={handleError}
-      colors={AVV_COLORS}
-      homeUrl="/"
-    >
+    <SharedErrorBoundary fallback={fallback} onError={handleError} colors={AVV_COLORS} homeUrl="/">
       {children}
     </SharedErrorBoundary>
   );

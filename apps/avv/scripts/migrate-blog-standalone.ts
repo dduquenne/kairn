@@ -120,7 +120,7 @@ function generateCuid(): string {
   return `c${timestamp}${random}`;
 }
 
-async function fetchAppréciez Votre VieArticles(): Promise<BlogPost[]> {
+async function fetchAvvArticles(): Promise<BlogPost[]> {
   if (!avvPool) throw new Error('AVV pool not initialized');
   const query = `
     SELECT
@@ -282,7 +282,7 @@ async function migrate(): Promise<MigrationReport> {
     console.log('📋 ÉTAPE 1: Analyse préalable\n');
 
     console.log('Connexion à AVV...');
-    const avvArticles = await fetchAppréciez Votre VieArticles();
+    const avvArticles = await fetchAvvArticles();
     console.log(`✅ ${avvArticles.length} articles trouvés dans AVV\n`);
     report.totalArticles = avvArticles.length;
 
@@ -381,9 +381,7 @@ function printReport(report: MigrationReport): void {
   console.log('┌─────────────────────────────────────┬──────────┐');
   console.log('│ Métrique                            │ Valeur   │');
   console.log('├─────────────────────────────────────┼──────────┤');
-  console.log(
-    `│ Articles source (AVV)           │ ${String(report.totalArticles).padStart(8)} │`
-  );
+  console.log(`│ Articles source (AVV)           │ ${String(report.totalArticles).padStart(8)} │`);
   console.log(
     `│ Articles migrés                     │ ${String(report.migratedArticles).padStart(8)} │`
   );

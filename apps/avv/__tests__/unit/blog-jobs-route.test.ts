@@ -67,7 +67,7 @@ const VALID_BODY = {
   category: 'Comprendre',
   targetLength: 'medium',
   preferredTones: ['pédagogique'],
-  useAppréciez Votre VieStyle: true,
+  useAvvStyle: true,
 };
 
 // ─── Tests ────────────────────────────────────────────────────────

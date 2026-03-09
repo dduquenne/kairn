@@ -41,7 +41,7 @@ const AVV_DEFAULT_URL = `https://${AVV_PROJECT_REF}.supabase.co`;
 // Types
 // ============================================
 
-interface Appréciez Votre VieBlogPost {
+interface AvvBlogPost {
   id: string;
   slug: string;
   title: string;
@@ -88,7 +88,7 @@ let avvPool: Pool | null = null;
 let avvSupabase: SupabaseClient | null = null;
 let dataSource: DataSource = 'postgres';
 
-function initAppréciez Votre VieConnection(): DataSource {
+function initAvvConnection(): DataSource {
   // Try PostgreSQL direct connection first
   if (process.env.AVV_DATABASE_URL) {
     avvPool = new Pool({
@@ -142,7 +142,7 @@ let kairnSupabase: SupabaseClient | null = null;
 /**
  * Fetch all articles from AVV database via PostgreSQL
  */
-async function fetchAppréciez Votre VieArticlesPostgres(): Promise<Appréciez Votre VieBlogPost[]> {
+async function fetchAvvArticlesPostgres(): Promise<AvvBlogPost[]> {
   if (!avvPool) {
     throw new Error('PostgreSQL pool not initialized');
   }
@@ -163,7 +163,7 @@ async function fetchAppréciez Votre VieArticlesPostgres(): Promise<Appréciez V
 /**
  * Fetch all articles from AVV via Supabase REST API
  */
-async function fetchAppréciez Votre VieArticlesSupabase(): Promise<Appréciez Votre VieBlogPost[]> {
+async function fetchAvvArticlesSupabase(): Promise<AvvBlogPost[]> {
   if (!avvSupabase) {
     throw new Error('Supabase client not initialized');
   }
@@ -183,11 +183,11 @@ async function fetchAppréciez Votre VieArticlesSupabase(): Promise<Appréciez V
 /**
  * Fetch articles from AVV using the configured data source
  */
-async function fetchAppréciez Votre VieArticles(): Promise<Appréciez Votre VieBlogPost[]> {
+async function fetchAvvArticles(): Promise<AvvBlogPost[]> {
   if (dataSource === 'postgres') {
-    return fetchAppréciez Votre VieArticlesPostgres();
+    return fetchAvvArticlesPostgres();
   }
-  return fetchAppréciez Votre VieArticlesSupabase();
+  return fetchAvvArticlesSupabase();
 }
 
 /**
@@ -336,7 +336,7 @@ function validateUtf8(text: string, field: string, slug: string): void {
  * Create article in KAIRN database
  */
 async function createKairnArticle(
-  article: Appréciez Votre VieBlogPost,
+  article: AvvBlogPost,
   newImageUrl: string | null
 ): Promise<boolean> {
   try {
@@ -397,11 +397,11 @@ async function migrate() {
     console.log('📋 ÉTAPE 1: Analyse préalable\n');
 
     // Initialize connections
-    dataSource = initAppréciez Votre VieConnection();
+    dataSource = initAvvConnection();
     kairnSupabase = createKairnSupabase();
 
     console.log('\nConnexion à AVV...');
-    const avvArticles = await fetchAppréciez Votre VieArticles();
+    const avvArticles = await fetchAvvArticles();
     console.log(`✅ ${avvArticles.length} articles trouvés dans AVV\n`);
 
     report.totalArticles = avvArticles.length;
@@ -565,9 +565,7 @@ function printReport(report: MigrationReport) {
   console.log('┌─────────────────────────────────────┬──────────┐');
   console.log('│ Métrique                            │ Valeur   │');
   console.log('├─────────────────────────────────────┼──────────┤');
-  console.log(
-    `│ Articles source (AVV)           │ ${String(report.totalArticles).padStart(8)} │`
-  );
+  console.log(`│ Articles source (AVV)           │ ${String(report.totalArticles).padStart(8)} │`);
   console.log(
     `│ Articles migrés                     │ ${String(report.migratedArticles).padStart(8)} │`
   );
@@ -617,7 +615,7 @@ async function main() {
     process.exit(1);
   }
 
-  // AVV source will be checked in initAppréciez Votre VieConnection()
+  // AVV source will be checked in initAvvConnection()
 
   try {
     const report = await migrate();

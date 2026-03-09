@@ -138,7 +138,7 @@ export async function runBlogGenerationWorker(jobId: string, apiKey: string): Pr
       searchIntent: input.searchIntent || input.searchIntention || '',
       readerPersona: input.readerPersona || input.persona || '',
       preferredTones: allTones,
-      useAppréciez Votre VieStyle: input.useAppréciez Votre VieStyle,
+      useAvvStyle: input.useAvvStyle,
       // Callback de progression pour mettre à jour le job
       onProgress: async (progress: GenerationProgress) => {
         const progressPercent = Math.round((progress.step / progress.totalSteps) * 100);

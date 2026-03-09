@@ -23,7 +23,13 @@ export interface GeoPageProps {
   title: string;
   subtitle: string;
   description: string;
-  service: 'psychotherapie' | 'somatothérapie' | 'respiration';
+  service:
+    | 'psychotherapie'
+    | 'somatothérapie'
+    | 'respiration'
+    | 'sophrologie'
+    | 'somatotherapie'
+    | 'breathwork';
   location: {
     city: string;
     department?: string;
@@ -59,14 +65,20 @@ export interface GeoPageProps {
 // Service labels and links
 const serviceLabels: Record<GeoPageProps['service'], string> = {
   psychotherapie: 'Sophrologie',
+  sophrologie: 'Sophrologie',
   somatothérapie: 'Somatothérapie',
+  somatotherapie: 'Somatothérapie',
   respiration: 'Breathwork & rebirth',
+  breathwork: 'Breathwork & rebirth',
 };
 
 const serviceLinks: Record<GeoPageProps['service'], string> = {
   psychotherapie: '/sophrologie',
+  sophrologie: '/sophrologie',
   somatothérapie: '/somatotherapie',
+  somatotherapie: '/somatotherapie',
   respiration: '/breathwork',
+  breathwork: '/breathwork',
 };
 
 // Default pricing for Appréciez Votre Vie

@@ -30,7 +30,7 @@ const createJobSchema = z.object({
   seoQuery: z.string().trim().optional(),
   searchIntent: z.string().trim().optional(),
   readerPersona: z.string().optional(),
-  useAppréciez Votre VieStyle: z.boolean().optional().default(true),
+  useAvvStyle: z.boolean().optional().default(true),
   // Rétrocompatibilité
   subject: z.string().trim().optional(),
   seoKeyword: z.string().trim().optional(),

@@ -170,11 +170,11 @@ export async function executeNextStep(jobId: string): Promise<StepExecutionResul
     searchIntent: input.searchIntent || input.searchIntention || '',
     readerPersona: input.readerPersona || input.persona || '',
     preferredTones: input.preferredTones || input.tones || [],
-    useAppréciez Votre VieStyle: input.useAppréciez Votre VieStyle,
+    useAvvStyle: input.useAvvStyle,
   };
 
   const anthropic = new Anthropic({ apiKey });
-  const useAppréciez Votre VieStyle = options.useAppréciez Votre VieStyle !== false;
+  const useAvvStyle = options.useAvvStyle !== false;
 
   try {
     const stepName = STEP_NAMES[stepIndex] || `Étape ${stepIndex + 1}`;
@@ -194,7 +194,7 @@ export async function executeNextStep(jobId: string): Promise<StepExecutionResul
     const updatedPartial = await executeSingleStep(
       anthropic,
       options,
-      useAppréciez Votre VieStyle,
+      useAvvStyle,
       stepIndex,
       partialResult
     );
@@ -278,7 +278,7 @@ export async function executeNextStep(jobId: string): Promise<StepExecutionResul
 async function executeSingleStep(
   anthropic: Anthropic,
   options: SectionalGenerationOptions,
-  useAppréciez Votre VieStyle: boolean,
+  useAvvStyle: boolean,
   stepIndex: number,
   partial: PartialResult
 ): Promise<PartialResult> {
@@ -305,21 +305,21 @@ async function executeSingleStep(
   switch (stepIndex) {
     case 0: {
       // Étape 1: Générer le plan détaillé
-      const result = await runStepWithGenerator(anthropic, options, useAppréciez Votre VieStyle, 0, updated);
+      const result = await runStepWithGenerator(anthropic, options, useAvvStyle, 0, updated);
       updated.outline = result.outline;
       break;
     }
     case 1: {
       // Étape 2: Générer l'introduction
       if (!updated.outline) throw new Error('Plan détaillé manquant');
-      const result = await runStepWithGenerator(anthropic, options, useAppréciez Votre VieStyle, 1, updated);
+      const result = await runStepWithGenerator(anthropic, options, useAvvStyle, 1, updated);
       updated.introduction = result.introduction;
       break;
     }
     case 2: {
       // Étape 3: Générer les sections
       if (!updated.outline) throw new Error('Plan détaillé manquant');
-      const result = await runStepWithGenerator(anthropic, options, useAppréciez Votre VieStyle, 2, updated);
+      const result = await runStepWithGenerator(anthropic, options, useAvvStyle, 2, updated);
       updated.sections = result.sections;
       // Assembler le contenu partiel
       updated.assembledContent = [updated.introduction || '', ...(updated.sections || [])]
@@ -330,7 +330,7 @@ async function executeSingleStep(
     case 3: {
       // Étape 4: Générer la conclusion
       if (!updated.outline) throw new Error('Plan détaillé manquant');
-      const result = await runStepWithGenerator(anthropic, options, useAppréciez Votre VieStyle, 3, updated);
+      const result = await runStepWithGenerator(anthropic, options, useAvvStyle, 3, updated);
       updated.conclusion = result.conclusion;
       // Mettre à jour le contenu assemblé
       updated.assembledContent = [
@@ -345,7 +345,7 @@ async function executeSingleStep(
     case 4: {
       // Étape 5: Révision de cohérence
       if (!updated.outline) throw new Error('Plan détaillé manquant');
-      const result = await runStepWithGenerator(anthropic, options, useAppréciez Votre VieStyle, 4, updated);
+      const result = await runStepWithGenerator(anthropic, options, useAvvStyle, 4, updated);
       updated.revisedContent = result.revisedContent;
       updated.coherenceScore = result.coherenceScore;
       break;
@@ -353,26 +353,26 @@ async function executeSingleStep(
     case 5: {
       // Étape 6: Titre et description SEO
       if (!updated.outline) throw new Error('Plan détaillé manquant');
-      const result = await runStepWithGenerator(anthropic, options, useAppréciez Votre VieStyle, 5, updated);
+      const result = await runStepWithGenerator(anthropic, options, useAvvStyle, 5, updated);
       updated.title = result.title;
       updated.description = result.description;
       break;
     }
     case 6: {
       // Étape 7: Tags
-      const result = await runStepWithGenerator(anthropic, options, useAppréciez Votre VieStyle, 6, updated);
+      const result = await runStepWithGenerator(anthropic, options, useAvvStyle, 6, updated);
       updated.tags = result.tags;
       break;
     }
     case 7: {
       // Étape 8: FAQ
-      const result = await runStepWithGenerator(anthropic, options, useAppréciez Votre VieStyle, 7, updated);
+      const result = await runStepWithGenerator(anthropic, options, useAvvStyle, 7, updated);
       updated.faq = result.faq;
       break;
     }
     case 8: {
       // Étape 9: Prompt image
-      const result = await runStepWithGenerator(anthropic, options, useAppréciez Votre VieStyle, 8, updated);
+      const result = await runStepWithGenerator(anthropic, options, useAvvStyle, 8, updated);
       updated.imagePrompt = result.imagePrompt;
       break;
     }
@@ -396,7 +396,7 @@ async function executeSingleStep(
 async function runStepWithGenerator(
   anthropic: Anthropic,
   options: SectionalGenerationOptions,
-  useAppréciez Votre VieStyle: boolean,
+  useAvvStyle: boolean,
   stepIndex: number,
   partial: PartialResult
 ): Promise<Partial<PartialResult>> {
@@ -443,7 +443,7 @@ async function runStepWithGenerator(
 
   // Import du style prompt si nécessaire
   let AVV_STYLE_SYSTEM_PROMPT: string | undefined;
-  if (useAppréciez Votre VieStyle) {
+  if (useAvvStyle) {
     const styleModule = await import('../../common/avv-system-prompt');
     AVV_STYLE_SYSTEM_PROMPT = styleModule.AVV_STYLE_SYSTEM_PROMPT;
   }

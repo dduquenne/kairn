@@ -313,7 +313,7 @@ describe('Auth Flow Integration', () => {
 
     it('should normalize email to lowercase', async () => {
       const result = await handleLogin({
-        email: 'ADMIN@AVV.FR',
+        email: 'ADMIN@APPRECIEZVOTREVIE.FR',
         password: 'securePassword123!',
       });
 
