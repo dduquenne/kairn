@@ -29,7 +29,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "ua-parser-js": "^1.0.37"
+    "ua-parser-js": "^2.0.9"
   },
   "devDependencies": {
     "@kairn/typescript-config": "workspace:*",
