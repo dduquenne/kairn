@@ -24,8 +24,8 @@ export const metadata: Metadata = {
     "dépression",
     "quête de sens",
     "développement personnel",
-    "sophrologie transpersonnelle",
-    "somatothérapie thérapeutique",
+    "relaxation dynamique",
+    "visualisation positive",
     "Nathalie Duquenne",
     "Saint-Julien-du-Sault",
     "Yonne",
@@ -193,7 +193,7 @@ function getJsonLd() {
             name: "Comment se déroule une séance de sophrologie ?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "Une séance dure généralement entre 50 minutes et 1 heure. Elle commence par un temps d'accueil et d'écoute de ce que vous traversez, suivi d'un travail adapté à vos besoins du moment : dialogue, exercices de présence, somatothérapie si approprié.",
+              text: "Une séance dure généralement entre 50 minutes et 1 heure. Elle commence par un temps d'accueil et d'écoute de ce que vous traversez, suivi d'un travail adapté à vos besoins du moment : dialogue, exercices de respiration, relaxation dynamique et visualisation.",
             },
           },
           {
@@ -216,7 +216,7 @@ function getJsonLd() {
  *
  * ROBUSTESSE : Logging détaillé pour diagnostiquer les problèmes d'affichage
  */
-export default async function PsychotherapiePage() {
+export default async function SophrologiePage() {
   const jsonLd = getJsonLd();
 
   console.log("[page/sophrologie] Chargement de la page");

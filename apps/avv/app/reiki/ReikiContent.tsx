@@ -13,16 +13,16 @@ import type { BlogPostSummary } from '../../lib/blog';
 
 import { ArticlesList } from './ArticlesList';
 
-interface SophrologieContentProps {
+interface ReikiContentProps {
   posts: BlogPostSummary[];
 }
 
 /**
- * Client Component - Contenu de la page sophrologie
- * Une presentation approfondie et rassurante de la sophrologie
- * Optimisee pour le SEO et l'experience utilisateur
+ * Client Component - Contenu de la page reiki
+ * Présentation du reiki et de ses bienfaits
+ * Optimisée pour le SEO et l'expérience utilisateur
  */
-export function SophrologieContent({ posts }: SophrologieContentProps) {
+export function ReikiContent({ posts }: ReikiContentProps) {
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -31,40 +31,38 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
 
   const heroParallax = useTransform(scrollYProgress, [0, 1], [0, -100]);
 
-  // Etat pour la FAQ
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const faqItems = [
     {
-      question: "Qu'est-ce que la sophrologie ?",
+      question: "Qu'est-ce que le reiki ?",
       answer:
-        "La sophrologie est une methode psychocorporelle qui combine des exercices de respiration controlee, de decontraction musculaire et de visualisation positive. Creee par le neuropsychiatre Alfonso Caycedo dans les annees 1960, elle s'inspire du yoga, de la meditation et de la relaxation pour vous aider a retrouver un etat d'harmonie entre le corps et l'esprit.",
+        "Le reiki est une méthode de soin énergétique d'origine japonaise, développée par Mikao Usui au début du XXe siècle. Le mot « reiki » signifie « énergie vitale universelle ». Le praticien canalise cette énergie par imposition des mains sur ou au-dessus du corps du receveur, favorisant ainsi l'auto-guérison, le rééquilibrage énergétique et une profonde détente.",
     },
     {
-      question: 'Comment se deroule une premiere seance ?',
+      question: 'Comment se déroule une séance de reiki ?',
       answer:
-        "La premiere seance est un temps de rencontre et d'ecoute. Nous faisons connaissance, vous me partagez ce qui vous amene et vos attentes. Ensuite, je vous propose un premier exercice de relaxation dynamique pour decouvrir la pratique. C'est l'occasion de poser vos questions et de sentir si la sophrologie vous convient.",
+        "Vous restez habillé, allongé confortablement sur une table de soin. Je pose mes mains délicatement sur ou au-dessus de différentes zones de votre corps, en suivant un protocole précis qui couvre les principaux centres énergétiques. La séance dure environ 1 heure. Vous pouvez ressentir de la chaleur, des picotements, ou simplement une profonde détente.",
     },
     {
-      question: 'Combien de seances sont necessaires ?',
+      question: 'Faut-il croire au reiki pour que ça fonctionne ?',
       answer:
-        "Le nombre de seances varie selon vos objectifs. Pour un besoin ponctuel (gestion du stress avant un examen, preparation a l'accouchement), 4 a 8 seances peuvent suffire. Pour un travail plus profond sur la confiance en soi ou la gestion emotionnelle, un accompagnement plus long peut etre envisage. Nous evaluons ensemble au fil du temps.",
+        "Non, le reiki agit indépendamment de vos croyances. Il suffit d'être ouvert et réceptif. Beaucoup de personnes sceptiques au départ sont surprises par la profondeur de la détente ressentie. Le reiki n'est pas une religion ni une pratique mystique : c'est une technique de soin énergétique.",
     },
     {
-      question: 'La sophrologie est-elle remboursee ?',
+      question: 'Combien de séances sont recommandées ?',
       answer:
-        "La sophrologie n'est pas remboursee par la Securite sociale. Cependant, de nombreuses mutuelles proposent un forfait annuel pour les seances de sophrologie. Je vous invite a verifier aupres de votre mutuelle les conditions de prise en charge.",
+        "Une seule séance peut déjà apporter un bienfait notable. Pour un travail en profondeur, 3 à 4 séances rapprochées sont généralement recommandées, puis des séances d'entretien selon vos besoins. Chaque parcours est unique et nous adaptons ensemble le rythme des séances.",
     },
     {
-      question: 'Les seances peuvent-elles se faire en visioconference ?',
+      question: 'Le reiki peut-il remplacer un traitement médical ?',
       answer:
-        "Oui, je propose des seances en visioconference pour les personnes qui ne peuvent pas se deplacer ou qui habitent loin. L'accompagnement a distance est tout aussi efficace et permet une grande flexibilite. La premiere seance peut egalement se faire en ligne.",
+        "Non, le reiki ne remplace jamais un traitement médical. C'est une approche complémentaire qui peut accompagner un traitement en cours, soulager certains effets secondaires et favoriser le bien-être global. Il est toujours important de consulter votre médecin pour toute question de santé.",
     },
   ];
 
   return (
     <div className="from-night via-night/95 to-night text-ivory min-h-screen bg-gradient-to-b">
-      {/* Navigation Menu */}
       <NavigationMenu forceVisible />
 
       {/* Hero Section */}
@@ -72,21 +70,18 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
         ref={heroRef}
         className="bg-night relative overflow-hidden px-6 pb-20 pt-24 sm:px-8 sm:pb-24 sm:pt-28 lg:px-16"
       >
-        {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <Image
-            src="/images/sophrologie.webp"
-            alt="Sophrologie - Harmonisez votre corps et votre esprit"
+            src="/images/reiki.webp"
+            alt="Reiki - Rééquilibrez vos énergies"
             fill
             className="object-cover object-center"
             priority
             quality={90}
           />
-          {/* Overlay pour lisibilite du texte */}
           <div className="from-night/75 via-night/90 to-night/95 absolute inset-0 bg-gradient-to-b" />
         </div>
 
-        {/* Background gradient effects */}
         <div className="pointer-events-none absolute inset-0 opacity-30">
           <motion.div
             className="absolute -left-40 top-10 h-96 w-96 rounded-full bg-[radial-gradient(circle_at_center,_rgba(199,169,98,0.25),_transparent_70%)]"
@@ -105,24 +100,22 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
             transition={{ duration: 0.8 }}
             className="text-center"
           >
-            {/* Eyebrow */}
             <motion.span
               className="text-gold mb-4 inline-block text-sm font-medium uppercase tracking-widest"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.1 }}
             >
-              Sophrologie
+              Reiki
             </motion.span>
 
-            {/* Title */}
             <motion.h1
               className="font-display text-ivory mb-6 text-4xl font-semibold sm:text-5xl lg:text-6xl"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              Sophrologie dans <span className="text-gold">l'Yonne</span>
+              Reiki à <span className="text-gold">Saint-Julien-du-Sault</span>
             </motion.h1>
             <motion.p
               className="text-ivory/80 mx-auto mb-8 max-w-3xl text-lg sm:text-xl"
@@ -130,9 +123,9 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
             >
-              La sophrologie est un chemin vers l'harmonie entre le corps et l'esprit. A travers des
-              exercices de respiration, de relaxation et de visualisation, je vous accompagne pour
-              retrouver serenite et equilibre interieur.
+              Le reiki est un soin énergétique doux et profond qui rééquilibre les énergies de
+              votre corps. Par l'imposition des mains, je canalise l'énergie universelle pour
+              favoriser votre détente, votre guérison et votre bien-être global.
             </motion.p>
             <motion.div
               className="flex flex-col gap-4 sm:flex-row sm:justify-center"
@@ -146,7 +139,7 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
                 onTrack={() =>
                   trackConversionEvent(
                     'appointment_request',
-                    'button_click_sophrologie_hero',
+                    'button_click_reiki_hero',
                     false
                   )
                 }
@@ -166,7 +159,7 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
         <article
           itemScope
           itemType="https://schema.org/Article"
-          aria-label="Presentation de la sophrologie"
+          aria-label="Présentation du reiki"
         >
           {/* Section 1: Introduction */}
           <motion.section
@@ -178,36 +171,37 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
             className="mb-20 scroll-mt-24"
           >
             <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
-              Qu'est-ce que la sophrologie ?
+              Qu'est-ce que le reiki ?
             </h2>
 
             <p className="text-ivory/90 mb-6 text-lg leading-relaxed">
-              La sophrologie est une <strong>methode psychocorporelle</strong> qui allie respiration
-              controlee, decontraction musculaire et visualisation positive. Creee dans les annees
-              1960 par le neuropsychiatre Alfonso Caycedo, elle puise ses racines dans le yoga, la
-              meditation et les techniques de relaxation occidentales.
+              Le reiki est une <strong>méthode de soin énergétique</strong> d'origine japonaise,
+              développée par Mikao Usui au début du XXe siècle. Le mot « reiki » est composé de
+              deux kanji japonais : <em>rei</em> (universel) et <em>ki</em> (énergie vitale).
             </p>
 
             <p className="text-ivory/90 mb-6 text-lg leading-relaxed">
-              Elle permet de <strong>retrouver un etat de bien-etre</strong>, de developper ses
-              capacites personnelles et de mieux gerer les situations du quotidien. La sophrologie
-              est accessible a tous, quel que soit l'age ou la condition physique.
+              Le praticien de reiki canalise cette <strong>énergie vitale universelle</strong> par
+              imposition des mains sur ou au-dessus du corps du receveur. L'énergie circule
+              naturellement vers les zones qui en ont besoin, favorisant l'auto-guérison et le
+              rééquilibrage énergétique.
             </p>
 
             <div className="border-gold/30 bg-gold/5 my-8 rounded-r-lg border-l-4 p-6">
               <p className="text-ivory/80 italic leading-relaxed">
-                "La sophrologie nous apprend a vivre en harmonie avec nous-memes, a decouvrir nos
-                ressources interieures et a les utiliser au service de notre bien-etre."
+                "Le reiki n'est pas seulement une technique de soin. C'est une invitation à se
+                reconnecter à l'énergie de vie qui nous traverse et nous anime."
               </p>
             </div>
 
             <p className="text-ivory/90 text-lg leading-relaxed">
-              En seance, nous travaillons ensemble a votre rythme. Chaque parcours est unique, adapte
-              a vos besoins, vos objectifs et votre sensibilite.
+              Le reiki est une pratique douce, non invasive, qui respecte le rythme et les besoins
+              de chacun. Aucune manipulation physique n'est nécessaire : seul le toucher léger des
+              mains ou leur présence au-dessus du corps suffit.
             </p>
           </motion.section>
 
-          {/* Section 2: Pour qui ? */}
+          {/* Section 2: Bienfaits */}
           <motion.section
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -216,24 +210,24 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
             className="mb-20"
           >
             <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
-              La sophrologie est-elle faite pour vous ?
+              Les bienfaits du reiki
             </h2>
 
             <p className="text-ivory/90 mb-6 text-lg leading-relaxed">
-              La sophrologie s'adresse a toute personne souhaitant ameliorer sa qualite de vie.
-              Voici quelques situations ou elle peut vous accompagner :
+              Le reiki agit sur tous les plans de l'être : physique, émotionnel, mental et
+              spirituel. Ses bienfaits sont multiples :
             </p>
 
             <div className="mb-8 grid gap-4 sm:grid-cols-2">
               {[
-                "Gestion du stress et de l'anxiete",
-                'Troubles du sommeil et fatigue chronique',
-                'Manque de confiance en soi',
-                "Preparation aux examens ou evenements importants",
-                'Accompagnement de la grossesse',
-                'Gestion des emotions et des tensions',
-                'Douleurs chroniques et tensions musculaires',
-                'Recherche de bien-etre et d\'equilibre',
+                'Détente profonde et relâchement des tensions',
+                'Soulagement des douleurs et tensions musculaires',
+                'Rééquilibrage énergétique global',
+                'Renforcement du bien-être et de la vitalité',
+                'Amélioration de la qualité du sommeil',
+                'Réduction du stress et de l\'anxiété',
+                'Soutien au processus de guérison naturelle',
+                'Harmonisation des émotions',
               ].map((item, index) => (
                 <motion.div
                   key={index}
@@ -250,8 +244,7 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
             </div>
 
             <p className="text-ivory/90 text-lg leading-relaxed">
-              Si vous vous reconnaissez dans l'une de ces situations, la sophrologie peut vous
-              apporter des outils concrets pour ameliorer votre quotidien.
+              Le reiki est complémentaire aux soins médicaux et ne les remplace en aucun cas.
             </p>
           </motion.section>
 
@@ -264,36 +257,35 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
             className="mb-20"
           >
             <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
-              Une approche douce et progressive
+              Les principes du reiki
             </h2>
 
             <p className="text-ivory/90 mb-6 text-lg leading-relaxed">
-              Ma pratique de la sophrologie s'appuie sur une approche <strong>bienveillante et
-              progressive</strong>, qui respecte votre rythme et vos besoins. Je combine plusieurs
-              techniques pour un accompagnement sur mesure :
+              Le reiki repose sur des principes simples qui guident la pratique et la philosophie
+              de vie :
             </p>
 
             <div className="mb-8 space-y-4">
               {[
                 {
-                  title: 'La relaxation dynamique',
+                  title: 'L\'énergie universelle',
                   description:
-                    'Des mouvements doux associes a la respiration pour relacher les tensions du corps et apaiser le mental.',
+                    'Le reiki s\'appuie sur l\'idée qu\'une énergie vitale universelle circule en nous et autour de nous. Quand cette énergie circule librement, nous sommes en bonne santé. Quand elle est bloquée, des déséquilibres apparaissent.',
                 },
                 {
-                  title: 'Les exercices de respiration',
+                  title: 'L\'auto-guérison',
                   description:
-                    'Des techniques respiratoires specifiques pour calmer le systeme nerveux, reduire le stress et retrouver la serenite.',
+                    'Le reiki ne guérit pas directement : il active et soutient les capacités naturelles d\'auto-guérison du corps. L\'énergie va naturellement là où le corps en a besoin.',
                 },
                 {
-                  title: 'La visualisation positive',
+                  title: 'L\'imposition des mains',
                   description:
-                    'Des exercices d\'imagerie mentale pour renforcer la confiance en soi, se projeter positivement et ancrer de nouvelles ressources.',
+                    'Le praticien pose ses mains sur ou au-dessus des centres énergétiques du corps. Le toucher est léger, respectueux et bienveillant. Aucune pression ni manipulation n\'est exercée.',
                 },
                 {
-                  title: 'La sophronisation',
+                  title: 'Le respect du rythme de chacun',
                   description:
-                    'Un etat de relaxation profonde guide par la voix, entre veille et sommeil, propice a l\'integration des changements positifs.',
+                    'Le reiki respecte votre rythme et vos besoins. L\'énergie s\'adapte naturellement à ce que vous êtes prêt à recevoir à ce moment précis.',
                 },
               ].map((item, index) => (
                 <motion.div
@@ -312,14 +304,15 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
 
             <div className="border-gold/20 bg-night/40 my-8 rounded-lg border p-8">
               <p className="text-gold/90 text-center text-xl font-light italic leading-relaxed">
-                "Le corps est le temple de l'esprit. Prenez-en soin, c'est le seul endroit ou vous
-                vivez."
+                "Juste pour aujourd'hui, ne te mets pas en colère. Juste pour aujourd'hui, ne te
+                fais pas de souci. Sois rempli de gratitude. Accomplis ton devoir avec diligence.
+                Sois bienveillant envers les autres."
               </p>
-              <p className="text-ivory/50 mt-4 text-center text-sm">— Jim Rohn</p>
+              <p className="text-ivory/50 mt-4 text-center text-sm">— Les 5 principes du Reiki, Mikao Usui</p>
             </div>
           </motion.section>
 
-          {/* Section 4: Deroulement */}
+          {/* Section 4: Déroulement */}
           <motion.section
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -328,7 +321,7 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
             className="mb-20"
           >
             <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
-              Comment se deroule l'accompagnement ?
+              Comment se déroule une séance ?
             </h2>
 
             <div className="space-y-8">
@@ -337,10 +330,10 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
                   1
                 </div>
                 <div>
-                  <h3 className="text-ivory mb-2 text-xl font-semibold">La prise de contact</h3>
+                  <h3 className="text-ivory mb-2 text-xl font-semibold">L'accueil</h3>
                   <p className="text-ivory/80">
-                    Vous me contactez via le formulaire de demande de rendez-vous. Je vous reponds
-                    sous 48h pour convenir d'un premier entretien.
+                    Nous commençons par un temps d'échange pour comprendre vos besoins et vos
+                    attentes. Vous restez habillé en tenue confortable tout au long de la séance.
                   </p>
                 </div>
               </div>
@@ -350,10 +343,11 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
                   2
                 </div>
                 <div>
-                  <h3 className="text-ivory mb-2 text-xl font-semibold">La premiere rencontre</h3>
+                  <h3 className="text-ivory mb-2 text-xl font-semibold">Le soin</h3>
                   <p className="text-ivory/80">
-                    Nous faisons connaissance. Vous m'exposez ce qui vous amene, vos attentes et vos
-                    objectifs. Je vous propose un premier exercice pour decouvrir la sophrologie.
+                    Allongé confortablement, vous fermez les yeux et vous vous laissez porter. Je
+                    pose mes mains sur ou au-dessus de différentes zones de votre corps, suivant un
+                    protocole qui couvre les principaux centres énergétiques.
                   </p>
                 </div>
               </div>
@@ -363,11 +357,11 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
                   3
                 </div>
                 <div>
-                  <h3 className="text-ivory mb-2 text-xl font-semibold">Le suivi personnalise</h3>
+                  <h3 className="text-ivory mb-2 text-xl font-semibold">Les ressentis</h3>
                   <p className="text-ivory/80">
-                    Les seances suivantes permettent d'approfondir la pratique avec des exercices
-                    adaptes a vos besoins. Vous apprenez progressivement a les reproduire chez vous
-                    en toute autonomie.
+                    Pendant la séance, vous pouvez ressentir de la chaleur, des picotements, des
+                    vagues de détente ou simplement un profond apaisement. Chaque expérience est
+                    unique et il n'y a pas de "bonne" façon de ressentir.
                   </p>
                 </div>
               </div>
@@ -377,17 +371,18 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
                   4
                 </div>
                 <div>
-                  <h3 className="text-ivory mb-2 text-xl font-semibold">L'autonomie retrouvee</h3>
+                  <h3 className="text-ivory mb-2 text-xl font-semibold">Le partage</h3>
                   <p className="text-ivory/80">
-                    Au fil des seances, vous integrez les outils sophrologique dans votre quotidien.
-                    Vous repartez avec des exercices pratiques que vous pouvez reproduire chez vous.
+                    Après le soin, nous prenons un moment pour échanger sur vos ressentis. Ce temps
+                    de parole permet d'intégrer l'expérience et de recevoir des conseils
+                    personnalisés pour prolonger les bienfaits.
                   </p>
                 </div>
               </div>
             </div>
           </motion.section>
 
-          {/* Section 5: Rassurance */}
+          {/* Section 5: FAQ */}
           <motion.section
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -396,7 +391,7 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
             className="mb-20"
           >
             <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
-              Vos questions, mes reponses
+              Vos questions, mes réponses
             </h2>
 
             <div className="space-y-4">
@@ -420,18 +415,8 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
                         openFaq === index ? 'rotate-180' : ''
                       }`}
                     >
-                      <svg
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </span>
                   </button>
@@ -450,7 +435,7 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
             </div>
           </motion.section>
 
-          {/* CTA Intermediaire */}
+          {/* CTA Intermédiaire */}
           <motion.section
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -460,11 +445,11 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
           >
             <div className="from-gold/10 to-gold/5 border-gold/20 rounded-lg border bg-gradient-to-br p-8 text-center">
               <h2 className="font-display text-ivory mb-4 text-2xl font-semibold sm:text-3xl">
-                Prete a decouvrir la sophrologie ?
+                Prête à rééquilibrer vos énergies ?
               </h2>
               <p className="text-ivory/70 mb-6">
-                La premiere rencontre est sans engagement. C'est l'occasion de decouvrir comment la
-                sophrologie peut vous aider.
+                Offrez-vous un moment de profonde détente et laissez l'énergie du reiki rétablir
+                votre équilibre intérieur.
               </p>
               <CTAButton
                 variant="primary"
@@ -472,7 +457,7 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
                 onTrack={() =>
                   trackConversionEvent(
                     'appointment_request',
-                    'button_click_sophrologie_cta_middle',
+                    'button_click_reiki_cta_middle',
                     false
                   )
                 }
@@ -496,8 +481,7 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
               Pour aller plus loin
             </h2>
             <p className="text-ivory/70 mb-8 text-lg">
-              Decouvrez mes articles pour mieux comprendre la sophrologie et ce qu'elle peut vous
-              apporter.
+              Découvrez mes articles pour mieux comprendre le reiki et les soins énergétiques.
             </p>
 
             <ArticlesList posts={posts} />
@@ -519,11 +503,11 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
           className="mb-12 text-center"
         >
           <h2 className="font-display text-ivory mb-6 text-3xl font-semibold">
-            Retrouvez votre equilibre
+            Reconnectez-vous à votre énergie vitale
           </h2>
           <p className="text-ivory/80 mb-8 text-lg">
-            Que vous cherchiez a gerer votre stress, ameliorer votre sommeil ou simplement vous
-            accorder un moment de serenite, je suis la pour vous accompagner.
+            Le reiki vous offre un espace de paix et de régénération. Laissez l'énergie
+            universelle vous guider vers un meilleur équilibre.
           </p>
           <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
             <CTAButton
@@ -532,7 +516,7 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
               onTrack={() =>
                 trackConversionEvent(
                   'appointment_request',
-                  'button_click_sophrologie_cta_final',
+                  'button_click_reiki_cta_final',
                   false
                 )
               }
@@ -540,7 +524,7 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
               Demander un rendez-vous
             </CTAButton>
             <CTAButton variant="secondary" href="/a-propos">
-              Decouvrir mon parcours
+              Découvrir mon parcours
             </CTAButton>
           </div>
         </motion.section>
@@ -548,15 +532,15 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
 
       {/* Footer */}
       <footer className="border-ivory/10 bg-night/80 text-ivory/50 border-t px-6 py-10 text-center text-xs sm:px-10 lg:px-16">
-        <CurrentYear /> Appreciez Votre Vie. Tous droits reserves.
+        <CurrentYear /> Appréciez Votre Vie. Tous droits réservés.
         <Link href="/blog" className="text-ivory/60 hover:text-gold ml-4">
           Blog
         </Link>
         <Link href="/mentions-legales" className="text-ivory/60 hover:text-gold ml-4">
-          Mentions legales
+          Mentions légales
         </Link>
         <Link href="/admin" className="text-ivory/60 hover:text-gold ml-4">
-          Acces prive
+          Accès privé
         </Link>
       </footer>
     </div>

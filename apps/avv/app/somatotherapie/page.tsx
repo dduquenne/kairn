@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { getAllPostsAsync } from "@/lib/blog";
 import { filterHypnosisPosts } from "@/lib/therapy-articles";
 
-import { SomatothérapieContent } from "./SomatothérapieContent";
+import { SomatothérapieContent } from "./SomatotherapieContent";
 
 // Rendu dynamique pour garantir que les articles sont toujours à jour
 export const dynamic = 'force-dynamic';
@@ -12,39 +12,35 @@ export const dynamic = 'force-dynamic';
  * Métadonnées SEO optimisées pour la page somatothérapie
  */
 export const metadata: Metadata = {
-  title: "Somatothérapie thérapeutique - Un voyage vers vos ressources internes",
-  description: "Découvrez l'somatothérapie thérapeutique avec Nathalie Duquenne : une approche douce et naturelle pour libérer vos blocages, réduire l'anxiété et activer vos ressources internes. Séances d'somatothérapie à Saint-Julien-du-Sault et en visioconférence.",
+  title: "Somatothérapie - Libérez les mémoires de votre corps",
+  description: "Découvrez la somatothérapie avec Nathalie Duquenne : une approche corporelle globale pour libérer les tensions, les blocages émotionnels inscrits dans le corps et retrouver votre vitalité. Séances individuelles à Saint-Julien-du-Sault.",
   keywords: [
     "somatothérapie",
-    "somatothérapie thérapeutique",
-    "somatothérapie",
-    "somatothérapie",
-    "état modifié de conscience",
-    "inconscient",
-    "ressources internes",
-    "anxiété",
-    "stress",
-    "phobies",
-    "arrêt tabac",
-    "confiance en soi",
+    "thérapie corporelle",
+    "mémoire du corps",
+    "libération émotionnelle",
+    "tensions musculaires",
+    "approche psychocorporelle",
+    "relaxation profonde",
+    "bien-être corporel",
+    "équilibre corps esprit",
+    "toucher conscient",
     "Nathalie Duquenne",
     "Saint-Julien-du-Sault",
     "Yonne",
     "Bourgogne",
-    "séance en ligne",
-    "visioconférence",
   ],
   openGraph: {
-    title: "Somatothérapie thérapeutique - Un voyage vers vos ressources internes",
-    description: "Une approche douce et naturelle pour libérer vos blocages et activer le potentiel de transformation qui sommeille en vous.",
+    title: "Somatothérapie - Libérez les mémoires de votre corps",
+    description: "Une approche corporelle globale pour libérer les tensions et les blocages émotionnels inscrits dans le corps.",
     type: "website",
-    url: "https://appreciezvotrevie.fr/somatothérapie",
+    url: "https://appreciezvotrevie.fr/somatotherapie",
     images: [
       {
-        url: "https://appreciezvotrevie.fr/images/somatothérapie-hero.webp",
+        url: "https://appreciezvotrevie.fr/images/somatotherapie-hero.webp",
         width: 1200,
         height: 630,
-        alt: "Somatothérapie thérapeutique - Appréciez Votre Vie - Nathalie Duquenne",
+        alt: "Somatothérapie - Appréciez Votre Vie - Nathalie Duquenne",
       },
     ],
     locale: "fr_FR",
@@ -52,12 +48,12 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Somatothérapie thérapeutique - Un voyage vers vos ressources internes",
-    description: "Découvrez une approche thérapeutique douce pour libérer vos blocages et activer vos ressources internes.",
-    images: ["https://appreciezvotrevie.fr/images/somatothérapie-hero.webp"],
+    title: "Somatothérapie - Libérez les mémoires de votre corps",
+    description: "Découvrez une approche corporelle pour libérer les tensions et retrouver votre vitalité.",
+    images: ["https://appreciezvotrevie.fr/images/somatotherapie-hero.webp"],
   },
   alternates: {
-    canonical: "https://appreciezvotrevie.fr/somatothérapie",
+    canonical: "https://appreciezvotrevie.fr/somatotherapie",
   },
   robots: {
     index: true,
@@ -74,24 +70,24 @@ export const metadata: Metadata = {
 
 /**
  * Données structurées JSON-LD pour le référencement
- * Schema.org Service + MedicalWebPage pour l'somatothérapie thérapeutique
+ * Schema.org Service + WebPage pour la somatothérapie
  */
 function getJsonLd() {
   return {
     "@context": "https://schema.org",
     "@graph": [
       {
-        "@type": "MedicalWebPage",
-        "@id": "https://appreciezvotrevie.fr/somatothérapie#webpage",
-        url: "https://appreciezvotrevie.fr/somatothérapie",
-        name: "Somatothérapie thérapeutique - Un voyage vers vos ressources internes",
+        "@type": "WebPage",
+        "@id": "https://appreciezvotrevie.fr/somatotherapie#webpage",
+        url: "https://appreciezvotrevie.fr/somatotherapie",
+        name: "Somatothérapie - Libérez les mémoires de votre corps",
         description:
-          "Découvrez l'somatothérapie thérapeutique avec Nathalie Duquenne : une approche douce et naturelle pour libérer vos blocages et activer vos ressources internes.",
+          "Découvrez la somatothérapie avec Nathalie Duquenne : une approche corporelle globale pour libérer les tensions et les blocages émotionnels.",
         isPartOf: {
           "@id": "https://appreciezvotrevie.fr/#website",
         },
         about: {
-          "@id": "https://appreciezvotrevie.fr/somatothérapie#service",
+          "@id": "https://appreciezvotrevie.fr/somatotherapie#service",
         },
         breadcrumb: {
           "@type": "BreadcrumbList",
@@ -106,24 +102,20 @@ function getJsonLd() {
               "@type": "ListItem",
               position: 2,
               name: "Somatothérapie",
-              item: "https://appreciezvotrevie.fr/somatothérapie",
+              item: "https://appreciezvotrevie.fr/somatotherapie",
             },
           ],
         },
         datePublished: "2024-01-01",
         dateModified: new Date().toISOString(),
         inLanguage: "fr-FR",
-        medicalAudience: {
-          "@type": "MedicalAudience",
-          audienceType: "Patient",
-        },
       },
       {
         "@type": "Service",
-        "@id": "https://appreciezvotrevie.fr/somatothérapie#service",
-        name: "Somatothérapie thérapeutique",
+        "@id": "https://appreciezvotrevie.fr/somatotherapie#service",
+        name: "Somatothérapie",
         description:
-          "Séances d'somatothérapie pour accompagner la gestion du stress, les phobies, les blocages émotionnels et activer les ressources internes.",
+          "Séances de somatothérapie pour libérer les tensions, les blocages émotionnels inscrits dans le corps et retrouver vitalité et équilibre.",
         provider: {
           "@type": "Person",
           "@id": "https://appreciezvotrevie.fr/a-propos#person",
@@ -154,24 +146,24 @@ function getJsonLd() {
         },
         hasOfferCatalog: {
           "@type": "OfferCatalog",
-          name: "Services d'somatothérapie thérapeutique",
+          name: "Services de somatothérapie",
           itemListElement: [
             {
               "@type": "Offer",
               itemOffered: {
                 "@type": "Service",
-                name: "Séance d'somatothérapie en cabinet",
+                name: "Séance individuelle en cabinet",
                 description:
-                  "Séance d'somatothérapie thérapeutique en présentiel à Saint-Julien-du-Sault",
+                  "Séance de somatothérapie en présentiel à Saint-Julien-du-Sault",
               },
             },
             {
               "@type": "Offer",
               itemOffered: {
                 "@type": "Service",
-                name: "Séance d'somatothérapie en visioconférence",
+                name: "Séance en visioconférence",
                 description:
-                  "Séance d'somatothérapie thérapeutique à distance par visioconférence",
+                  "Séance de somatothérapie à distance par visioconférence",
               },
             },
           ],
@@ -179,30 +171,30 @@ function getJsonLd() {
       },
       {
         "@type": "FAQPage",
-        "@id": "https://appreciezvotrevie.fr/somatothérapie#faq",
+        "@id": "https://appreciezvotrevie.fr/somatotherapie#faq",
         mainEntity: [
           {
             "@type": "Question",
-            name: "Qu'est-ce que l'somatothérapie thérapeutique ?",
+            name: "Qu'est-ce que la somatothérapie ?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "L'somatothérapie thérapeutique est un état naturel de conscience modifiée qui permet d'accéder aux ressources de l'inconscient. Contrairement aux idées reçues, vous restez conscient et gardez le contrôle pendant toute la séance. C'est un outil puissant pour faciliter le changement et libérer les blocages.",
+              text: "La somatothérapie est une approche thérapeutique qui prend en compte le corps dans sa globalité. Elle part du principe que nos expériences émotionnelles, nos traumatismes et notre vécu se mémorisent dans le corps sous forme de tensions, de blocages ou de douleurs. En travaillant avec le corps, on peut libérer ces mémoires et retrouver l'équilibre.",
             },
           },
           {
             "@type": "Question",
-            name: "Comment se déroule une séance d'somatothérapie ?",
+            name: "Comment se déroule une séance de somatothérapie ?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "La séance commence par un temps d'échange pour définir votre objectif. Puis, confortablement installé, je vous guide vers un état de relaxation profonde à travers ma voix. Dans cet état, nous travaillons sur votre problématique. La séance se termine par un retour progressif à l'état de veille ordinaire.",
+              text: "Une séance dure environ 1h à 1h30. Elle commence par un temps d'échange pour comprendre votre état du moment. Ensuite, le travail corporel commence : toucher conscient, mobilisations douces, exercices de respiration. La séance se termine par un temps d'intégration et d'échange sur les ressentis.",
             },
           },
           {
             "@type": "Question",
-            name: "L'somatothérapie est-elle dangereuse ?",
+            name: "La somatothérapie est-elle faite pour moi ?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "Non, l'somatothérapie thérapeutique est parfaitement sûre. Vous ne dormez pas et restez conscient de ce qui se passe. Vous ne pouvez pas être contrôlé contre votre volonté. C'est un état naturel que nous expérimentons tous au quotidien, par exemple lorsque nous sommes absorbés par un livre ou un film.",
+              text: "La somatothérapie s'adresse à toute personne qui ressent des tensions chroniques, des blocages émotionnels, du stress ou qui souhaite reconnecter avec son corps. Elle est particulièrement indiquée après un traumatisme, un burn-out ou en complément d'un suivi psychologique.",
             },
           },
         ],
@@ -212,28 +204,25 @@ function getJsonLd() {
 }
 
 /**
- * Page de présentation de l'somatothérapie thérapeutique
+ * Page de présentation de la somatothérapie
  * Server Component qui exporte les métadonnées et récupère les articles
- *
- * ROBUSTESSE : Logging détaillé pour diagnostiquer les problèmes d'affichage
  */
-export default async function SomatothérapiePage() {
+export default async function SomatotherapiePage() {
   const jsonLd = getJsonLd();
 
-  console.log("[page/somatothérapie] Chargement de la page");
+  console.warn("[page/somatotherapie] Chargement de la page");
 
-  // Récupérer tous les articles et filtrer ceux pertinents à l'somatothérapie
+  // Récupérer tous les articles et filtrer ceux pertinents
   const allPosts = await getAllPostsAsync();
-  console.log(`[page/somatothérapie] ${allPosts.length} articles récupérés du blog`);
+  console.warn(`[page/somatotherapie] ${allPosts.length} articles récupérés du blog`);
 
   const relevantPosts = filterHypnosisPosts(allPosts, 50);
-  console.log(
-    `[page/somatothérapie] ${relevantPosts.length} articles filtrés pour affichage`
+  console.warn(
+    `[page/somatotherapie] ${relevantPosts.length} articles filtrés pour affichage`
   );
 
-  // Log d'alerte si aucun article
   if (relevantPosts.length === 0) {
-    console.warn("[page/somatothérapie] ATTENTION: Aucun article à afficher!");
+    console.warn("[page/somatotherapie] ATTENTION: Aucun article à afficher!");
   }
 
   return (

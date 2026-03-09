@@ -13,16 +13,16 @@ import type { BlogPostSummary } from '../../lib/blog';
 
 import { ArticlesList } from './ArticlesList';
 
-interface SomatothérapieContentProps {
+interface CoherenceCardiaqueContentProps {
   posts: BlogPostSummary[];
 }
 
 /**
- * Client Component - Contenu de la page somatothérapie
- * Une présentation approfondie de la somatothérapie
+ * Client Component - Contenu de la page cohérence cardiaque
+ * Présentation de la cohérence cardiaque et de ses bienfaits
  * Optimisée pour le SEO et l'expérience utilisateur
  */
-export function SomatothérapieContent({ posts }: SomatothérapieContentProps) {
+export function CoherenceCardiaqueContent({ posts }: CoherenceCardiaqueContentProps) {
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -31,40 +31,38 @@ export function SomatothérapieContent({ posts }: SomatothérapieContentProps) {
 
   const heroParallax = useTransform(scrollYProgress, [0, 1], [0, -100]);
 
-  // État pour la FAQ
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const faqItems = [
     {
-      question: "Qu'est-ce que la somatothérapie ?",
+      question: "Qu'est-ce que la cohérence cardiaque ?",
       answer:
-        "La somatothérapie est une approche thérapeutique corporelle globale qui considère que le corps est le lieu où se mémorisent nos expériences de vie. Chaque tension, chaque douleur chronique peut être le signe d'une émotion non exprimée ou d'un vécu non intégré. En travaillant avec le corps par le toucher conscient, la respiration et le mouvement, on peut libérer ces mémoires et retrouver l'équilibre.",
+        "La cohérence cardiaque est une technique de respiration rythmée qui permet de synchroniser le rythme cardiaque avec la respiration. En respirant à un rythme régulier (généralement 6 respirations par minute), on active le système nerveux parasympathique, ce qui induit un état de calme, de clarté mentale et de bien-être global. C'est une méthode simple, accessible à tous et scientifiquement validée.",
     },
     {
-      question: 'Faut-il se déshabiller pour une séance ?',
+      question: 'Comment pratiquer la cohérence cardiaque ?',
       answer:
-        "Le travail corporel se fait généralement habillé, en tenue confortable. Certaines techniques peuvent nécessiter un contact direct avec la peau (épaules, dos, pieds), mais tout se fait dans le respect de votre intimité et avec votre consentement. Vous restez toujours maître de ce que vous acceptez.",
+        "La pratique est simple : inspirez pendant 5 secondes, puis expirez pendant 5 secondes, de façon régulière et continue pendant 5 minutes. C'est la règle du 365 : 3 fois par jour (matin, midi, soir), 6 respirations par minute, pendant 5 minutes. En séance, je vous guide pour trouver votre rythme personnel et intégrer cette pratique dans votre quotidien.",
     },
     {
-      question: 'Combien de séances sont nécessaires ?',
+      question: 'Combien de temps pour ressentir les effets ?',
       answer:
-        "Cela dépend de votre problématique et de votre rythme. Certaines tensions peuvent se libérer en quelques séances, d'autres nécessitent un accompagnement plus long. Généralement, 5 à 10 séances permettent un travail en profondeur. Nous évaluons ensemble au fur et à mesure de votre évolution.",
+        "Les effets immédiats se ressentent dès la première séance : apaisement, détente, clarté mentale. Les effets durables apparaissent après environ 2 semaines de pratique régulière. Au bout d'un mois, les bienfaits sur le sommeil, le stress et l'immunité sont mesurables.",
     },
     {
       question: 'Y a-t-il des contre-indications ?',
       answer:
-        "La somatothérapie est une approche douce et adaptable. Cependant, elle n'est pas indiquée en cas de fractures récentes, de maladies infectieuses aiguës ou de troubles psychiatriques sévères non stabilisés. En cas de doute, n'hésitez pas à en parler lors de la prise de contact.",
+        "La cohérence cardiaque est une pratique douce et sans danger, accessible à tous. Il n'y a pas de contre-indication connue. Elle peut être pratiquée par les enfants, les personnes âgées, les femmes enceintes et même les personnes souffrant de pathologies chroniques. En cas de doute, consultez votre médecin.",
     },
     {
-      question: 'La somatothérapie peut-elle compléter un suivi médical ?',
+      question: 'Peut-on pratiquer seul chez soi ?',
       answer:
-        "Oui, la somatothérapie s'inscrit parfaitement en complément d'un suivi médical ou psychologique. Elle ne remplace pas un traitement médical mais peut l'accompagner efficacement, notamment pour la gestion de la douleur, du stress ou en phase de réhabilitation.",
+        "Oui, c'est même recommandé ! L'objectif des séances est de vous apprendre à pratiquer en autonomie. Je vous transmets les techniques, les outils et les repères pour que vous puissiez intégrer la cohérence cardiaque dans votre quotidien. Des applications gratuites peuvent vous guider dans votre pratique.",
     },
   ];
 
   return (
     <div className="from-night via-night/95 to-night text-ivory min-h-screen bg-gradient-to-b">
-      {/* Navigation Menu */}
       <NavigationMenu forceVisible />
 
       {/* Hero Section */}
@@ -72,21 +70,18 @@ export function SomatothérapieContent({ posts }: SomatothérapieContentProps) {
         ref={heroRef}
         className="bg-night relative overflow-hidden px-6 pb-20 pt-24 sm:px-8 sm:pb-24 sm:pt-28 lg:px-16"
       >
-        {/* Background Image */}
         <div className="absolute inset-0 z-0">
           <Image
-            src="/images/somatotherapie.webp"
-            alt="Somatothérapie - Libérez les mémoires de votre corps"
+            src="/images/coherence-cardiaque.webp"
+            alt="Cohérence Cardiaque - Harmonisez votre corps et votre esprit"
             fill
             className="object-cover object-center"
             priority
             quality={90}
           />
-          {/* Overlay pour lisibilité du texte */}
           <div className="from-night/75 via-night/90 to-night/95 absolute inset-0 bg-gradient-to-b" />
         </div>
 
-        {/* Background gradient effects */}
         <div className="pointer-events-none absolute inset-0 opacity-30">
           <motion.div
             className="absolute -left-40 top-10 h-96 w-96 rounded-full bg-[radial-gradient(circle_at_center,_rgba(199,169,98,0.25),_transparent_70%)]"
@@ -105,24 +100,22 @@ export function SomatothérapieContent({ posts }: SomatothérapieContentProps) {
             transition={{ duration: 0.8 }}
             className="text-center"
           >
-            {/* Eyebrow */}
             <motion.span
               className="text-gold mb-4 inline-block text-sm font-medium uppercase tracking-widest"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.1 }}
             >
-              Somatothérapie
+              Cohérence Cardiaque
             </motion.span>
 
-            {/* Title */}
             <motion.h1
               className="font-display text-ivory mb-6 text-4xl font-semibold sm:text-5xl lg:text-6xl"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              Somatothérapie à <span className="text-gold">Saint-Julien-du-Sault</span>
+              Cohérence Cardiaque dans <span className="text-gold">l'Yonne</span>
             </motion.h1>
             <motion.p
               className="text-ivory/80 mx-auto mb-8 max-w-3xl text-lg sm:text-xl"
@@ -130,9 +123,9 @@ export function SomatothérapieContent({ posts }: SomatothérapieContentProps) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
             >
-              Votre corps garde en mémoire chaque expérience, chaque émotion. La somatothérapie vous
-              invite à écouter ces messages corporels pour libérer les tensions profondes et
-              retrouver votre vitalité naturelle.
+              La cohérence cardiaque est une technique de respiration simple et puissante qui
+              harmonise le rythme de votre coeur et de votre respiration. En quelques minutes par
+              jour, retrouvez calme, clarté mentale et vitalité.
             </motion.p>
             <motion.div
               className="flex flex-col gap-4 sm:flex-row sm:justify-center"
@@ -144,7 +137,11 @@ export function SomatothérapieContent({ posts }: SomatothérapieContentProps) {
                 variant="primary"
                 href="/demande-rendez-vous"
                 onTrack={() =>
-                  trackConversionEvent('appointment_request', 'button_click_somatotherapie_hero', false)
+                  trackConversionEvent(
+                    'appointment_request',
+                    'button_click_coherence_cardiaque_hero',
+                    false
+                  )
                 }
               >
                 Demander un rendez-vous
@@ -162,7 +159,7 @@ export function SomatothérapieContent({ posts }: SomatothérapieContentProps) {
         <article
           itemScope
           itemType="https://schema.org/Article"
-          aria-label="Présentation de la somatothérapie"
+          aria-label="Présentation de la cohérence cardiaque"
         >
           {/* Section 1: Introduction */}
           <motion.section
@@ -174,36 +171,36 @@ export function SomatothérapieContent({ posts }: SomatothérapieContentProps) {
             className="mb-20 scroll-mt-24"
           >
             <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
-              Qu'est-ce que la somatothérapie ?
+              Qu'est-ce que la cohérence cardiaque ?
             </h2>
 
             <p className="text-ivory/90 mb-6 text-lg leading-relaxed">
-              La somatothérapie est une <strong>approche thérapeutique corporelle globale</strong> qui
-              considère que le corps est le lieu où se mémorisent nos expériences de vie. Chaque
-              tension, chaque douleur chronique, chaque raideur peut être le signe d'une émotion non
-              exprimée ou d'un vécu non intégré.
+              La cohérence cardiaque est une <strong>technique de respiration rythmée</strong> qui
+              permet de synchroniser le battement du coeur avec le rythme respiratoire. Quand cette
+              synchronisation est atteinte, le système nerveux autonome s'équilibre, produisant un
+              état de calme profond et de clarté mentale.
             </p>
 
             <p className="text-ivory/90 mb-6 text-lg leading-relaxed">
-              En travaillant avec le corps par le <strong>toucher conscient, la respiration et
-              le mouvement</strong>, la somatothérapie permet de libérer ces mémoires corporelles et
-              de retrouver un état d'équilibre et de fluidité.
+              Validée par de nombreuses <strong>études scientifiques</strong>, cette pratique est
+              utilisée aussi bien dans le domaine médical que dans la gestion du stress, la
+              préparation sportive et le développement personnel.
             </p>
 
             <div className="border-gold/30 bg-gold/5 my-8 rounded-r-lg border-l-4 p-6">
               <p className="text-ivory/80 italic leading-relaxed">
-                "Le corps ne ment jamais. Il est le témoin fidèle de notre histoire, de nos joies
-                comme de nos blessures. Apprendre à l'écouter, c'est retrouver le chemin de soi."
+                "5 minutes de cohérence cardiaque, 3 fois par jour, suffisent à transformer
+                durablement votre rapport au stress et à vos émotions."
               </p>
             </div>
 
             <p className="text-ivory/90 text-lg leading-relaxed">
-              La somatothérapie ne cherche pas à analyser intellectuellement les problèmes mais à
-              les traverser par le corps, dans un espace de sécurité et de bienveillance.
+              La méthode est simple, accessible à tous et ne nécessite aucun matériel. C'est un
+              outil que vous pouvez utiliser partout, à tout moment de la journée.
             </p>
           </motion.section>
 
-          {/* Section 2: Pour qui ? */}
+          {/* Section 2: Bienfaits */}
           <motion.section
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -212,24 +209,23 @@ export function SomatothérapieContent({ posts }: SomatothérapieContentProps) {
             className="mb-20"
           >
             <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
-              La somatothérapie peut vous aider si...
+              Les bienfaits prouvés de la cohérence cardiaque
             </h2>
 
             <p className="text-ivory/90 mb-6 text-lg leading-relaxed">
-              La somatothérapie est une approche polyvalente qui s'adresse à toute personne
-              souhaitant retrouver un lien harmonieux avec son corps :
+              Les bienfaits de la cohérence cardiaque sont nombreux et scientifiquement documentés :
             </p>
 
             <div className="mb-8 grid gap-4 sm:grid-cols-2">
               {[
-                'Tensions musculaires chroniques et douleurs persistantes',
-                'Stress, anxiété et épuisement nerveux',
-                'Blocages émotionnels et difficulté à exprimer ses émotions',
-                'Troubles du sommeil et fatigue chronique',
-                'Récupération après un traumatisme ou un choc émotionnel',
-                'Burn-out et épuisement professionnel',
-                'Déconnexion de son corps et de ses sensations',
-                'Envie de reconnecter avec soi-même en profondeur',
+                'Réduction du stress et de l\'anxiété',
+                'Amélioration de la qualité du sommeil',
+                'Meilleure gestion émotionnelle',
+                'Renforcement du système immunitaire',
+                'Baisse de la tension artérielle',
+                'Amélioration de la concentration et de la mémoire',
+                'Diminution du cortisol (hormone du stress)',
+                'Augmentation de la DHEA (hormone de jouvence)',
               ].map((item, index) => (
                 <motion.div
                   key={index}
@@ -246,12 +242,12 @@ export function SomatothérapieContent({ posts }: SomatothérapieContentProps) {
             </div>
 
             <p className="text-ivory/90 text-lg leading-relaxed">
-              La somatothérapie ne remplace pas un traitement médical mais peut l'accompagner
-              efficacement.
+              Les effets se font sentir dès les premières minutes de pratique et s'amplifient avec
+              la régularité.
             </p>
           </motion.section>
 
-          {/* Section 3: Mon approche */}
+          {/* Section 3: La méthode 365 */}
           <motion.section
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -260,35 +256,30 @@ export function SomatothérapieContent({ posts }: SomatothérapieContentProps) {
             className="mb-20"
           >
             <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
-              Mon approche en somatothérapie
+              La méthode 365
             </h2>
 
             <p className="text-ivory/90 mb-6 text-lg leading-relaxed">
-              Ma pratique de la somatothérapie s'appuie sur une écoute attentive du corps et de ses
-              signaux. Je combine plusieurs outils pour un accompagnement adapté à vos besoins :
+              La cohérence cardiaque repose sur un protocole simple et efficace, popularisé par le
+              Dr David O'Hare :
             </p>
 
             <div className="mb-8 space-y-4">
               {[
                 {
-                  title: 'Le toucher conscient',
+                  title: '3 fois par jour',
                   description:
-                    'Un toucher respectueux et attentif qui permet de repérer les zones de tension et d\'accompagner leur libération en douceur.',
+                    'Pratiquez au réveil, avant le déjeuner et en fin d\'après-midi. Ces trois moments clés permettent de maintenir les effets tout au long de la journée.',
                 },
                 {
-                  title: 'Le travail respiratoire',
+                  title: '6 respirations par minute',
                   description:
-                    'Des exercices de respiration qui favorisent la détente profonde et la circulation de l\'énergie dans le corps.',
+                    'Inspirez pendant 5 secondes, expirez pendant 5 secondes. Ce rythme correspond à la fréquence de résonance du système cardiovasculaire.',
                 },
                 {
-                  title: 'La mobilisation articulaire',
+                  title: '5 minutes par session',
                   description:
-                    'Des mouvements doux et progressifs pour redonner de la mobilité aux zones figées et restaurer la fluidité corporelle.',
-                },
-                {
-                  title: 'L\'écoute somatique',
-                  description:
-                    'Une attention portée aux sensations, aux images et aux émotions qui émergent pendant le travail corporel, sans jugement ni interprétation.',
+                    'Seulement 5 minutes suffisent pour induire un état de cohérence cardiaque. Les effets physiologiques durent ensuite 4 à 6 heures.',
                 },
               ].map((item, index) => (
                 <motion.div
@@ -307,9 +298,10 @@ export function SomatothérapieContent({ posts }: SomatothérapieContentProps) {
 
             <div className="border-gold/20 bg-night/40 my-8 rounded-lg border p-8">
               <p className="text-gold/90 text-center text-xl font-light italic leading-relaxed">
-                "Le corps est la mémoire vivante de notre histoire. En le libérant, on se libère."
+                "La cohérence cardiaque est la porte d'entrée la plus simple vers un meilleur
+                équilibre physiologique et émotionnel."
               </p>
-              <p className="text-ivory/50 mt-4 text-center text-sm">— Wilhelm Reich</p>
+              <p className="text-ivory/50 mt-4 text-center text-sm">— Dr David O'Hare</p>
             </div>
           </motion.section>
 
@@ -322,7 +314,7 @@ export function SomatothérapieContent({ posts }: SomatothérapieContentProps) {
             className="mb-20"
           >
             <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
-              Comment se déroule une séance ?
+              Comment se déroule l'accompagnement ?
             </h2>
 
             <div className="space-y-8">
@@ -331,11 +323,10 @@ export function SomatothérapieContent({ posts }: SomatothérapieContentProps) {
                   1
                 </div>
                 <div>
-                  <h3 className="text-ivory mb-2 text-xl font-semibold">L'accueil et l'écoute</h3>
+                  <h3 className="text-ivory mb-2 text-xl font-semibold">Bilan initial</h3>
                   <p className="text-ivory/80">
-                    Nous commençons par un temps d'échange pour comprendre votre état du moment, vos
-                    sensations corporelles et ce qui vous amène. Ce temps d'écoute est essentiel pour
-                    adapter la séance à vos besoins.
+                    Nous faisons le point sur votre état de stress, vos objectifs et votre mode de
+                    vie. Je vous explique les principes de la cohérence cardiaque et ses bienfaits.
                   </p>
                 </div>
               </div>
@@ -345,11 +336,11 @@ export function SomatothérapieContent({ posts }: SomatothérapieContentProps) {
                   2
                 </div>
                 <div>
-                  <h3 className="text-ivory mb-2 text-xl font-semibold">Le travail corporel</h3>
+                  <h3 className="text-ivory mb-2 text-xl font-semibold">Apprentissage guidé</h3>
                   <p className="text-ivory/80">
-                    Allongé confortablement, vous vous laissez guider par le toucher conscient et la
-                    respiration. Le travail se fait en douceur, toujours dans le respect de vos
-                    limites et de votre consentement.
+                    Je vous guide pas à pas dans la pratique de la respiration rythmée. Nous trouvons
+                    ensemble le rythme qui vous convient le mieux et les moments idéaux pour
+                    pratiquer.
                   </p>
                 </div>
               </div>
@@ -359,25 +350,11 @@ export function SomatothérapieContent({ posts }: SomatothérapieContentProps) {
                   3
                 </div>
                 <div>
-                  <h3 className="text-ivory mb-2 text-xl font-semibold">La libération</h3>
+                  <h3 className="text-ivory mb-2 text-xl font-semibold">Pratique autonome</h3>
                   <p className="text-ivory/80">
-                    Au fil de la séance, les tensions se libèrent progressivement. Des sensations,
-                    des émotions ou des images peuvent émerger. Je vous accompagne avec bienveillance
-                    à travers ce processus de libération.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-6">
-                <div className="bg-gold/10 text-gold flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full text-xl font-semibold">
-                  4
-                </div>
-                <div>
-                  <h3 className="text-ivory mb-2 text-xl font-semibold">L'intégration</h3>
-                  <p className="text-ivory/80">
-                    Nous terminons par un temps d'échange sur vos ressentis. Ce moment d'intégration
-                    est essentiel pour donner du sens à ce qui s'est passé pendant la séance et
-                    ancrer les changements.
+                    Vous repartez avec tous les outils pour pratiquer chez vous : techniques,
+                    applications recommandées et conseils personnalisés pour intégrer la cohérence
+                    cardiaque dans votre quotidien.
                   </p>
                 </div>
               </div>
@@ -417,18 +394,8 @@ export function SomatothérapieContent({ posts }: SomatothérapieContentProps) {
                         openFaq === index ? 'rotate-180' : ''
                       }`}
                     >
-                      <svg
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
+                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </span>
                   </button>
@@ -457,11 +424,11 @@ export function SomatothérapieContent({ posts }: SomatothérapieContentProps) {
           >
             <div className="from-gold/10 to-gold/5 border-gold/20 rounded-lg border bg-gradient-to-br p-8 text-center">
               <h2 className="font-display text-ivory mb-4 text-2xl font-semibold sm:text-3xl">
-                Prête à libérer votre corps ?
+                Prête à découvrir la cohérence cardiaque ?
               </h2>
               <p className="text-ivory/70 mb-6">
-                La première séance est l'occasion de faire connaissance et de découvrir la
-                somatothérapie en toute sécurité.
+                En quelques séances, apprenez à utiliser cet outil puissant pour transformer votre
+                quotidien.
               </p>
               <CTAButton
                 variant="primary"
@@ -469,7 +436,7 @@ export function SomatothérapieContent({ posts }: SomatothérapieContentProps) {
                 onTrack={() =>
                   trackConversionEvent(
                     'appointment_request',
-                    'button_click_somatotherapie_cta_middle',
+                    'button_click_coherence_cardiaque_cta_middle',
                     false
                   )
                 }
@@ -493,8 +460,7 @@ export function SomatothérapieContent({ posts }: SomatothérapieContentProps) {
               Pour aller plus loin
             </h2>
             <p className="text-ivory/70 mb-8 text-lg">
-              Découvrez mes articles pour mieux comprendre la somatothérapie et les approches
-              corporelles.
+              Découvrez mes articles pour approfondir vos connaissances sur la cohérence cardiaque.
             </p>
 
             <ArticlesList posts={posts} />
@@ -516,18 +482,22 @@ export function SomatothérapieContent({ posts }: SomatothérapieContentProps) {
           className="mb-12 text-center"
         >
           <h2 className="font-display text-ivory mb-6 text-3xl font-semibold">
-            Reconnectez-vous à votre corps
+            Retrouvez votre équilibre naturel
           </h2>
           <p className="text-ivory/80 mb-8 text-lg">
-            Que vous souhaitiez libérer des tensions, traverser un moment difficile ou simplement
-            retrouver votre vitalité, la somatothérapie peut vous y aider.
+            La cohérence cardiaque est un outil simple et puissant pour harmoniser votre corps et
+            votre esprit. Commencez dès aujourd'hui.
           </p>
           <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
             <CTAButton
               variant="primary"
               href="/demande-rendez-vous"
               onTrack={() =>
-                trackConversionEvent('appointment_request', 'button_click_somatotherapie_cta_final', false)
+                trackConversionEvent(
+                  'appointment_request',
+                  'button_click_coherence_cardiaque_cta_final',
+                  false
+                )
               }
             >
               Demander un rendez-vous
