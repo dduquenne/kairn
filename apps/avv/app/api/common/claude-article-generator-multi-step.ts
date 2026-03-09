@@ -363,8 +363,8 @@ Génère un titre et une description optimisés SEO au format JSON :
 
 RÈGLES POUR LE TITRE :
 - Pas de majuscule inutile (sauf noms propres et début)
-- Exemples corrects : "Comprendre l'somatothérapie", "Comment gérer l'anxiété"
-- Exemples incorrects : "Comprendre L'Somatothérapie"
+- Exemples corrects : "Comprendre la somatothérapie", "Comment gérer l'anxiété"
+- Exemples incorrects : "Comprendre La Somatothérapie"
 
 RÈGLES POUR LA DESCRIPTION :
 - Maximum 20 mots

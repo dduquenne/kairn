@@ -120,7 +120,7 @@ export function AProposContent() {
               Je m'appelle <strong>Nathalie Duquenne</strong>.
             </p>
             <p className="text-ivory/90 mb-6 text-lg leading-relaxed">
-              Je suis thérapeute spécialisé en sophrologie et en somatothérapie.
+              Je suis thérapeute spécialisée en sophrologie et en somatothérapie.
               J'accompagne des personnes traversant une souffrance psychologique, une crise
               existentielle, une perte de sens, un burn-out ou une période de profonde remise en
               question.
@@ -350,15 +350,15 @@ export function AProposContent() {
             </h2>
 
             <p className="text-ivory/90 mb-6 text-lg leading-relaxed">
-              Avec ma femme Nathalie, nous avons créé un lieu en Bourgogne, à
-              <strong> Saint-Julien-du-Sault</strong>, dédié à l'accompagnement des passages de vie
-              : sophrologies individuelles, thérapies de groupe, stages résidentiels, respiration
-              holotropique.
+              Au <strong>Moulin d'en Bas</strong>, à
+              <strong> Saint-Julien-du-Sault</strong> en Bourgogne, j'ai créé un lieu dédié à
+              l'accompagnement et au bien-être : sophrologie, somatothérapie, reiki, cohérence
+              cardiaque et séminaires de breathwork & rebirth.
             </p>
 
             <p className="text-ivory/90 mb-8 text-lg leading-relaxed">
-              À travers <strong>Appréciez Votre Vie</strong>, j'accompagne celles et ceux qui sentent que
-              quelque chose doit changer, sans forcément savoir encore comment.
+              À travers <strong>Appréciez Votre Vie</strong>, j'accompagne celles et ceux qui
+              souhaitent retrouver leur équilibre intérieur et cultiver leur bien-être au quotidien.
             </p>
 
             <div className="from-gold/10 to-gold/5 border-gold/20 rounded-lg border bg-gradient-to-br p-8">

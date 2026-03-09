@@ -228,19 +228,19 @@ async function getUpcomingSeminars() {
  *
  * ROBUSTESSE : Logging détaillé pour diagnostiquer les problèmes d'affichage
  */
-export default async function RespirationHolotropiquePage() {
+export default async function BreathworkPage() {
   const jsonLd = getJsonLd();
 
-  console.log("[page/breathwork] Chargement de la page");
+  console.warn("[page/breathwork] Chargement de la page");
 
   // Récupérer tous les articles et filtrer ceux pertinents à la breathwork & rebirth
   const allPosts = await getAllPostsAsync();
-  console.log(
+  console.warn(
     `[page/breathwork] ${allPosts.length} articles récupérés du blog`
   );
 
   const relevantPosts = filterHolotropicPosts(allPosts, 50);
-  console.log(
+  console.warn(
     `[page/breathwork] ${relevantPosts.length} articles filtrés pour affichage`
   );
 
@@ -253,7 +253,7 @@ export default async function RespirationHolotropiquePage() {
 
   // Récupérer les séminaires à venir
   const upcomingSeminars = await getUpcomingSeminars();
-  console.log(
+  console.warn(
     `[page/breathwork] ${upcomingSeminars.length} séminaires à venir`
   );
 

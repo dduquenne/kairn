@@ -27,8 +27,8 @@ function cleanStringToSlug(str: string): string {
  * - Supprime les stop words français courants
  * - Garde les termes importants et mémorables
  *
- * Exemple: "Comprendre l'somatothérapie pour mieux se connaître"
- * → "somatothérapie-ericksonienne-connaître"
+ * Exemple: "Comprendre la somatothérapie pour mieux se connaître"
+ * → "somatotherapie-connaitre"
  */
 function extractSeoTermsFromTitle(title: string): string[] {
   // Stop words français à exclure du slug
@@ -80,9 +80,9 @@ const CATEGORY_SLUG_MAP: Record<string, string> = {
  * ⚠️ GARANTIT TOUJOURS un slug valide, même en cas de problème avec le titre ou la catégorie
  *
  * Exemple:
- * - Titre: "Comprendre l'somatothérapie"
+ * - Titre: "Comprendre la somatothérapie"
  * - Catégorie: "Comprendre"
- * - Résultat: "comprendre-somatothérapie-ericksonienne"
+ * - Résultat: "comprendre-somatotherapie"
  *
  * Cas problématiques gérés:
  * - Titre vide ou invalide → fallback sur catégorie ou timestamp

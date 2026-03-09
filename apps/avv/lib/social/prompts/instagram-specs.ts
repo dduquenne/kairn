@@ -53,7 +53,7 @@ Un espace où le changement devient possible.
 .
 .
 .
-#somatothérapie #somatothérapieericksonienne #bienetre`,
+#somatothérapie #bienetre #sophrologie`,
     bestFor: ['Articles informatifs', 'Déconstruction de mythes', 'Contenus éducatifs'],
     tips: [
       'Le premier mot doit créer un "arrêt" mental',
@@ -591,11 +591,11 @@ export const INSTAGRAM_HASHTAG_DATABASE: HashtagCategory[] = [
     tier: 'niche',
     estimatedPosts: '100K-500K',
     hashtags: [
-      'somatothérapieericksonienne',
-      'hypnotherapie',
-      'somatothérapieconversationnelle',
-      'autosomatothérapie',
-      'seancesomatothérapie',
+      'somatotherapie',
+      'therapiecorporelle',
+      'memoirecorporelle',
+      'toucherconscient',
+      'seancesomatotherapie',
     ],
   },
   {

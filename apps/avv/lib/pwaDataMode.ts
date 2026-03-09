@@ -474,11 +474,11 @@ export function generateMockBlogArticleStats(slug: string) {
  */
 export function generateMockFaqClicks(articleSlug?: string) {
   const faqQuestions = [
-    "Qu'est-ce que l'somatothérapie ?",
+    "Qu'est-ce que la somatothérapie ?",
     'Combien de séances sont nécessaires ?',
-    'La sophrologie et relaxation est-elle pour moi ?',
+    'La sophrologie est-elle faite pour moi ?',
     'Comment se déroule une première séance ?',
-    'Quelle est la différence avec la psychanalyse ?',
+    'Quels sont les bienfaits du reiki ?',
     'Est-ce remboursé par la sécurité sociale ?',
     'Peut-on faire de la thérapie en ligne ?',
     'Comment choisir son thérapeute ?',

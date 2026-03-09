@@ -536,9 +536,9 @@ export const FACEBOOK_HASHTAG_DATABASE: FacebookHashtagCategory[] = [
     id: 'pratiques',
     name: 'Pratiques spécifiques',
     hashtags: [
-      'somatothérapieericksonienne',
-      'respirationholotropique',
-      'therapiebreve',
+      'somatotherapie',
+      'breathwork',
+      'sophrologie',
     ],
     priority: 'secondary',
   },

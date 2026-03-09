@@ -78,7 +78,7 @@ export function BlogSection({ initialData }: BlogSectionProps) {
         eyebrow: 'Ressources & Articles',
         title: 'Découvrez nos derniers contenus',
         description:
-          "Des articles pour mieux comprendre la sophrologie, l'somatothérapie et la breathwork & rebirth. Ressources gratuites pour votre développement personnel et votre bien-être.",
+          "Des articles pour mieux comprendre la sophrologie, la somatothérapie et la breathwork & rebirth. Ressources gratuites pour votre développement personnel et votre bien-être.",
       }}
       categoryColors={CATEGORY_COLORS}
       linkComponent={Link}

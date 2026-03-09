@@ -91,12 +91,12 @@ const AVV_TECHNICAL_INSTRUCTIONS = `
 ### Convention de casse pour les titres (H2/H3)
 * **RÈGLE IMPÉRATIVE** : Pas de majuscule inutile au début des titres (sauf noms propres et débuts de phrase)
 * Exemples corrects :
-  - ✅ "Comprendre l'somatothérapie"
+  - ✅ "Comprendre la somatothérapie"
   - ✅ "Comment gérer l'anxiété au quotidien"
   - ✅ "Les bénéfices de la méditation"
   - ✅ "Introduction à la sophrologie et relaxation" (noms propres gardent leur majuscule)
 * Exemples à éviter :
-  - ❌ "Comprendre L'Somatothérapie" (majuscules inutiles)
+  - ❌ "Comprendre La Somatothérapie" (majuscules inutiles)
   - ❌ "Comment Gérer L'Anxiété" (majuscules inutiles)
   - ❌ "Les Bénéfices De La Méditation" (majuscules inutiles)
 
@@ -396,7 +396,7 @@ ${!options.preferredTones || options.preferredTones.length === 0 ? `**Ton géné
 1. Style AVV + Markdown strict (défini dans ton système)
 2. Listes régulières, **gras** pour concepts-clés, *italique* pour introspection
 3. Conclusion avec CTA subtil
-4. **TITRE PRINCIPAL** : Pas de majuscule inutile (sauf noms propres et débuts de phrase). Exemples : "Comprendre l'somatothérapie", "Comment gérer l'anxiété", "Les bénéfices de la méditation"
+4. **TITRE PRINCIPAL** : Pas de majuscule inutile (sauf noms propres et débuts de phrase). Exemples : "Comprendre la somatothérapie", "Comment gérer l'anxiété", "Les bénéfices de la méditation"
 5. **TITRES H2/H3** : Même règle - pas de majuscule inutile sauf noms propres
 6. **IMPORTANT** : La longueur cible (${LENGTH_GUIDE[targetLength]}) doit correspondre au CORPS DE L'ARTICLE UNIQUEMENT, SANS les FAQs
 7. FAQ 3-5 questions optimisées SEO (comptées séparément de la longueur cible)
@@ -497,7 +497,7 @@ CONSIGNES :
 5. Évite les promesses irréalistes ou les affirmations non prouvées
 6. Reste sensible aux enjeux de santé mentale
 7. **IMPORTANT** : La longueur cible (${LENGTH_GUIDE[targetLength]}) doit correspondre au CORPS DE L'ARTICLE UNIQUEMENT, SANS les FAQs
-8. **TITRES** : Pas de majuscule inutile dans le titre principal ni les H2/H3 (sauf noms propres et débuts de phrase). Exemples : "Comprendre l'somatothérapie", "Comment gérer l'anxiété", "Les bénéfices de la méditation"
+8. **TITRES** : Pas de majuscule inutile dans le titre principal ni les H2/H3 (sauf noms propres et débuts de phrase). Exemples : "Comprendre la somatothérapie", "Comment gérer l'anxiété", "Les bénéfices de la méditation"
 
 FORMAT DE RÉPONSE (utilise exactement ces balises) :
 <TITLE>

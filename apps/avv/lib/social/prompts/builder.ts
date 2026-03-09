@@ -908,7 +908,7 @@ STRATÉGIE HASHTAGS (3 TIERS)
 ═══════════════════════════════════════════
 
 Utilise ${LINKEDIN_RULES.hashtagStrategy.optimal} hashtags en mélangeant :
-• 1 hashtag NICHE : ciblage précis (ex: #somatothérapieericksonienne)
+• 1 hashtag NICHE : ciblage précis (ex: #somatotherapie)
 • 2 hashtags MEDIUM : visibilité équilibrée (ex: #gestiondustress)
 • 1-2 hashtags LARGE : découvrabilité (ex: #bienetre, #santementale)
 

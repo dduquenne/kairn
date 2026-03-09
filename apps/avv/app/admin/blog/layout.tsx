@@ -29,11 +29,11 @@ const AVV_CATEGORY_SLUG_MAP: Record<string, string> = {
 };
 
 const AVV_SUGGESTED_TOPICS = [
-  "Les bienfaits de l'somatothérapie",
+  'Les bienfaits de la somatothérapie',
   'Comprendre la breathwork & rebirth',
-  "Le rôle de l'inconscient dans la guérison",
-  'La psychologie transpersonnelle',
-  'Traverser un deuil avec la thérapie',
+  'La sophrologie au quotidien',
+  'Découvrir le reiki et ses bienfaits',
+  'La cohérence cardiaque pour gérer le stress',
 ];
 
 /**

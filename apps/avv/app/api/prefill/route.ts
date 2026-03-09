@@ -109,7 +109,7 @@ function generateSuggestedMessage(service: string): string {
       "Bonjour, je rencontre des difficultés de sommeil et j'aimerais prendre rendez-vous.",
     'Confiance en soi': 'Bonjour, je souhaite travailler sur ma confiance en moi.',
     'Phobies et peurs': "Bonjour, j'aimerais me faire accompagner pour surmonter mes peurs.",
-    Somatothérapie: "Bonjour, je suis intéressé(e) par l'somatothérapie.",
+    Somatothérapie: 'Bonjour, je suis intéressé(e) par la somatothérapie.',
     Sophrologie: 'Bonjour, je voudrais découvrir la sophrologie.',
     'Séminaires et ateliers': 'Bonjour, je suis intéressé(e) par vos prochains séminaires.',
   };

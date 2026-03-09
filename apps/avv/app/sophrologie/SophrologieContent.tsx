@@ -38,27 +38,27 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
     {
       question: "Qu'est-ce que la sophrologie ?",
       answer:
-        "La sophrologie est un accompagnement professionnel qui vous aide à traverser les difficultés émotionnelles, les crises de vie et à développer une meilleure connaissance de vous-même. C'est un espace sécurisé où vous pouvez explorer vos pensées, vos émotions et vos comportements, accompagné par un thérapeute formé et bienveillant.",
+        "La sophrologie est une méthode psycho-corporelle qui utilise la respiration contrôlée, la relaxation dynamique et la visualisation positive pour harmoniser le corps et l'esprit. Créée dans les années 1960 par le neuropsychiatre Alfonso Caycedo, elle s'inspire du yoga, du zen et de la phénoménologie pour développer la conscience de soi et renforcer l'équilibre intérieur.",
     },
     {
-      question: 'Comment se déroule une première séance ?',
+      question: 'Comment se déroule une séance de sophrologie ?',
       answer:
-        "La première séance est un temps de rencontre et d'écoute. Nous faisons connaissance, vous me partagez ce qui vous amène et ce que vous traversez. C'est aussi l'occasion de poser vos questions et de sentir si le cadre vous convient. Il n'y a aucune obligation d'engagement : cette première rencontre vous permet de décider si vous souhaitez poursuivre.",
+        "Une séance dure environ une heure. Elle commence par un temps d'échange pour identifier vos besoins, suivi d'exercices de relaxation dynamique (mouvements doux associés à la respiration) et de visualisations guidées. Vous restez conscient et acteur tout au long de la séance. Nous terminons par un temps de partage sur vos ressentis.",
     },
     {
-      question: 'Combien de temps dure une thérapie ?',
+      question: 'Combien de séances faut-il prévoir ?',
       answer:
-        "La durée d'une thérapie varie selon chaque personne et ce qu'elle traverse. Certaines problématiques peuvent s'apaiser en quelques séances, d'autres nécessitent un travail plus long. Nous évaluons ensemble, au fil du temps, l'évolution de votre cheminement. Vous restez toujours libre de mettre fin à l'accompagnement quand vous le souhaitez.",
+        "Le nombre de séances varie selon vos objectifs. Certaines problématiques comme la gestion du stress peuvent s'améliorer en 5 à 8 séances. Un travail plus approfondi sur la confiance en soi ou la préparation mentale peut nécessiter un accompagnement plus long. Nous définissons ensemble un programme adapté à vos besoins.",
     },
     {
       question: 'La sophrologie est-elle remboursée ?',
       answer:
-        "La sophrologie n'est généralement pas remboursée par la Sécurité sociale. Cependant, de nombreuses mutuelles proposent un forfait annuel pour les consultations chez un sophrologue ou psychologue. Je vous invite à vérifier auprès de votre mutuelle les conditions de remboursement.",
+        "La sophrologie n'est pas remboursée par la Sécurité sociale. Cependant, de nombreuses mutuelles proposent un forfait annuel pour les séances de sophrologie. Je vous invite à vérifier auprès de votre mutuelle les conditions de prise en charge.",
     },
     {
-      question: 'Les séances peuvent-elles se faire en visioconférence ?',
+      question: 'Faut-il une tenue particulière ?',
       answer:
-        "Oui, je propose des séances en visioconférence pour les personnes qui ne peuvent pas se déplacer ou qui habitent loin. L'accompagnement à distance est tout aussi efficace et permet une grande flexibilité. La première séance peut également se faire en ligne pour voir si le cadre vous convient.",
+        "Non, il suffit de porter des vêtements confortables dans lesquels vous vous sentez à l'aise. Les exercices se pratiquent debout ou assis, sans effort physique intense. Aucun matériel particulier n'est nécessaire.",
     },
   ];
 
@@ -124,7 +124,7 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              Sophrologie transpersonnelle dans <span className="text-gold">l'Yonne</span>
+              Sophrologie dans <span className="text-gold">l'Yonne</span>
             </motion.h1>
             <motion.p
               className="text-ivory/80 mx-auto mb-8 max-w-3xl text-lg sm:text-xl"
@@ -132,9 +132,9 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.4 }}
             >
-              La sophrologie est un voyage vers soi, un chemin d'exploration et de
-              transformation. Dans un cadre bienveillant et confidentiel, je vous accompagne pour
-              traverser ce que vous traversez et retrouver votre équilibre intérieur.
+              La sophrologie vous invite à explorer vos ressources intérieures par la respiration,
+              la relaxation et la visualisation. Dans un cadre bienveillant, je vous accompagne
+              pour retrouver sérénité, confiance et équilibre au quotidien.
             </motion.p>
             <motion.div
               className="flex flex-col gap-4 sm:flex-row sm:justify-center"
@@ -148,7 +148,7 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
                 onTrack={() =>
                   trackConversionEvent(
                     'appointment_request',
-                    'button_click_psychotherapie_hero',
+                    'button_click_sophrologie_hero',
                     false
                   )
                 }
@@ -184,30 +184,30 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
             </h2>
 
             <p className="text-ivory/90 mb-6 text-lg leading-relaxed">
-              La sophrologie est bien plus qu'une simple conversation. C'est un{' '}
-              <strong>espace protégé</strong> où vous pouvez déposer ce qui vous pèse, explorer ce
-              qui vous échappe et cheminer vers une meilleure compréhension de vous-même.
+              La sophrologie est une <strong>méthode psycho-corporelle</strong> qui combine des
+              exercices de respiration, de relaxation musculaire et de visualisation positive. Créée
+              en 1960 par le neuropsychiatre Alfonso Caycedo, elle s'inspire du yoga, du zen et de
+              la phénoménologie pour vous aider à développer une conscience sereine de vous-même.
             </p>
 
             <p className="text-ivory/90 mb-6 text-lg leading-relaxed">
-              Contrairement aux idées reçues, consulter un thérapeute n'est pas réservé aux moments
-              de crise profonde. Beaucoup de personnes entament une thérapie pour{' '}
-              <strong>mieux se connaître</strong>, traverser une transition de vie, ou simplement
-              parce qu'elles sentent que quelque chose doit changer.
+              La sophrologie s'adresse à tous, quel que soit l'âge ou la condition physique. Elle
+              vous apprend à <strong>mobiliser vos propres ressources</strong> pour mieux gérer le
+              stress, renforcer la confiance en soi, préparer un événement important ou simplement
+              retrouver un équilibre intérieur.
             </p>
 
             <div className="border-gold/30 bg-gold/5 my-8 rounded-r-lg border-l-4 p-6">
               <p className="text-ivory/80 italic leading-relaxed">
-                "La sophrologie ne consiste pas à devenir quelqu'un d'autre, mais à retrouver
-                celui que nous avons toujours été, sous les couches de conditionnements et de
-                blessures accumulées."
+                "Quand le corps se détend, l'esprit se libère. La sophrologie nous enseigne
+                à habiter pleinement l'instant présent."
               </p>
             </div>
 
             <p className="text-ivory/90 text-lg leading-relaxed">
-              En séance, nous travaillons ensemble à votre rythme. Il n'y a pas de recette miracle
-              ni de solution toute faite : chaque parcours est unique, adapté à votre histoire, vos
-              besoins et vos ressources.
+              En séance, je vous guide à travers des exercices simples et progressifs. Vous apprenez
+              à les reproduire chez vous pour en faire des outils du quotidien. La sophrologie est
+              une pratique autonomisante : vous devenez acteur de votre bien-être.
             </p>
           </motion.section>
 
@@ -224,20 +224,20 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
             </h2>
 
             <p className="text-ivory/90 mb-6 text-lg leading-relaxed">
-              Vous vous demandez peut-être si la thérapie pourrait vous aider. Voici quelques
-              situations qui amènent souvent les personnes à consulter :
+              La sophrologie s'adapte à de nombreuses situations du quotidien. Voici quelques
+              exemples de ce qu'elle peut vous apporter :
             </p>
 
             <div className="mb-8 grid gap-4 sm:grid-cols-2">
               {[
-                "Anxiété, stress chronique ou crises d'angoisse",
-                'Burn-out ou épuisement professionnel',
-                'Sentiment de vide ou perte de sens',
-                'Difficultés relationnelles ou affectives',
-                'Deuil ou séparation difficile',
-                'Période de transition ou de questionnement',
-                'Troubles du sommeil ou fatigue persistante',
-                "Envie de mieux se connaître et d'évoluer",
+                'Gestion du stress et de l\'anxiété au quotidien',
+                'Préparation aux examens ou événements importants',
+                'Amélioration de la qualité du sommeil',
+                'Renforcement de la confiance en soi',
+                'Accompagnement de la grossesse et de la parentalité',
+                'Gestion des émotions et des phobies',
+                'Récupération après un burn-out',
+                'Développement de la concentration et de la mémoire',
               ].map((item, index) => (
                 <motion.div
                   key={index}
@@ -254,9 +254,8 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
             </div>
 
             <p className="text-ivory/90 text-lg leading-relaxed">
-              Si vous vous reconnaissez dans l'une de ces situations, ou si vous ressentez
-              simplement le besoin de parler à quelqu'un de confiance, la sophrologie peut vous
-              accompagner.
+              Que vous traversiez une période difficile ou que vous souhaitiez simplement améliorer
+              votre qualité de vie, la sophrologie vous offre des outils concrets et durables.
             </p>
           </motion.section>
 
@@ -269,42 +268,40 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
             className="mb-20"
           >
             <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
-              Une approche intégrative et humaniste
+              Les outils de la sophrologie
             </h2>
 
             <p className="text-ivory/90 mb-6 text-lg leading-relaxed">
-              Mon approche s'inscrit dans une{' '}
-              <strong>sophrologie transpersonnelle et intégrative</strong>, qui prend en compte
-              toutes les dimensions de l'expérience humaine : psychique, émotionnelle, corporelle et
-              existentielle.
+              La sophrologie repose sur des <strong>techniques simples et progressives</strong> que
+              vous apprenez à maîtriser au fil des séances. Chaque outil peut être utilisé de
+              manière autonome dans votre quotidien.
             </p>
 
             <p className="text-ivory/90 mb-6 text-lg leading-relaxed">
-              Je m'appuie sur plusieurs outils thérapeutiques que j'adapte selon vos besoins et ce
-              qui émerge en séance :
+              Voici les principaux piliers de la pratique :
             </p>
 
             <div className="mb-8 space-y-4">
               {[
                 {
-                  title: "L'écoute active et le dialogue",
+                  title: 'La respiration contrôlée',
                   description:
-                    'Un espace de parole libre où vous pouvez exprimer ce que vous traversez sans jugement.',
+                    'Des exercices respiratoires spécifiques pour calmer le système nerveux, réduire le stress et retrouver un état de sérénité.',
                 },
                 {
-                  title: "L'somatothérapie",
+                  title: 'La relaxation dynamique',
                   description:
-                    "Une approche douce qui permet d'accéder aux ressources inconscientes et de favoriser le changement.",
+                    'Des mouvements doux associés à la respiration pour relâcher les tensions musculaires et favoriser la détente profonde du corps.',
                 },
                 {
-                  title: 'Les exercices de présence',
+                  title: 'La visualisation positive',
                   description:
-                    "Des pratiques pour revenir au corps, calmer le mental et développer l'ancrage.",
+                    'Des exercices de projection mentale pour renforcer la confiance en soi, préparer un événement ou ancrer des ressentis positifs.',
                 },
                 {
-                  title: 'Le travail sur les émotions',
+                  title: "L'écoute du corps",
                   description:
-                    'Apprendre à accueillir, comprendre et traverser ses émotions plutôt que les fuir.',
+                    'Développer la conscience corporelle pour mieux identifier ses besoins, ses limites et ses ressources intérieures.',
                 },
               ].map((item, index) => (
                 <motion.div
@@ -374,10 +371,10 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
                   3
                 </div>
                 <div>
-                  <h3 className="text-ivory mb-2 text-xl font-semibold">Le suivi thérapeutique</h3>
+                  <h3 className="text-ivory mb-2 text-xl font-semibold">La pratique guidée</h3>
                   <p className="text-ivory/80">
-                    Les séances suivantes (généralement hebdomadaires ou bi-mensuelles) permettent
-                    d'approfondir le travail. La fréquence s'adapte à vos besoins et votre rythme.
+                    Les séances suivantes approfondissent les exercices de respiration, relaxation
+                    dynamique et visualisation. Vous apprenez progressivement à les reproduire seul.
                   </p>
                 </div>
               </div>
@@ -387,10 +384,11 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
                   4
                 </div>
                 <div>
-                  <h3 className="text-ivory mb-2 text-xl font-semibold">La fin du parcours</h3>
+                  <h3 className="text-ivory mb-2 text-xl font-semibold">L'autonomie</h3>
                   <p className="text-ivory/80">
-                    Quand vous vous sentez prêt, nous préparons ensemble la fin de l'accompagnement.
-                    Vous repartez avec des outils et une meilleure connaissance de vous-même.
+                    Vous intégrez les techniques dans votre quotidien. La sophrologie vous rend
+                    autonome : vous disposez d'outils durables pour gérer le stress et cultiver
+                    votre bien-être.
                   </p>
                 </div>
               </div>
@@ -482,7 +480,7 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
                 onTrack={() =>
                   trackConversionEvent(
                     'appointment_request',
-                    'button_click_psychotherapie_cta_middle',
+                    'button_click_sophrologie_cta_middle',
                     false
                   )
                 }
@@ -529,11 +527,11 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
           className="mb-12 text-center"
         >
           <h2 className="font-display text-ivory mb-6 text-3xl font-semibold">
-            Commencez votre chemin
+            Retrouvez votre sérénité
           </h2>
           <p className="text-ivory/80 mb-8 text-lg">
-            Que vous traversiez une crise, une transition ou une simple recherche de sens, je suis
-            là pour vous accompagner.
+            La sophrologie vous offre des outils concrets pour mieux vivre chaque jour. Faites
+            le premier pas vers votre bien-être.
           </p>
           <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
             <CTAButton
@@ -542,7 +540,7 @@ export function SophrologieContent({ posts }: SophrologieContentProps) {
               onTrack={() =>
                 trackConversionEvent(
                   'appointment_request',
-                  'button_click_psychotherapie_cta_final',
+                  'button_click_sophrologie_cta_final',
                   false
                 )
               }

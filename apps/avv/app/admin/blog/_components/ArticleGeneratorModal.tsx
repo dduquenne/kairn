@@ -112,11 +112,11 @@ export function ArticleGeneratorModal({
   }, [isOpen, initialData]);
 
   const suggestedTopics = [
-    "Les bienfaits de l'somatothérapie",
+    'Les bienfaits de la somatothérapie',
     'Comprendre la breathwork & rebirth',
-    "Le rôle de l'inconscient dans la guérison",
-    'La psychologie transpersonnelle',
-    'Traverser un deuil avec la thérapie',
+    'La sophrologie au quotidien',
+    'Découvrir le reiki et ses bienfaits',
+    'La cohérence cardiaque pour gérer le stress',
   ];
 
   /** Annule la boucle step-by-step en cours */
@@ -355,7 +355,7 @@ export function ArticleGeneratorModal({
                 disabled={isGenerating}
                 rows={3}
                 className="border-gold/20 bg-night/50 text-ivory placeholder-ivory/40 focus:border-gold w-full rounded-lg border px-4 py-3 transition focus:outline-none disabled:opacity-50"
-                placeholder="Ex: Comment l'somatothérapie peut aider à surmonter l'anxiété..."
+                placeholder="Ex: Comment la sophrologie peut aider à surmonter l'anxiété..."
               />
               {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
             </div>

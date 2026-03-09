@@ -76,7 +76,7 @@ const SUGGESTED_MESSAGES: Record<string, string> = {
   sommeil: "Bonjour, je rencontre des difficultés de sommeil et j'aimerais prendre rendez-vous.",
   confiance: 'Bonjour, je souhaite travailler sur ma confiance en moi.',
   phobies: "Bonjour, j'aimerais me faire accompagner pour surmonter mes peurs.",
-  somatothérapie: "Bonjour, je suis intéressé(e) par l'somatothérapie.",
+  somatothérapie: 'Bonjour, je suis intéressé(e) par la somatothérapie.',
   sophrologie: 'Bonjour, je voudrais découvrir la sophrologie.',
   seminaire: 'Bonjour, je suis intéressé(e) par vos prochains séminaires.',
 };
