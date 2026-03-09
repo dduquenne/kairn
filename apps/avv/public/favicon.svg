@@ -1,3 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg"
-  height="64" width="64" viewBox="-2 -2 68 68" stroke="#c7a962" stroke-width="3" fill="none">
-<circle cx="32" cy="32" r="34" fill="#1a1a2e" stroke="none"/><circle cx="32" cy="32" r="31" fill="#1a1a2e" stroke="3"/><path d="M34.347 62.969a22.898 22.898 0 0 0 22.898 -22.898 20.608 20.608 0 0 0 -20.608 -20.608 16.486 16.486 0 0 0 -16.486 16.486 11.54 11.54 0 0 0 11.54 11.54 6.924 6.924 0 0 0 6.924 -6.924"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#9B8AA8"/>
+      <stop offset="100%" stop-color="#7B6B8A"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#C4B0C9"/>
+      <stop offset="100%" stop-color="#A090A8"/>
+    </linearGradient>
+    <linearGradient id="trunk" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8B7093"/>
+      <stop offset="100%" stop-color="#6B5575"/>
+    </linearGradient>
+  </defs>
+  <!-- Trunk / Human figure -->
+  <path d="M32 58 L32 30" stroke="url(#trunk)" stroke-width="3.5" stroke-linecap="round" fill="none"/>
+  <!-- Arms/branches reaching up -->
+  <path d="M32 36 L22 26" stroke="url(#trunk)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <path d="M32 36 L42 26" stroke="url(#trunk)" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <!-- Head -->
+  <circle cx="32" cy="24" r="4" fill="url(#trunk)"/>
+  <!-- Leaves - top -->
+  <ellipse cx="32" cy="8" rx="4.5" ry="7" fill="url(#g1)" transform="rotate(0 32 8)"/>
+  <!-- Leaves - upper sides -->
+  <ellipse cx="22" cy="12" rx="4" ry="6.5" fill="url(#g2)" transform="rotate(-30 22 12)"/>
+  <ellipse cx="42" cy="12" rx="4" ry="6.5" fill="url(#g2)" transform="rotate(30 42 12)"/>
+  <!-- Leaves - mid-upper -->
+  <ellipse cx="16" cy="19" rx="3.8" ry="6" fill="url(#g1)" transform="rotate(-55 16 19)"/>
+  <ellipse cx="48" cy="19" rx="3.8" ry="6" fill="url(#g1)" transform="rotate(55 48 19)"/>
+  <!-- Leaves - middle -->
+  <ellipse cx="12" cy="28" rx="3.5" ry="5.5" fill="url(#g2)" transform="rotate(-75 12 28)"/>
+  <ellipse cx="52" cy="28" rx="3.5" ry="5.5" fill="url(#g2)" transform="rotate(75 52 28)"/>
+  <!-- Inner leaves -->
+  <ellipse cx="26" cy="14" rx="3.2" ry="5.5" fill="url(#g1)" opacity="0.8" transform="rotate(-15 26 14)"/>
+  <ellipse cx="38" cy="14" rx="3.2" ry="5.5" fill="url(#g1)" opacity="0.8" transform="rotate(15 38 14)"/>
+  <!-- Small accent leaves -->
+  <ellipse cx="20" cy="24" rx="3" ry="5" fill="url(#g2)" opacity="0.7" transform="rotate(-45 20 24)"/>
+  <ellipse cx="44" cy="24" rx="3" ry="5" fill="url(#g2)" opacity="0.7" transform="rotate(45 44 24)"/>
+</svg>
