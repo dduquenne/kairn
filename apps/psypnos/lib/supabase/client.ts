@@ -9,9 +9,10 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 declare global {
   // eslint-disable-next-line no-var
-  var supabase: SupabaseClient | undefined;
+  var __psypnosSupabase: SupabaseClient | undefined;
 }
 
+/** Creates a Supabase client for storage operations */
 function createSupabaseClient(): SupabaseClient | null {
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseServiceKey =
@@ -41,10 +42,10 @@ function createSupabaseClient(): SupabaseClient | null {
 }
 
 // Use global instance in development to prevent too many connections during hot reloading
-const supabase = globalThis.supabase ?? createSupabaseClient();
+const supabase = globalThis.__psypnosSupabase ?? createSupabaseClient();
 
 if (process.env.NODE_ENV !== 'production' && supabase) {
-  globalThis.supabase = supabase;
+  globalThis.__psypnosSupabase = supabase;
 }
 
 export { supabase };
