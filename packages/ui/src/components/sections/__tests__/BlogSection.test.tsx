@@ -39,9 +39,11 @@ describe('BlogSection', () => {
     expect(screen.getByText('Blog')).toBeInTheDocument();
   });
 
-  it('renders nothing when posts array is empty', () => {
-    const { container } = render(<BlogSection posts={[]} />);
-    expect(container.firstChild).toBeNull();
+  it('renders empty state message when posts array is empty', () => {
+    render(<BlogSection posts={[]} />);
+    expect(
+      screen.getByText('Les premiers articles seront publiés prochainement.')
+    ).toBeInTheDocument();
   });
 
   it('renders loading skeleton when isLoading is true', () => {

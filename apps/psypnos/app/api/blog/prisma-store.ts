@@ -117,10 +117,18 @@ export async function getAllBlogPosts(
   try {
     const siteId = await getSiteId();
 
+    const now = new Date();
+    now.setHours(23, 59, 59, 999);
+
     const posts = await prisma.blogPost.findMany({
       where: {
         siteId,
-        ...(includeUnpublished ? {} : { status: 'PUBLISHED' }),
+        ...(includeUnpublished
+          ? {}
+          : {
+              status: 'PUBLISHED',
+              OR: [{ publishedAt: { lte: now } }, { publishedAt: null }],
+            }),
         ...(category ? { category } : {}),
         ...(featured !== undefined ? { featured } : {}),
       },

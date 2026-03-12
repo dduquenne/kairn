@@ -80,14 +80,14 @@ export default async function BlogPostPage({ params }: PageProps) {
     notFound();
   }
 
-  // Vérifier que la date de publication est <= aujourd'hui
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const postDate = new Date(post.date);
-  postDate.setHours(0, 0, 0, 0);
-
-  if (postDate > today) {
-    notFound();
+  // Vérifier que la date de publication est <= aujourd'hui (si définie)
+  if (post.date) {
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    const postDate = new Date(post.date);
+    if (postDate > today) {
+      notFound();
+    }
   }
 
   // Conversion du Markdown en HTML
