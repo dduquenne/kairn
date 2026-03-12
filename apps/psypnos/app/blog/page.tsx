@@ -1,4 +1,6 @@
+/* eslint-disable no-console */
 import { BreadcrumbSchema } from '@/components/BreadcrumbSchema';
+import type { BlogPostSummary } from '@/lib/blog';
 import { getAllPostsAsync, getAllCategoriesAsync } from '@/lib/blog';
 
 import { BlogPageClient } from './_components/BlogPageClient';
@@ -26,13 +28,26 @@ const breadcrumbs = [
   { name: 'Blog', url: 'https://psypnos.fr/blog' },
 ];
 
+/**
+ * Blog listing page - fetches all posts with error handling
+ */
 export default async function BlogPage() {
-  const [allPosts, categories] = await Promise.all([getAllPostsAsync(), getAllCategoriesAsync()]);
+  let allPosts: BlogPostSummary[] = [];
+  let categories: string[] = [];
+  let fetchError = false;
+
+  try {
+    [allPosts, categories] = await Promise.all([getAllPostsAsync(), getAllCategoriesAsync()]);
+    console.log(`[BlogPage] Fetched ${allPosts.length} posts, ${categories.length} categories`);
+  } catch (error) {
+    console.error('[BlogPage] Error fetching blog data:', error);
+    fetchError = true;
+  }
 
   return (
     <>
       <BreadcrumbSchema items={breadcrumbs} />
-      <BlogPageClient allPosts={allPosts} categories={categories} />
+      <BlogPageClient allPosts={allPosts} categories={categories} fetchError={fetchError} />
     </>
   );
 }

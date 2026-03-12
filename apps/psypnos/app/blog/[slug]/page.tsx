@@ -63,13 +63,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
-// Génération statique des pages uniquement pour les articles publiés
-// Évite de générer des routes 404 pour les articles non publiés
+/**
+ * Génération statique des pages uniquement pour les articles publiés.
+ * Graceful fallback: retourne [] si la DB n'est pas accessible (build sans DATABASE_URL).
+ */
 export async function generateStaticParams() {
-  const posts = await getAllPostsAsync();
-  return posts.map(post => ({
-    slug: post.slug,
-  }));
+  try {
+    const posts = await getAllPostsAsync();
+    return posts.map(post => ({
+      slug: post.slug,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 export default async function BlogPostPage({ params }: PageProps) {

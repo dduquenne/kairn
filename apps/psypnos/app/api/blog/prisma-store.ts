@@ -101,7 +101,8 @@ export interface BlogPostSummary {
 // ============================================
 
 /**
- * Get all blog posts from database
+ * Get all blog posts from database.
+ * Throws on error so callers can handle failures explicitly.
  */
 export async function getAllBlogPosts(
   options: {
@@ -114,40 +115,42 @@ export async function getAllBlogPosts(
 ): Promise<BlogPostSummary[]> {
   const { includeUnpublished = false, limit, category, featured, featuredFirst = false } = options;
 
-  try {
-    const siteId = await getSiteId();
+  const siteId = await getSiteId();
+  console.log(
+    '[prisma-store] getAllBlogPosts: siteId =',
+    siteId,
+    ', options =',
+    JSON.stringify(options)
+  );
 
-    const now = new Date();
-    now.setHours(23, 59, 59, 999);
+  const now = new Date();
+  now.setHours(23, 59, 59, 999);
 
-    const posts = await prisma.blogPost.findMany({
-      where: {
-        siteId,
-        ...(includeUnpublished
-          ? {}
-          : {
-              status: 'PUBLISHED',
-              OR: [{ publishedAt: { lte: now } }, { publishedAt: null }],
-            }),
-        ...(category ? { category } : {}),
-        ...(featured !== undefined ? { featured } : {}),
+  const posts = await prisma.blogPost.findMany({
+    where: {
+      siteId,
+      ...(includeUnpublished
+        ? {}
+        : {
+            status: 'PUBLISHED',
+            OR: [{ publishedAt: { lte: now } }, { publishedAt: null }],
+          }),
+      ...(category ? { category } : {}),
+      ...(featured !== undefined ? { featured } : {}),
+    },
+    include: {
+      tags: {
+        include: { tag: true },
       },
-      include: {
-        tags: {
-          include: { tag: true },
-        },
-      },
-      orderBy: featuredFirst
-        ? [{ featured: 'desc' }, { publishedAt: 'desc' }]
-        : { publishedAt: 'desc' },
-      ...(limit ? { take: limit } : {}),
-    });
+    },
+    orderBy: featuredFirst
+      ? [{ featured: 'desc' }, { publishedAt: 'desc' }]
+      : { publishedAt: 'desc' },
+    ...(limit ? { take: limit } : {}),
+  });
 
-    return posts.map(formatBlogPostSummary);
-  } catch (error) {
-    console.error('Error fetching blog posts:', error);
-    return [];
-  }
+  console.log('[prisma-store] getAllBlogPosts: found', posts.length, 'posts');
+  return posts.map(formatBlogPostSummary);
 }
 
 /**

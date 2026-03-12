@@ -45,6 +45,7 @@ async function fetchHomePageData(): Promise<{
   seminars: SeminarData[];
   blogPosts: BlogPostData[];
   testimonials: TestimonialData[];
+  blogError: boolean;
 }> {
   const [seminarsResult, blogResult, testimonialsResult] = await Promise.allSettled([
     (async () => {
@@ -82,6 +83,7 @@ async function fetchHomePageData(): Promise<{
     seminars: seminarsResult.status === 'fulfilled' ? seminarsResult.value : [],
     blogPosts: blogResult.status === 'fulfilled' ? blogResult.value : [],
     testimonials: testimonialsResult.status === 'fulfilled' ? testimonialsResult.value : [],
+    blogError: blogResult.status === 'rejected',
   };
 }
 
@@ -90,6 +92,7 @@ export default async function HomePage() {
     seminars: seminarsData,
     blogPosts: blogPostsData,
     testimonials: testimonialsData,
+    blogError: blogFetchError,
   } = await fetchHomePageData();
 
   return (
@@ -110,7 +113,7 @@ export default async function HomePage() {
         <RespirationSection />
         {/* Sections avec données préchargées via API routes */}
         <SeminarsSection initialData={seminarsData} />
-        <BlogSection initialData={blogPostsData} />
+        <BlogSection initialData={blogPostsData} ssrError={blogFetchError} />
         <TestimonialsSection initialData={testimonialsData} />
         <ContactSection />
       </main>

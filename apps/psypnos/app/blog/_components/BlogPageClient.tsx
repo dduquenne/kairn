@@ -16,15 +16,16 @@ import { FeaturedCarousel } from './FeaturedCarousel';
 import { Pagination } from './Pagination';
 import { SearchBar } from './SearchBar';
 
-
 interface BlogPageClientProps {
   allPosts: BlogPostSummary[];
   categories: string[];
+  /** Whether the server-side fetch failed */
+  fetchError?: boolean;
 }
 
 const POSTS_PER_PAGE = 10;
 
-export function BlogPageClient({ allPosts, categories }: BlogPageClientProps) {
+export function BlogPageClient({ allPosts, categories, fetchError = false }: BlogPageClientProps) {
   const heroRef = useRef<HTMLDivElement>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchFilteredPosts, setSearchFilteredPosts] = useState<BlogPostSummary[]>(allPosts);
@@ -223,8 +224,26 @@ export function BlogPageClient({ allPosts, categories }: BlogPageClientProps) {
           </motion.div>
         )}
 
-        {/* Message si aucun article */}
-        {allPosts.length === 0 && (
+        {/* Error state */}
+        {fetchError && allPosts.length === 0 && (
+          <motion.div
+            initial={hasMounted ? { opacity: 0 } : { opacity: 1 }}
+            animate={{ opacity: 1 }}
+            transition={hasMounted ? { duration: 0.4 } : { duration: 0 }}
+            className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-12 text-center"
+          >
+            <BookOpen className="mx-auto mb-4 h-12 w-12 text-amber-400/50" />
+            <h2 className="text-ivory mb-2 text-xl font-semibold">
+              Articles temporairement indisponibles
+            </h2>
+            <p className="text-ivory/60">
+              Une erreur est survenue lors du chargement. Veuillez réessayer dans quelques instants.
+            </p>
+          </motion.div>
+        )}
+
+        {/* Message si aucun article (pas d'erreur) */}
+        {!fetchError && allPosts.length === 0 && (
           <motion.div
             initial={hasMounted ? { opacity: 0 } : { opacity: 1 }}
             animate={{ opacity: 1 }}
