@@ -37,27 +37,27 @@ interface BlogSectionProps {
 /**
  * Psypnos blog section wrapper.
  * Provides site-specific data fetching, category colors, and CTA to the shared @kairn/ui component.
+ *
+ * Si initialData contient des articles, ils sont affichés immédiatement.
+ * Sinon, un fetch client est lancé avec un loading state visible.
  */
 export function BlogSection({ initialData }: BlogSectionProps) {
+  const hasInitialPosts = initialData && initialData.length > 0;
   const [blogPosts, setBlogPosts] = useState<BlogPostData[]>(initialData ?? []);
-  const [loading, setLoading] = useState(!initialData);
-  const [hasMounted, setHasMounted] = useState(false);
+  const [loading, setLoading] = useState(!hasInitialPosts);
 
   useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (initialData && initialData.length > 0) {
+    if (hasInitialPosts) {
       return;
     }
 
     async function fetchPosts() {
+      setLoading(true);
       try {
         const response = await fetch('/api/blog/posts?limit=3&featuredFirst=true');
         if (response.ok) {
           const data = await response.json();
-          setBlogPosts(data);
+          setBlogPosts(Array.isArray(data) ? data : []);
         }
       } catch (error) {
         console.error('Erreur lors du chargement des articles:', error);
@@ -66,14 +66,12 @@ export function BlogSection({ initialData }: BlogSectionProps) {
       }
     }
     fetchPosts();
-  }, [initialData]);
-
-  const showLoading = !initialData && (!hasMounted || loading);
+  }, [hasInitialPosts]);
 
   return (
     <BlogSectionUI
       posts={blogPosts}
-      isLoading={showLoading}
+      isLoading={loading}
       title={{
         eyebrow: 'Ressources & Articles',
         title: 'Découvrez nos derniers contenus',

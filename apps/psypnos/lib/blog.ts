@@ -233,7 +233,7 @@ export async function getAllPostsAsync(includeUnpublished = false): Promise<Blog
           ? {}
           : {
               status: 'PUBLISHED',
-              publishedAt: { lte: today },
+              OR: [{ publishedAt: { lte: today } }, { publishedAt: null }],
             }),
       },
       include: {

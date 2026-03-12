@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 import { revalidatePath } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -12,12 +9,14 @@ import {
   validateSlug,
 } from '../../prisma-store';
 
-// GET - Retrieve a specific post
-export async function GET(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
+type RouteContext = { params: Promise<{ slug: string }> };
+
+/**
+ * GET /api/blog/posts/[slug] - Récupérer un article par slug
+ */
+export async function GET(request: NextRequest, { params }: RouteContext) {
   try {
     const { slug } = await params;
-
-    // Check for admin access (to see unpublished posts)
     const searchParams = request.nextUrl.searchParams;
     const includeUnpublished = searchParams.get('includeUnpublished') === 'true';
 
@@ -27,13 +26,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Article introuvable' }, { status: 404 });
     }
 
-    // Disable cache for admin requests to ensure fresh data after edits
     const cacheHeaders = includeUnpublished
       ? { 'Cache-Control': 'private, no-store' }
       : { 'Cache-Control': 'public, s-maxage=3600, max-age=3600, stale-while-revalidate=86400' };
 
     return NextResponse.json(post, { headers: cacheHeaders });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error fetching post:', error);
     return NextResponse.json(
       { error: "Erreur lors de la récupération de l'article" },
@@ -42,16 +41,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-// PUT - Update a post (protected by authentication)
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
-  // Verify authentication
+/**
+ * PUT /api/blog/posts/[slug] - Mettre à jour un article (auth admin requise)
+ */
+export async function PUT(request: NextRequest, { params }: RouteContext) {
   const authResult = await withAdminAuth();
   if (authResult.error) return authResult.error;
 
   try {
     const { slug } = await params;
-
-    // Validate slug
     const slugValidation = validateSlug(slug);
     if (!slugValidation.valid) {
       return NextResponse.json({ error: slugValidation.error }, { status: 400 });
@@ -59,7 +57,6 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     const body = await request.json();
 
-    // If changing slug, validate new slug
     if (body.slug && body.slug !== slug) {
       const newSlugValidation = validateSlug(body.slug);
       if (!newSlugValidation.valid) {
@@ -67,16 +64,13 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       }
     }
 
-    // Use oldSlug if provided (for slug change)
     const actualOldSlug = body.oldSlug || slug;
-
     const updated = await updateBlogPost(actualOldSlug, body);
 
     if (!updated) {
       return NextResponse.json({ error: 'Article introuvable' }, { status: 404 });
     }
 
-    // Invalidate cache - include homepage for featured articles
     revalidatePath('/api/blog/posts');
     revalidatePath('/blog');
     revalidatePath(`/blog/${actualOldSlug}`);
@@ -88,9 +82,9 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json(updated);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erreur lors de la mise à jour';
+    // eslint-disable-next-line no-console
     console.error('Error updating post:', error);
 
-    // Check for duplicate slug error
     if (message.includes('existe déjà')) {
       return NextResponse.json({ error: message }, { status: 400 });
     }
@@ -99,19 +93,15 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-// DELETE - Delete a post (protected by authentication)
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
-) {
-  // Verify authentication
+/**
+ * DELETE /api/blog/posts/[slug] - Supprimer un article (auth admin requise)
+ */
+export async function DELETE(_request: NextRequest, { params }: RouteContext) {
   const authResult = await withAdminAuth();
   if (authResult.error) return authResult.error;
 
   try {
     const { slug } = await params;
-
-    // Validate slug
     const slugValidation = validateSlug(slug);
     if (!slugValidation.valid) {
       return NextResponse.json({ error: slugValidation.error }, { status: 400 });
@@ -123,7 +113,6 @@ export async function DELETE(
       return NextResponse.json({ error: 'Article introuvable' }, { status: 404 });
     }
 
-    // Invalidate cache - include homepage for featured articles
     revalidatePath('/api/blog/posts');
     revalidatePath('/blog');
     revalidatePath(`/blog/${slug}`);
@@ -131,17 +120,11 @@ export async function DELETE(
     revalidatePath('/');
 
     return NextResponse.json(
-      {
-        message: 'Article supprimé avec succès',
-        slug: slug,
-      },
-      {
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-        },
-      }
+      { message: 'Article supprimé avec succès', slug },
+      { headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' } }
     );
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error deleting post:', error);
     return NextResponse.json(
       { error: "Erreur lors de la suppression de l'article" },
@@ -150,12 +133,10 @@ export async function DELETE(
   }
 }
 
-// PATCH - Partial update (e.g., published/featured status)
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ slug: string }> }
-) {
-  // Verify authentication
+/**
+ * PATCH /api/blog/posts/[slug] - Mise à jour partielle (published/featured)
+ */
+export async function PATCH(request: NextRequest, { params }: RouteContext) {
   const authResult = await withAdminAuth();
   if (authResult.error) return authResult.error;
 
@@ -163,7 +144,6 @@ export async function PATCH(
     const { slug } = await params;
     const body = await request.json();
 
-    // Only allow specific fields for PATCH
     const allowedFields: Record<string, boolean> = {};
     if ('published' in body) {
       allowedFields.published = Boolean(body.published);
@@ -182,7 +162,6 @@ export async function PATCH(
       return NextResponse.json({ error: 'Article introuvable' }, { status: 404 });
     }
 
-    // Invalidate cache - include homepage for featured changes
     revalidatePath('/api/blog/posts');
     revalidatePath('/blog');
     revalidatePath(`/blog/${slug}`);
@@ -190,11 +169,12 @@ export async function PATCH(
 
     return NextResponse.json({
       message: 'Article mis à jour avec succès',
-      slug: slug,
+      slug,
       published: updated.published,
       featured: updated.featured,
     });
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error patching post:', error);
     return NextResponse.json(
       { error: "Erreur lors de la mise à jour de l'article" },
