@@ -157,7 +157,21 @@ export function BlogSection({
   }
 
   if (posts.length === 0) {
-    return null;
+    return (
+      <section
+        id="blog"
+        className={cn('bg-night/60 px-6 py-20 sm:px-10 lg:px-16', className)}
+        data-track-section={trackingName.toLowerCase().replace(/\s+/g, '-')}
+        data-track-section-name={trackingName}
+      >
+        <div className="mx-auto max-w-6xl space-y-12">
+          <SectionTitle {...title} />
+          <p className="text-ivory/50 text-center text-lg">
+            Les premiers articles seront publiés prochainement.
+          </p>
+        </div>
+      </section>
+    );
   }
 
   const Link =

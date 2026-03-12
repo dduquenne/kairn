@@ -73,12 +73,18 @@ export function Marquee({
       onMouseEnter={() => pauseOnHover && setIsPaused(true)}
       onMouseLeave={() => pauseOnHover && setIsPaused(false)}
     >
-      {/* Gradient fade edges */}
+      {/* Gradient fade edges — use inline styles because dynamic Tailwind classes are purged in production */}
       <div
-        className={`from-${fadeColor}/80 pointer-events-none absolute left-0 top-0 z-10 h-full w-16 bg-gradient-to-r to-transparent sm:w-24`}
+        className="pointer-events-none absolute left-0 top-0 z-10 h-full w-16 sm:w-24"
+        style={{
+          background: `linear-gradient(to right, var(--marquee-fade, var(--color-${fadeColor}, #0d0d1a)) 0%, transparent 100%)`,
+        }}
       />
       <div
-        className={`from-${fadeColor}/80 pointer-events-none absolute right-0 top-0 z-10 h-full w-16 bg-gradient-to-l to-transparent sm:w-24`}
+        className="pointer-events-none absolute right-0 top-0 z-10 h-full w-16 sm:w-24"
+        style={{
+          background: `linear-gradient(to left, var(--marquee-fade, var(--color-${fadeColor}, #0d0d1a)) 0%, transparent 100%)`,
+        }}
       />
 
       {/* Animated wrapper containing two copies */}

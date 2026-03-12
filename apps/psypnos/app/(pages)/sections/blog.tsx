@@ -8,22 +8,22 @@ import { CTAButton } from '../../../components/CTAButton';
 import type { BlogPostData } from '../../../lib/server/data-fetchers';
 
 const CATEGORY_COLORS: Record<string, { bg: string; text: string; gradient: string }> = {
-  Psychothérapie: {
+  Comprendre: {
     bg: 'bg-blue-500/20',
     text: 'text-blue-300',
     gradient: 'from-blue-500 to-blue-600',
   },
-  Hypnose: {
-    bg: 'bg-purple-500/20',
-    text: 'text-purple-300',
-    gradient: 'from-purple-500 to-purple-600',
-  },
-  Respiration: {
+  Traverser: {
     bg: 'bg-emerald-500/20',
     text: 'text-emerald-300',
     gradient: 'from-emerald-500 to-emerald-600',
   },
   Découvrir: {
+    bg: 'bg-purple-500/20',
+    text: 'text-purple-300',
+    gradient: 'from-purple-500 to-purple-600',
+  },
+  Cheminer: {
     bg: 'bg-amber-500/20',
     text: 'text-amber-300',
     gradient: 'from-amber-500 to-amber-600',

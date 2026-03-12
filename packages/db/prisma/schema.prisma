@@ -239,6 +239,7 @@ model BlogPost {
 
   @@unique([slug, siteId])
   @@index([siteId, status])
+  @@index([siteId, status, publishedAt])
   @@index([publishedAt])
   @@index([siteId, featured])
   @@index([category])

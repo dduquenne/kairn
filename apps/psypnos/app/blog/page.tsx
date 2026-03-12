@@ -27,8 +27,7 @@ const breadcrumbs = [
 ];
 
 export default async function BlogPage() {
-  const allPosts = await getAllPostsAsync();
-  const categories = await getAllCategoriesAsync();
+  const [allPosts, categories] = await Promise.all([getAllPostsAsync(), getAllCategoriesAsync()]);
 
   return (
     <>
