@@ -215,75 +215,70 @@ export function getPostBySlug(slug: string): BlogPost | null {
 }
 
 /**
- * Get all blog posts (async version - recommended)
+ * Get all blog posts (async version - recommended).
+ * Throws on error so callers can handle failures explicitly.
  */
 export async function getAllPostsAsync(includeUnpublished = false): Promise<BlogPostSummary[]> {
   const startTime = Date.now();
   console.log(`[blog] getAllPostsAsync appelé (includeUnpublished: ${includeUnpublished})`);
 
-  try {
-    const siteId = await getSiteId();
-    const today = new Date();
-    today.setHours(23, 59, 59, 999);
+  const siteId = await getSiteId();
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
 
-    const posts = await prisma.blogPost.findMany({
-      where: {
-        siteId,
-        ...(includeUnpublished
-          ? {}
-          : {
-              status: 'PUBLISHED',
-              OR: [{ publishedAt: { lte: today } }, { publishedAt: null }],
-            }),
+  const posts = await prisma.blogPost.findMany({
+    where: {
+      siteId,
+      ...(includeUnpublished
+        ? {}
+        : {
+            status: 'PUBLISHED',
+            OR: [{ publishedAt: { lte: today } }, { publishedAt: null }],
+          }),
+    },
+    include: {
+      tags: {
+        include: { tag: true },
       },
-      include: {
-        tags: {
-          include: { tag: true },
-        },
-      },
-      orderBy: { publishedAt: 'desc' },
-    });
+    },
+    orderBy: { publishedAt: 'desc' },
+  });
 
+  console.log(
+    `[blog] ${posts.length} articles récupérés de la base de données en ${Date.now() - startTime}ms`
+  );
+
+  const formattedPosts = posts.map(formatPrismaPost);
+
+  // Update cache for sync functions
+  postsCache = formattedPosts;
+  postsCacheTimestamp = Date.now();
+
+  const summaries = formattedPosts.map(
+    (post: BlogPost): BlogPostSummary => ({
+      slug: post.slug,
+      title: post.title,
+      description: post.description,
+      date: post.date,
+      author: post.author,
+      category: post.category,
+      tags: post.tags,
+      image: post.image,
+      published: post.published,
+      featured: post.featured,
+      readingTime: post.readingTime,
+      excerpt: post.excerpt,
+    })
+  );
+
+  if (summaries.length > 0) {
+    const first = summaries[0]!;
     console.log(
-      `[blog] ${posts.length} articles récupérés de la base de données en ${Date.now() - startTime}ms`
+      `[blog] Premier article: "${first.title}" - Tags: [${first.tags?.join(', ') || 'aucun'}]`
     );
-
-    const formattedPosts = posts.map(formatPrismaPost);
-
-    // Update cache for sync functions
-    postsCache = formattedPosts;
-    postsCacheTimestamp = Date.now();
-
-    const summaries = formattedPosts.map(
-      (post: BlogPost): BlogPostSummary => ({
-        slug: post.slug,
-        title: post.title,
-        description: post.description,
-        date: post.date,
-        author: post.author,
-        category: post.category,
-        tags: post.tags,
-        image: post.image,
-        published: post.published,
-        featured: post.featured,
-        readingTime: post.readingTime,
-        excerpt: post.excerpt,
-      })
-    );
-
-    if (summaries.length > 0) {
-      const first = summaries[0]!;
-      console.log(
-        `[blog] Premier article: "${first.title}" - Tags: [${first.tags?.join(', ') || 'aucun'}]`
-      );
-    }
-
-    return summaries;
-  } catch (error) {
-    console.error('[blog] ERREUR lors de la récupération des articles:', error);
-    console.error('[blog] Stack trace:', error instanceof Error ? error.stack : 'N/A');
-    return [];
   }
+
+  return summaries;
 }
 
 /**
@@ -382,28 +377,24 @@ export function getPostsByTag(tag: string, includeUnpublished = false): BlogPost
 }
 
 /**
- * Get all unique categories (async version)
+ * Get all unique categories (async version).
+ * Throws on error so callers can handle failures explicitly.
  */
 export async function getAllCategoriesAsync(): Promise<string[]> {
-  try {
-    const siteId = await getSiteId();
-    const posts = await prisma.blogPost.findMany({
-      where: {
-        siteId,
-        status: 'PUBLISHED',
-        category: { not: null },
-      },
-      select: { category: true },
-      distinct: ['category'],
-    });
-    return posts
-      .map(p => p.category)
-      .filter((c): c is string => c !== null)
-      .sort();
-  } catch (error) {
-    console.error('Error fetching categories:', error);
-    return [];
-  }
+  const siteId = await getSiteId();
+  const posts = await prisma.blogPost.findMany({
+    where: {
+      siteId,
+      status: 'PUBLISHED',
+      category: { not: null },
+    },
+    select: { category: true },
+    distinct: ['category'],
+  });
+  return posts
+    .map(p => p.category)
+    .filter((c): c is string => c !== null)
+    .sort();
 }
 
 /**

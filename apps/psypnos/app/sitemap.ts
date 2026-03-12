@@ -84,14 +84,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // Articles de blog
-  const posts = await getAllPostsAsync();
-  const blogPosts: MetadataRoute.Sitemap = posts.map(post => ({
-    url: `${baseUrl}/blog/${post.slug}`,
-    lastModified: new Date(post.date),
-    changeFrequency: 'monthly' as const,
-    priority: 0.7,
-  }));
+  // Articles de blog — graceful fallback si DB non disponible (build sans DATABASE_URL)
+  let blogPosts: MetadataRoute.Sitemap = [];
+  try {
+    const posts = await getAllPostsAsync();
+    blogPosts = posts.map(post => ({
+      url: `${baseUrl}/blog/${post.slug}`,
+      lastModified: new Date(post.date),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    }));
+  } catch {
+    // DB not available during build — blog posts will be added at runtime via ISR
+  }
 
   return [...routes, ...geoPages, ...legalPages, ...blogPosts];
 }

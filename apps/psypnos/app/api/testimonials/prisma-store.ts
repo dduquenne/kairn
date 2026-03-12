@@ -54,25 +54,21 @@ export interface TestimonialOutput {
 // ============================================
 
 /**
- * Get all approved testimonials from database
+ * Get all approved testimonials from database.
+ * Throws on error so callers can handle failures explicitly.
  */
 export async function getAllTestimonials(limit?: number): Promise<TestimonialOutput[]> {
-  try {
-    const siteId = await getSiteId();
-    const testimonials = await prisma.testimonial.findMany({
-      where: {
-        siteId,
-        isApproved: true,
-      },
-      orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
-      ...(limit ? { take: limit } : {}),
-    });
+  const siteId = await getSiteId();
+  const testimonials = await prisma.testimonial.findMany({
+    where: {
+      siteId,
+      isApproved: true,
+    },
+    orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
+    ...(limit ? { take: limit } : {}),
+  });
 
-    return testimonials.map(formatTestimonialOutput);
-  } catch (error) {
-    console.error('Error fetching testimonials:', error);
-    return [];
-  }
+  return testimonials.map(formatTestimonialOutput);
 }
 
 /**

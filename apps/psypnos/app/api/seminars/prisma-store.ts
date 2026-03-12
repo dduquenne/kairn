@@ -88,45 +88,37 @@ export interface SeminarOutput {
 // ============================================
 
 /**
- * Get all seminars from database
+ * Get all seminars from database.
+ * Throws on error so callers can handle failures explicitly.
  */
 export async function getAllSeminars(): Promise<SeminarOutput[]> {
-  try {
-    const siteId = await getSiteId();
-    const seminars = await prisma.seminar.findMany({
-      where: { siteId },
-      orderBy: { startAt: 'asc' },
-    });
+  const siteId = await getSiteId();
+  const seminars = await prisma.seminar.findMany({
+    where: { siteId },
+    orderBy: { startAt: 'asc' },
+  });
 
-    return seminars.map(formatSeminarOutput);
-  } catch (error) {
-    console.error('Error fetching seminars:', error);
-    return [];
-  }
+  return seminars.map(formatSeminarOutput);
 }
 
 /**
- * Get upcoming seminars (startAt >= now)
+ * Get upcoming seminars (startAt >= now).
+ * Throws on error so callers can handle failures explicitly.
  */
 export async function getUpcomingSeminars(limit?: number): Promise<SeminarOutput[]> {
-  try {
-    const siteId = await getSiteId();
-    const now = new Date();
+  const siteId = await getSiteId();
+  const now = new Date();
 
-    const seminars = await prisma.seminar.findMany({
-      where: {
-        siteId,
-        startAt: { gte: now },
-      },
-      orderBy: { startAt: 'asc' },
-      ...(limit ? { take: limit } : {}),
-    });
+  const seminars = await prisma.seminar.findMany({
+    where: {
+      siteId,
+      startAt: { gte: now },
+    },
+    orderBy: { startAt: 'asc' },
+    ...(limit ? { take: limit } : {}),
+  });
 
-    return seminars.map(formatSeminarOutput);
-  } catch (error) {
-    console.error('Error fetching upcoming seminars:', error);
-    return [];
-  }
+  return seminars.map(formatSeminarOutput);
 }
 
 /**
