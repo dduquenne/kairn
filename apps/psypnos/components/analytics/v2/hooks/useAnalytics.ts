@@ -464,30 +464,12 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
       // included in the dashboard response. Only bots (requires admin auth)
       // is fetched separately.
       const postsUrl = `/api/analytics/dashboard/posts?${params}`;
-      console.log('[PostsPanel:Debug][Client] ══════════════════════════════════════');
-      console.log('[PostsPanel:Debug][Client] Fetch démarré pour 3 endpoints');
-      console.log('[PostsPanel:Debug][Client] Posts URL:', postsUrl);
-      console.log('[PostsPanel:Debug][Client] Params:', { timeRange, startDate, endDate });
-      const clientFetchStart = Date.now();
 
       const [dashboardRes, botsRes, postsRes] = await Promise.all([
         fetch(`/api/analytics/dashboard?${params}`, { cache: 'no-store' }),
         fetch(`/api/analytics/bots?${params}`).catch(() => null),
-        fetch(postsUrl).catch(err => {
-          console.error(
-            '[PostsPanel:Debug][Client] ❌ Erreur RÉSEAU fetch posts:',
-            err?.message ?? err
-          );
-          return null;
-        }),
+        fetch(postsUrl).catch(() => null),
       ]);
-
-      console.log(`[PostsPanel:Debug][Client] Fetch terminé en ${Date.now() - clientFetchStart}ms`);
-      console.log('[PostsPanel:Debug][Client] Statuts HTTP:', {
-        dashboard: dashboardRes.status,
-        bots: botsRes?.status ?? 'null (erreur réseau)',
-        posts: postsRes?.status ?? 'null (erreur réseau)',
-      });
 
       if (!dashboardRes.ok) {
         throw new Error('Erreur lors de la récupération des données');
@@ -512,44 +494,8 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
 
       // Social media posts data — null if API fails (graceful degradation)
       let postsData: PostsPanelData | null = null;
-      if (!postsRes) {
-        console.error('[PostsPanel:Debug][Client] ❌ postsRes est null — fetch réseau échoué');
-      } else if (!postsRes.ok) {
-        let errorBody = '';
-        try {
-          errorBody = await postsRes.text();
-        } catch {
-          errorBody = '(impossible de lire le body)';
-        }
-        console.error(
-          `[PostsPanel:Debug][Client] ❌ API posts: HTTP ${postsRes.status} ${postsRes.statusText}`
-        );
-        console.error('[PostsPanel:Debug][Client] ❌ Body erreur:', errorBody);
-      } else {
+      if (postsRes && postsRes.ok) {
         postsData = await postsRes.json();
-        console.log('[PostsPanel:Debug][Client] ✅ Posts data reçue:', {
-          totalPosts: postsData?.totalPosts,
-          totalReach: postsData?.totalReach,
-          totalEngagement: postsData?.totalEngagement,
-          avgEngagementRate: postsData?.avgEngagementRate,
-          totalFollowers: postsData?.totalFollowers,
-          platformsCount: postsData?.platforms?.length ?? 0,
-          topPostsCount: postsData?.topPosts?.length ?? 0,
-          postTypesCount: postsData?.postTypes?.length ?? 0,
-          engagementTrendsCount: postsData?.engagementTrends?.length ?? 0,
-          bestPostingTimesCount: postsData?.bestPostingTimes?.length ?? 0,
-        });
-        // Vérifier si toutes les données sont à zéro
-        if (
-          postsData &&
-          postsData.totalPosts === 0 &&
-          postsData.totalReach === 0 &&
-          postsData.totalEngagement === 0
-        ) {
-          console.warn(
-            '[PostsPanel:Debug][Client] ⚠️ ATTENTION: toutes les valeurs sont à 0 — vérifier les données en base ou les filtres de dates'
-          );
-        }
       }
 
       // Insights are NOT loaded here — they are lazy-loaded on demand
@@ -905,17 +851,10 @@ export function useAnalytics(options: UseAnalyticsOptions): UseAnalyticsReturn {
         postsData,
       };
 
-      console.log(
-        '[PostsPanel:Debug][Client] postsData assigné au state:',
-        postsData ? 'objet non-null' : 'NULL'
-      );
-      console.log('[PostsPanel:Debug][Client] ══════════════════════════════════════');
-
       setData(analyticsData);
       setLastUpdated(new Date());
       setError(null);
     } catch (err) {
-      console.error('[PostsPanel:Debug][Client] ❌ ERREUR CATCH GLOBAL fetchData:', err);
       setError(err instanceof Error ? err.message : 'Erreur inconnue');
     }
   }, [period, customStartDate, customEndDate, isSimulationMode, generateSimulatedData]);

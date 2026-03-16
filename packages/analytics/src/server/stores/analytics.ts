@@ -31,7 +31,9 @@ const VALID_DATE_TRUNC_PERIODS = new Set([
 /** Get analytics summary for a date range using SQL aggregations */
 export async function getAnalyticsSummary(startDate?: string, endDate?: string) {
   const { prisma, getSiteId, cache } = getAnalyticsContext();
+  const siteId = await getSiteId();
   const cacheKey = cache.buildKey(ANALYTICS_CACHE_KEYS.SUMMARY, {
+    siteId,
     start: startDate,
     end: endDate,
   });
@@ -39,7 +41,6 @@ export async function getAnalyticsSummary(startDate?: string, endDate?: string) 
   return cache.getCached(
     cacheKey,
     async () => {
-      const siteId = await getSiteId();
       const dateFilter = buildDateFilter(startDate, endDate);
 
       // Count total page views (excluding bots) and unique sessions via SQL
@@ -331,7 +332,9 @@ export async function getVisitsByPeriod(
   }
 
   const { prisma, getSiteId, cache } = getAnalyticsContext();
+  const siteId = await getSiteId();
   const cacheKey = cache.buildKey(ANALYTICS_CACHE_KEYS.VISITS_BY_PERIOD, {
+    siteId,
     period,
     start: startDate,
     end: endDate,
@@ -340,7 +343,6 @@ export async function getVisitsByPeriod(
   return cache.getCached(
     cacheKey,
     async () => {
-      const siteId = await getSiteId();
       const start = startDate
         ? new Date(startDate)
         : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
@@ -476,7 +478,9 @@ export async function getAnalyticsSummaryWithComparison(
 /** Get section engagement heatmap using SQL aggregation */
 export async function getSectionHeatmap(startDate?: string, endDate?: string) {
   const { prisma, getSiteId, cache } = getAnalyticsContext();
+  const siteId = await getSiteId();
   const cacheKey = cache.buildKey(ANALYTICS_CACHE_KEYS.HEATMAP, {
+    siteId,
     start: startDate,
     end: endDate,
   });
@@ -484,7 +488,6 @@ export async function getSectionHeatmap(startDate?: string, endDate?: string) {
   return cache.getCached(
     cacheKey,
     async () => {
-      const siteId = await getSiteId();
       const start = startDate
         ? new Date(startDate)
         : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
@@ -546,7 +549,9 @@ export async function getSectionHeatmap(startDate?: string, endDate?: string) {
 /** Get traffic sources breakdown using SQL aggregation */
 export async function getTrafficSources(startDate?: string, endDate?: string) {
   const { prisma, getSiteId, cache } = getAnalyticsContext();
+  const siteId = await getSiteId();
   const cacheKey = cache.buildKey(ANALYTICS_CACHE_KEYS.TRAFFIC_SOURCES, {
+    siteId,
     start: startDate,
     end: endDate,
   });
@@ -554,7 +559,6 @@ export async function getTrafficSources(startDate?: string, endDate?: string) {
   return cache.getCached(
     cacheKey,
     async () => {
-      const siteId = await getSiteId();
       const start = startDate
         ? new Date(startDate)
         : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
@@ -614,7 +618,9 @@ export async function getTrafficSources(startDate?: string, endDate?: string) {
  */
 export async function getDeviceBreakdown(startDate?: string, endDate?: string) {
   const { prisma, getSiteId, cache } = getAnalyticsContext();
+  const siteId = await getSiteId();
   const cacheKey = cache.buildKey(ANALYTICS_CACHE_KEYS.DEVICE_BREAKDOWN, {
+    siteId,
     start: startDate,
     end: endDate,
   });
@@ -622,7 +628,6 @@ export async function getDeviceBreakdown(startDate?: string, endDate?: string) {
   return cache.getCached(
     cacheKey,
     async () => {
-      const siteId = await getSiteId();
       const start = startDate
         ? new Date(startDate)
         : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);

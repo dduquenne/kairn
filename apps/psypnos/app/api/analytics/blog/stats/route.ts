@@ -1,12 +1,8 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - BlogAnalytics model not available in Kairn schema
-import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 
+import { prisma } from '@/lib/db/prisma';
+import { getSiteId } from '@/lib/db/site';
 import { isMockMode, logDataMode } from '@/lib/pwaDataMode';
-
-const prisma = new PrismaClient();
 
 export const dynamic = 'force-dynamic';
 
@@ -20,17 +16,18 @@ interface ArticleWithTitle {
 }
 
 /**
- * Récupère les titres des articles depuis la base de données
+ * Récupère les titres des articles depuis la base de données, filtrés par siteId.
  */
-async function getArticleTitles(): Promise<Map<string, string>> {
+async function getArticleTitles(siteId: string): Promise<Map<string, string>> {
   const articlesMap = new Map<string, string>();
 
   try {
     const posts = await prisma.blogPost.findMany({
+      where: { siteId },
       select: {
         slug: true,
-        title: true
-      }
+        title: true,
+      },
     });
 
     for (const post of posts) {
@@ -44,56 +41,49 @@ async function getArticleTitles(): Promise<Map<string, string>> {
 }
 
 /**
- * Génère des données mockées pour les statistiques blog PWA
+ * Génère des données mockées pour les statistiques blog PWA.
  */
-async function generateMockBlogStats(timeRange: string) {
-  const articlesMap = await getArticleTitles();
+async function generateMockBlogStats(siteId: string) {
+  const articlesMap = await getArticleTitles(siteId);
   const articleSlugs = Array.from(articlesMap.keys());
 
-  // Générer des vues aléatoires pour chaque article
   const articlesWithViews = articleSlugs.map(slug => ({
     slug,
     title: articlesMap.get(slug) || slug,
-    views: Math.floor(Math.random() * 450) + 50 // Entre 50 et 500 vues
+    views: Math.floor(Math.random() * 450) + 50,
   }));
 
-  // Trier par vues décroissantes
   articlesWithViews.sort((a, b) => b.views - a.views);
 
   const totalArticles = articlesWithViews.length;
   const totalViews = articlesWithViews.reduce((sum, a) => sum + a.views, 0);
-  const avgReadTime = Math.floor(Math.random() * 240) + 180; // 3-7 minutes en secondes
+  const avgReadTime = Math.floor(Math.random() * 240) + 180;
 
   return {
     totalArticles,
     totalViews,
     avgReadTime,
-    topArticles: articlesWithViews.slice(0, 10)
+    topArticles: articlesWithViews.slice(0, 10),
   };
 }
 
 /**
  * GET /api/analytics/blog/stats
- * Récupère les statistiques blog pour la PWA
+ * Récupère les statistiques blog pour la PWA.
  */
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const timeRange = searchParams.get('range') || '7d';
+    const siteId = await getSiteId();
 
     logDataMode();
 
-    // Si en mode mock, retourner des données simulées
     if (isMockMode()) {
-      console.log('📊 [Blog Stats PWA] Using MOCK data');
-      const mockData = await generateMockBlogStats(timeRange);
+      const mockData = await generateMockBlogStats(siteId);
       return NextResponse.json(mockData, { status: 200 });
     }
 
-    // Mode réel - récupérer les vraies données
-    console.log('📊 [Blog Stats PWA] Using REAL data');
-
-    // Calculer la date de début en fonction du timeRange
     const now = new Date();
     const startDate = new Date();
 
@@ -114,65 +104,51 @@ export async function GET(request: NextRequest) {
         startDate.setDate(now.getDate() - 7);
     }
 
-    // Récupérer toutes les vues d'articles dans la période
     const blogViews = await prisma.blogAnalytics.findMany({
       where: {
+        siteId,
         timestamp: {
           gte: startDate,
-          lte: now
-        }
+          lte: now,
+        },
       },
       select: {
         articleSlug: true,
         sessionId: true,
-        timestamp: true
-      }
+        timestamp: true,
+      },
     });
 
-    // Grouper par article et compter les vues
-    const viewsByArticle = blogViews.reduce(
-      (acc: Record<string, number>, view: { articleSlug: string; sessionId: string; timestamp: Date }) => {
-        if (!acc[view.articleSlug]) {
-          acc[view.articleSlug] = 0;
-        }
-        acc[view.articleSlug]++;
-        return acc;
-      },
-      {} as Record<string, number>
-    );
+    const viewsByArticle: Record<string, number> = {};
+    for (const view of blogViews) {
+      viewsByArticle[view.articleSlug] = (viewsByArticle[view.articleSlug] ?? 0) + 1;
+    }
 
-    // Récupérer les titres des articles depuis la base de données
-    const articlesMap = await getArticleTitles();
+    const articlesMap = await getArticleTitles(siteId);
     const totalArticles = articlesMap.size;
 
-    // Créer le tableau des top articles avec titres
     const articlesWithViews: ArticleWithTitle[] = Object.entries(viewsByArticle)
       .map(([slug, views]) => ({
         slug,
         title: articlesMap.get(slug) || slug,
-        views: views as number
+        views,
       }))
       .sort((a, b) => b.views - a.views);
 
     const totalViews = articlesWithViews.reduce((sum, a) => sum + a.views, 0);
-
-    // Calculer le temps de lecture moyen (estimation: 250 secondes en moyenne)
     const avgReadTime = 250;
 
-    return NextResponse.json({
-      totalArticles,
-      totalViews,
-      avgReadTime,
-      topArticles: articlesWithViews.slice(0, 10)
-    }, { status: 200 });
-
+    return NextResponse.json(
+      {
+        totalArticles,
+        totalViews,
+        avgReadTime,
+        topArticles: articlesWithViews.slice(0, 10),
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error('Error fetching blog stats:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch blog stats' },
-      { status: 500 }
-    );
-  } finally {
-    await prisma.$disconnect();
+    return NextResponse.json({ error: 'Failed to fetch blog stats' }, { status: 500 });
   }
 }
