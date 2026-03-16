@@ -55,7 +55,7 @@
     "@kairn/eslint-config": "workspace:*",
     "@kairn/typescript-config": "workspace:*",
     "eslint": "^8.57.0",
-    "openai": "^6.25.0",
+    "openai": "^6.29.0",
     "typescript": "^5.4.0"
   }
 }
