@@ -19,13 +19,8 @@ let cachedSiteId: string | null = null;
  */
 export async function getSiteId(): Promise<string> {
   if (cachedSiteId) {
-    // eslint-disable-next-line no-console
-    console.log('[getSiteId] Using cached siteId:', cachedSiteId);
     return cachedSiteId;
   }
-
-  // eslint-disable-next-line no-console
-  console.log('[getSiteId] Fetching site from database, slug:', SITE_SLUG);
 
   const site = await prisma.site.findUnique({
     where: { slug: SITE_SLUG },
@@ -33,13 +28,8 @@ export async function getSiteId(): Promise<string> {
   });
 
   if (!site) {
-    // eslint-disable-next-line no-console
-    console.error('[getSiteId] Site not found:', SITE_SLUG);
     throw new Error(`Site "${SITE_SLUG}" not found in database`);
   }
-
-  // eslint-disable-next-line no-console
-  console.log('[getSiteId] Found site:', site.id);
 
   cachedSiteId = site.id;
   return cachedSiteId;

@@ -18,8 +18,10 @@ export async function getCohortAnalysis(
   startDate?: string,
   endDate?: string
 ) {
-  const { cache } = getAnalyticsContext();
+  const { cache, getSiteId } = getAnalyticsContext();
+  const siteId = await getSiteId();
   const cacheKey = cache.buildKey(ANALYTICS_CACHE_KEYS.COHORTS, {
+    siteId,
     cohortBy,
     start: startDate,
     end: endDate,

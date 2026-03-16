@@ -13,8 +13,10 @@ import { getPageVisits } from './page-visits';
 
 /** Get marketing attribution analysis using multiple models */
 export async function getMarketingAttribution(startDate?: string, endDate?: string) {
-  const { cache } = getAnalyticsContext();
+  const { cache, getSiteId } = getAnalyticsContext();
+  const siteId = await getSiteId();
   const cacheKey = cache.buildKey(ANALYTICS_CACHE_KEYS.ATTRIBUTION, {
+    siteId,
     start: startDate,
     end: endDate,
   });

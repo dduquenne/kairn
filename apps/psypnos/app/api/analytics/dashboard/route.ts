@@ -367,8 +367,9 @@ async function fetchGeoData(startDate: Date, endDate: Date) {
  */
 async function fetchBlogAnalytics(startDate: Date, endDate: Date) {
   try {
+    const siteId = await getCurrentSiteId();
     const allAnalytics = await prisma.blogAnalytics.findMany({
-      where: { timestamp: { gte: startDate, lte: endDate } },
+      where: { siteId, timestamp: { gte: startDate, lte: endDate } },
       select: {
         articleSlug: true,
         sessionId: true,
@@ -458,8 +459,9 @@ async function fetchBlogAnalytics(startDate: Date, endDate: Date) {
 
 async function fetchBlogCtaClicks(startDate: Date, endDate: Date) {
   try {
+    const siteId = await getCurrentSiteId();
     const clicks = await prisma.blogCtaClick.findMany({
-      where: { timestamp: { gte: startDate, lte: endDate } },
+      where: { siteId, timestamp: { gte: startDate, lte: endDate } },
       select: { ctaType: true },
     });
 
@@ -477,8 +479,9 @@ async function fetchBlogCtaClicks(startDate: Date, endDate: Date) {
 
 async function fetchBlogFaqClicks(startDate: Date, endDate: Date) {
   try {
+    const siteId = await getCurrentSiteId();
     const clicks = await prisma.blogFaqClick.findMany({
-      where: { timestamp: { gte: startDate, lte: endDate } },
+      where: { siteId, timestamp: { gte: startDate, lte: endDate } },
       orderBy: { timestamp: 'desc' },
       take: 10000,
     });
