@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ReactNode } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 
 interface SectionTitleProps {
   eyebrow?: string;
@@ -9,10 +9,23 @@ interface SectionTitleProps {
   description?: ReactNode;
 }
 
+/**
+ * Section title with scroll-reveal animation.
+ * Uses hasMounted guard so content is visible on SSR (opacity:1)
+ * and only animates after client hydration.
+ */
 export function SectionTitle({ eyebrow, title, description }: SectionTitleProps) {
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  const initial = hasMounted ? { opacity: 0, y: 24 } : { opacity: 1, y: 0 };
+
   return (
     <motion.header
-      initial={{ opacity: 0, y: 24 }}
+      initial={initial}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2, margin: '0px 0px -50px 0px' }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
