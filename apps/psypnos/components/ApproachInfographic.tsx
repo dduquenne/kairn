@@ -7,6 +7,8 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 import { useRef } from 'react';
 
+import { useScrollReveal } from '../hooks/useScrollReveal';
+
 type ApproachItem = {
   title: string;
   description: string;
@@ -20,10 +22,14 @@ interface ApproachInfographicProps {
 
 /**
  * Approach infographic with parallax and scroll-reveal animations.
- * Framer Motion v11 applies initial styles during SSR, so no hasMounted guard is needed.
+ *
+ * Uses useScrollReveal for SSR-safe visibility: content is visible
+ * during SSR, hidden instantly after hydration (if below viewport),
+ * then animated in when scrolled into view.
  */
 export function ApproachInfographic({ items }: ApproachInfographicProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const { ref: revealRef, shouldShow, hasMounted } = useScrollReveal({ amount: 0.1 });
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start center', 'end center'],
@@ -43,10 +49,18 @@ export function ApproachInfographic({ items }: ApproachInfographicProps) {
     );
   });
 
+  /**
+   * Build transition: instant when hiding or pre-mount, smooth when revealing.
+   */
+  const cardTransition = (delay: number) =>
+    !hasMounted || !shouldShow
+      ? { duration: 0 }
+      : { duration: 0.6, delay, ease: 'easeOut' as const };
+
   return (
     <div ref={containerRef} className="relative px-6 py-20 sm:px-10 lg:px-16">
       {/* Desktop: Hexagonal/Grid layout with parallax */}
-      <div className="mx-auto max-w-6xl">
+      <div ref={revealRef} className="mx-auto max-w-6xl">
         {/* Desktop Grid - Hidden on mobile */}
         <div className="hidden md:block">
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
@@ -56,12 +70,13 @@ export function ApproachInfographic({ items }: ApproachInfographicProps) {
               return (
                 <motion.article
                   key={item.title}
-                  ref={containerRef}
                   style={{ y: yTransform }}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true, amount: 0.3 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  initial={false}
+                  animate={{
+                    opacity: shouldShow ? 1 : 0,
+                    scale: shouldShow ? 1 : 0.9,
+                  }}
+                  transition={cardTransition(index * 0.1)}
                   className="group relative"
                 >
                   {/* Card with gradient border effect */}
@@ -73,10 +88,12 @@ export function ApproachInfographic({ items }: ApproachInfographicProps) {
                     <div className="relative z-10 flex h-full flex-col">
                       {/* Icon container with glow effect */}
                       <motion.div
-                        initial={{ scale: 0, rotateY: 90 }}
-                        whileInView={{ scale: 1, rotateY: 0 }}
-                        viewport={{ once: true, amount: 0.2 }}
-                        transition={{ duration: 0.6, delay: index * 0.1 + 0.1 }}
+                        initial={false}
+                        animate={{
+                          scale: shouldShow ? 1 : 0,
+                          rotateY: shouldShow ? 0 : 90,
+                        }}
+                        transition={cardTransition(index * 0.1 + 0.1)}
                         className="relative mb-6 inline-flex h-16 w-16 items-center justify-center"
                       >
                         {/* Glow background */}
@@ -107,10 +124,9 @@ export function ApproachInfographic({ items }: ApproachInfographicProps) {
 
                       {/* Bottom accent line */}
                       <motion.div
-                        initial={{ scaleX: 0 }}
-                        whileInView={{ scaleX: 1 }}
-                        viewport={{ once: true, amount: 0.2 }}
-                        transition={{ duration: 0.8, delay: index * 0.1 + 0.2 }}
+                        initial={false}
+                        animate={{ scaleX: shouldShow ? 1 : 0 }}
+                        transition={cardTransition(index * 0.1 + 0.2)}
                         className="from-gold to-gold/0 mt-6 h-0.5 w-12 origin-left bg-gradient-to-r"
                       />
                     </div>
@@ -126,10 +142,12 @@ export function ApproachInfographic({ items }: ApproachInfographicProps) {
           {items.map((item, index) => (
             <motion.article
               key={item.title}
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+              initial={false}
+              animate={{
+                opacity: shouldShow ? 1 : 0,
+                x: shouldShow ? 0 : -20,
+              }}
+              transition={cardTransition(index * 0.1)}
               className="group relative"
             >
               {/* Mobile card */}
@@ -143,10 +161,9 @@ export function ApproachInfographic({ items }: ApproachInfographicProps) {
                   <div className="flex items-start gap-4">
                     {/* Icon */}
                     <motion.div
-                      initial={{ scale: 0 }}
-                      whileInView={{ scale: 1 }}
-                      viewport={{ once: true, amount: 0.2 }}
-                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                      initial={false}
+                      animate={{ scale: shouldShow ? 1 : 0 }}
+                      transition={cardTransition(index * 0.1)}
                       className="relative mt-1 inline-flex h-12 w-12 flex-shrink-0 items-center justify-center"
                     >
                       {/* Glow background */}
@@ -174,10 +191,9 @@ export function ApproachInfographic({ items }: ApproachInfographicProps) {
 
                   {/* Bottom accent */}
                   <motion.div
-                    initial={{ scaleX: 0 }}
-                    whileInView={{ scaleX: 1 }}
-                    viewport={{ once: true, amount: 0.2 }}
-                    transition={{ duration: 0.6, delay: index * 0.1 + 0.15 }}
+                    initial={false}
+                    animate={{ scaleX: shouldShow ? 1 : 0 }}
+                    transition={cardTransition(index * 0.1 + 0.15)}
                     className="from-gold to-gold/0 mt-4 h-0.5 w-8 origin-left bg-gradient-to-r"
                   />
                 </div>
