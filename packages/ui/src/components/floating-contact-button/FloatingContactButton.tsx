@@ -103,6 +103,9 @@ function useScrollDirection() {
       return;
     }
 
+    // Initialize lastScrollY to current position to avoid large delta on first scroll
+    lastScrollY.current = window.scrollY;
+
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       const scrollDelta = currentScrollY - lastScrollY.current;
@@ -153,16 +156,7 @@ export function FloatingContactButton({
   const { isVisible } = useScrollDirection();
   const pathname = usePathname();
 
-  const colors = { ...DEFAULT_COLORS, ...customColors };
-  const labels = { ...DEFAULT_LABELS, ...customLabels };
-
-  // Hide on specified paths
-  const shouldHide = hiddenPaths.some(path => pathname?.startsWith(path));
-  if (shouldHide) {
-    return null;
-  }
-
-  // Pulse animation
+  // Pulse animation — must be called before any conditional return (Rules of Hooks)
   useEffect(() => {
     if (!enablePulse) return;
 
@@ -182,6 +176,15 @@ export function FloatingContactButton({
   const handleClose = useCallback(() => {
     setIsModalOpen(false);
   }, []);
+
+  const colors = { ...DEFAULT_COLORS, ...customColors };
+  const labels = { ...DEFAULT_LABELS, ...customLabels };
+
+  // Hide on specified paths — after all hooks
+  const shouldHide = hiddenPaths.some(path => pathname?.startsWith(path));
+  if (shouldHide) {
+    return null;
+  }
 
   const iconElement: ReactNode = icon ?? (
     <Calendar className="h-5 w-5 transition-transform group-hover:scale-110 md:h-6 md:w-6" />

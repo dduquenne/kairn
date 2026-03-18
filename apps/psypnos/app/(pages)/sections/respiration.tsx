@@ -10,7 +10,7 @@ export function RespirationSection() {
   return (
     <section
       id="respiration-holotropique"
-      className="from-night via-night/95 to-night bg-gradient-to-br px-6 py-20 sm:px-10 lg:px-16"
+      className="from-night via-night/95 to-night bg-gradient-to-br px-6 py-12 sm:px-10 sm:py-20 lg:px-16"
       data-track-section="respiration"
       data-track-section-name="Respiration holotropique"
     >

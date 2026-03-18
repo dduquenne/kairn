@@ -283,7 +283,7 @@ export function NavigationMenu({ forceVisible = false }: NavigationMenuProps) {
         aria-modal="true"
         aria-label="Menu de navigation"
         className={`bg-night-light fixed bottom-0 right-0 top-0 z-[45] flex w-80 max-w-[85vw] flex-col shadow-2xl transition-transform duration-300 ease-out md:hidden ${
-          isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+          isMobileMenuOpen ? 'translate-x-0' : 'pointer-events-none translate-x-full'
         }`}
       >
         {/* Espace réservé pour le header nav (h-16) */}

@@ -7,8 +7,6 @@
  * All queries filter by siteId to ensure tenant isolation.
  */
 
-import { Decimal } from '@prisma/client/runtime/library';
-
 import prisma from '@/lib/db/prisma';
 import { getSiteId } from '@/lib/db/site';
 
@@ -195,13 +193,14 @@ export async function getTestimonials(limit = 10): Promise<TestimonialData[]> {
 // ============================================
 
 /**
- * Get numeric value from Decimal or number
+ * Get numeric value from Decimal or number.
+ * Uses Number() instead of instanceof Decimal to handle bundled environments
+ * where the Decimal class may differ from Prisma's runtime instance.
  */
-function getNumericValue(val: Decimal | number | null): number | undefined {
-  if (val === null) return undefined;
-  if (typeof val === 'number') return val;
-  if (val instanceof Decimal) return val.toNumber();
-  return undefined;
+function getNumericValue(val: unknown): number | undefined {
+  if (val === null || val === undefined) return undefined;
+  const num = Number(val);
+  return Number.isNaN(num) ? undefined : num;
 }
 
 function formatSeminar(seminar: {
@@ -212,8 +211,8 @@ function formatSeminar(seminar: {
   startAt: Date;
   endAt: Date;
   capacity: number;
-  price: Decimal | null;
-  deposit: Decimal | null;
+  price: unknown;
+  deposit: unknown;
   tags: string[];
   thumbnail: string | null;
   seminarType: string | null;

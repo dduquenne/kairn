@@ -2,7 +2,7 @@ import { Skeleton } from '../../../components/ui/skeleton';
 
 export function SectionSkeleton() {
   return (
-    <section className="px-6 py-20 sm:px-10 lg:px-16">
+    <section className="px-6 py-12 sm:px-10 sm:py-20 lg:px-16">
       <div className="mx-auto max-w-6xl space-y-12">
         {/* Title skeleton */}
         <div className="space-y-4 text-center">
@@ -30,7 +30,7 @@ export function SectionSkeleton() {
 
 export function ApproachSectionSkeleton() {
   return (
-    <section className="px-6 py-20 sm:px-10 lg:px-16">
+    <section className="px-6 py-12 sm:px-10 sm:py-20 lg:px-16">
       <div className="mx-auto max-w-6xl space-y-12">
         <div className="space-y-4 text-center">
           <Skeleton className="bg-night/40 mx-auto h-4 w-32" />
@@ -53,7 +53,7 @@ export function ApproachSectionSkeleton() {
 
 export function JourneySectionSkeleton() {
   return (
-    <section className="px-6 py-20 sm:px-10 lg:px-16">
+    <section className="px-6 py-12 sm:px-10 sm:py-20 lg:px-16">
       <div className="mx-auto max-w-6xl space-y-12">
         <div className="space-y-4 text-center">
           <Skeleton className="bg-night/40 mx-auto h-4 w-32" />
@@ -75,7 +75,7 @@ export function JourneySectionSkeleton() {
 
 export function PricingSectionSkeleton() {
   return (
-    <section className="px-6 py-20 sm:px-10 lg:px-16">
+    <section className="px-6 py-12 sm:px-10 sm:py-20 lg:px-16">
       <div className="mx-auto max-w-6xl space-y-10 lg:grid lg:grid-cols-2 lg:items-start lg:gap-10">
         <div className="space-y-6">
           <div className="space-y-4">
@@ -102,7 +102,7 @@ export function PricingSectionSkeleton() {
 
 export function FormatsSectionSkeleton() {
   return (
-    <section className="px-6 py-20 sm:px-10 lg:px-16">
+    <section className="px-6 py-12 sm:px-10 sm:py-20 lg:px-16">
       <div className="mx-auto max-w-6xl space-y-12">
         <div className="space-y-4 text-center">
           <Skeleton className="bg-night/40 mx-auto h-4 w-32" />
@@ -129,7 +129,7 @@ export function FormatsSectionSkeleton() {
 export function TherapySectionsSkeleton() {
   return (
     <>
-      <section className="px-6 py-20 sm:px-10 lg:px-16">
+      <section className="px-6 py-12 sm:px-10 sm:py-20 lg:px-16">
         <div className="mx-auto max-w-6xl space-y-12 text-center">
           <div className="space-y-4">
             <Skeleton className="bg-night/40 mx-auto h-4 w-32" />
@@ -138,7 +138,7 @@ export function TherapySectionsSkeleton() {
           </div>
         </div>
       </section>
-      <section className="px-6 py-20 sm:px-10 lg:px-16">
+      <section className="px-6 py-12 sm:px-10 sm:py-20 lg:px-16">
         <div className="mx-auto max-w-6xl space-y-12 text-center">
           <div className="space-y-4">
             <Skeleton className="bg-night/40 mx-auto h-4 w-32" />
@@ -153,7 +153,7 @@ export function TherapySectionsSkeleton() {
 
 export function RespirationSectionSkeleton() {
   return (
-    <section className="from-night via-night/95 to-night bg-gradient-to-br px-6 py-20 sm:px-10 lg:px-16">
+    <section className="from-night via-night/95 to-night bg-gradient-to-br px-6 py-12 sm:px-10 sm:py-20 lg:px-16">
       <div className="mx-auto max-w-5xl space-y-12">
         <div className="space-y-4 text-center">
           <Skeleton className="bg-night/40 mx-auto h-4 w-32" />
@@ -175,7 +175,7 @@ export function RespirationSectionSkeleton() {
 
 export function SeminarsSectionSkeleton() {
   return (
-    <section className="bg-night/60 px-6 py-20 sm:px-10 lg:px-16">
+    <section className="bg-night/60 px-6 py-12 sm:px-10 sm:py-20 lg:px-16">
       <div className="mx-auto max-w-6xl space-y-12">
         <div className="space-y-4 text-center">
           <Skeleton className="bg-night/40 mx-auto h-4 w-32" />
@@ -202,7 +202,7 @@ export function SeminarsSectionSkeleton() {
 
 export function TestimonialsSectionSkeleton() {
   return (
-    <section className="bg-night/60 overflow-hidden py-20">
+    <section className="bg-night/60 overflow-hidden py-12 sm:py-20">
       <div className="mx-auto max-w-6xl space-y-10 px-6 sm:px-10 lg:px-16">
         <div className="space-y-4">
           <Skeleton className="bg-night/40 h-4 w-24" />
@@ -239,7 +239,7 @@ export function TestimonialsSectionSkeleton() {
 
 export function BlogSectionSkeleton() {
   return (
-    <section className="bg-night/60 px-6 py-20 sm:px-10 lg:px-16">
+    <section className="bg-night/60 px-6 py-12 sm:px-10 sm:py-20 lg:px-16">
       <div className="mx-auto max-w-6xl space-y-12">
         <div className="space-y-4 text-center">
           <Skeleton className="bg-night/40 mx-auto h-4 w-48" />
@@ -272,7 +272,7 @@ export function BlogSectionSkeleton() {
 
 export function ContactSectionSkeleton() {
   return (
-    <section className="px-6 py-20 sm:px-10 lg:px-16">
+    <section className="px-6 py-12 sm:px-10 sm:py-20 lg:px-16">
       <div className="mx-auto max-w-4xl space-y-12">
         <div className="space-y-4 text-center">
           <Skeleton className="bg-night/40 mx-auto h-4 w-32" />

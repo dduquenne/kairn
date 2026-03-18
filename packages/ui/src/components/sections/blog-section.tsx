@@ -84,7 +84,7 @@ export interface BlogSectionProps {
  */
 function BlogSkeleton() {
   return (
-    <section className="bg-night/60 px-6 py-20 sm:px-10 lg:px-16">
+    <section className="bg-night/60 px-6 py-12 sm:px-10 sm:py-20 lg:px-16">
       <div className="mx-auto max-w-6xl space-y-12">
         <div className="space-y-4">
           <div className="bg-ivory/10 h-4 w-32 animate-pulse rounded" />
@@ -161,7 +161,7 @@ export function BlogSection({
     return (
       <section
         id="blog"
-        className={cn('bg-night/60 px-6 py-20 sm:px-10 lg:px-16', className)}
+        className={cn('bg-night/60 px-6 py-12 sm:px-10 sm:py-20 lg:px-16', className)}
         data-track-section={trackingName.toLowerCase().replace(/\s+/g, '-')}
         data-track-section-name={trackingName}
       >
@@ -194,7 +194,7 @@ export function BlogSection({
   return (
     <section
       id="blog"
-      className={cn('bg-night/60 px-6 py-20 sm:px-10 lg:px-16', className)}
+      className={cn('bg-night/60 px-6 py-12 sm:px-10 sm:py-20 lg:px-16', className)}
       data-track-section={trackingName.toLowerCase().replace(/\s+/g, '-')}
       data-track-section-name={trackingName}
     >
