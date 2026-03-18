@@ -23,6 +23,10 @@ export interface SeminarSectionItem {
   seminarType?: string;
   /** Number of available places */
   capacity: number;
+  /** Price in euros */
+  price?: number;
+  /** Deposit amount in euros */
+  deposit?: number;
   /** Optional thumbnail image URL */
   thumbnail?: string | null;
 }
@@ -51,6 +55,10 @@ export interface SeminarsSectionProps {
   timezone?: string;
   /** "places" label */
   placesLabel?: string;
+  /** Currency symbol for price display */
+  currencySymbol?: string;
+  /** Label for deposit (e.g. "acompte") */
+  depositLabel?: string;
   /** Custom image component */
   imageComponent?: React.ComponentType<{
     src: string;
@@ -157,6 +165,8 @@ export function SeminarsSection({
   locale = 'fr-FR',
   timezone = 'Europe/Paris',
   placesLabel = 'places',
+  currencySymbol = '€',
+  depositLabel = 'acompte',
   imageComponent: ImageComp,
   trackingName = 'Séminaires',
   className,
@@ -264,6 +274,22 @@ export function SeminarsSection({
                       </span>
                     </div>
                   </dl>
+
+                  {/* Price display */}
+                  {seminar.price != null && seminar.price > 0 && (
+                    <div className="border-gold/20 from-gold/5 mt-5 rounded-xl border bg-gradient-to-r to-transparent px-4 py-3">
+                      <div className="flex items-baseline justify-between">
+                        <span className="text-gold text-2xl font-bold">
+                          {seminar.price} {currencySymbol}
+                        </span>
+                        {seminar.deposit != null && seminar.deposit > 0 && (
+                          <span className="text-ivory/50 text-xs">
+                            {depositLabel} : {seminar.deposit} {currencySymbol}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="mt-6 flex justify-center">
                     {ctaComponent ? (

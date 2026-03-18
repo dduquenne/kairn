@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 // TODO: Migration - Type incompatibilities to fix
-"use client";
+'use client';
 
-import { motion, useScroll, useTransform } from "framer-motion";
-import Image from "next/image";
-import { useRef } from "react";
+import { motion, useScroll, useTransform } from 'framer-motion';
+import Image from 'next/image';
+import { useRef } from 'react';
 
 type ApproachItem = {
   title: string;
@@ -22,7 +22,7 @@ export function ApproachInfographic({ items }: ApproachInfographicProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ["start center", "end center"],
+    offset: ['start center', 'end center'],
   });
 
   // Create staggered parallax effects for each item
@@ -61,9 +61,9 @@ export function ApproachInfographic({ items }: ApproachInfographicProps) {
                   className="group relative"
                 >
                   {/* Card with gradient border effect */}
-                  <div className="relative h-full overflow-hidden rounded-2xl border border-gold/20 bg-gradient-to-br from-night/60 via-night/40 to-night/60 p-8 shadow-lg backdrop-blur-sm transition-all duration-300 hover:border-gold/50 hover:shadow-[0_0_30px_rgba(199,169,98,0.2)]">
+                  <div className="border-gold/20 from-night/60 via-night/40 to-night/60 hover:border-gold/50 relative h-full overflow-hidden rounded-2xl border bg-gradient-to-br p-8 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-[0_0_30px_rgba(199,169,98,0.2)]">
                     {/* Animated background gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-gold/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                    <div className="from-gold/5 absolute inset-0 bg-gradient-to-br via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
                     {/* Content */}
                     <div className="relative z-10 flex h-full flex-col">
@@ -71,15 +71,15 @@ export function ApproachInfographic({ items }: ApproachInfographicProps) {
                       <motion.div
                         initial={{ scale: 0, rotateY: 90 }}
                         whileInView={{ scale: 1, rotateY: 0 }}
-                        viewport={{ once: true, amount: 0.5 }}
+                        viewport={{ once: true, amount: 0.2 }}
                         transition={{ duration: 0.6, delay: index * 0.1 + 0.1 }}
                         className="relative mb-6 inline-flex h-16 w-16 items-center justify-center"
                       >
                         {/* Glow background */}
-                        <div className="absolute inset-0 rounded-full bg-gold/15 blur-xl" />
+                        <div className="bg-gold/15 absolute inset-0 rounded-full blur-xl" />
 
                         {/* Icon background circle */}
-                        <div className="absolute inset-0 rounded-full border border-gold/30 bg-gradient-to-br from-gold/10 to-transparent" />
+                        <div className="border-gold/30 from-gold/10 absolute inset-0 rounded-full border bg-gradient-to-br to-transparent" />
 
                         {/* Icon */}
                         <Image
@@ -92,12 +92,12 @@ export function ApproachInfographic({ items }: ApproachInfographicProps) {
                       </motion.div>
 
                       {/* Title */}
-                      <h3 className="text-lg font-semibold text-gold transition-colors duration-300 group-hover:text-gold">
+                      <h3 className="text-gold group-hover:text-gold text-lg font-semibold transition-colors duration-300">
                         {item.title}
                       </h3>
 
                       {/* Description */}
-                      <p className="mt-3 flex-grow text-sm leading-relaxed text-ivory/75 transition-colors duration-300 group-hover:text-ivory/90">
+                      <p className="text-ivory/75 group-hover:text-ivory/90 mt-3 flex-grow text-sm leading-relaxed transition-colors duration-300">
                         {item.description}
                       </p>
 
@@ -105,9 +105,9 @@ export function ApproachInfographic({ items }: ApproachInfographicProps) {
                       <motion.div
                         initial={{ scaleX: 0 }}
                         whileInView={{ scaleX: 1 }}
-                        viewport={{ once: true, amount: 0.5 }}
+                        viewport={{ once: true, amount: 0.2 }}
                         transition={{ duration: 0.8, delay: index * 0.1 + 0.2 }}
-                        className="mt-6 h-0.5 w-12 origin-left bg-gradient-to-r from-gold to-gold/0"
+                        className="from-gold to-gold/0 mt-6 h-0.5 w-12 origin-left bg-gradient-to-r"
                       />
                     </div>
                   </div>
@@ -129,9 +129,9 @@ export function ApproachInfographic({ items }: ApproachInfographicProps) {
               className="group relative"
             >
               {/* Mobile card */}
-              <div className="relative overflow-hidden rounded-2xl border border-gold/20 bg-gradient-to-br from-night/60 via-night/40 to-night/60 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:border-gold/50">
+              <div className="border-gold/20 from-night/60 via-night/40 to-night/60 hover:border-gold/50 relative overflow-hidden rounded-2xl border bg-gradient-to-br p-6 shadow-lg backdrop-blur-sm transition-all duration-300">
                 {/* Animated background gradient */}
-                <div className="absolute inset-0 bg-gradient-to-br from-gold/5 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                <div className="from-gold/5 absolute inset-0 bg-gradient-to-br via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
                 {/* Content */}
                 <div className="relative z-10">
@@ -141,15 +141,15 @@ export function ApproachInfographic({ items }: ApproachInfographicProps) {
                     <motion.div
                       initial={{ scale: 0 }}
                       whileInView={{ scale: 1 }}
-                      viewport={{ once: true, amount: 0.5 }}
+                      viewport={{ once: true, amount: 0.2 }}
                       transition={{ duration: 0.5, delay: index * 0.1 }}
                       className="relative mt-1 inline-flex h-12 w-12 flex-shrink-0 items-center justify-center"
                     >
                       {/* Glow background */}
-                      <div className="absolute inset-0 rounded-full bg-gold/15 blur-lg" />
+                      <div className="bg-gold/15 absolute inset-0 rounded-full blur-lg" />
 
                       {/* Icon background circle */}
-                      <div className="absolute inset-0 rounded-full border border-gold/30 bg-gradient-to-br from-gold/10 to-transparent" />
+                      <div className="border-gold/30 from-gold/10 absolute inset-0 rounded-full border bg-gradient-to-br to-transparent" />
 
                       {/* Icon */}
                       <Image
@@ -162,21 +162,19 @@ export function ApproachInfographic({ items }: ApproachInfographicProps) {
                     </motion.div>
 
                     {/* Title */}
-                    <h3 className="text-base font-semibold text-gold">{item.title}</h3>
+                    <h3 className="text-gold text-base font-semibold">{item.title}</h3>
                   </div>
 
                   {/* Description */}
-                  <p className="mt-4 text-sm leading-relaxed text-ivory/75">
-                    {item.description}
-                  </p>
+                  <p className="text-ivory/75 mt-4 text-sm leading-relaxed">{item.description}</p>
 
                   {/* Bottom accent */}
                   <motion.div
                     initial={{ scaleX: 0 }}
                     whileInView={{ scaleX: 1 }}
-                    viewport={{ once: true, amount: 0.5 }}
+                    viewport={{ once: true, amount: 0.2 }}
                     transition={{ duration: 0.6, delay: index * 0.1 + 0.15 }}
-                    className="mt-4 h-0.5 w-8 origin-left bg-gradient-to-r from-gold to-gold/0"
+                    className="from-gold to-gold/0 mt-4 h-0.5 w-8 origin-left bg-gradient-to-r"
                   />
                 </div>
               </div>

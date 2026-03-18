@@ -148,6 +148,7 @@ export function BlogSection({
   ctaHref = '/blog',
   readLabel = "Lire l'article",
   linkComponent: LinkComp,
+  imageComponent: ImageComp,
   ctaComponent,
   trackingName = 'Blog',
   className,
@@ -228,6 +229,27 @@ export function BlogSection({
                   href={`/blog/${post.slug}`}
                   className="focus:ring-gold focus:ring-offset-night flex h-full flex-col focus:outline-none focus:ring-2 focus:ring-offset-2"
                 >
+                  {/* Cover image */}
+                  {post.image && (
+                    <div className="from-night/80 relative aspect-[16/9] w-full overflow-hidden bg-gradient-to-br to-transparent">
+                      {ImageComp ? (
+                        <ImageComp
+                          src={post.image}
+                          alt={post.title}
+                          fill
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        />
+                      ) : (
+                        <img
+                          src={post.image}
+                          alt={post.title}
+                          className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      )}
+                    </div>
+                  )}
+
                   <div className="flex flex-1 flex-col p-6 pl-8">
                     {/* Category badge */}
                     <div className="mb-3">
