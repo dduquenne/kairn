@@ -5,7 +5,7 @@
 
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 
 type SessionFormat = {
   title: string;
@@ -20,19 +20,14 @@ interface SessionFormatsInfographicProps {
 
 /**
  * Session formats infographic with parallax and scroll-reveal animations.
- * Uses hasMounted guard so content is visible on SSR and only animates after hydration.
+ * Framer Motion v11 applies initial styles during SSR, so no hasMounted guard is needed.
  */
 export function SessionFormatsInfographic({ formats }: SessionFormatsInfographicProps) {
-  const [hasMounted, setHasMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start center', 'end center'],
   });
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
 
   // Create parallax effects for each format
   const parallaxValues = formats.map((_, index) => {
@@ -47,13 +42,6 @@ export function SessionFormatsInfographic({ formats }: SessionFormatsInfographic
     );
   });
 
-  // SSR-safe initial values: visible on server, animate only after hydration
-  const cardInitial = hasMounted ? { opacity: 0, scale: 0.9 } : { opacity: 1, scale: 1 };
-  const iconInitial = hasMounted ? { scale: 0, rotateY: 90 } : { scale: 1, rotateY: 0 };
-  const lineInitial = hasMounted ? { scaleX: 0 } : { scaleX: 1 };
-  const mobileCardInitial = hasMounted ? { opacity: 0, x: -20 } : { opacity: 1, x: 0 };
-  const mobileIconInitial = hasMounted ? { scale: 0 } : { scale: 1 };
-
   return (
     <div ref={containerRef} className="relative px-6 py-20 sm:px-10 lg:px-16">
       <div className="mx-auto max-w-4xl">
@@ -67,7 +55,7 @@ export function SessionFormatsInfographic({ formats }: SessionFormatsInfographic
                 <motion.article
                   key={format.title}
                   style={{ y: yTransform }}
-                  initial={cardInitial}
+                  initial={{ opacity: 0, scale: 0.9 }}
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true, amount: 0.3 }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
@@ -82,7 +70,7 @@ export function SessionFormatsInfographic({ formats }: SessionFormatsInfographic
                     <div className="relative z-10 flex h-full flex-col items-center text-center">
                       {/* Icon container with glow effect */}
                       <motion.div
-                        initial={iconInitial}
+                        initial={{ scale: 0, rotateY: 90 }}
                         whileInView={{ scale: 1, rotateY: 0 }}
                         viewport={{ once: true, amount: 0.2 }}
                         transition={{ duration: 0.6, delay: index * 0.1 + 0.1 }}
@@ -116,7 +104,7 @@ export function SessionFormatsInfographic({ formats }: SessionFormatsInfographic
 
                       {/* Bottom accent line */}
                       <motion.div
-                        initial={lineInitial}
+                        initial={{ scaleX: 0 }}
                         whileInView={{ scaleX: 1 }}
                         viewport={{ once: true, amount: 0.2 }}
                         transition={{ duration: 0.8, delay: index * 0.1 + 0.2 }}
@@ -135,7 +123,7 @@ export function SessionFormatsInfographic({ formats }: SessionFormatsInfographic
           {formats.map((format, index) => (
             <motion.article
               key={format.title}
-              initial={mobileCardInitial}
+              initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, amount: 0.3 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -152,7 +140,7 @@ export function SessionFormatsInfographic({ formats }: SessionFormatsInfographic
                   <div className="flex flex-col items-center">
                     {/* Icon */}
                     <motion.div
-                      initial={mobileIconInitial}
+                      initial={{ scale: 0 }}
                       whileInView={{ scale: 1 }}
                       viewport={{ once: true, amount: 0.2 }}
                       transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -185,7 +173,7 @@ export function SessionFormatsInfographic({ formats }: SessionFormatsInfographic
 
                   {/* Bottom accent */}
                   <motion.div
-                    initial={lineInitial}
+                    initial={{ scaleX: 0 }}
                     whileInView={{ scaleX: 1 }}
                     viewport={{ once: true, amount: 0.2 }}
                     transition={{ duration: 0.6, delay: index * 0.1 + 0.15 }}

@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { type ReactNode, useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 
 interface SectionTitleProps {
   eyebrow?: string;
@@ -11,21 +11,13 @@ interface SectionTitleProps {
 
 /**
  * Section title with scroll-reveal animation.
- * Uses hasMounted guard so content is visible on SSR (opacity:1)
- * and only animates after client hydration.
+ * Framer Motion v11 applies initial styles during SSR, ensuring
+ * server and client renders match without a hasMounted guard.
  */
 export function SectionTitle({ eyebrow, title, description }: SectionTitleProps) {
-  const [hasMounted, setHasMounted] = useState(false);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
-  const initial = hasMounted ? { opacity: 0, y: 24 } : { opacity: 1, y: 0 };
-
   return (
     <motion.header
-      initial={initial}
+      initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2, margin: '0px 0px -50px 0px' }}
       transition={{ duration: 0.6, ease: 'easeOut' }}

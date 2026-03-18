@@ -3,7 +3,7 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRef, useEffect, useState } from 'react';
+import { useRef } from 'react';
 
 import { CTAButton } from '../../../components/CTAButton';
 
@@ -30,12 +30,6 @@ const heroPractitioner = {
 
 export function HeroSection() {
   const heroRef = useRef<HTMLDivElement>(null);
-  const [hasMounted, setHasMounted] = useState(false);
-
-  // Track mounting to enable animations only after hydration
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
 
   const { scrollYProgress } = useScroll({
     target: heroRef,
@@ -44,12 +38,6 @@ export function HeroSection() {
   const heroParallax = useTransform(scrollYProgress, [0, 1], [0, -140]);
   const secondaryParallax = useTransform(scrollYProgress, [0, 1], [0, -70]);
   const glowOpacity = useTransform(scrollYProgress, [0, 1], [0.6, 0.2]);
-
-  // Animation variants - only animate after hydration to prevent mismatch
-  const fadeIn = hasMounted ? { opacity: 1 } : { opacity: 1 };
-  const fadeInInitial = hasMounted ? { opacity: 0 } : { opacity: 1 };
-  const slideUp = hasMounted ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 };
-  const slideUpInitial = hasMounted ? { opacity: 0, y: 24 } : { opacity: 1, y: 0 };
 
   return (
     <header
@@ -77,15 +65,15 @@ export function HeroSection() {
 
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-10 text-center">
         <motion.div
-          initial={fadeInInitial}
-          animate={fadeIn}
-          transition={hasMounted ? { duration: 1.2, ease: 'easeOut' } : { duration: 0 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1.2, ease: 'easeOut' }}
           className="bg-night/40 flex flex-col items-center justify-center"
         >
           <motion.svg
-            initial={hasMounted ? { scale: 0.25, rotate: -360 } : { scale: 0.75, rotate: 0 }}
+            initial={{ scale: 0.25, rotate: -360 }}
             animate={{ scale: 1, rotate: 0 }}
-            transition={hasMounted ? { duration: 1.4, ease: 'easeOut' } : { duration: 0 }}
+            transition={{ duration: 1.4, ease: 'easeOut' }}
             width="100"
             height="100"
             viewBox="0 0 600 600"
@@ -107,11 +95,9 @@ export function HeroSection() {
             />
           </motion.svg>
           <motion.span
-            initial={fadeInInitial}
-            animate={fadeIn}
-            transition={
-              hasMounted ? { duration: 1.2, delay: 0.8, ease: 'easeOut' } : { duration: 0 }
-            }
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1.2, delay: 0.8, ease: 'easeOut' }}
             className="font-display text-gold text-2xl font-semibold"
           >
             Psypnos
@@ -119,9 +105,9 @@ export function HeroSection() {
         </motion.div>
 
         <motion.div
-          initial={slideUpInitial}
-          animate={slideUp}
-          transition={hasMounted ? { duration: 0.8, delay: 1.5, ease: 'easeOut' } : { duration: 0 }}
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 1.5, ease: 'easeOut' }}
           className="max-w-3xl"
         >
           <h1 className="text-gold-accessible mb-2 text-sm uppercase tracking-[0.3em]">
@@ -134,9 +120,9 @@ export function HeroSection() {
           <p className="text-ivory mt-6 text-base sm:text-lg">{heroContent.subtitle}</p>
         </motion.div>
         <motion.div
-          initial={slideUpInitial}
-          animate={slideUp}
-          transition={hasMounted ? { duration: 0.8, delay: 1.7, ease: 'easeOut' } : { duration: 0 }}
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 1.7, ease: 'easeOut' }}
           className="flex flex-col items-center gap-6"
         >
           {/* Boutons principaux */}
@@ -193,9 +179,9 @@ export function HeroSection() {
           </Link>
         </motion.div>
         <motion.div
-          initial={hasMounted ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={hasMounted ? { duration: 1.5, delay: 1.9, ease: 'easeOut' } : { duration: 0 }}
+          transition={{ duration: 1.5, delay: 1.9, ease: 'easeOut' }}
           className="relative flex w-full flex-col items-center justify-center gap-8 overflow-hidden lg:flex-row lg:items-start lg:justify-center"
         >
           <Image

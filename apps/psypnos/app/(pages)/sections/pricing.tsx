@@ -8,12 +8,7 @@ import { SectionTitle } from '../../../components/SectionTitle';
 export function PricingSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [hasMounted, setHasMounted] = useState(false);
   const [offset, setOffset] = useState(0);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -103,15 +98,11 @@ export function PricingSection() {
                 variant="primary"
                 href="/demande-rendez-vous"
                 className="inline-flex w-auto"
-                animationProps={
-                  hasMounted
-                    ? {
-                        initial: { opacity: 0, y: 24 },
-                        animate: { opacity: 1, y: 0 },
-                        transition: { duration: 0.8, delay: 1.3, ease: 'easeOut' },
-                      }
-                    : undefined
-                }
+                animationProps={{
+                  initial: { opacity: 0, y: 24 },
+                  animate: { opacity: 1, y: 0 },
+                  transition: { duration: 0.8, delay: 1.3, ease: 'easeOut' },
+                }}
               >
                 Demander un rendez-vous
               </CTAButton>
