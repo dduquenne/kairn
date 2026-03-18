@@ -7,6 +7,8 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 import { useRef } from 'react';
 
+import { useScrollReveal } from '../hooks/useScrollReveal';
+
 type JourneyStep = {
   number: number;
   title: string;
@@ -44,10 +46,14 @@ const steps: JourneyStep[] = [
 
 /**
  * Journey infographic with parallax and scroll-reveal animations.
- * Framer Motion v11 applies initial styles during SSR, so no hasMounted guard is needed.
+ *
+ * Uses useScrollReveal for SSR-safe visibility: content is visible
+ * during SSR, hidden instantly after hydration (if below viewport),
+ * then animated in when scrolled into view.
  */
 export function JourneyInfographic() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const { ref: revealRef, shouldShow, hasMounted } = useScrollReveal({ amount: 0.1 });
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start center', 'end center'],
@@ -58,9 +64,17 @@ export function JourneyInfographic() {
   const step2Y = useTransform(scrollYProgress, [0, 1], [0, 0]);
   const step3Y = useTransform(scrollYProgress, [0, 1], [-40, 40]);
 
+  /**
+   * Build transition: instant when hiding or pre-mount, smooth when revealing.
+   */
+  const revealTransition = (delay: number) =>
+    !hasMounted || !shouldShow
+      ? { duration: 0 }
+      : { duration: 0.6, delay, ease: 'easeOut' as const };
+
   return (
     <section ref={containerRef} className="relative px-6 py-20 sm:px-10 lg:px-16">
-      <div className="mx-auto max-w-6xl space-y-16">
+      <div ref={revealRef} className="mx-auto max-w-6xl space-y-16">
         <div className="hidden md:block">
           <div className="relative h-96">
             {/* Steps container */}
@@ -78,10 +92,12 @@ export function JourneyInfographic() {
                     <div className={index !== 1 ? 'mb-32' : 'mb-0'}>
                       {/* Step circle */}
                       <motion.div
-                        initial={{ scale: 0, opacity: 0 }}
-                        whileInView={{ scale: 1, opacity: 1 }}
-                        viewport={{ once: true, amount: 0.2 }}
-                        transition={{ duration: 0.6, delay: index * 0.2 }}
+                        initial={false}
+                        animate={{
+                          scale: shouldShow ? 1 : 0,
+                          opacity: shouldShow ? 1 : 0,
+                        }}
+                        transition={revealTransition(index * 0.2)}
                         className="border-gold bg-night/60 relative mb-8 flex h-20 w-20 items-center justify-center rounded-full border-2 shadow-lg"
                       >
                         {/* Icon background glow */}
@@ -104,10 +120,12 @@ export function JourneyInfographic() {
 
                       {/* Content card */}
                       <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, amount: 0.2 }}
-                        transition={{ duration: 0.6, delay: index * 0.2 + 0.2 }}
+                        initial={false}
+                        animate={{
+                          opacity: shouldShow ? 1 : 0,
+                          y: shouldShow ? 0 : 20,
+                        }}
+                        transition={revealTransition(index * 0.2 + 0.2)}
                         className="border-gold/20 from-night/50 to-night/30 rounded-2xl border bg-gradient-to-br p-6 text-center shadow-lg backdrop-blur-sm"
                       >
                         <h3 className="text-gold text-xl font-semibold">{step.title}</h3>
@@ -128,20 +146,21 @@ export function JourneyInfographic() {
           {steps.map((step, index) => (
             <motion.div
               key={step.number}
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
+              initial={false}
+              animate={{
+                opacity: shouldShow ? 1 : 0,
+                x: shouldShow ? 0 : -20,
+              }}
+              transition={revealTransition(index * 0.1)}
               className="flex gap-6"
             >
               {/* Timeline line and circle */}
               <div className="relative flex flex-col items-center">
                 {/* Circle */}
                 <motion.div
-                  initial={{ scale: 0 }}
-                  whileInView={{ scale: 1 }}
-                  viewport={{ once: true, amount: 0.2 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  initial={false}
+                  animate={{ scale: shouldShow ? 1 : 0 }}
+                  transition={revealTransition(index * 0.1)}
                   className="border-gold bg-night/60 relative flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full border-2 shadow-lg"
                 >
                   <div className="bg-gold/10 absolute inset-0 rounded-full blur-xl" />
@@ -168,10 +187,12 @@ export function JourneyInfographic() {
 
               {/* Content */}
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.6, delay: index * 0.1 + 0.1 }}
+                initial={false}
+                animate={{
+                  opacity: shouldShow ? 1 : 0,
+                  y: shouldShow ? 0 : 10,
+                }}
+                transition={revealTransition(index * 0.1 + 0.1)}
                 className="border-gold/20 from-night/50 to-night/30 flex-1 rounded-xl border bg-gradient-to-br p-4 shadow-md backdrop-blur-sm"
               >
                 <h3 className="text-gold text-lg font-semibold">{step.title}</h3>

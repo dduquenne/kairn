@@ -7,6 +7,8 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 import { useRef } from 'react';
 
+import { useScrollReveal } from '../hooks/useScrollReveal';
+
 type SessionFormat = {
   title: string;
   description: string;
@@ -20,10 +22,14 @@ interface SessionFormatsInfographicProps {
 
 /**
  * Session formats infographic with parallax and scroll-reveal animations.
- * Framer Motion v11 applies initial styles during SSR, so no hasMounted guard is needed.
+ *
+ * Uses useScrollReveal for SSR-safe visibility: content is visible
+ * during SSR, hidden instantly after hydration (if below viewport),
+ * then animated in when scrolled into view.
  */
 export function SessionFormatsInfographic({ formats }: SessionFormatsInfographicProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const { ref: revealRef, shouldShow, hasMounted } = useScrollReveal({ amount: 0.1 });
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start center', 'end center'],
@@ -42,9 +48,17 @@ export function SessionFormatsInfographic({ formats }: SessionFormatsInfographic
     );
   });
 
+  /**
+   * Build transition: instant when hiding or pre-mount, smooth when revealing.
+   */
+  const revealTransition = (delay: number) =>
+    !hasMounted || !shouldShow
+      ? { duration: 0 }
+      : { duration: 0.6, delay, ease: 'easeOut' as const };
+
   return (
     <div ref={containerRef} className="relative px-6 py-20 sm:px-10 lg:px-16">
-      <div className="mx-auto max-w-4xl">
+      <div ref={revealRef} className="mx-auto max-w-4xl">
         {/* Desktop: Grid layout with parallax */}
         <div className="hidden md:block">
           <div className="grid gap-8 md:grid-cols-3">
@@ -55,10 +69,12 @@ export function SessionFormatsInfographic({ formats }: SessionFormatsInfographic
                 <motion.article
                   key={format.title}
                   style={{ y: yTransform }}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true, amount: 0.3 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
+                  initial={false}
+                  animate={{
+                    opacity: shouldShow ? 1 : 0,
+                    scale: shouldShow ? 1 : 0.9,
+                  }}
+                  transition={revealTransition(index * 0.1)}
                   className="group relative"
                 >
                   {/* Card */}
@@ -70,10 +86,12 @@ export function SessionFormatsInfographic({ formats }: SessionFormatsInfographic
                     <div className="relative z-10 flex h-full flex-col items-center text-center">
                       {/* Icon container with glow effect */}
                       <motion.div
-                        initial={{ scale: 0, rotateY: 90 }}
-                        whileInView={{ scale: 1, rotateY: 0 }}
-                        viewport={{ once: true, amount: 0.2 }}
-                        transition={{ duration: 0.6, delay: index * 0.1 + 0.1 }}
+                        initial={false}
+                        animate={{
+                          scale: shouldShow ? 1 : 0,
+                          rotateY: shouldShow ? 0 : 90,
+                        }}
+                        transition={revealTransition(index * 0.1 + 0.1)}
                         className="relative mb-6 inline-flex h-20 w-20 items-center justify-center"
                       >
                         {/* Glow background */}
@@ -104,10 +122,9 @@ export function SessionFormatsInfographic({ formats }: SessionFormatsInfographic
 
                       {/* Bottom accent line */}
                       <motion.div
-                        initial={{ scaleX: 0 }}
-                        whileInView={{ scaleX: 1 }}
-                        viewport={{ once: true, amount: 0.2 }}
-                        transition={{ duration: 0.8, delay: index * 0.1 + 0.2 }}
+                        initial={false}
+                        animate={{ scaleX: shouldShow ? 1 : 0 }}
+                        transition={revealTransition(index * 0.1 + 0.2)}
                         className="from-gold/0 via-gold to-gold/0 mt-6 h-0.5 w-8 origin-center bg-gradient-to-r"
                       />
                     </div>
@@ -123,10 +140,12 @@ export function SessionFormatsInfographic({ formats }: SessionFormatsInfographic
           {formats.map((format, index) => (
             <motion.article
               key={format.title}
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+              initial={false}
+              animate={{
+                opacity: shouldShow ? 1 : 0,
+                x: shouldShow ? 0 : -20,
+              }}
+              transition={revealTransition(index * 0.1)}
               className="group relative"
             >
               {/* Mobile card */}
@@ -140,10 +159,9 @@ export function SessionFormatsInfographic({ formats }: SessionFormatsInfographic
                   <div className="flex flex-col items-center">
                     {/* Icon */}
                     <motion.div
-                      initial={{ scale: 0 }}
-                      whileInView={{ scale: 1 }}
-                      viewport={{ once: true, amount: 0.2 }}
-                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                      initial={false}
+                      animate={{ scale: shouldShow ? 1 : 0 }}
+                      transition={revealTransition(index * 0.1)}
                       className="relative mb-4 inline-flex h-16 w-16 items-center justify-center"
                     >
                       {/* Glow background */}
@@ -173,10 +191,9 @@ export function SessionFormatsInfographic({ formats }: SessionFormatsInfographic
 
                   {/* Bottom accent */}
                   <motion.div
-                    initial={{ scaleX: 0 }}
-                    whileInView={{ scaleX: 1 }}
-                    viewport={{ once: true, amount: 0.2 }}
-                    transition={{ duration: 0.6, delay: index * 0.1 + 0.15 }}
+                    initial={false}
+                    animate={{ scaleX: shouldShow ? 1 : 0 }}
+                    transition={revealTransition(index * 0.1 + 0.15)}
                     className="mt-4 flex justify-center"
                   >
                     <div className="from-gold/0 via-gold to-gold/0 h-0.5 w-8 bg-gradient-to-r" />

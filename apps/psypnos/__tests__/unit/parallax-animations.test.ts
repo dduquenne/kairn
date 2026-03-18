@@ -1,15 +1,19 @@
 /**
  * Tests de non-régression pour les animations parallax de la page d'accueil.
  *
- * Vérifie que le pattern hasMounted (anti-pattern empêchant les animations
- * de se jouer au rechargement) n'est pas réintroduit dans les composants animés.
+ * Vérifie que :
+ * 1. Le pattern hasMounted conditionnel sur `initial` (cassé) n'est pas utilisé
+ * 2. Les composants utilisent `useScrollReveal` pour un scroll-reveal SSR-safe
+ * 3. Les composants utilisent `initial={false}` (pas de styles inline SSR)
+ * 4. Le hero conserve ses effets parallax
  *
- * Contexte : Framer Motion v11 applique les styles `initial` pendant le SSR
- * via inline styles, garantissant que le rendu serveur et client matchent
- * sans nécessiter de guard hasMounted. Le guard empêchait les animations
- * de se déclencher au rechargement car `initial` ne se réapplique pas
- * après le montage et `whileInView` avec `once: true` enregistrait les
- * éléments comme déjà vus pendant l'hydratation.
+ * Contexte (#419) : L'ancien pattern conditionnait `initial` sur `hasMounted`,
+ * ce qui ne fonctionne pas car `initial` ne se réapplique pas après le montage.
+ * Le nouveau pattern utilise `useScrollReveal` (useInView + hasMounted) avec
+ * `initial={false}` + `animate` contrôlé par `shouldShow`, garantissant :
+ * - SSR : contenu visible (pas de styles inline)
+ * - Après hydratation, hors viewport : masqué instantanément
+ * - Au scroll dans le viewport : animation fluide
  *
  * @see https://github.com/dduquenne/kairn/issues/419
  */
@@ -21,58 +25,82 @@ import { describe, it, expect } from 'vitest';
 
 const PSYPNOS_ROOT = join(__dirname, '..', '..');
 
-/** Fichiers avec animations parallax / scroll-reveal */
-const ANIMATED_COMPONENT_FILES = [
-  'app/(pages)/sections/hero.tsx',
-  'components/SectionTitle.tsx',
-  'components/ApproachInfographic.tsx',
-  'components/JourneyInfographic.tsx',
-  'components/SessionFormatsInfographic.tsx',
-  'app/(pages)/sections/pricing.tsx',
-];
+/**
+ * Anti-pattern : conditionner `initial` sur hasMounted.
+ * Ex: `const cardInitial = hasMounted ? { opacity: 0 } : { opacity: 1 }`
+ * Ne fonctionne pas car `initial` ne se réapplique pas après le montage.
+ */
+const CONDITIONAL_INITIAL_PATTERN = /hasMounted\s*\?\s*\{[^}]*opacity/;
 
 /**
- * Pattern anti-pattern hasMounted : un useState(false) suivi d'un useEffect
- * qui passe à true, utilisé pour conditionner les valeurs initial/animate.
+ * Anti-pattern : `initial={{ opacity: 0 }}` direct (sans `initial={false}`).
+ * Cause des éléments invisibles pendant le SSR car Framer Motion applique
+ * `initial` en inline styles.
+ *
+ * Exception : hero.tsx utilise `initial` + `animate` (animation au montage).
  */
-const HAS_MOUNTED_PATTERN = /const\s+\[hasMounted,\s*setHasMounted\]\s*=\s*useState\(false\)/;
-
-/**
- * Pattern de conditionnement des animations sur hasMounted.
- * Ex: `hasMounted ? { opacity: 0 } : { opacity: 1 }`
- */
-const CONDITIONAL_ANIMATION_PATTERN = /hasMounted\s*\?\s*\{[^}]*opacity/;
+const STATIC_OPACITY_ZERO_INITIAL = /initial=\{\{\s*opacity:\s*0/;
 
 describe('Animations parallax — non-régression (#419)', () => {
-  ANIMATED_COMPONENT_FILES.forEach(filePath => {
-    const fullPath = join(PSYPNOS_ROOT, filePath);
-    const fileName = filePath.split('/').pop();
+  describe('Anti-pattern hasMounted conditionnel sur initial', () => {
+    const allFiles = [
+      'app/(pages)/sections/hero.tsx',
+      'components/SectionTitle.tsx',
+      'components/ApproachInfographic.tsx',
+      'components/JourneyInfographic.tsx',
+      'components/SessionFormatsInfographic.tsx',
+      'app/(pages)/sections/pricing.tsx',
+    ];
 
-    describe(fileName!, () => {
-      const content = readFileSync(fullPath, 'utf-8');
+    allFiles.forEach(filePath => {
+      const fullPath = join(PSYPNOS_ROOT, filePath);
+      const fileName = filePath.split('/').pop();
 
-      it('ne contient pas le pattern hasMounted anti-animation', () => {
-        expect(content).not.toMatch(HAS_MOUNTED_PATTERN);
-      });
-
-      it('ne conditionne pas les valeurs initial/animate sur hasMounted', () => {
-        expect(content).not.toMatch(CONDITIONAL_ANIMATION_PATTERN);
+      it(`${fileName} ne conditionne pas initial sur hasMounted`, () => {
+        const content = readFileSync(fullPath, 'utf-8');
+        expect(content).not.toMatch(CONDITIONAL_INITIAL_PATTERN);
       });
     });
   });
 
-  describe("hero.tsx — animations d'entrée", () => {
+  describe('Composants scroll-reveal — pattern useScrollReveal', () => {
+    const scrollRevealComponents = [
+      'components/SectionTitle.tsx',
+      'components/ApproachInfographic.tsx',
+      'components/JourneyInfographic.tsx',
+      'components/SessionFormatsInfographic.tsx',
+    ];
+
+    scrollRevealComponents.forEach(filePath => {
+      const content = readFileSync(join(PSYPNOS_ROOT, filePath), 'utf-8');
+      const fileName = filePath.split('/').pop();
+
+      it(`${fileName} utilise useScrollReveal`, () => {
+        expect(content).toMatch(/useScrollReveal/);
+      });
+
+      it(`${fileName} utilise initial={false} (pas de styles inline SSR)`, () => {
+        expect(content).toMatch(/initial=\{false\}/);
+      });
+
+      it(`${fileName} utilise shouldShow pour contrôler animate`, () => {
+        expect(content).toMatch(/shouldShow/);
+      });
+
+      it(`${fileName} n'utilise pas initial={{ opacity: 0 }} direct`, () => {
+        expect(content).not.toMatch(STATIC_OPACITY_ZERO_INITIAL);
+      });
+    });
+  });
+
+  describe("hero.tsx — animations d'entrée (montage)", () => {
     const heroContent = readFileSync(join(PSYPNOS_ROOT, 'app/(pages)/sections/hero.tsx'), 'utf-8');
 
-    it('utilise des valeurs initial statiques (pas conditionnelles)', () => {
-      // Vérifie que initial={{ opacity: 0 }} ou initial={{ opacity: 0, y: ... }}
-      // est utilisé directement, pas via une variable conditionnelle
+    it('utilise initial + animate (animation au montage)', () => {
+      // Le hero utilise initial={{ opacity: 0 }} + animate={{ opacity: 1 }}
+      // C'est acceptable car c'est une animation de montage (above the fold)
       expect(heroContent).toMatch(/initial=\{\{\s*opacity:\s*0/);
-    });
-
-    it('utilise des transitions avec durée non-nulle', () => {
-      // Vérifie qu'il n'y a pas de `{ duration: 0 }` (ancien fallback SSR)
-      expect(heroContent).not.toMatch(/duration:\s*0\s*[,}]/);
+      expect(heroContent).toMatch(/animate=\{\{\s*opacity:\s*1/);
     });
 
     it('conserve les effets parallax via useScroll/useTransform', () => {
@@ -82,30 +110,24 @@ describe('Animations parallax — non-régression (#419)', () => {
     });
   });
 
-  describe('composants whileInView — animation au scroll', () => {
-    const components = [
-      'components/SectionTitle.tsx',
-      'components/ApproachInfographic.tsx',
-      'components/JourneyInfographic.tsx',
-      'components/SessionFormatsInfographic.tsx',
-    ];
+  describe('useScrollReveal hook', () => {
+    const hookContent = readFileSync(join(PSYPNOS_ROOT, 'hooks/useScrollReveal.ts'), 'utf-8');
 
-    components.forEach(filePath => {
-      const content = readFileSync(join(PSYPNOS_ROOT, filePath), 'utf-8');
-      const fileName = filePath.split('/').pop();
+    it('utilise useInView de framer-motion', () => {
+      expect(hookContent).toMatch(/useInView/);
+    });
 
-      it(`${fileName} utilise whileInView avec once: true`, () => {
-        expect(content).toMatch(/whileInView/);
-        expect(content).toMatch(/once:\s*true/);
-      });
+    it('utilise hasMounted pour la sécurité SSR', () => {
+      expect(hookContent).toMatch(/hasMounted/);
+    });
 
-      it(`${fileName} n'importe pas useState (plus nécessaire pour hasMounted)`, () => {
-        // SectionTitle et les infographiques n'ont plus besoin de useState
-        // après suppression du pattern hasMounted
-        if (!content.includes('useState(0)') && !content.includes('useState(')) {
-          expect(content).not.toMatch(/\buseState\b/);
-        }
-      });
+    it('exporte shouldShow qui combine hasMounted et isInView', () => {
+      expect(hookContent).toMatch(/shouldShow/);
+      expect(hookContent).toMatch(/!hasMounted\s*\|\|\s*isInView/);
+    });
+
+    it('configure once: true via useInView', () => {
+      expect(hookContent).toMatch(/once:\s*true/);
     });
   });
 });
