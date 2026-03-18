@@ -110,7 +110,7 @@ function DefaultTestimonialCard({
  */
 function TestimonialsSkeleton() {
   return (
-    <section className="bg-night/60 overflow-hidden py-20">
+    <section className="bg-night/60 overflow-hidden py-12 sm:py-20">
       <div className="mx-auto max-w-6xl space-y-10 px-6 sm:px-10 lg:px-16">
         <div className="space-y-4">
           <div className="bg-ivory/10 h-4 w-24 animate-pulse rounded" />
@@ -190,7 +190,7 @@ export function TestimonialsSection({
   // Empty state
   if (testimonials.length === 0) {
     return (
-      <section className={cn('bg-night/60 px-6 py-20 sm:px-10 lg:px-16', className)}>
+      <section className={cn('bg-night/60 px-6 py-12 sm:px-10 sm:py-20 lg:px-16', className)}>
         <div className="mx-auto max-w-6xl space-y-12">
           <SectionTitle {...title} />
           <div className="border-ivory/10 bg-ivory/[0.02] text-ivory/60 rounded-2xl border p-8 text-center text-sm">
@@ -209,7 +209,7 @@ export function TestimonialsSection({
 
   return (
     <section
-      className={cn('bg-night/60 overflow-hidden py-20', className)}
+      className={cn('bg-night/60 overflow-hidden py-12 sm:py-20', className)}
       data-track-section={trackingName.toLowerCase().replace(/\s+/g, '-')}
       data-track-section-name={trackingName}
     >

@@ -7,7 +7,7 @@ import { SectionTitle } from '../../../components/SectionTitle';
 export function JourneySection() {
   return (
     <section
-      className="px-6 py-20 sm:px-10 lg:px-16"
+      className="px-6 py-12 sm:px-10 sm:py-20 lg:px-16"
       data-track-section="parcours"
       data-track-section-name="Parcours"
     >

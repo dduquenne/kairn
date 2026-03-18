@@ -29,7 +29,7 @@ function getChatSessionId(): string {
  */
 export function PsypnosChatWidget() {
   const pathname = usePathname();
-  const [enabled, setEnabled] = useState<boolean | null>(null);
+  const [enabled, setEnabled] = useState(true);
 
   useEffect(() => {
     async function checkStatus() {
@@ -37,20 +37,18 @@ export function PsypnosChatWidget() {
         const response = await fetch('/api/chatbot-status');
         if (response.ok) {
           const data = await response.json();
-          setEnabled(data.enabled);
-        } else {
-          setEnabled(true);
+          setEnabled(data.enabled !== false);
         }
       } catch {
-        setEnabled(true);
+        // On error, keep enabled (default)
       }
     }
     void checkStatus();
   }, []);
 
-  // Don't render on admin pages or while checking status
+  // Don't render on admin pages or if explicitly disabled
   if (pathname?.startsWith('/admin') || pathname?.startsWith('/login')) return null;
-  if (enabled === null || !enabled) return null;
+  if (!enabled) return null;
 
   const handleBookAppointment = () => {
     trackConversionEvent('appointment_request', 'chatbot_suggestion', false);

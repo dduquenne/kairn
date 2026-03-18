@@ -8,7 +8,7 @@ export function TherapySections() {
     <>
       <section
         id="psychotherapie"
-        className="px-6 py-20 sm:px-10 lg:px-16"
+        className="px-6 py-12 sm:px-10 sm:py-20 lg:px-16"
         data-track-section="psychotherapie"
         data-track-section-name="Psychothérapie"
       >
@@ -48,7 +48,7 @@ export function TherapySections() {
       </section>
       <section
         id="hypnose"
-        className="px-6 py-20 sm:px-10 lg:px-16"
+        className="px-6 py-12 sm:px-10 sm:py-20 lg:px-16"
         data-track-section="hypnose"
         data-track-section-name="Hypnose"
       >

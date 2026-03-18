@@ -111,7 +111,7 @@ function formatSeminarDate(
  */
 function SeminarsSkeleton({ title }: { title: SectionTitleProps }) {
   return (
-    <section className="bg-night/60 px-6 py-20 sm:px-10 lg:px-16">
+    <section className="bg-night/60 px-6 py-12 sm:px-10 sm:py-20 lg:px-16">
       <div className="mx-auto max-w-6xl space-y-12">
         <SectionTitle {...title} />
         <div className="grid gap-10 md:grid-cols-3">
@@ -178,7 +178,7 @@ export function SeminarsSection({
   return (
     <section
       id="seminaires"
-      className={cn('bg-night/60 px-6 py-20 sm:px-10 lg:px-16', className)}
+      className={cn('bg-night/60 px-6 py-12 sm:px-10 sm:py-20 lg:px-16', className)}
       data-track-section={trackingName.toLowerCase().replace(/\s+/g, '-')}
       data-track-section-name={trackingName}
     >

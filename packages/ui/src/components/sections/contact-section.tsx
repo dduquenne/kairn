@@ -55,7 +55,7 @@ export function ContactSection({
   return (
     <section
       id="contact"
-      className={cn('px-6 py-20 sm:px-10 lg:px-16', className)}
+      className={cn('px-6 py-12 sm:px-10 sm:py-20 lg:px-16', className)}
       data-track-section={trackingName.toLowerCase().replace(/\s+/g, '-')}
       data-track-section-name={trackingName}
     >
