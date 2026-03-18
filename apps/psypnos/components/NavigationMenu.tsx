@@ -282,7 +282,7 @@ export function NavigationMenu({ forceVisible = false }: NavigationMenuProps) {
         role="dialog"
         aria-modal="true"
         aria-label="Menu de navigation"
-        className={`bg-night-light fixed bottom-0 right-0 top-0 z-40 flex w-80 max-w-[85vw] flex-col shadow-2xl transition-transform duration-300 ease-out md:hidden ${
+        className={`bg-night-light fixed bottom-0 right-0 top-0 z-[45] flex w-80 max-w-[85vw] flex-col shadow-2xl transition-transform duration-300 ease-out md:hidden ${
           isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >

@@ -5,7 +5,7 @@
 
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type ApproachItem = {
   title: string;
@@ -18,12 +18,21 @@ interface ApproachInfographicProps {
   items: ApproachItem[];
 }
 
+/**
+ * Approach infographic with parallax and scroll-reveal animations.
+ * Uses hasMounted guard so content is visible on SSR and only animates after hydration.
+ */
 export function ApproachInfographic({ items }: ApproachInfographicProps) {
+  const [hasMounted, setHasMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start center', 'end center'],
   });
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   // Create staggered parallax effects for each item
   const parallaxValues = items.map((_, index) => {
@@ -38,6 +47,13 @@ export function ApproachInfographic({ items }: ApproachInfographicProps) {
       [direction * baseAmplitude, -direction * baseAmplitude]
     );
   });
+
+  // SSR-safe initial values: visible on server, animate only after hydration
+  const cardInitial = hasMounted ? { opacity: 0, scale: 0.9 } : { opacity: 1, scale: 1 };
+  const iconInitial = hasMounted ? { scale: 0, rotateY: 90 } : { scale: 1, rotateY: 0 };
+  const lineInitial = hasMounted ? { scaleX: 0 } : { scaleX: 1 };
+  const mobileCardInitial = hasMounted ? { opacity: 0, x: -20 } : { opacity: 1, x: 0 };
+  const mobileIconInitial = hasMounted ? { scale: 0 } : { scale: 1 };
 
   return (
     <div ref={containerRef} className="relative px-6 py-20 sm:px-10 lg:px-16">
@@ -54,7 +70,7 @@ export function ApproachInfographic({ items }: ApproachInfographicProps) {
                   key={item.title}
                   ref={containerRef}
                   style={{ y: yTransform }}
-                  initial={{ opacity: 0, scale: 0.9 }}
+                  initial={cardInitial}
                   whileInView={{ opacity: 1, scale: 1 }}
                   viewport={{ once: true, amount: 0.3 }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
@@ -69,7 +85,7 @@ export function ApproachInfographic({ items }: ApproachInfographicProps) {
                     <div className="relative z-10 flex h-full flex-col">
                       {/* Icon container with glow effect */}
                       <motion.div
-                        initial={{ scale: 0, rotateY: 90 }}
+                        initial={iconInitial}
                         whileInView={{ scale: 1, rotateY: 0 }}
                         viewport={{ once: true, amount: 0.2 }}
                         transition={{ duration: 0.6, delay: index * 0.1 + 0.1 }}
@@ -103,7 +119,7 @@ export function ApproachInfographic({ items }: ApproachInfographicProps) {
 
                       {/* Bottom accent line */}
                       <motion.div
-                        initial={{ scaleX: 0 }}
+                        initial={lineInitial}
                         whileInView={{ scaleX: 1 }}
                         viewport={{ once: true, amount: 0.2 }}
                         transition={{ duration: 0.8, delay: index * 0.1 + 0.2 }}
@@ -122,7 +138,7 @@ export function ApproachInfographic({ items }: ApproachInfographicProps) {
           {items.map((item, index) => (
             <motion.article
               key={item.title}
-              initial={{ opacity: 0, x: -20 }}
+              initial={mobileCardInitial}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, amount: 0.3 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -139,7 +155,7 @@ export function ApproachInfographic({ items }: ApproachInfographicProps) {
                   <div className="flex items-start gap-4">
                     {/* Icon */}
                     <motion.div
-                      initial={{ scale: 0 }}
+                      initial={mobileIconInitial}
                       whileInView={{ scale: 1 }}
                       viewport={{ once: true, amount: 0.2 }}
                       transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -170,7 +186,7 @@ export function ApproachInfographic({ items }: ApproachInfographicProps) {
 
                   {/* Bottom accent */}
                   <motion.div
-                    initial={{ scaleX: 0 }}
+                    initial={lineInitial}
                     whileInView={{ scaleX: 1 }}
                     viewport={{ once: true, amount: 0.2 }}
                     transition={{ duration: 0.6, delay: index * 0.1 + 0.15 }}

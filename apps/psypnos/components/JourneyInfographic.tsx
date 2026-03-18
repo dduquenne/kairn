@@ -5,7 +5,7 @@
 
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type JourneyStep = {
   number: number;
@@ -42,17 +42,33 @@ const steps: JourneyStep[] = [
   },
 ];
 
+/**
+ * Journey infographic with parallax and scroll-reveal animations.
+ * Uses hasMounted guard so content is visible on SSR and only animates after hydration.
+ */
 export function JourneyInfographic() {
+  const [hasMounted, setHasMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start center', 'end center'],
   });
 
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
   // Parallax effects for each step
   const step1Y = useTransform(scrollYProgress, [0, 1], [40, -40]);
   const step2Y = useTransform(scrollYProgress, [0, 1], [0, 0]);
   const step3Y = useTransform(scrollYProgress, [0, 1], [-40, 40]);
+
+  // SSR-safe initial values: visible on server, animate only after hydration
+  const circleInitial = hasMounted ? { scale: 0, opacity: 0 } : { scale: 1, opacity: 1 };
+  const cardInitial = hasMounted ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 };
+  const mobileContainerInitial = hasMounted ? { opacity: 0, x: -20 } : { opacity: 1, x: 0 };
+  const mobileCircleInitial = hasMounted ? { scale: 0 } : { scale: 1 };
+  const mobileCardInitial = hasMounted ? { opacity: 0, y: 10 } : { opacity: 1, y: 0 };
 
   return (
     <section ref={containerRef} className="relative px-6 py-20 sm:px-10 lg:px-16">
@@ -74,7 +90,7 @@ export function JourneyInfographic() {
                     <div className={index !== 1 ? 'mb-32' : 'mb-0'}>
                       {/* Step circle */}
                       <motion.div
-                        initial={{ scale: 0, opacity: 0 }}
+                        initial={circleInitial}
                         whileInView={{ scale: 1, opacity: 1 }}
                         viewport={{ once: true, amount: 0.2 }}
                         transition={{ duration: 0.6, delay: index * 0.2 }}
@@ -100,7 +116,7 @@ export function JourneyInfographic() {
 
                       {/* Content card */}
                       <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={cardInitial}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, amount: 0.2 }}
                         transition={{ duration: 0.6, delay: index * 0.2 + 0.2 }}
@@ -124,7 +140,7 @@ export function JourneyInfographic() {
           {steps.map((step, index) => (
             <motion.div
               key={step.number}
-              initial={{ opacity: 0, x: -20 }}
+              initial={mobileContainerInitial}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, amount: 0.2 }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
@@ -134,7 +150,7 @@ export function JourneyInfographic() {
               <div className="relative flex flex-col items-center">
                 {/* Circle */}
                 <motion.div
-                  initial={{ scale: 0 }}
+                  initial={mobileCircleInitial}
                   whileInView={{ scale: 1 }}
                   viewport={{ once: true, amount: 0.2 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
@@ -164,7 +180,7 @@ export function JourneyInfographic() {
 
               {/* Content */}
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
+                initial={mobileCardInitial}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.6, delay: index * 0.1 + 0.1 }}
