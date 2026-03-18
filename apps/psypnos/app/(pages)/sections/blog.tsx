@@ -3,6 +3,7 @@
 /* eslint-disable no-console */
 
 import { BlogSection as BlogSectionUI } from '@kairn/ui';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
@@ -130,6 +131,9 @@ export function BlogSection({ initialData, ssrError = false }: BlogSectionProps)
       }}
       categoryColors={CATEGORY_COLORS}
       linkComponent={Link}
+      imageComponent={({ src, alt, fill, className, sizes }) => (
+        <Image src={src} alt={alt} fill={fill} className={className} sizes={sizes} />
+      )}
       ctaComponent={
         <CTAButton variant="secondary" href="/blog">
           Découvrir tous les articles

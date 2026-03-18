@@ -14,7 +14,7 @@ export function SectionTitle({ eyebrow, title, description }: SectionTitleProps)
     <motion.header
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.4 }}
+      viewport={{ once: true, amount: 0.2, margin: '0px 0px -50px 0px' }}
       transition={{ duration: 0.6, ease: 'easeOut' }}
       className="mx-auto max-w-3xl text-center"
     >

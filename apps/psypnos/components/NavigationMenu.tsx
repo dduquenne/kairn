@@ -106,10 +106,9 @@ function HamburgerIcon({ isOpen, className = '' }: { isOpen: boolean; className?
       />
       {/* Ligne du milieu */}
       <span
-        className={`bg-gold absolute left-0 top-2.5 block h-0.5 w-6 transition-all duration-300 ease-in-out ${
+        className={`bg-gold absolute left-0 top-1/2 block h-0.5 w-6 -translate-y-1/2 transition-all duration-300 ease-in-out ${
           isOpen ? 'scale-x-0 opacity-0' : 'scale-x-100 opacity-100'
         }`}
-        style={{ transform: `translateY(-50%) ${isOpen ? 'scaleX(0)' : 'scaleX(1)'}` }}
       />
       {/* Ligne du bas */}
       <span
@@ -256,7 +255,7 @@ export function NavigationMenu({ forceVisible = false }: NavigationMenuProps) {
             <button
               ref={hamburgerButtonRef}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-ivory hover:bg-gold/10 hover:text-gold-accessible focus:ring-gold focus:ring-offset-night relative z-50 rounded-lg p-2 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 md:hidden"
+              className="text-ivory hover:bg-gold/10 hover:text-gold-accessible focus:ring-gold focus:ring-offset-night relative z-50 flex h-11 w-11 items-center justify-center rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 md:hidden"
               aria-label="Menu de navigation"
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-menu"
@@ -287,6 +286,9 @@ export function NavigationMenu({ forceVisible = false }: NavigationMenuProps) {
           isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
+        {/* Espace réservé pour le header nav (h-16) */}
+        <div className="h-16 flex-shrink-0" />
+
         {/* En-tête du menu avec logo */}
         <div className="border-gold/20 flex items-center gap-3 border-b px-6 py-5">
           <PsypnosLogo size={40} />

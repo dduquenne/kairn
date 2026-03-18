@@ -79,13 +79,13 @@ export function HeroSection() {
         <motion.div
           initial={fadeInInitial}
           animate={fadeIn}
-          transition={hasMounted ? { duration: 2, ease: 'easeOut' } : { duration: 0 }}
+          transition={hasMounted ? { duration: 1.2, ease: 'easeOut' } : { duration: 0 }}
           className="bg-night/40 flex flex-col items-center justify-center"
         >
           <motion.svg
             initial={hasMounted ? { scale: 0.25, rotate: -360 } : { scale: 0.75, rotate: 0 }}
             animate={{ scale: 1, rotate: 0 }}
-            transition={hasMounted ? { duration: 2.2, ease: 'easeOut' } : { duration: 0 }}
+            transition={hasMounted ? { duration: 1.4, ease: 'easeOut' } : { duration: 0 }}
             width="100"
             height="100"
             viewBox="0 0 600 600"
@@ -109,7 +109,9 @@ export function HeroSection() {
           <motion.span
             initial={fadeInInitial}
             animate={fadeIn}
-            transition={hasMounted ? { duration: 2, delay: 1, ease: 'easeOut' } : { duration: 0 }}
+            transition={
+              hasMounted ? { duration: 1.2, delay: 0.8, ease: 'easeOut' } : { duration: 0 }
+            }
             className="font-display text-gold text-2xl font-semibold"
           >
             Psypnos
@@ -119,7 +121,7 @@ export function HeroSection() {
         <motion.div
           initial={slideUpInitial}
           animate={slideUp}
-          transition={hasMounted ? { duration: 0.8, delay: 3.3, ease: 'easeOut' } : { duration: 0 }}
+          transition={hasMounted ? { duration: 0.8, delay: 1.5, ease: 'easeOut' } : { duration: 0 }}
           className="max-w-3xl"
         >
           <h1 className="text-gold-accessible mb-2 text-sm uppercase tracking-[0.3em]">
@@ -134,7 +136,7 @@ export function HeroSection() {
         <motion.div
           initial={slideUpInitial}
           animate={slideUp}
-          transition={hasMounted ? { duration: 0.8, delay: 3.5, ease: 'easeOut' } : { duration: 0 }}
+          transition={hasMounted ? { duration: 0.8, delay: 1.7, ease: 'easeOut' } : { duration: 0 }}
           className="flex flex-col items-center gap-6"
         >
           {/* Boutons principaux */}
@@ -193,7 +195,7 @@ export function HeroSection() {
         <motion.div
           initial={hasMounted ? { opacity: 0, y: 20 } : { opacity: 1, y: 0 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={hasMounted ? { duration: 2, delay: 3.6, ease: 'easeOut' } : { duration: 0 }}
+          transition={hasMounted ? { duration: 1.5, delay: 1.9, ease: 'easeOut' } : { duration: 0 }}
           className="relative flex w-full flex-col items-center justify-center gap-8 overflow-hidden lg:flex-row lg:items-start lg:justify-center"
         >
           <Image
