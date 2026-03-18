@@ -1,20 +1,24 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
-"use client";
+'use client';
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from 'react';
 
-type Props = {
+interface GoldGlowImageProps {
   src: string;
   alt: string;
-  width: number;   // dimensions CSS souhaitées
-  height: number;  // (le canvas sera “retina-safe”)
+  /** Largeur CSS souhaitée (le canvas sera retina-safe) */
+  width: number;
+  /** Hauteur CSS souhaitée (le canvas sera retina-safe) */
+  height: number;
   shadowBlur?: number;
-  shadowOpacity?: number;  // 0–1
+  /** Opacité du halo doré (0–1) */
+  shadowOpacity?: number;
   className?: string;
-};
+}
 
+/**
+ * Image avec effet halo doré via Canvas 2D.
+ * Fallback noscript pour SEO/accessibilité.
+ */
 export default function GoldGlowImage({
   src,
   alt,
@@ -23,19 +27,20 @@ export default function GoldGlowImage({
   shadowBlur = 30,
   shadowOpacity = 0.9,
   className,
-}: Props) {
+}: GoldGlowImageProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
     let mounted = true;
     const img = new Image();
-    img.crossOrigin = "anonymous"; // safe si l’image vient d’un autre domaine (sinon inoffensif)
+    img.crossOrigin = 'anonymous';
     img.onload = () => {
       if (!mounted || !canvasRef.current) return;
 
       const dpr = Math.max(1, Math.floor(window.devicePixelRatio || 1));
       const c = canvasRef.current;
-      const ctx = c.getContext("2d")!;
+      const ctx = c.getContext('2d');
+      if (!ctx) return;
 
       // Canvas en haute densité
       c.width = width * dpr;
@@ -47,13 +52,12 @@ export default function GoldGlowImage({
       // Effet halo doré
       ctx.save();
       ctx.clearRect(0, 0, width, height);
-      ctx.shadowColor = `rgba(212,175,55,${shadowOpacity})`; // « or » (#D4AF37)
+      ctx.shadowColor = `rgba(212,175,55,${shadowOpacity})`;
       ctx.shadowBlur = shadowBlur;
       ctx.shadowOffsetX = 0;
       ctx.shadowOffsetY = 0;
 
-      // On dessine l'image (l’ombre suit l’alpha)
-      // On centre l’image dans le cadre demandé
+      // Centrer l'image dans le cadre
       const ratio = Math.min(width / img.width, height / img.height);
       const drawW = img.width * ratio;
       const drawH = img.height * ratio;
@@ -73,18 +77,17 @@ export default function GoldGlowImage({
     };
   }, [src, width, height, shadowBlur, shadowOpacity]);
 
-  // Fallback SEO-accessible via aria-label
   return (
     <div className={className} aria-label={alt} role="img">
       <canvas ref={canvasRef} />
-      {/* Fallback noscript (en cas de JS désactivé) */}
+      {/* Fallback noscript (JS désactivé) */}
       <noscript>
         <img
           src={src}
           alt={alt}
           width={width}
           height={height}
-          style={{ filter: "drop-shadow(0 0 30px gold)" }}
+          style={{ filter: 'drop-shadow(0 0 30px gold)' }}
         />
       </noscript>
     </div>

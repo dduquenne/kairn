@@ -18,15 +18,7 @@ export function JourneySection() {
         />
         <JourneyInfographic />
         <div className="flex justify-center">
-          <CTAButton
-            variant="primary"
-            href="/demande-rendez-vous"
-            animationProps={{
-              initial: { opacity: 0, y: 24 },
-              animate: { opacity: 1, y: 0 },
-              transition: { duration: 0.8, delay: 0.5, ease: 'easeOut' },
-            }}
-          >
+          <CTAButton variant="primary" href="/demande-rendez-vous">
             Demander un rendez-vous
           </CTAButton>
         </div>
