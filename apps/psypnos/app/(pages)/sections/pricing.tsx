@@ -1,57 +1,42 @@
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
 
 import { CTAButton } from '../../../components/CTAButton';
 import { SectionTitle } from '../../../components/SectionTitle';
+import { useScrollReveal } from '../../../hooks/useScrollReveal';
 
+/**
+ * Pricing section with scroll-reveal animation.
+ * Parallax supprimé pour stabilité et performance.
+ */
 export function PricingSection() {
-  const sectionRef = useRef<HTMLElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [offset, setOffset] = useState(0);
+  const { ref, shouldShow, hasMounted } = useScrollReveal({ amount: 0.15 });
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!sectionRef.current || !containerRef.current) return;
-
-      const sectionTop = sectionRef.current.getBoundingClientRect().top;
-      const windowHeight = window.innerHeight;
-
-      // Only apply parallax when section is in viewport
-      if (sectionTop < windowHeight && sectionTop > -sectionRef.current.offsetHeight) {
-        const progress =
-          (windowHeight - sectionTop) / (windowHeight + sectionRef.current.offsetHeight);
-        setOffset(progress * 30); // Parallax intensity
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  /** Transition instantanée pré-mount ou hide, smooth au reveal. */
+  const revealTransition = (delay: number) =>
+    !hasMounted || !shouldShow
+      ? { duration: 0 }
+      : { duration: 0.6, delay, ease: 'easeOut' as const };
 
   return (
     <section
-      ref={sectionRef}
       id="tarifs"
       className="relative overflow-hidden px-6 py-16 sm:px-10 sm:py-20 lg:px-16 lg:py-24"
       data-track-section="tarifs"
       data-track-section-name="Tarifs"
     >
-      {/* Parallax background elements */}
+      {/* Static background elements */}
       <div
         className="from-gold/5 to-gold/0 absolute -right-20 -top-20 h-96 w-96 rounded-full bg-gradient-to-br blur-3xl"
-        style={{ transform: `translateY(${offset * 0.5}px)` }}
+        aria-hidden
       />
       <div
         className="from-gold/5 to-gold/0 absolute -bottom-20 -left-20 h-96 w-96 rounded-full bg-gradient-to-tr blur-3xl"
-        style={{ transform: `translateY(${-offset * 0.5}px)` }}
+        aria-hidden
       />
 
-      <div
-        ref={containerRef}
-        className="relative z-10 mx-auto max-w-6xl"
-        style={{ transform: `translateY(${offset * 0.3}px)` }}
-      >
+      <div ref={ref} className="relative z-10 mx-auto max-w-6xl">
         {/* Content Grid */}
         <div className="flex flex-col lg:items-center">
           <div className="mx-auto flex-col space-y-8">
@@ -62,7 +47,15 @@ export function PricingSection() {
             />
 
             {/* Pricing cards - Responsive grid */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:items-center">
+            <motion.div
+              initial={false}
+              animate={{
+                opacity: shouldShow ? 1 : 0,
+                y: shouldShow ? 0 : 24,
+              }}
+              transition={revealTransition(0.1)}
+              className="grid gap-4 sm:grid-cols-2 lg:items-center"
+            >
               {/* Standard pricing card */}
               <div className="border-gold from-night/80 to-night/60 shadow-night/40 hover:border-gold hover:shadow-gold/40 group relative w-full rounded-3xl border bg-gradient-to-br p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl sm:p-8">
                 <div className="from-gold/30 to-gold/0 group-hover:from-gold/40 group-hover:to-gold/0 absolute inset-0 rounded-3xl bg-gradient-to-br transition-all duration-300" />
@@ -90,23 +83,26 @@ export function PricingSection() {
                   </p>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* CTA Button */}
-            <div className="flex justify-center">
+            <motion.div
+              initial={false}
+              animate={{
+                opacity: shouldShow ? 1 : 0,
+                y: shouldShow ? 0 : 16,
+              }}
+              transition={revealTransition(0.3)}
+              className="flex justify-center"
+            >
               <CTAButton
                 variant="primary"
                 href="/demande-rendez-vous"
                 className="inline-flex w-auto"
-                animationProps={{
-                  initial: { opacity: 0, y: 24 },
-                  animate: { opacity: 1, y: 0 },
-                  transition: { duration: 0.8, delay: 1.3, ease: 'easeOut' },
-                }}
               >
                 Demander un rendez-vous
               </CTAButton>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>

@@ -9,6 +9,8 @@ import { CustomizationProvider } from '@/lib/customization-context';
 import { ThemeProvider } from '@/lib/theme-context';
 import { ToastProvider } from '@/lib/toast-context';
 
+import { MotionWrapper } from '../components/MotionWrapper';
+
 import './globals.css';
 
 // PERFORMANCE : ISR avec revalidation toutes les 24h
@@ -484,7 +486,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <CustomizationProvider>
           <ThemeProvider defaultTheme="dark">
             <ToastProvider position="top-right">
-              {children}
+              <MotionWrapper>{children}</MotionWrapper>
               <Analytics />
               <SectionTracker />
               <CookieConsentBanner />

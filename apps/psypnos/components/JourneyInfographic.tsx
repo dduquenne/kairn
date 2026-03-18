@@ -1,11 +1,7 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
 'use client';
 
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { useRef } from 'react';
 
 import { useScrollReveal } from '../hooks/useScrollReveal';
 
@@ -45,24 +41,14 @@ const steps: JourneyStep[] = [
 ];
 
 /**
- * Journey infographic with parallax and scroll-reveal animations.
+ * Journey infographic with scroll-reveal animations.
  *
  * Uses useScrollReveal for SSR-safe visibility: content is visible
  * during SSR, hidden instantly after hydration (if below viewport),
  * then animated in when scrolled into view.
  */
 export function JourneyInfographic() {
-  const containerRef = useRef<HTMLDivElement>(null);
   const { ref: revealRef, shouldShow, hasMounted } = useScrollReveal({ amount: 0.1 });
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ['start center', 'end center'],
-  });
-
-  // Parallax effects for each step
-  const step1Y = useTransform(scrollYProgress, [0, 1], [40, -40]);
-  const step2Y = useTransform(scrollYProgress, [0, 1], [0, 0]);
-  const step3Y = useTransform(scrollYProgress, [0, 1], [-40, 40]);
 
   /**
    * Build transition: instant when hiding or pre-mount, smooth when revealing.
@@ -73,70 +59,71 @@ export function JourneyInfographic() {
       : { duration: 0.6, delay, ease: 'easeOut' as const };
 
   return (
-    <section ref={containerRef} className="relative px-6 py-20 sm:px-10 lg:px-16">
+    <section className="relative px-6 py-20 sm:px-10 lg:px-16">
       <div ref={revealRef} className="mx-auto max-w-6xl space-y-16">
         <div className="hidden md:block">
           <div className="relative h-96">
             {/* Steps container */}
             <div className="relative flex h-full items-center justify-between">
-              {steps.map((step, index) => {
-                const yTransform = [step1Y, step2Y, step3Y][index];
+              {steps.map((step, index) => (
+                <motion.div
+                  key={step.number}
+                  initial={false}
+                  animate={{
+                    opacity: shouldShow ? 1 : 0,
+                    y: shouldShow ? 0 : 20,
+                  }}
+                  transition={revealTransition(index * 0.2)}
+                  className="flex w-1/3 flex-col items-center px-4"
+                >
+                  {/* Positioning: odd steps on top, even in middle */}
+                  <div className={index !== 1 ? 'mb-32' : 'mb-0'}>
+                    {/* Step circle */}
+                    <motion.div
+                      initial={false}
+                      animate={{
+                        scale: shouldShow ? 1 : 0,
+                        opacity: shouldShow ? 1 : 0,
+                      }}
+                      transition={revealTransition(index * 0.2)}
+                      className="border-gold bg-night/60 relative mb-8 flex h-20 w-20 items-center justify-center rounded-full border-2 shadow-lg"
+                    >
+                      {/* Icon background glow */}
+                      <div className="bg-gold/10 absolute inset-0 rounded-full blur-xl" />
 
-                return (
-                  <motion.div
-                    key={step.number}
-                    style={{ y: yTransform }}
-                    className="flex w-1/3 flex-col items-center px-4"
-                  >
-                    {/* Positioning: odd steps on top, even in middle */}
-                    <div className={index !== 1 ? 'mb-32' : 'mb-0'}>
-                      {/* Step circle */}
-                      <motion.div
-                        initial={false}
-                        animate={{
-                          scale: shouldShow ? 1 : 0,
-                          opacity: shouldShow ? 1 : 0,
-                        }}
-                        transition={revealTransition(index * 0.2)}
-                        className="border-gold bg-night/60 relative mb-8 flex h-20 w-20 items-center justify-center rounded-full border-2 shadow-lg"
-                      >
-                        {/* Icon background glow */}
-                        <div className="bg-gold/10 absolute inset-0 rounded-full blur-xl" />
+                      {/* SVG Icon */}
+                      <Image
+                        src={step.icon}
+                        alt={step.iconAlt}
+                        width={32}
+                        height={32}
+                        className="relative h-8 w-8 object-contain"
+                      />
 
-                        {/* SVG Icon */}
-                        <Image
-                          src={step.icon}
-                          alt={step.iconAlt}
-                          width={32}
-                          height={32}
-                          className="relative h-8 w-8 object-contain"
-                        />
+                      {/* Step number */}
+                      <div className="border-gold bg-night text-gold absolute -right-3 -top-3 flex h-8 w-8 items-center justify-center rounded-full border-2 text-sm font-bold">
+                        {step.number}
+                      </div>
+                    </motion.div>
 
-                        {/* Step number */}
-                        <div className="border-gold bg-night text-gold absolute -right-3 -top-3 flex h-8 w-8 items-center justify-center rounded-full border-2 text-sm font-bold">
-                          {step.number}
-                        </div>
-                      </motion.div>
-
-                      {/* Content card */}
-                      <motion.div
-                        initial={false}
-                        animate={{
-                          opacity: shouldShow ? 1 : 0,
-                          y: shouldShow ? 0 : 20,
-                        }}
-                        transition={revealTransition(index * 0.2 + 0.2)}
-                        className="border-gold/20 from-night/50 to-night/30 rounded-2xl border bg-gradient-to-br p-6 text-center shadow-lg backdrop-blur-sm"
-                      >
-                        <h3 className="text-gold text-xl font-semibold">{step.title}</h3>
-                        <p className="text-ivory/75 mt-3 text-sm leading-relaxed">
-                          {step.description}
-                        </p>
-                      </motion.div>
-                    </div>
-                  </motion.div>
-                );
-              })}
+                    {/* Content card */}
+                    <motion.div
+                      initial={false}
+                      animate={{
+                        opacity: shouldShow ? 1 : 0,
+                        y: shouldShow ? 0 : 20,
+                      }}
+                      transition={revealTransition(index * 0.2 + 0.2)}
+                      className="border-gold/20 from-night/50 to-night/30 rounded-2xl border bg-gradient-to-br p-6 text-center shadow-lg backdrop-blur-sm"
+                    >
+                      <h3 className="text-gold text-xl font-semibold">{step.title}</h3>
+                      <p className="text-ivory/75 mt-3 text-sm leading-relaxed">
+                        {step.description}
+                      </p>
+                    </motion.div>
+                  </div>
+                </motion.div>
+              ))}
             </div>
           </div>
         </div>
