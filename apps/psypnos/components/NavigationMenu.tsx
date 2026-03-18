@@ -139,12 +139,19 @@ export function NavigationMenu({ forceVisible = false }: NavigationMenuProps) {
     setHasMounted(true);
   }, []);
 
-  // Scroll handler
+  // Scroll handler — throttled via rAF pour éviter les re-renders excessifs
   useEffect(() => {
     if (!hasMounted) return;
 
+    let ticking = false;
+
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 100);
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        setIsScrolled(window.scrollY > 100);
+        ticking = false;
+      });
     };
 
     handleScroll();

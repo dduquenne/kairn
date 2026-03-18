@@ -100,26 +100,34 @@ function useScrollDirection() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Scroll direction detection — throttled via rAF
   useEffect(() => {
     if (!isMobile) {
       setIsVisible(true);
       return;
     }
 
+    let ticking = false;
+
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      const scrollDelta = currentScrollY - lastScrollY.current;
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const currentScrollY = window.scrollY;
+        const scrollDelta = currentScrollY - lastScrollY.current;
 
-      // Show on scroll up (negative delta) or near top
-      if (scrollDelta < -5 || currentScrollY < 100) {
-        setIsVisible(true);
-      }
-      // Hide on scroll down (positive delta) with threshold
-      else if (scrollDelta > 5) {
-        setIsVisible(false);
-      }
+        // Show on scroll up (negative delta) or near top
+        if (scrollDelta < -5 || currentScrollY < 100) {
+          setIsVisible(true);
+        }
+        // Hide on scroll down (positive delta) with threshold
+        else if (scrollDelta > 5) {
+          setIsVisible(false);
+        }
 
-      lastScrollY.current = currentScrollY;
+        lastScrollY.current = currentScrollY;
+        ticking = false;
+      });
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });

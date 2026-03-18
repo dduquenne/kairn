@@ -85,11 +85,21 @@ const config: Config = {
           '0%': { transform: 'translateX(-50%)' },
           '100%': { transform: 'translateX(0%)' },
         },
+        'fade-in': {
+          from: { opacity: '0' },
+          to: { opacity: '1' },
+        },
+        'fade-in-up': {
+          from: { opacity: '0', transform: 'translateY(16px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
       },
       animation: {
         shimmer: 'shimmer 2s infinite',
         'marquee-left': 'marquee-left 30s linear infinite',
         'marquee-right': 'marquee-right 30s linear infinite',
+        'fade-in': 'fade-in 0.6s ease-out both',
+        'fade-in-up': 'fade-in-up 0.6s ease-out both',
       },
     },
   },

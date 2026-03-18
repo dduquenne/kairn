@@ -96,17 +96,17 @@ describe('Animations parallax — non-régression (#419)', () => {
   describe("hero.tsx — animations d'entrée (montage)", () => {
     const heroContent = readFileSync(join(PSYPNOS_ROOT, 'app/(pages)/sections/hero.tsx'), 'utf-8');
 
-    it('utilise initial + animate (animation au montage)', () => {
-      // Le hero utilise initial={{ opacity: 0 }} + animate={{ opacity: 1 }}
-      // C'est acceptable car c'est une animation de montage (above the fold)
-      expect(heroContent).toMatch(/initial=\{\{\s*opacity:\s*0/);
-      expect(heroContent).toMatch(/animate=\{\{\s*opacity:\s*1/);
+    it('utilise des animations CSS au lieu de Framer Motion (#425)', () => {
+      // Le hero utilise des keyframes CSS (animate-fade-in, animate-fade-in-up)
+      // au lieu de useScroll/useTransform pour éviter les re-renders continus
+      expect(heroContent).toMatch(/animate-fade-in/);
+      expect(heroContent).toMatch(/animate-fade-in-up/);
     });
 
-    it('conserve les effets parallax via useScroll/useTransform', () => {
-      expect(heroContent).toMatch(/useScroll/);
-      expect(heroContent).toMatch(/useTransform/);
-      expect(heroContent).toMatch(/heroParallax/);
+    it("n'utilise plus useScroll/useTransform (parallax supprimé #425)", () => {
+      expect(heroContent).not.toMatch(/useScroll/);
+      expect(heroContent).not.toMatch(/useTransform/);
+      expect(heroContent).not.toMatch(/heroParallax/);
     });
   });
 
