@@ -1,19 +1,18 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
-// TODO: Migration - Type incompatibilities to fix
-"use client";
+'use client';
 
-import { motion, useMotionValue, useTransform, PanInfo } from "framer-motion";
-import { AlertTriangle, TrendingDown, TrendingUp, Clock, Check, Eye, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { motion, useMotionValue, useTransform } from 'framer-motion';
+import type { PanInfo } from 'framer-motion';
+import { AlertTriangle, TrendingDown, TrendingUp, Clock, Check, Trash2 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { useState } from 'react';
 
 interface Alert {
   id: string;
-  type: "anomaly" | "spike" | "drop" | "info";
+  type: 'anomaly' | 'spike' | 'drop' | 'info';
   title: string;
   message: string;
   timestamp: string;
-  severity: "low" | "medium" | "high";
+  severity: 'low' | 'medium' | 'high';
   read?: boolean;
 }
 
@@ -25,6 +24,10 @@ interface SwipeableAlertCardProps {
   index: number;
 }
 
+/**
+ * Carte d'alerte swipeable pour mobile.
+ * Swipe droite = marquer lu, swipe gauche = supprimer.
+ */
 export function SwipeableAlertCard({
   alert,
   onMarkRead,
@@ -35,59 +38,59 @@ export function SwipeableAlertCard({
   const [isDeleting, setIsDeleting] = useState(false);
   const x = useMotionValue(0);
 
-  // Transform x position to reveal actions
   const leftActionOpacity = useTransform(x, [0, 80], [0, 1]);
   const rightActionOpacity = useTransform(x, [-80, 0], [1, 0]);
   const scale = useTransform(x, [-100, 0, 100], [0.95, 1, 0.95]);
 
-  const handleDragEnd = (_: any, info: PanInfo) => {
+  /** Gère la fin du drag pour déclencher l'action appropriée. */
+  const handleDragEnd = (_event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const threshold = 80;
 
     if (info.offset.x > threshold) {
-      // Swipe right - mark as read
       onMarkRead(alert.id);
     } else if (info.offset.x < -threshold) {
-      // Swipe left - delete
       setIsDeleting(true);
       setTimeout(() => onDelete(alert.id), 300);
     }
   };
 
-  const getAlertIcon = (type: string) => {
+  /** Retourne l'icône correspondant au type d'alerte. */
+  const getAlertIcon = (type: string): LucideIcon => {
     switch (type) {
-      case "spike":
+      case 'spike':
         return TrendingUp;
-      case "drop":
+      case 'drop':
         return TrendingDown;
-      case "anomaly":
+      case 'anomaly':
         return AlertTriangle;
       default:
         return Clock;
     }
   };
 
+  /** Retourne les classes de couleur selon la sévérité. */
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case "high":
+      case 'high':
         return {
-          border: "border-red-500/30",
-          bg: "bg-red-500/10",
-          icon: "text-red-400",
-          accent: "#f87171",
+          border: 'border-red-500/30',
+          bg: 'bg-red-500/10',
+          icon: 'text-red-400',
+          accent: '#f87171',
         };
-      case "medium":
+      case 'medium':
         return {
-          border: "border-gold/30",
-          bg: "bg-gold/10",
-          icon: "text-gold",
-          accent: "#C9A961",
+          border: 'border-gold/30',
+          bg: 'bg-gold/10',
+          icon: 'text-gold',
+          accent: '#C9A961',
         };
       default:
         return {
-          border: "border-green-500/30",
-          bg: "bg-green-500/10",
-          icon: "text-green-400",
-          accent: "#34d399",
+          border: 'border-green-500/30',
+          bg: 'bg-green-500/10',
+          icon: 'text-green-400',
+          accent: '#34d399',
         };
     }
   };
@@ -98,7 +101,7 @@ export function SwipeableAlertCard({
   if (isDeleting) {
     return (
       <motion.div
-        initial={{ height: "auto", opacity: 1 }}
+        initial={{ height: 'auto', opacity: 1 }}
         animate={{ height: 0, opacity: 0 }}
         transition={{ duration: 0.3 }}
         className="overflow-hidden"
@@ -111,7 +114,7 @@ export function SwipeableAlertCard({
       {/* Left action (mark as read) */}
       <motion.div
         style={{ opacity: leftActionOpacity }}
-        className="absolute inset-y-0 left-0 flex items-center justify-center w-20 bg-green-500/20 rounded-l-xl"
+        className="absolute inset-y-0 left-0 flex w-20 items-center justify-center rounded-l-xl bg-green-500/20"
       >
         <Check className="h-6 w-6 text-green-400" />
       </motion.div>
@@ -119,7 +122,7 @@ export function SwipeableAlertCard({
       {/* Right action (delete) */}
       <motion.div
         style={{ opacity: rightActionOpacity }}
-        className="absolute inset-y-0 right-0 flex items-center justify-center w-20 bg-red-500/20 rounded-r-xl"
+        className="absolute inset-y-0 right-0 flex w-20 items-center justify-center rounded-r-xl bg-red-500/20"
       >
         <Trash2 className="h-6 w-6 text-red-400" />
       </motion.div>
@@ -135,32 +138,32 @@ export function SwipeableAlertCard({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.05 }}
         onClick={() => onView(alert.id)}
-        className={`relative rounded-xl p-4 border ${colors.border} ${colors.bg} ${
-          alert.read ? "opacity-60" : ""
-        } cursor-pointer active:opacity-80 transition-opacity`}
+        className={`relative cursor-pointer rounded-xl border p-4 transition-opacity active:opacity-80 ${colors.border} ${colors.bg} ${
+          alert.read ? 'opacity-60' : ''
+        }`}
       >
         {/* Unread indicator */}
         {!alert.read && (
           <div
-            className="absolute top-4 right-4 h-2.5 w-2.5 rounded-full"
+            className="absolute right-4 top-4 h-2.5 w-2.5 rounded-full"
             style={{ backgroundColor: colors.accent }}
           />
         )}
 
         <div className="flex items-start gap-3 pr-4">
-          <div className={`p-2 rounded-lg ${colors.bg}`}>
+          <div className={`rounded-lg p-2 ${colors.bg}`}>
             <Icon className={`h-5 w-5 ${colors.icon}`} />
           </div>
 
-          <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-semibold text-ivory mb-1 pr-4">{alert.title}</h3>
-            <p className="text-sm text-ivory/70 mb-2 line-clamp-2">{alert.message}</p>
-            <p className="text-xs text-ivory/50">
-              {new Date(alert.timestamp).toLocaleString("fr-FR", {
-                day: "2-digit",
-                month: "short",
-                hour: "2-digit",
-                minute: "2-digit",
+          <div className="min-w-0 flex-1">
+            <h3 className="text-ivory mb-1 pr-4 text-sm font-semibold">{alert.title}</h3>
+            <p className="text-ivory/70 mb-2 line-clamp-2 text-sm">{alert.message}</p>
+            <p className="text-ivory/50 text-xs">
+              {new Date(alert.timestamp).toLocaleString('fr-FR', {
+                day: '2-digit',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit',
               })}
             </p>
           </div>

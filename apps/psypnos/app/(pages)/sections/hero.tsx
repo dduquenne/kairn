@@ -1,9 +1,7 @@
 'use client';
 
-import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRef } from 'react';
 
 import { CTAButton } from '../../../components/CTAButton';
 
@@ -28,57 +26,29 @@ const heroPractitioner = {
     "Praticien certifié en psychothérapie et en hypnose, je suis spécialisé dans l'accompagnement des personnes traversant des périodes de transition émotionnelle ou psychologique. Qu'il s'agisse de gérer le stress, de surmonter des blocages ou de vivre un deuil, mon approche allie écoute bienveillante et techniques thérapeutiques adaptées à chaque besoin spécifique. Je suis convaincu que chaque individu possède en lui les ressources nécessaires pour évoluer vers un mieux-être, et mon rôle est de vous aider à les découvrir.",
 };
 
+/**
+ * Hero section — above-the-fold, pas de parallax.
+ * Animations CSS légères au lieu de Framer Motion pour éviter
+ * les re-renders continus et la cascade de 3.4s.
+ */
 export function HeroSection() {
-  const heroRef = useRef<HTMLDivElement>(null);
-
-  const { scrollYProgress } = useScroll({
-    target: heroRef,
-    offset: ['start start', 'end start'],
-  });
-  const heroParallax = useTransform(scrollYProgress, [0, 1], [0, -140]);
-  const secondaryParallax = useTransform(scrollYProgress, [0, 1], [0, -70]);
-  const glowOpacity = useTransform(scrollYProgress, [0, 1], [0.6, 0.2]);
-
   return (
     <header
-      ref={heroRef}
       className="bg-night relative overflow-hidden px-6 pb-24 pt-24 sm:px-8 lg:px-16"
       aria-label="Introduction"
       data-track-section="hero"
       data-track-section-name="Accueil"
     >
-      {/* Gradient glow effects */}
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{ opacity: glowOpacity }}
-      >
-        <motion.div
-          className="absolute -left-40 top-10 h-96 w-96 rounded-full bg-[radial-gradient(circle_at_center,_rgba(199,169,98,0.35),_transparent_70%)]"
-          style={{ y: heroParallax }}
-        />
-        <motion.div
-          className="absolute right-0 top-40 h-[28rem] w-[28rem] translate-x-1/3 rounded-full bg-[radial-gradient(circle_at_center,_rgba(245,241,230,0.25),_transparent_70%)]"
-          style={{ y: secondaryParallax }}
-        />
-      </motion.div>
+      {/* Static gradient glow effects — pas de parallax */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 opacity-60">
+        <div className="absolute -left-40 top-10 h-96 w-96 rounded-full bg-[radial-gradient(circle_at_center,_rgba(199,169,98,0.35),_transparent_70%)]" />
+        <div className="absolute right-0 top-40 h-[28rem] w-[28rem] translate-x-1/3 rounded-full bg-[radial-gradient(circle_at_center,_rgba(245,241,230,0.25),_transparent_70%)]" />
+      </div>
 
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-10 text-center">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1.2, ease: 'easeOut' }}
-          className="bg-night/40 flex flex-col items-center justify-center"
-        >
-          <motion.svg
-            initial={{ scale: 0.25, rotate: -360 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ duration: 1.4, ease: 'easeOut' }}
-            width="100"
-            height="100"
-            viewBox="0 0 600 600"
-            aria-label="Logo spiralé"
-          >
+        {/* Logo + nom — CSS fade-in rapide */}
+        <div className="animate-fade-in bg-night/40 flex flex-col items-center justify-center">
+          <svg width="100" height="100" viewBox="0 0 600 600" aria-label="Logo spiralé">
             <circle cx="300" cy="300" r="250" fill="none" stroke="#E5C78E" strokeWidth="25" />
             <path
               d="
@@ -93,23 +63,12 @@ export function HeroSection() {
               strokeWidth="25"
               strokeLinecap="round"
             />
-          </motion.svg>
-          <motion.span
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1.2, delay: 0.8, ease: 'easeOut' }}
-            className="font-display text-gold text-2xl font-semibold"
-          >
-            Psypnos
-          </motion.span>
-        </motion.div>
+          </svg>
+          <span className="font-display text-gold text-2xl font-semibold">Psypnos</span>
+        </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1.5, ease: 'easeOut' }}
-          className="max-w-3xl"
-        >
+        {/* Titre principal — CSS fade-in avec léger délai */}
+        <div className="animate-fade-in-up max-w-3xl [animation-delay:200ms]">
           <h1 className="text-gold-accessible mb-2 text-sm uppercase tracking-[0.3em]">
             {heroContent.h1}
           </h1>
@@ -118,13 +77,10 @@ export function HeroSection() {
             <span className="block">{heroContent.slogan2}</span>
           </h2>
           <p className="text-ivory mt-6 text-base sm:text-lg">{heroContent.subtitle}</p>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1.7, ease: 'easeOut' }}
-          className="flex flex-col items-center gap-6"
-        >
+        </div>
+
+        {/* CTAs — CSS fade-in */}
+        <div className="animate-fade-in-up flex flex-col items-center gap-6 [animation-delay:400ms]">
           {/* Boutons principaux */}
           <div className="flex flex-col gap-4 sm:flex-row sm:gap-5">
             <CTAButton variant="primary" href="/demande-rendez-vous">
@@ -177,13 +133,10 @@ export function HeroSection() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
           </Link>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1.5, delay: 1.9, ease: 'easeOut' }}
-          className="relative flex w-full flex-col items-center justify-center gap-8 overflow-hidden lg:flex-row lg:items-start lg:justify-center"
-        >
+        </div>
+
+        {/* Praticien — CSS fade-in */}
+        <div className="animate-fade-in-up relative flex w-full flex-col items-center justify-center gap-8 overflow-hidden [animation-delay:600ms] lg:flex-row lg:items-start lg:justify-center">
           <Image
             src="/images/David_Duquenne.webp"
             alt="David Duquenne"
@@ -293,7 +246,7 @@ export function HeroSection() {
               </Link>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </header>
   );
