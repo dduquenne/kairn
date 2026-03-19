@@ -39,6 +39,7 @@ interface CTAButtonProps {
   trackingLabel?: string;
   onTrack?: () => void;
   type?: 'button' | 'submit' | 'reset';
+  disabled?: boolean;
 }
 
 /**
@@ -52,8 +53,14 @@ export function CTAButton({
   href,
   onTrack,
   type,
+  disabled,
 }: CTAButtonProps) {
-  const composedClassName = cn(baseStyles, variantStyles[variant], className);
+  const composedClassName = cn(
+    baseStyles,
+    variantStyles[variant],
+    disabled ? 'pointer-events-none opacity-50' : undefined,
+    className
+  );
 
   /** Callback de tracking au clic. */
   const handleClick = () => {
@@ -78,6 +85,7 @@ export function CTAButton({
   return (
     <motion.button
       type={type ?? 'button'}
+      disabled={disabled}
       {...motionInteractions}
       className={composedClassName}
       onClick={handleClick}

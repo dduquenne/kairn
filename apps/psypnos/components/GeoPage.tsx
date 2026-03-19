@@ -212,6 +212,7 @@ export function GeoPage({
         navigationSlot={<NavigationMenu />}
         footerSlot={<Footer />}
         linkComponent={Link}
+        heroImage="/images/cabinet.webp"
         colors={{
           primary: 'gold',
           background: 'night',

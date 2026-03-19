@@ -78,8 +78,18 @@ export default function GoldGlowImage({
   }, [src, width, height, shadowBlur, shadowOpacity]);
 
   return (
-    <div className={className} aria-label={alt} role="img">
-      <canvas ref={canvasRef} />
+    <div
+      className={className}
+      aria-label={alt}
+      role="img"
+      style={{ width: `${width}px`, height: `${height}px` }}
+    >
+      <canvas
+        ref={canvasRef}
+        width={width}
+        height={height}
+        style={{ display: 'block', width: `${width}px`, height: `${height}px` }}
+      />
       {/* Fallback noscript (JS désactivé) */}
       <noscript>
         <img

@@ -64,8 +64,8 @@ describe('Animations parallax — non-régression (#419)', () => {
   });
 
   describe('Composants scroll-reveal — pattern useScrollReveal', () => {
+    // SectionTitle.tsx migré vers CSS pur (#425) — ne nécessite plus useScrollReveal
     const scrollRevealComponents = [
-      'components/SectionTitle.tsx',
       'components/ApproachInfographic.tsx',
       'components/JourneyInfographic.tsx',
       'components/SessionFormatsInfographic.tsx',
