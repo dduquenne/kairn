@@ -58,7 +58,7 @@ export function SectionTitle({
       {eyebrow && (
         <p className={cn('mb-2 text-sm uppercase tracking-[0.3em]', eyebrowColor)}>{eyebrow}</p>
       )}
-      <h2 className={cn('font-display text-3xl font-semibold sm:text-4xl', titleColor)}>{title}</h2>
+      <h2 className={cn('text-3xl font-semibold sm:text-4xl', titleColor)}>{title}</h2>
       {description && (
         <p className={cn('mt-4 text-base sm:text-lg', descriptionColor)}>{description}</p>
       )}

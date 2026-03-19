@@ -196,11 +196,11 @@ export function FloatingContactButton({
       <AnimatePresence>
         {isVisible && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            initial={false}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
             transition={{ type: 'spring', bounce: 0.3, duration: 0.4 }}
-            className="fixed bottom-6 right-6 z-40 md:bottom-8 md:right-8"
+            className="fixed bottom-6 right-6 z-[10000] md:bottom-8 md:right-8"
           >
             <div className="relative">
               <button
@@ -553,7 +553,7 @@ function ContactModal({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className={cn(
-              'fixed inset-0 z-50 backdrop-blur-sm',
+              'fixed inset-0 z-[10001] backdrop-blur-sm',
               colors.background,
               'bg-opacity-80'
             )}
@@ -562,7 +562,7 @@ function ContactModal({
           />
 
           {/* Modal Container */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-[10001] flex items-center justify-center p-4">
             <motion.div
               ref={modalRef}
               role="dialog"
