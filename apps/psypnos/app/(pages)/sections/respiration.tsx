@@ -63,7 +63,7 @@ Avec sécurité et bienveillance, nous vous offrons l'opportunité de vous accom
               className="rounded-full"
             />
             <div
-              className="from-night/80 via-night/30 absolute inset-0 bg-gradient-to-tr to-transparent"
+              className="from-night/40 via-night/15 absolute inset-0 bg-gradient-to-tr to-transparent"
               aria-hidden
             />
           </div>
