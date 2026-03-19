@@ -273,7 +273,7 @@ export function ChatWidget({
   return (
     <div
       className={cn(
-        'fixed z-50',
+        'fixed z-[10000]',
         position === 'bottom-right' ? 'bottom-4 right-4' : 'bottom-4 left-4',
         className
       )}

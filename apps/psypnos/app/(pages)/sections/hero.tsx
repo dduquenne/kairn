@@ -72,7 +72,7 @@ export function HeroSection() {
           <h1 className="text-gold-accessible mb-2 text-sm uppercase tracking-[0.3em]">
             {heroContent.h1}
           </h1>
-          <h2 className="font-display text-ivory mt-4 text-2xl font-semibold sm:text-3xl lg:text-4xl">
+          <h2 className="text-ivory mt-4 text-2xl font-semibold sm:text-3xl lg:text-4xl">
             <span className="block">{heroContent.slogan1}</span>
             <span className="block">{heroContent.slogan2}</span>
           </h2>
@@ -151,7 +151,7 @@ export function HeroSection() {
             <p className="text-gold-accessible mb-2 text-sm uppercase tracking-[0.3em]">
               {heroPractitioner.headline}
             </p>
-            <h2 className="font-display text-ivory text-3xl font-semibold sm:text-4xl">
+            <h2 className="text-ivory text-3xl font-semibold sm:text-4xl">
               {heroPractitioner.name}
             </h2>
             <p className="text-gold-accessible mt-6 text-base sm:text-lg">

@@ -22,11 +22,12 @@ import type { SeminarData, BlogPostData, TestimonialData } from '../lib/server/d
 
 import { ApproachSection } from './(pages)/sections/approach';
 import { BlogSection } from './(pages)/sections/blog';
-import { RespirationSection, ContactSection } from './(pages)/sections/dynamic-sections';
+import { ContactSection } from './(pages)/sections/contact';
 import { SessionFormatsSection } from './(pages)/sections/formats';
 import { HeroSection } from './(pages)/sections/hero';
 import { JourneySection } from './(pages)/sections/journey';
 import { PricingSection } from './(pages)/sections/pricing';
+import { RespirationSection } from './(pages)/sections/respiration';
 import { SeminarsSection } from './(pages)/sections/seminars';
 import { TestimonialsSection } from './(pages)/sections/testimonials';
 import { TherapySections } from './(pages)/sections/therapy';
