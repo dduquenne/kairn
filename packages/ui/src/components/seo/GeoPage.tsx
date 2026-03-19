@@ -121,6 +121,7 @@ export function GeoPage({
   footerSlot,
   className,
   colors = {},
+  heroImage,
   ctaHref = '/contact',
   ctaLabel = 'Prendre rendez-vous',
   ctaSubtext,
@@ -181,7 +182,22 @@ export function GeoPage({
       <BreadcrumbStructuredData items={structuredDataItems} />
 
       <main className="pb-16 pt-24">
-        <div className="mx-auto max-w-7xl px-6 sm:px-10 lg:px-16">
+        {/* Hero background image */}
+        {heroImage && (
+          <div className="relative -mt-24 mb-8 h-64 w-full overflow-hidden sm:h-80 lg:h-96">
+            <img
+              src={heroImage}
+              alt=""
+              className="h-full w-full object-cover object-center"
+              loading="eager"
+            />
+            <div
+              aria-hidden
+              className={`from-${background} via-${background}/80 to-${background} absolute inset-0 bg-gradient-to-b`}
+            />
+          </div>
+        )}
+        <div className={cn('mx-auto max-w-7xl px-6 sm:px-10 lg:px-16', heroImage && '-mt-20')}>
           {/* Breadcrumb */}
           <Breadcrumb
             items={uiBreadcrumbItems}

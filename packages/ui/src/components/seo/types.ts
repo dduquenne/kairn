@@ -133,6 +133,9 @@ export interface GeoPageProps {
     border?: string;
   };
 
+  // Hero background image
+  heroImage?: string;
+
   // CTA configuration
   ctaHref?: string;
   ctaLabel?: string;

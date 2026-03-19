@@ -5,6 +5,9 @@ import Link from 'next/link';
 
 import { CTAButton } from '../../../components/CTAButton';
 
+/** Image de fond du cabinet pour le hero. */
+const HERO_BG_IMAGE = '/images/cabinet.webp';
+
 const heroContent = {
   h1: 'Psychothérapie et Hypnose à Saint-Julien-du-Sault (Yonne)',
   slogan1: 'Accueillir ce qui est.',
@@ -39,6 +42,21 @@ export function HeroSection() {
       data-track-section="hero"
       data-track-section-name="Accueil"
     >
+      {/* Photo du cabinet en fond */}
+      <Image
+        src={HERO_BG_IMAGE}
+        alt=""
+        fill
+        className="object-cover object-center opacity-20"
+        priority
+        quality={80}
+        sizes="100vw"
+      />
+      {/* Gradient overlay pour lisibilité du texte */}
+      <div
+        aria-hidden
+        className="from-night via-night/85 to-night/70 absolute inset-0 bg-gradient-to-b"
+      />
       {/* Static gradient glow effects — pas de parallax */}
       <div aria-hidden className="pointer-events-none absolute inset-0 opacity-60">
         <div className="absolute -left-40 top-10 h-96 w-96 rounded-full bg-[radial-gradient(circle_at_center,_rgba(199,169,98,0.35),_transparent_70%)]" />
