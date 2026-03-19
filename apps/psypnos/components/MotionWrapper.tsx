@@ -14,9 +14,5 @@ interface MotionWrapperProps {
  * via useScrollReveal ou initial={false}.
  */
 export function MotionWrapper({ children }: MotionWrapperProps) {
-  return (
-    <LazyMotion features={domAnimation} strict>
-      {children}
-    </LazyMotion>
-  );
+  return <LazyMotion features={domAnimation}>{children}</LazyMotion>;
 }

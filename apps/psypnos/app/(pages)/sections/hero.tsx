@@ -151,7 +151,7 @@ export function HeroSection() {
             <p className="text-gold-accessible mb-2 text-sm uppercase tracking-[0.3em]">
               {heroPractitioner.headline}
             </p>
-            <h2 className="text-ivory text-3xl font-semibold sm:text-4xl">
+            <h2 className="font-display text-ivory text-3xl font-semibold sm:text-4xl">
               {heroPractitioner.name}
             </h2>
             <p className="text-gold-accessible mt-6 text-base sm:text-lg">

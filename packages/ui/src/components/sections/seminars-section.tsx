@@ -166,7 +166,7 @@ export function SeminarsSection({
   timezone = 'Europe/Paris',
   placesLabel = 'places',
   currencySymbol = '€',
-  depositLabel = 'acompte',
+  depositLabel: _depositLabel = 'acompte',
   imageComponent: ImageComp,
   trackingName = 'Séminaires',
   className,
@@ -228,6 +228,11 @@ export function SeminarsSection({
                       {seminar.seminarType}
                     </span>
                   )}
+                  {seminar.price != null && seminar.price > 0 && (
+                    <span className="bg-night/80 text-gold absolute bottom-3 right-3 rounded-full px-3 py-1.5 text-sm font-bold backdrop-blur-sm">
+                      {seminar.price} {currencySymbol}
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex flex-1 flex-col justify-between p-6">
@@ -274,22 +279,6 @@ export function SeminarsSection({
                       </span>
                     </div>
                   </dl>
-
-                  {/* Price display */}
-                  {seminar.price != null && seminar.price > 0 && (
-                    <div className="border-gold/20 from-gold/5 mt-5 rounded-xl border bg-gradient-to-r to-transparent px-4 py-3">
-                      <div className="flex items-baseline justify-between">
-                        <span className="text-gold text-2xl font-bold">
-                          {seminar.price} {currencySymbol}
-                        </span>
-                        {seminar.deposit != null && seminar.deposit > 0 && (
-                          <span className="text-ivory/50 text-xs">
-                            {depositLabel} : {seminar.deposit} {currencySymbol}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
 
                   <div className="mt-6 flex justify-center">
                     {ctaComponent ? (
