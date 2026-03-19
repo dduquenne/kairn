@@ -191,13 +191,18 @@ export function GeoPage({
               className="h-full w-full object-cover object-center"
               loading="eager"
             />
+            {/* Gradient overlay — inline style pour garantir le rendu (classes dynamiques Tailwind non JIT-safe) */}
             <div
               aria-hidden
-              className={`from-${background} via-${background}/80 to-${background} absolute inset-0 bg-gradient-to-b`}
+              className="absolute inset-0"
+              style={{
+                background:
+                  'linear-gradient(to bottom, rgba(14,31,47,0.6) 0%, rgba(14,31,47,0.3) 50%, rgba(14,31,47,0.85) 100%)',
+              }}
             />
           </div>
         )}
-        <div className={cn('mx-auto max-w-7xl px-6 sm:px-10 lg:px-16', heroImage && '-mt-20')}>
+        <div className={cn('mx-auto max-w-7xl px-6 sm:px-10 lg:px-16', heroImage ? '-mt-20' : '')}>
           {/* Breadcrumb */}
           <Breadcrumb
             items={uiBreadcrumbItems}
