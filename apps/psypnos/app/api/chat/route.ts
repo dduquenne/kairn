@@ -309,7 +309,7 @@ export async function POST(request: Request) {
     const anthropic = getAnthropicClient();
     const startTime = Date.now();
     const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5-20250929',
+      model: 'claude-sonnet-4-6',
       max_tokens: 1000,
       temperature: 0.7,
       system: SYSTEM_PROMPT,
