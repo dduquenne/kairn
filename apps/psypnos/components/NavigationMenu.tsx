@@ -191,11 +191,14 @@ export function NavigationMenu({ forceVisible = false }: NavigationMenuProps) {
   }, [isMobileMenuOpen, closeMenu]);
 
   const showBackground = hasMounted && (isScrolled || forceVisible);
+  const isVisible = forceVisible || (hasMounted && isScrolled);
 
   return (
     <>
       <nav
-        className={`fixed left-0 right-0 top-0 z-50 translate-y-0 opacity-100 transition-all duration-300 ${
+        className={`fixed left-0 right-0 top-0 z-50 transition-all duration-300 ${
+          isVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
+        } ${
           showBackground
             ? 'border-gold/20 bg-night/90 shadow-night/50 border-b shadow-lg backdrop-blur-md'
             : 'border-transparent bg-transparent'
