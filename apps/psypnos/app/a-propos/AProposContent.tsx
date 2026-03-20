@@ -3,11 +3,33 @@
 import { motion, useScroll, useTransform } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 
 import { CTAButton } from '../../components/CTAButton';
 import { CurrentYear } from '../../components/CurrentYear';
 import { NavigationMenu } from '../../components/NavigationMenu';
+import { useScrollReveal } from '../../hooks/useScrollReveal';
+
+/**
+ * SSR-safe reveal section that uses useScrollReveal instead of broken
+ * initial={{ opacity: 0 }} + whileInView pattern.
+ */
+function RevealSection({ children, className }: { children: ReactNode; className?: string }) {
+  const { ref, shouldShow, hasMounted } = useScrollReveal();
+
+  return (
+    <motion.section
+      ref={ref}
+      initial={false}
+      animate={{ opacity: shouldShow ? 1 : 0, y: shouldShow ? 0 : 24 }}
+      transition={!hasMounted || !shouldShow ? { duration: 0 } : { duration: 0.6 }}
+      className={className}
+    >
+      {children}
+    </motion.section>
+  );
+}
 
 /**
  * Client Component - Contenu biographique de David Duquenne
@@ -22,6 +44,12 @@ export function AProposContent() {
   });
 
   const heroParallax = useTransform(scrollYProgress, [0, 1], [0, -100]);
+
+  // SSR-safe hero entrance: visible on SSR, animates after mount
+  const [heroMounted, setHeroMounted] = useState(false);
+  useEffect(() => {
+    setHeroMounted(true);
+  }, []);
 
   return (
     <div className="from-night via-night/95 to-night text-ivory min-h-screen bg-gradient-to-b">
@@ -61,34 +89,34 @@ export function AProposContent() {
 
         <div className="relative z-10 mx-auto max-w-6xl">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={!heroMounted ? { duration: 0 } : { duration: 0.8 }}
             className="text-center"
           >
             {/* Title */}
             <motion.h1
               className="font-display text-ivory mb-6 text-4xl font-semibold sm:text-5xl lg:text-6xl"
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              transition={!heroMounted ? { duration: 0 } : { duration: 0.8, delay: 0.2 }}
             >
               David Duquenne - <span className="text-gold">Psychothérapie & Hypnose</span>
             </motion.h1>
             <motion.p
               className="text-ivory/80 mb-8 text-lg sm:text-xl"
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
+              transition={!heroMounted ? { duration: 0 } : { duration: 0.8, delay: 0.4 }}
             >
               De l'angoisse existentielle à l'accompagnement thérapeutique : l'histoire d'une
               transformation profonde au service des autres.
             </motion.p>
             <motion.div
               className="flex flex-col gap-4 sm:flex-row sm:justify-center"
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
+              transition={!heroMounted ? { duration: 0 } : { duration: 0.8, delay: 0.6 }}
             >
               <CTAButton variant="primary" href="/demande-rendez-vous">
                 Prendre rendez-vous
@@ -109,13 +137,7 @@ export function AProposContent() {
           aria-label="Biographie de David Duquenne"
         >
           {/* Introduction */}
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="mb-20"
-          >
+          <RevealSection className="mb-20">
             <p className="text-ivory/90 mb-6 text-lg leading-relaxed">
               Je m'appelle <strong>David Duquenne</strong>.
             </p>
@@ -130,16 +152,10 @@ export function AProposContent() {
               incarnée, qui prend en compte l'ensemble de l'expérience humaine : psychique,
               émotionnelle, corporelle et existentielle.
             </p>
-          </motion.section>
+          </RevealSection>
 
           {/* Section 1: Premiers souvenirs et peur de la mort */}
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="mb-20"
-          >
+          <RevealSection className="mb-20">
             <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
               L'empreinte des premiers pas
             </h2>
@@ -180,16 +196,10 @@ export function AProposContent() {
               études en BTS, puis en école d'ingénieur, avant de travailler plus de vingt ans dans
               le domaine de l'informatique.
             </p>
-          </motion.section>
+          </RevealSection>
 
           {/* Section 2: Burn-out et effondrement */}
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="mb-20"
-          >
+          <RevealSection className="mb-20">
             <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
               L'effondrement comme révélation
             </h2>
@@ -219,16 +229,10 @@ export function AProposContent() {
                 "Le changement commence là où nous osons reconnaître ce qui ne va plus."
               </p>
             </div>
-          </motion.section>
+          </RevealSection>
 
           {/* Section 3: Expériences de conscience et intégration */}
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="mb-20"
-          >
+          <RevealSection className="mb-20">
             <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
               Ouvertures et nuit noire
             </h2>
@@ -263,16 +267,10 @@ export function AProposContent() {
               </strong>
               , au service du sens et de l'apaisement.
             </p>
-          </motion.section>
+          </RevealSection>
 
           {/* Section 4: JALMAV et finitude */}
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="mb-20"
-          >
+          <RevealSection className="mb-20">
             <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
               La présence auprès de la finitude
             </h2>
@@ -296,16 +294,10 @@ export function AProposContent() {
                 l'authenticité des liens tissés et la profondeur de la présence offerte.
               </p>
             </div>
-          </motion.section>
+          </RevealSection>
 
           {/* Section 5: Approche thérapeutique */}
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="mb-20"
-          >
+          <RevealSection className="mb-20">
             <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
               Une approche existentielle et incarnée
             </h2>
@@ -335,16 +327,10 @@ export function AProposContent() {
                 "Ne rêve pas ta vie, vis tes rêves."
               </p>
             </div>
-          </motion.section>
+          </RevealSection>
 
           {/* Section 6: Psypnos */}
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="mb-20"
-          >
+          <RevealSection className="mb-20">
             <h2 className="font-display text-gold-accessible mb-8 text-3xl font-semibold sm:text-4xl">
               Psypnos : un lieu, un passage
             </h2>
@@ -364,16 +350,10 @@ export function AProposContent() {
             <div className="from-gold/10 to-gold/5 border-gold/20 rounded-lg border bg-gradient-to-br p-8">
               <p className="text-gold mb-4 text-center text-xl font-bold">APPRECIEZ VOTRE VIE !</p>
             </div>
-          </motion.section>
+          </RevealSection>
 
           {/* CTA Final */}
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="mb-12 text-center"
-          >
+          <RevealSection className="mb-12 text-center">
             <h2 className="text-ivory mb-6 text-3xl font-semibold">
               Prêt à commencer votre chemin ?
             </h2>
@@ -389,7 +369,7 @@ export function AProposContent() {
                 Découvrir nos séminaires
               </CTAButton>
             </div>
-          </motion.section>
+          </RevealSection>
         </article>
       </main>
 
