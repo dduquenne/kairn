@@ -2,12 +2,28 @@
 
 import { SeminarsSection as SeminarsSectionUI } from '@kairn/ui';
 import Image from 'next/image';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+
+import { siteConfig } from '@/config/site.config';
 
 import { CTAButton } from '../../../components/CTAButton';
 import { useSeminars } from '../../../lib/hooks';
 import { BLUR_DATA_URL, IMAGE_DIMENSIONS } from '../../../lib/image-utils';
 import type { SeminarData } from '../../../lib/server/data-fetchers';
+
+/** Map seminar type slugs to human-readable labels from site config */
+const SEMINAR_TYPE_LABELS = new Map(
+  (siteConfig.seminars?.types ?? []).map(t => [t.value, t.label])
+);
+
+/**
+ * Resolve seminarType slug to human-readable label.
+ * Falls back to the raw value if not found in the config.
+ */
+function resolveSeminarTypeLabel(seminarType?: string): string | undefined {
+  if (!seminarType) return undefined;
+  return SEMINAR_TYPE_LABELS.get(seminarType) ?? seminarType;
+}
 
 interface SeminarsSectionProps {
   initialData?: SeminarData[];
@@ -26,7 +42,17 @@ export function SeminarsSection({ initialData }: SeminarsSectionProps) {
     initialData,
   });
 
-  const upcomingSeminars = initialData && initialData.length > 0 ? initialData : fetchedSeminars;
+  const rawSeminars = initialData && initialData.length > 0 ? initialData : fetchedSeminars;
+
+  // Resolve seminarType slugs to human-readable labels for display
+  const upcomingSeminars = useMemo(
+    () =>
+      rawSeminars.map(s => ({
+        ...s,
+        seminarType: resolveSeminarTypeLabel(s.seminarType),
+      })),
+    [rawSeminars]
+  );
 
   useEffect(() => {
     setHasMounted(true);

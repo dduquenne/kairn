@@ -16,9 +16,6 @@ export const revalidate = 120;
 
 import { Footer } from '../components/Footer';
 import { NavigationMenu } from '../components/NavigationMenu';
-import type { SeminarData, BlogPostData, TestimonialData } from '../lib/server/data-fetchers';
-
-// Import the exact same functions used by the working API routes
 
 import { ApproachSection } from './(pages)/sections/approach';
 import { BlogSection } from './(pages)/sections/blog';
@@ -31,40 +28,38 @@ import { RespirationSection } from './(pages)/sections/respiration';
 import { SeminarsSection } from './(pages)/sections/seminars';
 import { TestimonialsSection } from './(pages)/sections/testimonials';
 import { TherapySections } from './(pages)/sections/therapy';
-import { getAllBlogPosts as getAPIBlogPosts } from './api/blog/prisma-store';
+import { getAllBlogPosts as getAPIBlogPosts, type BlogPostSummary } from './api/blog/prisma-store';
 import {
   getUpcomingSeminars as getAPISeminars,
   getAllSeminars as getAllAPISeminars,
+  type SeminarOutput,
 } from './api/seminars/prisma-store';
-import { getAllTestimonials as getAPITestimonials } from './api/testimonials/prisma-store';
+import {
+  getAllTestimonials as getAPITestimonials,
+  type TestimonialOutput,
+} from './api/testimonials/prisma-store';
 
 /**
  * Fetch data with isolated error handling per section.
  * Each section fetches independently so one failure doesn't break the others.
  */
 async function fetchHomePageData(): Promise<{
-  seminars: SeminarData[];
-  blogPosts: BlogPostData[];
-  testimonials: TestimonialData[];
+  seminars: SeminarOutput[];
+  blogPosts: BlogPostSummary[];
+  testimonials: TestimonialOutput[];
   blogError: boolean;
 }> {
   const [seminarsResult, blogResult, testimonialsResult] = await Promise.allSettled([
     (async () => {
-      let seminarsRaw = await getAPISeminars(3);
-      if (seminarsRaw.length === 0) {
+      const seminars = await getAPISeminars(3);
+      if (seminars.length === 0) {
         const allSeminars = await getAllAPISeminars();
-        seminarsRaw = allSeminars.slice(0, 3);
+        return allSeminars.slice(0, 3);
       }
-      return seminarsRaw as unknown as SeminarData[];
+      return seminars;
     })(),
-    (async () => {
-      const posts = await getAPIBlogPosts({ limit: 3, featuredFirst: true });
-      return posts as unknown as BlogPostData[];
-    })(),
-    (async () => {
-      const testimonials = await getAPITestimonials(10);
-      return testimonials as unknown as TestimonialData[];
-    })(),
+    getAPIBlogPosts({ limit: 3, featuredFirst: true }),
+    getAPITestimonials(10),
   ]);
 
   if (seminarsResult.status === 'rejected') {
