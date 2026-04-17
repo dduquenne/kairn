@@ -16,19 +16,15 @@
  * 6. Générer le prompt image
  */
 
-import Anthropic from "@anthropic-ai/sdk";
+import Anthropic from '@anthropic-ai/sdk';
 
-import {
-  parseJsonFromText,
-  withRetryAndTimeout,
-  type RetryOptions,
-} from "./ai-utils";
+import { parseJsonFromText, withRetryAndTimeout, type RetryOptions } from './ai-utils';
 import {
   PSYPNOS_IMAGE_GENERATION_PROMPT,
   enrichImagePromptWithThematics,
   validatePromptForMandatoryElements,
-} from "./psypnos-image-prompt-generator";
-import { PSYPNOS_STYLE_SYSTEM_PROMPT } from "./psypnos-system-prompt";
+} from './psypnos-image-prompt-generator';
+import { PSYPNOS_STYLE_SYSTEM_PROMPT } from './psypnos-system-prompt';
 
 // Configuration des timeouts et retries
 const API_TIMEOUT_MS = 90000; // 90 secondes par étape
@@ -38,7 +34,8 @@ const RETRY_OPTIONS: RetryOptions = {
   backoffMultiplier: 2,
   maxDelayMs: 15000,
   onRetry: (attempt, error, delayMs) => {
-    console.warn(`🔄 Multi-step retry ${attempt} après erreur, attente ${delayMs}ms:`,
+    console.warn(
+      `🔄 Multi-step retry ${attempt} après erreur, attente ${delayMs}ms:`,
       error instanceof Error ? error.message : error
     );
   },
@@ -48,10 +45,10 @@ const RETRY_OPTIONS: RetryOptions = {
 export interface MultiStepGenerationOptions {
   topic: string;
   category: string;
-  targetLength?: "short" | "medium" | "long";
+  targetLength?: 'short' | 'medium' | 'long';
   seoQuery?: string;
   searchIntent?: string;
-  editorialCategory?: "Comprendre" | "Traverser" | "Découvrir" | "Cheminer";
+  editorialCategory?: 'Comprendre' | 'Traverser' | 'Découvrir' | 'Cheminer';
   readerPersona?: string;
   preferredTones?: string[];
   usePsypnosStyle?: boolean;
@@ -63,7 +60,7 @@ export interface GenerationStep {
   step: number;
   totalSteps: number;
   name: string;
-  status: "pending" | "in_progress" | "completed" | "error";
+  status: 'pending' | 'in_progress' | 'completed' | 'error';
   message?: string;
 }
 
@@ -98,27 +95,27 @@ export interface GeneratedArticleMultiStep {
 
 // Constantes
 const LENGTH_CONFIG = {
-  short: { words: "800-1000", sections: 2, maxContentTokens: 4000 },
-  medium: { words: "1000-1500", sections: 3, maxContentTokens: 6000 },
-  long: { words: "1500-2000", sections: 4, maxContentTokens: 8000 },
+  short: { words: '800-1000', sections: 2, maxContentTokens: 4000 },
+  medium: { words: '1000-1500', sections: 3, maxContentTokens: 6000 },
+  long: { words: '1500-2000', sections: 4, maxContentTokens: 8000 },
 } as const;
 
 const SPECIFIC_TONE_GUIDE: Record<string, string> = {
-  informatif: "Présente les faits et informations avec clarté et objectivité.",
-  pédagogique: "Approche pédagogique progressive, guidant pas à pas vers la compréhension.",
-  inspirant: "Motivant et porteur, incitant à croire en ses capacités de transformation.",
-  narratif: "Raconte des histoires engageantes, utilisant des anecdotes.",
-  conversationnel: "Ton amical et accessible, comme une conversation entre amis.",
-  professionnel: "Formel et expert, avec vocabulaire spécialisé.",
-  provocateur: "Défi les conventions, provoque la réflexion critique.",
+  informatif: 'Présente les faits et informations avec clarté et objectivité.',
+  pédagogique: 'Approche pédagogique progressive, guidant pas à pas vers la compréhension.',
+  inspirant: 'Motivant et porteur, incitant à croire en ses capacités de transformation.',
+  narratif: 'Raconte des histoires engageantes, utilisant des anecdotes.',
+  conversationnel: 'Ton amical et accessible, comme une conversation entre amis.',
+  professionnel: 'Formel et expert, avec vocabulaire spécialisé.',
+  provocateur: 'Défi les conventions, provoque la réflexion critique.',
   humoristique: "Léger et amusant, utilise l'humour.",
-  poétique: "Approche poétique et métaphorique, beauté du langage.",
-  introspectif: "Approche introspective et contemplative, exploration intérieure.",
+  poétique: 'Approche poétique et métaphorique, beauté du langage.',
+  introspectif: 'Approche introspective et contemplative, exploration intérieure.',
   engagé: "Prend position, appelle à l'action avec passion.",
-  scientifique: "Base sur les données et recherches, ton neutre et basé sur preuves.",
+  scientifique: 'Base sur les données et recherches, ton neutre et basé sur preuves.',
   pragmatique: "Focalisé sur l'utilité pratique et les résultats concrets.",
-  analytique: "Approche analytique et structurée, décortiquant avec précision.",
-  apaisant: "Calme, rassurant, comme une voix intérieure qui guide.",
+  analytique: 'Approche analytique et structurée, décortiquant avec précision.',
+  apaisant: 'Calme, rassurant, comme une voix intérieure qui guide.',
 } as const;
 
 const TOTAL_STEPS = 6;
@@ -151,11 +148,11 @@ function buildEditorialContext(options: MultiStepGenerationOptions): string {
   if (options.preferredTones && options.preferredTones.length > 0) {
     const tonesDesc = options.preferredTones
       .map(t => `- **${t}** : ${SPECIFIC_TONE_GUIDE[t] || t}`)
-      .join("\n");
+      .join('\n');
     parts.push(`**Tons préférés** :\n${tonesDesc}`);
   }
 
-  return parts.join("\n");
+  return parts.join('\n');
 }
 
 /**
@@ -166,7 +163,7 @@ async function generateOutline(
   options: MultiStepGenerationOptions,
   usePsypnosStyle: boolean
 ): Promise<ArticleOutline> {
-  const lengthConfig = LENGTH_CONFIG[options.targetLength || "medium"];
+  const lengthConfig = LENGTH_CONFIG[options.targetLength || 'medium'];
   const editorialContext = buildEditorialContext(options);
 
   const prompt = `Tu dois planifier un article de blog sur le sujet suivant.
@@ -208,25 +205,28 @@ IMPORTANT:
 
   // Appel API avec retry et timeout
   const message = await withRetryAndTimeout(
-    () => anthropic.messages.create({
-      model: "claude-sonnet-4-5-20250929",
-      max_tokens: 1500,
-      temperature: 0.7,
-      ...(usePsypnosStyle && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
-      messages: [{ role: "user", content: prompt }],
-    }),
+    () =>
+      anthropic.messages.create({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1500,
+        temperature: 0.7,
+        ...(usePsypnosStyle && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
+        messages: [{ role: 'user', content: prompt }],
+      }),
     API_TIMEOUT_MS,
     RETRY_OPTIONS
   );
 
-  const responseText = message.content[0].type === "text" ? message.content[0].text : "";
+  const responseText = message.content[0].type === 'text' ? message.content[0].text : '';
 
   // Parser le JSON avec l'utilitaire robuste
   try {
     return parseJsonFromText<ArticleOutline>(responseText);
   } catch (error) {
-    console.error("Erreur parsing outline JSON:", responseText.slice(0, 1000));
-    throw new Error(`Impossible de parser le plan de l'article: ${error instanceof Error ? error.message : "Erreur"}`);
+    console.error('Erreur parsing outline JSON:', responseText.slice(0, 1000));
+    throw new Error(
+      `Impossible de parser le plan de l'article: ${error instanceof Error ? error.message : 'Erreur'}`
+    );
   }
 }
 
@@ -239,13 +239,16 @@ async function generateContent(
   outline: ArticleOutline,
   usePsypnosStyle: boolean
 ): Promise<string> {
-  const lengthConfig = LENGTH_CONFIG[options.targetLength || "medium"];
+  const lengthConfig = LENGTH_CONFIG[options.targetLength || 'medium'];
   const editorialContext = buildEditorialContext(options);
 
   // Formater les sections du plan
   const sectionsGuide = outline.sections
-    .map((s, i) => `### Section ${i + 1}: ${s.title}\n- Points clés : ${s.keyPoints.join(", ")}\n- Longueur : ~${s.estimatedWords} mots`)
-    .join("\n\n");
+    .map(
+      (s, i) =>
+        `### Section ${i + 1}: ${s.title}\n- Points clés : ${s.keyPoints.join(', ')}\n- Longueur : ~${s.estimatedWords} mots`
+    )
+    .join('\n\n');
 
   const prompt = `Tu dois rédiger le contenu complet d'un article de blog.
 
@@ -268,7 +271,7 @@ ${outline.targetAudience}
 ${sectionsGuide}
 
 ## MESSAGES CLÉS À TRANSMETTRE
-${outline.keyMessages.map(m => `- ${m}`).join("\n")}
+${outline.keyMessages.map(m => `- ${m}`).join('\n')}
 
 ## INSTRUCTIONS DE RÉDACTION
 
@@ -303,21 +306,22 @@ IMPORTANT: Rédige UNIQUEMENT le contenu Markdown de l'article. Pas de balises X
 
   // Appel API avec retry et timeout (timeout plus long pour le contenu)
   const message = await withRetryAndTimeout(
-    () => anthropic.messages.create({
-      model: "claude-sonnet-4-5-20250929",
-      max_tokens: lengthConfig.maxContentTokens,
-      temperature: 0.7,
-      ...(usePsypnosStyle && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
-      messages: [{ role: "user", content: prompt }],
-    }),
+    () =>
+      anthropic.messages.create({
+        model: 'claude-sonnet-4-6',
+        max_tokens: lengthConfig.maxContentTokens,
+        temperature: 0.7,
+        ...(usePsypnosStyle && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
+        messages: [{ role: 'user', content: prompt }],
+      }),
     API_TIMEOUT_MS * 1.5, // Timeout plus long pour le contenu principal
     RETRY_OPTIONS
   );
 
-  const content = message.content[0].type === "text" ? message.content[0].text : "";
+  const content = message.content[0].type === 'text' ? message.content[0].text : '';
 
   if (!content || content.trim().length < 500) {
-    throw new Error("Contenu généré trop court ou vide");
+    throw new Error('Contenu généré trop court ou vide');
   }
 
   return content.trim();
@@ -348,7 +352,7 @@ ${options.category}
 ${outline.mainThesis}
 
 ## REQUÊTE SEO
-${options.seoQuery || "Non spécifiée"}
+${options.seoQuery || 'Non spécifiée'}
 
 ## DÉBUT DU CONTENU
 ${contentPreview}...
@@ -375,27 +379,28 @@ Réponds UNIQUEMENT avec le JSON, sans texte avant ou après.`;
 
   // Appel API avec retry et timeout
   const message = await withRetryAndTimeout(
-    () => anthropic.messages.create({
-      model: "claude-sonnet-4-5-20250929",
-      max_tokens: 500,
-      temperature: 0.7,
-      ...(usePsypnosStyle && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
-      messages: [{ role: "user", content: prompt }],
-    }),
+    () =>
+      anthropic.messages.create({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 500,
+        temperature: 0.7,
+        ...(usePsypnosStyle && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
+        messages: [{ role: 'user', content: prompt }],
+      }),
     API_TIMEOUT_MS,
     RETRY_OPTIONS
   );
 
-  const responseText = message.content[0].type === "text" ? message.content[0].text : "";
+  const responseText = message.content[0].type === 'text' ? message.content[0].text : '';
 
   try {
     // Utiliser le parsing JSON robuste avec fallback
-    return parseJsonFromText<{ title: string; description: string }>(
-      responseText,
-      { title: options.topic, description: `Découvrez notre article sur ${options.topic}` }
-    );
+    return parseJsonFromText<{ title: string; description: string }>(responseText, {
+      title: options.topic,
+      description: `Découvrez notre article sur ${options.topic}`,
+    });
   } catch (error) {
-    console.error("Erreur parsing title/description JSON:", responseText.slice(0, 500));
+    console.error('Erreur parsing title/description JSON:', responseText.slice(0, 500));
     // Retourner des valeurs par défaut au lieu de throw
     return {
       title: options.topic,
@@ -428,7 +433,7 @@ ${options.topic}
 ${options.category}
 
 ## REQUÊTE SEO
-${options.seoQuery || "Non spécifiée"}
+${options.seoQuery || 'Non spécifiée'}
 
 ## EXTRAIT DU CONTENU
 ${contentPreview}...
@@ -451,24 +456,25 @@ Réponds UNIQUEMENT avec le JSON.`;
 
   // Appel API avec retry et timeout
   const message = await withRetryAndTimeout(
-    () => anthropic.messages.create({
-      model: "claude-sonnet-4-5-20250929",
-      max_tokens: 300,
-      temperature: 0.7,
-      messages: [{ role: "user", content: prompt }],
-    }),
+    () =>
+      anthropic.messages.create({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 300,
+        temperature: 0.7,
+        messages: [{ role: 'user', content: prompt }],
+      }),
     API_TIMEOUT_MS,
     RETRY_OPTIONS
   );
 
-  const responseText = message.content[0].type === "text" ? message.content[0].text : "";
+  const responseText = message.content[0].type === 'text' ? message.content[0].text : '';
 
   try {
     // Utiliser le parsing JSON robuste avec fallback
     const parsed = parseJsonFromText<{ tags?: string[] }>(responseText, { tags: [] });
     return parsed.tags || [];
   } catch (error) {
-    console.error("Erreur parsing tags JSON (non-bloquant):", responseText.slice(0, 300));
+    console.error('Erreur parsing tags JSON (non-bloquant):', responseText.slice(0, 300));
     return [];
   }
 }
@@ -494,10 +500,10 @@ ${title}
 ${options.topic}
 
 ## REQUÊTE SEO
-${options.seoQuery || "Non spécifiée"}
+${options.seoQuery || 'Non spécifiée'}
 
 ## INTENTION DE RECHERCHE
-${options.searchIntent || "Non spécifiée"}
+${options.searchIntent || 'Non spécifiée'}
 
 ## EXTRAIT DU CONTENU
 ${contentPreview}...
@@ -525,18 +531,19 @@ Réponds UNIQUEMENT avec le JSON.`;
 
   // Appel API avec retry et timeout
   const message = await withRetryAndTimeout(
-    () => anthropic.messages.create({
-      model: "claude-sonnet-4-5-20250929",
-      max_tokens: 1500,
-      temperature: 0.7,
-      ...(usePsypnosStyle && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
-      messages: [{ role: "user", content: prompt }],
-    }),
+    () =>
+      anthropic.messages.create({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1500,
+        temperature: 0.7,
+        ...(usePsypnosStyle && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
+        messages: [{ role: 'user', content: prompt }],
+      }),
     API_TIMEOUT_MS,
     RETRY_OPTIONS
   );
 
-  const responseText = message.content[0].type === "text" ? message.content[0].text : "";
+  const responseText = message.content[0].type === 'text' ? message.content[0].text : '';
 
   try {
     // Utiliser le parsing JSON robuste avec fallback
@@ -546,7 +553,7 @@ Réponds UNIQUEMENT avec le JSON.`;
     );
     return parsed.faq || [];
   } catch (error) {
-    console.error("Erreur parsing FAQ JSON (non-bloquant):", responseText.slice(0, 500));
+    console.error('Erreur parsing FAQ JSON (non-bloquant):', responseText.slice(0, 500));
     return [];
   }
 }
@@ -625,18 +632,19 @@ Réponds UNIQUEMENT avec le prompt image, sans JSON ni balises.`;
 
   // Appel API avec le system prompt spécialisé et retry/timeout
   const message = await withRetryAndTimeout(
-    () => anthropic.messages.create({
-      model: "claude-sonnet-4-5-20250929",
-      max_tokens: 1000,
-      temperature: 0.7,
-      system: PSYPNOS_IMAGE_GENERATION_PROMPT,
-      messages: [{ role: "user", content: prompt }],
-    }),
+    () =>
+      anthropic.messages.create({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        temperature: 0.7,
+        system: PSYPNOS_IMAGE_GENERATION_PROMPT,
+        messages: [{ role: 'user', content: prompt }],
+      }),
     API_TIMEOUT_MS,
     RETRY_OPTIONS
   );
 
-  const rawImagePrompt = message.content[0].type === "text" ? message.content[0].text : "";
+  const rawImagePrompt = message.content[0].type === 'text' ? message.content[0].text : '';
 
   // Enrichir avec les données thématiques et la catégorie
   const enrichedPrompt = enrichImagePromptWithThematics(
@@ -650,7 +658,7 @@ Réponds UNIQUEMENT avec le prompt image, sans JSON ni balises.`;
 
   if (!validation.isValid) {
     console.warn(
-      `⚠️ IMAGE_PROMPT (multi-step) manque des éléments obligatoires: ${validation.missingElements.join(", ")}`
+      `⚠️ IMAGE_PROMPT (multi-step) manque des éléments obligatoires: ${validation.missingElements.join(', ')}`
     );
   }
 
@@ -667,7 +675,12 @@ export async function generateArticleMultiStep(
   const anthropic = createAnthropicClient(apiKey);
   const usePsypnosStyle = options.usePsypnosStyle !== false;
 
-  const notifyProgress = (step: number, name: string, status: GenerationStep["status"], message?: string) => {
+  const notifyProgress = (
+    step: number,
+    name: string,
+    status: GenerationStep['status'],
+    message?: string
+  ) => {
     if (options.onProgress) {
       options.onProgress({ step, totalSteps: TOTAL_STEPS, name, status, message });
     }
@@ -684,40 +697,55 @@ export async function generateArticleMultiStep(
 
   try {
     // ÉTAPE 1: Générer le plan
-    notifyProgress(1, "Génération du plan", "in_progress", "Création de la structure de l'article...");
+    notifyProgress(
+      1,
+      'Génération du plan',
+      'in_progress',
+      "Création de la structure de l'article..."
+    );
     try {
       outline = await generateOutline(anthropic, options, usePsypnosStyle);
       stepsCompleted = 1;
-      notifyProgress(1, "Génération du plan", "completed");
+      notifyProgress(1, 'Génération du plan', 'completed');
     } catch (error) {
-      console.error("Erreur étape 1 (outline):", error);
-      notifyProgress(1, "Génération du plan", "error", "Échec de la génération du plan");
-      throw new Error(`Échec de la génération du plan: ${error instanceof Error ? error.message : "Erreur inconnue"}`);
+      console.error('Erreur étape 1 (outline):', error);
+      notifyProgress(1, 'Génération du plan', 'error', 'Échec de la génération du plan');
+      throw new Error(
+        `Échec de la génération du plan: ${error instanceof Error ? error.message : 'Erreur inconnue'}`
+      );
     }
 
     // ÉTAPE 2: Générer le contenu
-    notifyProgress(2, "Rédaction du contenu", "in_progress", "Rédaction de l'article...");
+    notifyProgress(2, 'Rédaction du contenu', 'in_progress', "Rédaction de l'article...");
     try {
       content = await generateContent(anthropic, options, outline, usePsypnosStyle);
       stepsCompleted = 2;
-      notifyProgress(2, "Rédaction du contenu", "completed");
+      notifyProgress(2, 'Rédaction du contenu', 'completed');
     } catch (error) {
-      console.error("Erreur étape 2 (content):", error);
-      notifyProgress(2, "Rédaction du contenu", "error", "Échec de la rédaction");
-      throw new Error(`Échec de la rédaction du contenu: ${error instanceof Error ? error.message : "Erreur inconnue"}`);
+      console.error('Erreur étape 2 (content):', error);
+      notifyProgress(2, 'Rédaction du contenu', 'error', 'Échec de la rédaction');
+      throw new Error(
+        `Échec de la rédaction du contenu: ${error instanceof Error ? error.message : 'Erreur inconnue'}`
+      );
     }
 
     // ÉTAPE 3: Générer titre et description
-    notifyProgress(3, "Optimisation SEO", "in_progress", "Génération du titre et description...");
+    notifyProgress(3, 'Optimisation SEO', 'in_progress', 'Génération du titre et description...');
     try {
-      const titleDesc = await generateTitleAndDescription(anthropic, options, content, outline, usePsypnosStyle);
+      const titleDesc = await generateTitleAndDescription(
+        anthropic,
+        options,
+        content,
+        outline,
+        usePsypnosStyle
+      );
       title = titleDesc.title;
       description = titleDesc.description;
       stepsCompleted = 3;
-      notifyProgress(3, "Optimisation SEO", "completed");
+      notifyProgress(3, 'Optimisation SEO', 'completed');
     } catch (error) {
-      console.error("Erreur étape 3 (title/desc):", error);
-      notifyProgress(3, "Optimisation SEO", "error", "Échec de l'optimisation SEO");
+      console.error('Erreur étape 3 (title/desc):', error);
+      notifyProgress(3, 'Optimisation SEO', 'error', "Échec de l'optimisation SEO");
       // Continuer avec des valeurs par défaut
       title = options.topic;
       description = `Découvrez notre article sur ${options.topic}`;
@@ -725,40 +753,55 @@ export async function generateArticleMultiStep(
     }
 
     // ÉTAPE 4: Générer les tags
-    notifyProgress(4, "Génération des tags", "in_progress", "Création des tags SEO...");
+    notifyProgress(4, 'Génération des tags', 'in_progress', 'Création des tags SEO...');
     try {
       tags = await generateTags(anthropic, options, content, title, usePsypnosStyle);
       stepsCompleted = 4;
-      notifyProgress(4, "Génération des tags", "completed");
+      notifyProgress(4, 'Génération des tags', 'completed');
     } catch (error) {
-      console.error("Erreur étape 4 (tags):", error);
-      notifyProgress(4, "Génération des tags", "error", "Échec de la génération des tags");
+      console.error('Erreur étape 4 (tags):', error);
+      notifyProgress(4, 'Génération des tags', 'error', 'Échec de la génération des tags');
       // Continuer sans tags
       stepsCompleted = 4;
     }
 
     // ÉTAPE 5: Générer la FAQ
-    notifyProgress(5, "Création de la FAQ", "in_progress", "Génération des questions fréquentes...");
+    notifyProgress(
+      5,
+      'Création de la FAQ',
+      'in_progress',
+      'Génération des questions fréquentes...'
+    );
     try {
       faq = await generateFAQ(anthropic, options, content, title, usePsypnosStyle);
       stepsCompleted = 5;
-      notifyProgress(5, "Création de la FAQ", "completed");
+      notifyProgress(5, 'Création de la FAQ', 'completed');
     } catch (error) {
-      console.error("Erreur étape 5 (FAQ):", error);
-      notifyProgress(5, "Création de la FAQ", "error", "Échec de la génération de la FAQ");
+      console.error('Erreur étape 5 (FAQ):', error);
+      notifyProgress(5, 'Création de la FAQ', 'error', 'Échec de la génération de la FAQ');
       // Continuer sans FAQ
       stepsCompleted = 5;
     }
 
     // ÉTAPE 6: Générer le prompt image
-    notifyProgress(6, "Création du prompt image", "in_progress", "Génération du prompt pour l'illustration...");
+    notifyProgress(
+      6,
+      'Création du prompt image',
+      'in_progress',
+      "Génération du prompt pour l'illustration..."
+    );
     try {
       imagePrompt = await generateImagePrompt(anthropic, options, content, title, usePsypnosStyle);
       stepsCompleted = 6;
-      notifyProgress(6, "Création du prompt image", "completed");
+      notifyProgress(6, 'Création du prompt image', 'completed');
     } catch (error) {
-      console.error("Erreur étape 6 (image prompt):", error);
-      notifyProgress(6, "Création du prompt image", "error", "Échec de la génération du prompt image");
+      console.error('Erreur étape 6 (image prompt):', error);
+      notifyProgress(
+        6,
+        'Création du prompt image',
+        'error',
+        'Échec de la génération du prompt image'
+      );
       // Continuer sans prompt image
       stepsCompleted = 6;
     }
@@ -781,12 +824,11 @@ export async function generateArticleMultiStep(
         totalSteps: TOTAL_STEPS,
       },
     };
-
   } catch (error) {
-    console.error("Erreur lors de la génération multi-étapes:", error);
+    console.error('Erreur lors de la génération multi-étapes:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Erreur inconnue lors de la génération",
+      error: error instanceof Error ? error.message : 'Erreur inconnue lors de la génération',
       // Retourner les données partielles si disponibles
       title,
       description,

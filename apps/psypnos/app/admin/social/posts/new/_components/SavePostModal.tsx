@@ -207,7 +207,7 @@ export function SavePostModal({
             linkUrl,
             scheduledAt: scheduledAt?.toISOString(),
             generatedBy: 'ai',
-            aiModel: 'claude-sonnet-4-5-20250929',
+            aiModel: 'claude-sonnet-4-6',
             metadata: {
               tone,
               angle,

@@ -530,7 +530,7 @@ Réponds UNIQUEMENT avec le JSON`;
       const message = await withRetryAndTimeout(
         () =>
           anthropic.messages.create({
-            model: 'claude-sonnet-4-5-20250929',
+            model: 'claude-sonnet-4-6',
             max_tokens: 5000,
             temperature: 0.7,
             ...(PSYPNOS_STYLE_SYSTEM_PROMPT && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
@@ -582,7 +582,7 @@ IMPORTANT: Rédige UNIQUEMENT l'introduction en Markdown.`;
       const message = await withRetryAndTimeout(
         () =>
           anthropic.messages.create({
-            model: 'claude-sonnet-4-5-20250929',
+            model: 'claude-sonnet-4-6',
             max_tokens: 1000,
             temperature: 0.7,
             ...(PSYPNOS_STYLE_SYSTEM_PROMPT && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
@@ -645,7 +645,7 @@ IMPORTANT: Rédige UNIQUEMENT cette section en Markdown (titre H2 inclus).`;
         const message = await withRetryAndTimeout(
           () =>
             anthropic.messages.create({
-              model: 'claude-sonnet-4-5-20250929',
+              model: 'claude-sonnet-4-6',
               max_tokens: lengthConfig.maxTokensPerSection,
               temperature: 0.7,
               ...(PSYPNOS_STYLE_SYSTEM_PROMPT && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
@@ -702,7 +702,7 @@ IMPORTANT: Rédige UNIQUEMENT la conclusion en Markdown (titre H2 inclus).`;
       const message = await withRetryAndTimeout(
         () =>
           anthropic.messages.create({
-            model: 'claude-sonnet-4-5-20250929',
+            model: 'claude-sonnet-4-6',
             max_tokens: 1000,
             temperature: 0.7,
             ...(PSYPNOS_STYLE_SYSTEM_PROMPT && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
@@ -752,7 +752,7 @@ ${fullContent}
         const message = await withRetryAndTimeout(
           () =>
             anthropic.messages.create({
-              model: 'claude-sonnet-4-5-20250929',
+              model: 'claude-sonnet-4-6',
               max_tokens: 8000,
               temperature: 0.3,
               ...(PSYPNOS_STYLE_SYSTEM_PROMPT && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
@@ -810,7 +810,7 @@ Réponds UNIQUEMENT avec le JSON.`;
       const message = await withRetryAndTimeout(
         () =>
           anthropic.messages.create({
-            model: 'claude-sonnet-4-5-20250929',
+            model: 'claude-sonnet-4-6',
             max_tokens: 500,
             temperature: 0.7,
             ...(PSYPNOS_STYLE_SYSTEM_PROMPT && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
@@ -869,7 +869,7 @@ Réponds UNIQUEMENT avec le JSON.`;
       const message = await withRetryAndTimeout(
         () =>
           anthropic.messages.create({
-            model: 'claude-sonnet-4-5-20250929',
+            model: 'claude-sonnet-4-6',
             max_tokens: 300,
             temperature: 0.7,
             messages: [{ role: 'user', content: prompt }],
@@ -926,7 +926,7 @@ Réponds UNIQUEMENT avec le JSON.`;
       const message = await withRetryAndTimeout(
         () =>
           anthropic.messages.create({
-            model: 'claude-sonnet-4-5-20250929',
+            model: 'claude-sonnet-4-6',
             max_tokens: 1500,
             temperature: 0.7,
             ...(PSYPNOS_STYLE_SYSTEM_PROMPT && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
@@ -986,7 +986,7 @@ Réponds UNIQUEMENT avec le prompt image.`;
       const message = await withRetryAndTimeout(
         () =>
           anthropic.messages.create({
-            model: 'claude-sonnet-4-5-20250929',
+            model: 'claude-sonnet-4-6',
             max_tokens: 1000,
             temperature: 0.7,
             system: PSYPNOS_IMAGE_GENERATION_PROMPT,

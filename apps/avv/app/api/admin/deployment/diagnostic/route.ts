@@ -352,7 +352,7 @@ export async function POST(): Promise<NextResponse> {
     const prompt = buildPrompt(metrics);
 
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5-20250929',
+      model: 'claude-sonnet-4-6',
       max_tokens: 4000,
       temperature: 0.3,
       system: DIAGNOSTIC_SYSTEM_PROMPT,

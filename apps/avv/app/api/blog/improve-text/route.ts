@@ -124,7 +124,7 @@ Améliore ce texte en suivant ces instructions. Conserve le même format et assu
 Retourne uniquement le texte amélioré, sans balises additionnelles, sans préambule, sans explication.`;
 
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5-20250929',
+      model: 'claude-sonnet-4-6',
       max_tokens: 8000,
       temperature: 0.7,
       ...(payload.useAvvStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),

@@ -21,7 +21,7 @@ import {
   AIAuthenticationError,
 } from './types.js';
 
-const DEFAULT_MODEL = 'claude-sonnet-4-5-20250929';
+const DEFAULT_MODEL = 'claude-sonnet-4-6';
 const DEFAULT_MAX_TOKENS = 8192;
 const DEFAULT_TIMEOUT_MS = 120000; // 2 minutes
 

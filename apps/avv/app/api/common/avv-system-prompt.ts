@@ -182,7 +182,7 @@ Utilise-les naturellement sans forcer leur présence.`;
  * Pour utiliser ce system prompt dans vos appels API:
  *
  * const message = await anthropic.messages.create({
- *   model: "claude-sonnet-4-5-20250929",
+ *   model: "claude-sonnet-4-6",
  *   max_tokens: 8000,
  *   system: AVV_STYLE_SYSTEM_PROMPT,
  *   messages: [{ role: "user", content: prompt }],

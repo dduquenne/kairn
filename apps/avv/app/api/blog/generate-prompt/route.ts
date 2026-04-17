@@ -169,7 +169,7 @@ Génère un prompt image ACCUEILLANT et CHALEUREUX qui est **CLAIREMENT REPRÉSE
     const message = await withRetryAndTimeout(
       () =>
         anthropic.messages.create({
-          model: 'claude-sonnet-4-5-20250929',
+          model: 'claude-sonnet-4-6',
           max_tokens: 1000,
           system: AVV_IMAGE_GENERATION_PROMPT,
           messages: [
@@ -229,7 +229,7 @@ IMPORTANT: L'image doit transmettre CHALEUR, ACCUEIL et ESPOIR pour des personne
         const correctionMessage = await withRetryAndTimeout(
           () =>
             anthropic.messages.create({
-              model: 'claude-sonnet-4-5-20250929',
+              model: 'claude-sonnet-4-6',
               max_tokens: 1000,
               system: AVV_IMAGE_GENERATION_PROMPT,
               messages: [

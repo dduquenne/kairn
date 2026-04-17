@@ -207,7 +207,7 @@ IMPORTANT:
   const message = await withRetryAndTimeout(
     () =>
       anthropic.messages.create({
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-sonnet-4-6',
         max_tokens: 1500,
         temperature: 0.7,
         ...(useAvvStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),
@@ -308,7 +308,7 @@ IMPORTANT: Rédige UNIQUEMENT le contenu Markdown de l'article. Pas de balises X
   const message = await withRetryAndTimeout(
     () =>
       anthropic.messages.create({
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-sonnet-4-6',
         max_tokens: lengthConfig.maxContentTokens,
         temperature: 0.7,
         ...(useAvvStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),
@@ -381,7 +381,7 @@ Réponds UNIQUEMENT avec le JSON, sans texte avant ou après.`;
   const message = await withRetryAndTimeout(
     () =>
       anthropic.messages.create({
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-sonnet-4-6',
         max_tokens: 500,
         temperature: 0.7,
         ...(useAvvStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),
@@ -458,7 +458,7 @@ Réponds UNIQUEMENT avec le JSON.`;
   const message = await withRetryAndTimeout(
     () =>
       anthropic.messages.create({
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-sonnet-4-6',
         max_tokens: 300,
         temperature: 0.7,
         messages: [{ role: 'user', content: prompt }],
@@ -533,7 +533,7 @@ Réponds UNIQUEMENT avec le JSON.`;
   const message = await withRetryAndTimeout(
     () =>
       anthropic.messages.create({
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-sonnet-4-6',
         max_tokens: 1500,
         temperature: 0.7,
         ...(useAvvStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),
@@ -634,7 +634,7 @@ Réponds UNIQUEMENT avec le prompt image, sans JSON ni balises.`;
   const message = await withRetryAndTimeout(
     () =>
       anthropic.messages.create({
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-sonnet-4-6',
         max_tokens: 1000,
         temperature: 0.7,
         system: AVV_IMAGE_GENERATION_PROMPT,

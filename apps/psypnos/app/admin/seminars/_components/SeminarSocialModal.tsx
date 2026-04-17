@@ -383,7 +383,7 @@ export function SeminarSocialModal({ seminar, open, onClose }: SeminarSocialModa
           hashtags: gen.hashtags,
           mediaUrls: gen.suggestedMediaUrl ? [gen.suggestedMediaUrl] : [],
           generatedBy: 'ai',
-          aiModel: 'claude-sonnet-4-5-20250929',
+          aiModel: 'claude-sonnet-4-6',
           metadata: { seminarId: seminar.id, seminarTitle: seminar.title },
         };
 

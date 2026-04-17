@@ -276,7 +276,7 @@ IMPORTANT:
   const message = await withRetryAndTimeout(
     () =>
       anthropic.messages.create({
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-sonnet-4-6',
         max_tokens: 5000, // Augmenté de 2000 à 5000 pour éviter la troncature du JSON
         temperature: 0.7,
         ...(usePsypnosStyle && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
@@ -349,7 +349,7 @@ IMPORTANT: Rédige UNIQUEMENT l'introduction en Markdown, sans balises ni commen
   const message = await withRetryAndTimeout(
     () =>
       anthropic.messages.create({
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-sonnet-4-6',
         max_tokens: 1000,
         temperature: 0.7,
         ...(usePsypnosStyle && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
@@ -433,7 +433,7 @@ IMPORTANT: Rédige UNIQUEMENT cette section en Markdown (titre H2 inclus), sans 
   const message = await withRetryAndTimeout(
     () =>
       anthropic.messages.create({
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-sonnet-4-6',
         max_tokens: lengthConfig.maxTokensPerSection,
         temperature: 0.7,
         ...(usePsypnosStyle && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
@@ -495,7 +495,7 @@ IMPORTANT: Rédige UNIQUEMENT la conclusion en Markdown (titre H2 inclus), sans 
   const message = await withRetryAndTimeout(
     () =>
       anthropic.messages.create({
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-sonnet-4-6',
         max_tokens: 1000,
         temperature: 0.7,
         ...(usePsypnosStyle && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
@@ -566,7 +566,7 @@ Le coherenceScore est une note de 0 à 100 évaluant la cohérence de l'article.
   const message = await withRetryAndTimeout(
     () =>
       anthropic.messages.create({
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-sonnet-4-6',
         max_tokens: 8000,
         temperature: 0.3, // Température basse pour la révision
         ...(usePsypnosStyle && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
@@ -645,7 +645,7 @@ Réponds UNIQUEMENT avec le JSON.`;
   const message = await withRetryAndTimeout(
     () =>
       anthropic.messages.create({
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-sonnet-4-6',
         max_tokens: 500,
         temperature: 0.7,
         ...(usePsypnosStyle && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
@@ -714,7 +714,7 @@ Réponds UNIQUEMENT avec le JSON.`;
   const message = await withRetryAndTimeout(
     () =>
       anthropic.messages.create({
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-sonnet-4-6',
         max_tokens: 300,
         temperature: 0.7,
         messages: [{ role: 'user', content: prompt }],
@@ -781,7 +781,7 @@ Réponds UNIQUEMENT avec le JSON.`;
   const message = await withRetryAndTimeout(
     () =>
       anthropic.messages.create({
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-sonnet-4-6',
         max_tokens: 1500,
         temperature: 0.7,
         ...(usePsypnosStyle && { system: PSYPNOS_STYLE_SYSTEM_PROMPT }),
@@ -881,7 +881,7 @@ Réponds UNIQUEMENT avec le prompt image.`;
   const message = await withRetryAndTimeout(
     () =>
       anthropic.messages.create({
-        model: 'claude-sonnet-4-5-20250929',
+        model: 'claude-sonnet-4-6',
         max_tokens: 1000,
         temperature: 0.7,
         system: PSYPNOS_IMAGE_GENERATION_PROMPT,
