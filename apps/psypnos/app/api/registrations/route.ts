@@ -3,7 +3,6 @@ import { z } from 'zod';
 
 import { siteConfig } from '@/config/site.config';
 
-import seminarsData from '../../../data/seminars.json';
 import { validateCSRFMiddleware } from '../common/csrf-middleware';
 import {
   buildAdminEmailHtml,
@@ -15,22 +14,11 @@ import {
 import { generatePreResponse } from '../common/generate-pre-response';
 import { recordAttempt, getClientIP } from '../common/rate-limiter';
 import { sendEmailThroughResend, type EmailContent } from '../common/send-email';
+import { getSeminarById as fetchSeminarById, type SeminarOutput } from '../seminars/prisma-store';
 
 const branding = getEmailBranding(siteConfig);
 
-type Seminar = {
-  id: string;
-  title: string;
-  description?: string;
-  startAt: string;
-  endAt: string;
-  capacity?: number;
-  price?: number;
-  deposit?: number;
-  order?: string;
-  speakers?: { firstName: string; lastName: string }[];
-  tags?: string[];
-};
+type Seminar = SeminarOutput;
 
 const sexValues = ['homme', 'femme', 'autre'] as const;
 
@@ -78,17 +66,10 @@ type SeminarRegistrationPayload = z.infer<typeof registrationSchema>;
 
 const formatBoolean = (value: boolean) => (value ? 'Oui' : 'Non');
 
-const getSeminarById = (id: string) => {
-  if (!seminarsData || typeof seminarsData !== 'object') {
-    return undefined;
-  }
-
-  const seminars = (seminarsData as { seminars: Seminar[] }).seminars;
-  if (!Array.isArray(seminars)) {
-    return undefined;
-  }
-
-  return seminars.find(seminar => seminar.id === id);
+/** Fetch seminar from Prisma DB (single source of truth) */
+const getSeminarById = async (id: string): Promise<Seminar | undefined> => {
+  const seminar = await fetchSeminarById(id);
+  return seminar ?? undefined;
 };
 
 const formatSeminarDates = (seminar?: Seminar): string => {
@@ -368,7 +349,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Données invalides.' }, { status: 400 });
   }
 
-  const seminar = getSeminarById(payload.seminarId);
+  const seminar = await getSeminarById(payload.seminarId);
   const seminarInfo = formatSeminarDetails(seminar);
   const recipient =
     process.env.SEMINAR_REGISTRATION_RECIPIENT ??
@@ -385,9 +366,14 @@ export async function POST(request: Request) {
     : undefined;
 
   try {
-    await sendEmailThroughResend(formatAdminEmail(payload, seminar, preResponse), recipient, branding, {
-      replyTo: payload.email,
-    });
+    await sendEmailThroughResend(
+      formatAdminEmail(payload, seminar, preResponse),
+      recipient,
+      branding,
+      {
+        replyTo: payload.email,
+      }
+    );
 
     try {
       await sendEmailThroughResend(

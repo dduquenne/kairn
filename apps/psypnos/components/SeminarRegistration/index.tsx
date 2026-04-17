@@ -9,11 +9,11 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useMemo, useState, type FormEvent } from 'react';
 
-import seminarsData from '../../data/seminars.json';
 import { trackConversionEvent } from '../../hooks/useAnalytics';
 import { useCSRF } from '../../hooks/useCSRF';
+import { useSeminars } from '../../lib/hooks/use-seminars';
 
 import { FormField } from './components/FormField';
 import { IdentitySection } from './components/IdentitySection';
@@ -41,15 +41,8 @@ export default function SeminarRegistrationForm() {
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [isMutationPending, setIsMutationPending] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [hasMounted, setHasMounted] = useState(false);
-
   // Get birth year bounds at runtime to avoid hydration mismatch
   const { minBirthYear, maxBirthYear } = useMemo(() => getBirthYearBounds(), []);
-
-  // Track mounting to avoid hydration mismatch with date-based filtering
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
 
   const {
     formValues,
@@ -66,26 +59,30 @@ export default function SeminarRegistrationForm() {
   const [honeypot, setHoneypot] = useState('');
   const { csrfToken, isLoading: csrfLoading, error: csrfError, refreshToken } = useCSRF();
 
-  // Séminaires depuis le JSON - defer date filtering to client-side only
-  const seminars: Seminar[] = useMemo(() => {
-    const list = Array.isArray((seminarsData as any)?.seminars)
-      ? ((seminarsData as any).seminars as Seminar[])
-      : [];
+  // Séminaires depuis l'API Prisma (source de vérité unique)
+  const { seminars: apiSeminars, isLoading: seminarsLoading } = useSeminars({
+    upcoming: true,
+    limit: 20,
+  });
 
-    // On server/initial render, return all seminars sorted by date
-    // On client after mount, filter by current date
-    if (!hasMounted) {
-      return list.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
-    }
-
-    const now = new Date();
-    const upcomingSeminars = list.filter(
-      seminar => new Date(seminar.startAt).getTime() >= now.getTime()
-    );
-    return upcomingSeminars.sort(
-      (a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime()
-    );
-  }, [hasMounted]);
+  const seminars: Seminar[] = useMemo(
+    () =>
+      apiSeminars.map(s => ({
+        id: s.id,
+        title: s.title,
+        description: s.description,
+        speakers: s.speakers,
+        startAt: s.startAt,
+        endAt: s.endAt,
+        capacity: s.capacity,
+        price: s.price,
+        deposit: s.deposit,
+        tags: s.tags,
+        createdAt: s.createdAt,
+        updatedAt: s.updatedAt,
+      })),
+    [apiSeminars]
+  );
 
   const selectedSeminar = useMemo(
     () => seminars.find(s => s.id === formValues.seminarId),
@@ -178,7 +175,7 @@ export default function SeminarRegistrationForm() {
     [validate, submitRegistration, csrfToken, setAllFieldsTouched, honeypot, resetForm]
   );
 
-  const isProcessing = isSubmitting || isMutationPending;
+  const isProcessing = isSubmitting || isMutationPending || seminarsLoading;
 
   return (
     <div className="border-ivory/15 bg-night/95 shadow-aurora relative mx-auto max-w-5xl overflow-hidden rounded-[2.5rem] border px-6 py-10 backdrop-blur-lg">
@@ -539,7 +536,7 @@ export default function SeminarRegistrationForm() {
             name="company"
             type="text"
             value={honeypot}
-            onChange={(e) => setHoneypot(e.target.value)}
+            onChange={e => setHoneypot(e.target.value)}
             tabIndex={-1}
             autoComplete="off"
           />
