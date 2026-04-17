@@ -123,7 +123,7 @@ export interface AIProvider {
 export interface AnthropicProviderConfig {
   /** Anthropic API key */
   apiKey: string;
-  /** Model to use (default: claude-sonnet-4-5-20250929) */
+  /** Model to use (default: CLAUDE_DEFAULT_MODEL from @kairn/ai) */
   model?: string;
   /** Base URL for API (optional, for proxies) */
   baseUrl?: string;

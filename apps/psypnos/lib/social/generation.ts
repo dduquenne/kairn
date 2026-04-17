@@ -14,6 +14,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import { CLAUDE_DEFAULT_MODEL } from '@kairn/ai';
 
 import {
   buildSystemPrompt,
@@ -38,7 +39,7 @@ import type {
 // ===========================================
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-const MODEL = 'claude-sonnet-4-5-20250929';
+const MODEL = CLAUDE_DEFAULT_MODEL;
 const MAX_TOKENS = 2048;
 
 // ===========================================
@@ -76,7 +77,7 @@ function getAnthropicClient(): Anthropic {
     if (!ANTHROPIC_API_KEY) {
       throw new Error(
         '[SocialGeneration] ANTHROPIC_API_KEY non configurée. ' +
-          'Ajoutez votre clé API Anthropic dans les variables d\'environnement.'
+          "Ajoutez votre clé API Anthropic dans les variables d'environnement."
       );
     }
     anthropicClient = new Anthropic({
@@ -120,7 +121,7 @@ export async function generateForPlatform(
     // Extraire le texte de la réponse
     const responseText = response.content
       .filter((block): block is Anthropic.TextBlock => block.type === 'text')
-      .map((block) => block.text)
+      .map(block => block.text)
       .join('');
 
     // Parser la réponse
@@ -130,12 +131,11 @@ export async function generateForPlatform(
       console.error(`[SocialGeneration] Failed to parse response for ${platform}:`, responseText);
       return {
         success: false,
-        error: 'Échec de l\'analyse de la réponse de Claude',
+        error: "Échec de l'analyse de la réponse de Claude",
       };
     }
 
-    const tokensUsed =
-      (response.usage?.input_tokens || 0) + (response.usage?.output_tokens || 0);
+    const tokensUsed = (response.usage?.input_tokens || 0) + (response.usage?.output_tokens || 0);
 
     // Logger la génération
     try {
@@ -227,7 +227,7 @@ export async function generateForMultiplePlatforms(
 
     const responseText = response.content
       .filter((block): block is Anthropic.TextBlock => block.type === 'text')
-      .map((block) => block.text)
+      .map(block => block.text)
       .join('');
 
     const parsed = parseMultiPlatformResponse(responseText);
@@ -240,11 +240,10 @@ export async function generateForMultiplePlatforms(
       return generateIndividually(article, platforms, options);
     }
 
-    const tokensUsed =
-      (response.usage?.input_tokens || 0) + (response.usage?.output_tokens || 0);
+    const tokensUsed = (response.usage?.input_tokens || 0) + (response.usage?.output_tokens || 0);
     const tokensPerPlatform = Math.floor(tokensUsed / platforms.length);
 
-    const generations: GeneratedContent[] = parsed.map((gen) => ({
+    const generations: GeneratedContent[] = parsed.map(gen => ({
       platform: gen.platform,
       content: gen.content,
       hashtags: gen.hashtags,
@@ -377,7 +376,8 @@ export async function regenerateWithFeedback(
   // Ajouter le feedback aux instructions personnalisées
   const enhancedOptions: GenerationOptions = {
     ...options,
-    customInstructions: `${options.customInstructions || ''}\n\nContenu précédent (à améliorer):\n${previousContent}\n\nFeedback utilisateur:\n${feedback}`.trim(),
+    customInstructions:
+      `${options.customInstructions || ''}\n\nContenu précédent (à améliorer):\n${previousContent}\n\nFeedback utilisateur:\n${feedback}`.trim(),
   };
 
   return generateForPlatform(article, platform, enhancedOptions);

@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { CLAUDE_DEFAULT_MODEL } from '@kairn/ai';
 import { NextRequest } from 'next/server';
 
 import {
@@ -165,7 +166,7 @@ Réponds UNIQUEMENT avec un JSON valide dans ce format exact (pas de markdown, p
     });
 
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5-20250929',
+      model: CLAUDE_DEFAULT_MODEL,
       max_tokens: 2048,
       temperature: 0.7,
       messages: [
@@ -196,7 +197,7 @@ Réponds UNIQUEMENT avec un JSON valide dans ce format exact (pas de markdown, p
       {
         insights,
         generatedAt: new Date().toISOString(),
-        model: 'claude-sonnet-4-5-20250929',
+        model: CLAUDE_DEFAULT_MODEL,
       },
       { status: 200 }
     );

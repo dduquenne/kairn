@@ -1,5 +1,6 @@
 'use client';
 
+import { CLAUDE_DEFAULT_MODEL } from '@kairn/ai';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -207,7 +208,7 @@ export function SavePostModal({
             linkUrl,
             scheduledAt: scheduledAt?.toISOString(),
             generatedBy: 'ai',
-            aiModel: 'claude-sonnet-4-5-20250929',
+            aiModel: CLAUDE_DEFAULT_MODEL,
             metadata: {
               tone,
               angle,

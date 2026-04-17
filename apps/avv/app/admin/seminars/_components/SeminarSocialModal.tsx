@@ -1,5 +1,6 @@
 'use client';
 
+import { CLAUDE_DEFAULT_MODEL } from '@kairn/ai';
 import {
   Share2,
   Sparkles,
@@ -383,7 +384,7 @@ export function SeminarSocialModal({ seminar, open, onClose }: SeminarSocialModa
           hashtags: gen.hashtags,
           mediaUrls: gen.suggestedMediaUrl ? [gen.suggestedMediaUrl] : [],
           generatedBy: 'ai',
-          aiModel: 'claude-sonnet-4-5-20250929',
+          aiModel: CLAUDE_DEFAULT_MODEL,
           metadata: { seminarId: seminar.id, seminarTitle: seminar.title },
         };
 

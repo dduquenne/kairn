@@ -6,6 +6,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import { CLAUDE_DEFAULT_MODEL } from '@kairn/ai';
 import type { DiagnosticAnalysis, RuntimeHealth } from '@kairn/core/deployment';
 import { NextResponse } from 'next/server';
 
@@ -352,7 +353,7 @@ export async function POST(): Promise<NextResponse> {
     const prompt = buildPrompt(metrics);
 
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5-20250929',
+      model: CLAUDE_DEFAULT_MODEL,
       max_tokens: 4000,
       temperature: 0.3,
       system: DIAGNOSTIC_SYSTEM_PROMPT,

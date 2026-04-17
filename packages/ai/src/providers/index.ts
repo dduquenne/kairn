@@ -3,6 +3,13 @@
  * @package @kairn/ai
  */
 
+// Model constants
+export {
+  CLAUDE_DEFAULT_MODEL,
+  OPENAI_DEFAULT_TEXT_MODEL,
+  OPENAI_DEFAULT_IMAGE_MODEL,
+} from '../models.js';
+
 // Types
 export type {
   AIProvider,

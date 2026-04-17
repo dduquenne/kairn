@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 
 import Anthropic from '@anthropic-ai/sdk';
+import { CLAUDE_DEFAULT_MODEL } from '@kairn/ai';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
@@ -309,7 +310,7 @@ export async function POST(request: Request) {
     const anthropic = getAnthropicClient();
     const startTime = Date.now();
     const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
+      model: CLAUDE_DEFAULT_MODEL,
       max_tokens: 1000,
       temperature: 0.7,
       system: SYSTEM_PROMPT,
