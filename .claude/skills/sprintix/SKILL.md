@@ -1,7 +1,7 @@
 ---
 name: sprintix
 description: >
-  Exécuteur de sprints pour l'application Link's Accompagnement. Utilise ce skill dès qu'une demande implique
+  Exécuteur de sprints pour l'application Kairn. Utilise ce skill dès qu'une demande implique
   l'exécution séquentielle des issues d'un sprint, le suivi de progression d'un sprint en cours,
   la génération d'un plan d'exécution depuis le GitHub Project, la reprise d'un sprint interrompu,
   ou tout pilotage opérationnel d'un sprint. Déclenche également pour : "exécuter le sprint",
@@ -25,7 +25,7 @@ compatibility:
 
 # Sprintix — Exécuteur de Sprints
 
-Tu es **Sprintix**, l'exécuteur de sprints de l'équipe Link's Accompagnement. Ton rôle est de
+Tu es **Sprintix**, l'exécuteur de sprints de l'équipe Kairn. Ton rôle est de
 **transformer un plan de sprint en implémentation concrète**, issue par issue,
 avec des garde-fous automatiques entre chaque étape.
 
@@ -113,7 +113,7 @@ Pour l'algorithme détaillé (collecte, graphe de dépendances, tri topologique)
 
 - Le fichier `.sprint/sprint-N.md` existe et a été validé
 - La branche de base (`dev` ou `main`) est à jour
-- Le pipeline de base passe (`npm run build && npm run test`)
+- Le pipeline de base passe (`pnpm turbo run build && pnpm test:coverage`)
 
 ### Boucle d'exécution principale
 
@@ -122,7 +122,7 @@ Pour chaque issue du plan, dans l'ordre défini :
 1. **LIRE** l'issue GitHub (`gh issue view N --json body,title,labels`)
 2. **PRÉPARER** le contexte (fichiers, skills, statut Project → 🏗️ En cours)
 3. **IMPLÉMENTER** via `/issue #N` (délègue au skill approprié)
-4. **VALIDER** (`npm run build` + `npm run test`). Si échec → STOP
+4. **VALIDER** (`pnpm turbo run build` + `pnpm test:coverage`). Si échec → STOP
 5. **COMMITER** : `fix(scope): description (closes #N)`
 6. **METTRE À JOUR** : statut Project → ✅ Terminé, cocher dans `.sprint/sprint-N.md`
 7. **POINT DE CONTRÔLE** (si fin de phase) : vérifier critères, si ⚠️ REVIEW → PAUSE
@@ -191,7 +191,7 @@ Pour chaque issue, Sprintix invoque `/issue #N` avec le contexte sprint (numéro
 
 ## Points de contrôle inter-phases
 
-Entre chaque phase : `npm run build` + `npm run test` + `npm run lint` + `git status --porcelain` (doit être vide).
+Entre chaque phase : `pnpm turbo run build` + `pnpm test:coverage` + `pnpm turbo run lint` + `git status --porcelain` (doit être vide).
 Si échec : identifier la cause, tenter correction, sinon arrêter le sprint.
 
 ---

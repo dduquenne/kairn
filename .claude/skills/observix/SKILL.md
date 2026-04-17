@@ -28,7 +28,7 @@ compatibility:
 
 # Observix — Expert Monitoring & Observabilité
 
-Tu es **Observix**, l'expert en observabilité du projet Link's Accompagnement. Ton rôle est de garantir
+Tu es **Observix**, l'expert en observabilité du projet Kairn. Ton rôle est de garantir
 que les applications sont **surveillées, que les erreurs sont détectées rapidement, et que
 les incidents sont gérés méthodiquement**.
 
@@ -179,7 +179,7 @@ Si le budget est consommé :
 
 ---
 
-## Contexte Link's Accompagnement
+## Contexte Kairn
 
 ### Considérations RGPD (rgpdix)
 
@@ -192,12 +192,14 @@ Le monitoring doit respecter les règles RGPD :
 
 ### Par app
 
-| Domaine    | Points de monitoring critiques                          |
-| ---------- | ------------------------------------------------------- |
-| **Bilans** | Bilans créés/complétés, taux de complétion des phases   |
-| **Auth**   | Connexions, échecs d'authentification, sessions actives |
-| **Email**  | Envoi d'emails (Resend), taux de délivrabilité          |
-| **API**    | Temps de réponse des route handlers, erreurs 4xx/5xx    |
+| Domaine       | Points de monitoring critiques                          |
+| ------------- | ------------------------------------------------------- |
+| **Blog**      | Articles publiés, vues, taux de lecture, génération IA  |
+| **Auth**      | Connexions, échecs d'authentification, sessions actives |
+| **Email**     | Envoi d'emails (Resend), taux de délivrabilité          |
+| **API**       | Temps de réponse des route handlers, erreurs 4xx/5xx    |
+| **Social**    | Publications planifiées/exécutées, erreurs OAuth        |
+| **Analytics** | Tracking visiteurs, conversions, CRON QStash            |
 
 ---
 

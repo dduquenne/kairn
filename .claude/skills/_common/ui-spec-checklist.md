@@ -8,51 +8,59 @@ DOIVENT suivre cette checklist.
 
 ## 1. Specs → Maquettes → Wireframes
 
-| Specs fonctionnelles (SFD)                                        | Maquettes SVG            | Wireframes                              |
-| ----------------------------------------------------------------- | ------------------------ | --------------------------------------- |
-| `docs/specs/SPC-0003-specifications-fonctionnelles-links-v1.0.md` | `docs/mockups/MAQ-*.svg` | `docs/specs/wireframes/wireframe-*.png` |
+| Specs fonctionnelles          | Maquettes SVG            | Wireframes                              |
+| ----------------------------- | ------------------------ | --------------------------------------- |
+| `docs/specs/` (si existantes) | `docs/mockups/MAQ-*.svg` | `docs/specs/wireframes/wireframe-*.png` |
 
 ### Inventaire des maquettes et wireframes
 
 **Maquettes SVG :**
 | Réf. | Écran | Fichier |
 |---|---|---|
-| MAQ-01 | Connexion | `docs/mockups/MAQ-01-login.svg` (+ v2) |
-| MAQ-02 | Dashboard bénéficiaire | `docs/mockups/MAQ-02-dashboard-beneficiaire.svg` |
-| MAQ-03 | Saisie de phase | `docs/mockups/MAQ-03-saisie-phase.svg` |
-| MAQ-04 | Dashboard consultant | `docs/mockups/MAQ-04-dashboard-consultant.svg` |
-| MAQ-05 | Fiche bénéficiaire (consultant) | `docs/mockups/MAQ-05-fiche-beneficiaire-consultant.svg` |
-| MAQ-06 | Comptes rendus | `docs/mockups/MAQ-06-comptes-rendus.svg` |
-| MAQ-07 | Dashboard admin | `docs/mockups/MAQ-07-dashboard-admin.svg` |
-| MAQ-08 | Gestion utilisateurs | `docs/mockups/MAQ-08-gestion-utilisateurs.svg` |
-| MAQ-09 | Planification | `docs/mockups/MAQ-09-planification.svg` |
+| MAQ-01 | Page d'accueil praticien (public) | `docs/mockups/MAQ-01-accueil-praticien.svg` |
+| MAQ-02 | Page blog / liste d'articles | `docs/mockups/MAQ-02-blog-liste.svg` |
+| MAQ-03 | Article de blog (détail) | `docs/mockups/MAQ-03-blog-article.svg` |
+| MAQ-04 | Page services / prestations | `docs/mockups/MAQ-04-services.svg` |
+| MAQ-05 | Page témoignages | `docs/mockups/MAQ-05-temoignages.svg` |
+| MAQ-06 | Page séminaires | `docs/mockups/MAQ-06-seminaires.svg` |
+| MAQ-07 | Dashboard admin — vue d'ensemble | `docs/mockups/MAQ-07-dashboard-admin.svg` |
+| MAQ-08 | Dashboard admin — gestion blog / éditeur | `docs/mockups/MAQ-08-admin-blog-editeur.svg` |
+| MAQ-09 | Dashboard admin — analytics | `docs/mockups/MAQ-09-admin-analytics.svg` |
 
 **Wireframes :**
 | Réf. | Écran | Fichier |
 |---|---|---|
-| WIR-01 | Connexion | `docs/specs/wireframes/wireframe-01-connexion.png` |
-| WIR-02 | Dashboard bénéficiaire | `docs/specs/wireframes/wireframe-02-dashboard-beneficiaire.png` |
-| WIR-03 | Saisie de phase | `docs/specs/wireframes/wireframe-03-saisie-phase.png` |
-| WIR-04 | Dashboard consultant | `docs/specs/wireframes/wireframe-04-dashboard-consultant.png` |
-| WIR-05 | Fiche bénéficiaire | `docs/specs/wireframes/wireframe-05-fiche-beneficiaire.png` |
-| WIR-06 | Dashboard admin | `docs/specs/wireframes/wireframe-06-dashboard-admin.png` |
-| WIR-07 | Comptes rendus | `docs/specs/wireframes/wireframe-07-comptes-rendus.png` |
+| WIR-01 | Page d'accueil praticien | `docs/specs/wireframes/wireframe-01-accueil-praticien.png` |
+| WIR-02 | Page blog / liste d'articles | `docs/specs/wireframes/wireframe-02-blog-liste.png` |
+| WIR-03 | Article de blog (détail) | `docs/specs/wireframes/wireframe-03-blog-article.png` |
+| WIR-04 | Page services / prestations | `docs/specs/wireframes/wireframe-04-services.png` |
+| WIR-05 | Page témoignages | `docs/specs/wireframes/wireframe-05-temoignages.png` |
+| WIR-06 | Dashboard admin — vue d'ensemble | `docs/specs/wireframes/wireframe-06-dashboard-admin.png` |
+| WIR-07 | Dashboard admin — gestion blog | `docs/specs/wireframes/wireframe-07-admin-blog.png` |
 
 ---
 
-## 2. Palette de couleurs (`src/styles/theme.css` — SPC-0003 RT-04)
+## 2. Palette de couleurs — multi-tenant via `site.config.ts`
 
-| Rôle             | Variable CSS           | Couleur             |
-| ---------------- | ---------------------- | ------------------- |
-| Primary          | `--color-primary`      | `#1E6FC0`           |
-| Primary dark     | `--color-primary-dark` | `#0D3B6E`           |
-| Secondary        | `--color-secondary`    | `#0EA5E9`           |
-| Accent / Warning | `--color-accent`       | `#FF6B35`           |
-| Success          | `--color-success`      | `#28A745`           |
-| Background       | `--color-background`   | `#F5F7FA`           |
-| Text             | `--color-text`         | `#4A4A4A`           |
-| Border           | `--color-border`       | `#DCE1EB`           |
-| Font             | `--font-family`        | `Inter, sans-serif` |
+Kairn est une plateforme multi-tenant. Chaque site praticien définit sa propre
+palette de couleurs dans son fichier `apps/<site>/site.config.ts`. Les couleurs
+sont injectées comme variables CSS Tailwind.
+
+### Exemple : Psypnos (`apps/psypnos/site.config.ts`)
+
+| Rôle                       | Variable Tailwind | Couleur   |
+| -------------------------- | ----------------- | --------- |
+| Primary                    | `primary`         | `#d4af37` |
+| Secondary                  | `secondary`       | `#1a1a2e` |
+| + accents définis par site |
+
+### Conventions Tailwind
+
+- Les composants partagés (`@kairn/ui`) utilisent les classes Tailwind génériques :
+  `bg-primary`, `text-secondary`, `border-accent`, etc.
+- Chaque site configure ses valeurs dans `site.config.ts` → `theme.colors`
+- Les polices sont aussi par site : `theme.fonts.display` et `theme.fonts.body`
+- Consulter le `site.config.ts` du site ciblé pour la palette exacte
 
 ---
 
@@ -60,16 +68,15 @@ DOIVENT suivre cette checklist.
 
 Avant de coder un composant UI ou de produire une maquette SVG :
 
-- [ ] **Lire la SFD** : trouver la User Story et les règles de
-      gestion de l'écran dans la spécification fonctionnelle
+- [ ] **Consulter le `site.config.ts`** du site ciblé pour la palette et les
+      polices
 - [ ] **Consulter la maquette SVG** de l'écran cible (si existante) dans
       `docs/mockups/`
 - [ ] **Consulter le wireframe** de l'écran cible (si existant) dans
       `docs/specs/wireframes/`
-- [ ] **Vérifier la palette de couleurs** dans
-      `src/styles/theme.css`
+- [ ] **Vérifier la palette de couleurs** dans le `site.config.ts` du site ciblé
 - [ ] **Identifier les composants existants réutilisables** dans
-      `src/components/`
+      `packages/ui/src/components/` et `packages/admin/src/components/`
 - [ ] **Vérifier la cohérence** avec les écrans déjà implémentés
 
 ---
@@ -77,12 +84,13 @@ Avant de coder un composant UI ou de produire une maquette SVG :
 ## 4. Règles d'utilisation
 
 1. **Ergonomix** : doit consulter cette checklist AVANT toute création ou
-   modification de composant UI. La SFD définit les données affichées, les
-   actions disponibles, les règles de validation et les rôles autorisés.
+   modification de composant UI. Les composants partagés vivent dans `@kairn/ui`
+   et `@kairn/admin`. Les composants spécifiques au site vivent dans
+   `apps/<site>/components/`.
 
 2. **Maquettix** : doit consulter cette checklist AVANT toute génération de
    SVG. Les maquettes existantes définissent le style visuel de référence.
 
-3. **Si aucune SFD ou maquette n'existe** pour l'écran ciblé, le signaler
-   explicitement et proposer de créer la maquette en se basant sur la charte
-   visuelle (theme.css) et les conventions des écrans existants.
+3. **Si aucune maquette n'existe** pour l'écran ciblé, le signaler
+   explicitement et proposer de créer la maquette en se basant sur le
+   `site.config.ts` du site ciblé et les conventions des écrans existants.

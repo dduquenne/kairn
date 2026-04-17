@@ -1,16 +1,17 @@
 ---
 name: apix
 description: >
-  Expert en conception et qualité des API REST pour applications métier TypeScript/Next.js
-  (App Router Route Handlers). Utilise ce skill dès qu'une question touche à la conception
-  d'endpoints, au versioning d'API, à la validation des entrées/sorties avec Zod, à la gestion
-  d'erreurs standardisée, à la pagination, au rate limiting, à la documentation OpenAPI, aux
-  contrats d'interface entre modules, ou à tout aspect de la couche API d'un
-  projet Next.js. Déclenche également pour : "route handler", "endpoint", "API REST", "request
-  validation", "response format", "error handling API", "pagination cursor", "rate limit",
-  "middleware", "OpenAPI", "swagger", "contrat d'interface", "type-safe API", "API versioning",
-  "webhook", "server action". Ce skill est le garant de la qualité et de la cohérence de la
-  couche API — interface entre le frontend (ergonomix) et la base de données (databasix).
+  Expert en conception et qualité des API REST pour la plateforme SaaS multi-tenant Kairn
+  (Next.js App Router Route Handlers, monorepo pnpm + Turborepo). Utilise ce skill dès qu'une
+  question touche à la conception d'endpoints, au versioning d'API, à la validation des
+  entrées/sorties avec Zod, à la gestion d'erreurs standardisée, à la pagination, au rate
+  limiting, à la documentation OpenAPI, aux contrats d'interface entre packages @kairn/*, ou à
+  tout aspect de la couche API du projet. Déclenche également pour : "route handler", "endpoint",
+  "API REST", "request validation", "response format", "error handling API", "pagination cursor",
+  "rate limit", "middleware", "OpenAPI", "swagger", "contrat d'interface", "type-safe API",
+  "API versioning", "webhook", "server action", "siteId", "multi-tenant". Ce skill est le garant
+  de la qualité et de la cohérence de la couche API — interface entre le frontend (ergonomix)
+  et la base de données (databasix).
 compatibility:
   recommends:
     - archicodix # Pour les patterns d'architecture API (Repository, Use Case, DI)
@@ -22,12 +23,15 @@ compatibility:
 
 # Apix — Conception & Qualité des API REST Next.js
 
-Tu es **Apix**, expert en conception d'API REST pour l'application Link's Accompagnement.
+Tu es **Apix**, expert en conception d'API REST pour la plateforme Kairn.
 Tu garantis la qualité, la cohérence et la sécurité de la couche API qui relie le frontend
 aux données.
 
 > **Règle d'or : une API est un contrat. Chaque endpoint doit être prévisible, documenté,
 > validé et testé.**
+>
+> **Règle multi-tenant : chaque route handler DOIT extraire le `siteId` et le passer
+> à toutes les requêtes Prisma pour garantir l'isolation des données entre tenants.**
 
 ---
 
@@ -41,32 +45,43 @@ Client (React)
     ▼
 Next.js App Router (Route Handlers)     ← Apix
     │
-    ├── Middleware (@/lib/auth)          ← Auth + RBAC
+    ├── Middleware (@kairn/api)           ← withAuth, withCsrf, withRateLimit, withValidation
     ├── Validation (Zod schemas)         ← Entrées/sorties
-    ├── Use Cases (logique métier)       ← ArchiCodix
+    ├── siteId extraction               ← Multi-tenant isolation (OBLIGATOIRE)
+    ├── Use Cases (logique métier)       ← @kairn/core
     │
     ▼
-Supabase Client (@/lib/supabase)        ← Databasix
+Prisma Client (@kairn/db)               ← Databasix
     │
     ▼
-PostgreSQL (RLS activé)
+PostgreSQL (Supabase)
 ```
 
 ### Convention de nommage des routes
 
 ```
-src/app/api/
+apps/<site>/app/api/
 ├── health/
 │   └── route.ts                    GET /api/health
-├── beneficiaires/
-│   ├── route.ts                    GET /api/beneficiaires (liste)
-│   │                               POST /api/beneficiaires (création)
-│   └── [id]/
-│       ├── route.ts                GET /api/beneficiaires/:id
-│       │                           PATCH /api/beneficiaires/:id
-│       │                           DELETE /api/beneficiaires/:id
-│       └── documents/
-│           └── route.ts            GET /api/beneficiaires/:id/documents
+├── blog/
+│   ├── posts/
+│   │   ├── route.ts                GET /api/blog/posts (liste)
+│   │   │                           POST /api/blog/posts (création)
+│   │   └── [id]/
+│   │       └── route.ts            GET /api/blog/posts/:id
+│   │                               PATCH /api/blog/posts/:id
+│   │                               DELETE /api/blog/posts/:id
+│   └── tags/
+│       └── route.ts                GET /api/blog/tags
+├── testimonials/
+│   └── route.ts                    GET /api/testimonials
+├── contact/
+│   └── route.ts                    POST /api/contact
+├── seminars/
+│   └── route.ts                    GET /api/seminars
+└── cron/
+    └── social-publish/
+        └── route.ts                POST /api/cron/social-publish
 ```
 
 ---
@@ -74,52 +89,60 @@ src/app/api/
 ## 2. Pattern de Route Handler standardisé
 
 ```typescript
-// src/app/api/beneficiaires/route.ts
+// apps/psypnos/app/api/blog/posts/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase/server';
-import { requireRole } from '@/lib/auth';
+import { prisma } from '@kairn/db';
+import { withAuth } from '@kairn/api';
 import { z } from 'zod';
-import { apiError, apiSuccess, paginatedResponse } from '@/lib/api-helpers';
+import { siteConfig } from '@/site.config';
 
 // ① Schéma de validation des query params
 const ListQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
   search: z.string().max(100).optional(),
-  status: z.enum(['active', 'archived', 'all']).default('active'),
-  sort: z.enum(['created_at', 'full_name', 'updated_at']).default('created_at'),
+  status: z.enum(['PUBLISHED', 'DRAFT', 'ARCHIVED']).default('PUBLISHED'),
+  sort: z.enum(['createdAt', 'title', 'updatedAt']).default('createdAt'),
   order: z.enum(['asc', 'desc']).default('desc'),
 });
 
 export async function GET(request: NextRequest) {
   try {
-    // ② Auth + RBAC
-    const session = await requireRole(request, ['consultant', 'super_admin']);
-    if (!session.ok) return apiError(session.error, 401);
-
+    // ② Auth (optionnel pour les posts publics, requis pour DRAFT/ARCHIVED)
     // ③ Validation des entrées
     const params = ListQuerySchema.safeParse(Object.fromEntries(request.nextUrl.searchParams));
-    if (!params.success) return apiError('Invalid parameters', 400, params.error.format());
+    if (!params.success) return NextResponse.json({ error: 'Invalid parameters' }, { status: 400 });
 
-    // ④ Requête BDD
     const { page, limit, search, status, sort, order } = params.data;
-    const supabase = createServerClient();
-    let query = supabase.from('beneficiaires').select('*', { count: 'exact' });
 
-    if (status !== 'all') query = query.eq('status', status);
-    if (search) query = query.ilike('full_name', `%${search}%`);
+    // ④ siteId OBLIGATOIRE — isolation multi-tenant
+    const siteId = siteConfig.id;
 
-    query = query
-      .order(sort, { ascending: order === 'asc' })
-      .range((page - 1) * limit, page * limit - 1);
+    // ⑤ Requête Prisma avec siteId
+    const [data, total] = await Promise.all([
+      prisma.blogPost.findMany({
+        where: {
+          siteId, // TOUJOURS filtrer par siteId
+          status,
+          ...(search ? { title: { contains: search, mode: 'insensitive' } } : {}),
+        },
+        include: { tags: { include: { tag: true } } },
+        orderBy: { [sort]: order },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.blogPost.count({
+        where: { siteId, status },
+      }),
+    ]);
 
-    const { data, count, error } = await query;
-    if (error) return apiError('Database error', 500);
-
-    // ⑤ Réponse paginée standardisée
-    return paginatedResponse(data, { page, limit, total: count ?? 0 });
+    // ⑥ Réponse paginée standardisée
+    return NextResponse.json({
+      data,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    });
   } catch (error) {
-    return apiError('Internal server error', 500);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 ```
@@ -200,30 +223,32 @@ export function paginatedResponse<T>(
 
 ```typescript
 // ① Schéma de création (entrée POST)
-const CreateBeneficiaireSchema = z.object({
-  email: z.string().email().max(255),
-  fullName: z.string().min(2).max(100),
-  phone: z
-    .string()
-    .regex(/^(\+33|0)[1-9](\d{2}){4}$/)
-    .optional(),
+const CreateBlogPostSchema = z.object({
+  title: z.string().min(3).max(200),
+  slug: z.string().min(3).max(200),
+  content: z.string().min(10),
+  excerpt: z.string().max(500).optional(),
+  category: z.string().max(100).optional(),
+  tags: z.array(z.string()).optional(),
+  status: z.enum(['DRAFT', 'PUBLISHED']).default('DRAFT'),
 });
 
 // ② Schéma de mise à jour (entrée PATCH — tous les champs optionnels)
-const UpdateBeneficiaireSchema = CreateBeneficiaireSchema.partial();
+const UpdateBlogPostSchema = CreateBlogPostSchema.partial();
 
 // ③ Schéma de réponse (sortie — pour documentation et tests)
-const BeneficiaireResponseSchema = z.object({
-  id: z.string().uuid(),
-  email: z.string().email(),
-  fullName: z.string(),
-  status: z.enum(['active', 'archived']),
+const BlogPostResponseSchema = z.object({
+  id: z.string(),
+  siteId: z.string(),
+  title: z.string(),
+  slug: z.string(),
+  status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']),
   createdAt: z.string().datetime(),
 });
 
 // Les types TypeScript sont inférés automatiquement
-type CreateBeneficiaireDto = z.infer<typeof CreateBeneficiaireSchema>;
-type BeneficiaireResponse = z.infer<typeof BeneficiaireResponseSchema>;
+type CreateBlogPostDto = z.infer<typeof CreateBlogPostSchema>;
+type BlogPostResponse = z.infer<typeof BlogPostResponseSchema>;
 ```
 
 ---
@@ -262,8 +287,8 @@ et les Route Handlers pour tout le reste (liste, recherche, filtres, pagination,
 ## 7. Contrats d'interface entre packages
 
 ```typescript
-// src/types/api-contracts.ts
-// Types partagés entre le frontend et les route handlers
+// packages/api/src/types/api-contracts.ts
+// Types partagés entre le frontend et les route handlers (@kairn/api)
 
 export interface PaginatedRequest {
   page?: number;
@@ -298,14 +323,15 @@ export interface ApiError {
 
 ## 8. Anti-patterns API — Interdictions
 
-| ❌ Interdit                                             | ✅ Alternative                  |
-| ------------------------------------------------------- | ------------------------------- |
-| Retourner un objet DB brut (avec `service_role` fields) | DTO de réponse explicite        |
-| `any` dans les types de réponse                         | Schéma Zod avec inférence       |
-| Erreur 200 avec `{ success: false }`                    | HTTP status code approprié      |
-| Pagination offset sur grandes tables                    | Pagination cursor-based         |
-| Endpoint sans validation d'entrée                       | Zod `.safeParse()` systématique |
-| Logique métier dans le route handler                    | Use case / service dédié        |
+| ❌ Interdit                                       | ✅ Alternative                         |
+| ------------------------------------------------- | -------------------------------------- |
+| Requête Prisma sans filtre `siteId`               | TOUJOURS `where: { siteId, ... }`      |
+| Retourner un objet DB brut (avec champs internes) | DTO de réponse explicite               |
+| `any` dans les types de réponse                   | Schéma Zod avec inférence              |
+| Erreur 200 avec `{ success: false }`              | HTTP status code approprié             |
+| Pagination offset sur grandes tables              | Pagination cursor-based                |
+| Endpoint sans validation d'entrée                 | Zod `.safeParse()` systématique        |
+| Logique métier dans le route handler              | Use case / service dédié (@kairn/core) |
 
 ---
 

@@ -12,7 +12,7 @@ description: >
   "anonymisation", "pseudonymisation", "PIA", "AIPD", "CNIL", "base légale", "finalité",
   "sous-traitant", "transfert de données", "données sensibles", "catégorie spéciale",
   "cookie banner", "mentions légales", "politique de confidentialité". Ce skill est CRITIQUE
-  pour les données RH et bilans de compétences (Link's Accompagnement).
+  pour les données des praticiens et de leurs clients sur la plateforme Kairn.
 compatibility:
   recommends:
     - databasix # Pour l'implémentation technique (soft delete, anonymisation, audit trail, chiffrement)
@@ -23,7 +23,7 @@ compatibility:
 
 # Rgpdix — Conformité RGPD & Protection des Données Personnelles
 
-Tu es **Rgpdix**, expert en conformité RGPD pour l'application Link's Accompagnement.
+Tu es **Rgpdix**, expert en conformité RGPD pour la plateforme Kairn.
 Tu garantis que chaque traitement de données personnelles respecte le cadre réglementaire
 européen et les recommandations de la CNIL.
 
@@ -34,11 +34,11 @@ européen et les recommandations de la CNIL.
 
 ## 1. Cartographie des risques RGPD
 
-| Données traitées                                   | Catégorie RGPD             | Niveau de risque |
-| -------------------------------------------------- | -------------------------- | ---------------- |
-| Bilans de compétences, parcours professionnels, CV | Données personnelles RH    | 🟠 Élevé         |
-| Profils bénéficiaires, réponses aux questionnaires | Données personnelles       | 🟠 Élevé         |
-| Documents de phase, comptes rendus de séances      | Données RH confidentielles | 🟠 Élevé         |
+| Données traitées                                   | Catégorie RGPD           | Niveau de risque |
+| -------------------------------------------------- | ------------------------ | ---------------- |
+| Profils praticiens, configurations de sites        | Données professionnelles | 🟡 Modéré        |
+| Contacts clients, demandes de rendez-vous          | Données personnelles     | 🟠 Élevé         |
+| Témoignages, articles de blog, contenus générés IA | Données mixtes           | 🟡 Modéré        |
 
 ---
 
@@ -46,10 +46,10 @@ européen et les recommandations de la CNIL.
 
 Pour chaque traitement de données, identifier la base légale applicable :
 
-| Base légale           | Usage dans Link's                | Exemple                               |
+| Base légale           | Usage dans Kairn                 | Exemple                               |
 | --------------------- | -------------------------------- | ------------------------------------- |
 | **Consentement**      | Cookies, newsletter, prospection | Cookie banner, inscription newsletter |
-| **Contrat**           | Exécution du service acheté      | Suivi des bilans de compétences       |
+| **Contrat**           | Exécution du service SaaS        | Gestion des sites praticiens          |
 | **Obligation légale** | Comptabilité, archivage          | Conservation des factures 10 ans      |
 | **Intérêt légitime**  | Analytics, amélioration service  | Logs d'audit, statistiques anonymes   |
 | **Intérêts vitaux**   | Rarement applicable              | —                                     |
@@ -147,14 +147,14 @@ export async function exportPortable(userId: string, format: 'json' | 'csv') {
 
 ## 4. Durées de conservation
 
-| Donnée                     | Durée                             | Base                 | Action à expiration          |
-| -------------------------- | --------------------------------- | -------------------- | ---------------------------- |
-| Compte utilisateur inactif | 3 ans après dernière connexion    | CNIL                 | Suppression ou anonymisation |
-| Bilan de compétences       | 1 an après fin de prestation      | Code du travail      | Anonymisation                |
-| Données médico-sociales    | Défini par le cadre réglementaire | Réglementation santé | Archivage sécurisé           |
-| Logs d'audit               | 1 an                              | Intérêt légitime     | Anonymisation                |
-| Données SAV                | 5 ans après fin de relation       | Prescription civile  | Suppression                  |
-| Cookies analytics          | 13 mois max                       | CNIL                 | Suppression automatique      |
+| Donnée                     | Durée                             | Base                | Action à expiration          |
+| -------------------------- | --------------------------------- | ------------------- | ---------------------------- |
+| Compte utilisateur inactif | 3 ans après dernière connexion    | CNIL                | Suppression ou anonymisation |
+| Données clients praticien  | 1 an après fin de prestation      | Intérêt légitime    | Anonymisation                |
+| Données de séances         | Défini par le cadre réglementaire | Contrat             | Archivage sécurisé           |
+| Logs d'audit               | 1 an                              | Intérêt légitime    | Anonymisation                |
+| Données SAV                | 5 ans après fin de relation       | Prescription civile | Suppression                  |
+| Cookies analytics          | 13 mois max                       | CNIL                | Suppression automatique      |
 
 ### Implémentation technique des durées
 

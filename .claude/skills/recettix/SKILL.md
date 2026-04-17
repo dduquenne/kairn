@@ -1,23 +1,21 @@
 ---
 name: recettix
 description: >
-  Recettix : compétence de recette et validation des livrables d'une
-  application métier TypeScript. Couvre : Plan de Recette contractuel,
-  critères d'acceptance Gherkin, jeux de tests (unitaires Vitest,
-  intégration, E2E Playwright, performance Lighthouse CI, sécurité
-  OWASP, accessibilité WCAG), conduite de campagnes UAT, Procès-Verbal
-  de Recette (PVR) et Rapport de Validation Finale (RVF) opposables.
-  Déclencher dès qu'une question touche à : recette, PVR, RVF,
-  validation client, critères d'acceptance, UAT, couverture de tests,
-  anomalie bloquante, levée de réserve, bon de livraison, "définition
-  of Done", "plan de recette", "rapport de recette", "Recettix".
-  Lit la note de cadrage et la SFD depuis Google Drive.
-  Produit les livrables (.docx, .xlsx) via present_files.
+  Recettix : compétence de recette et validation des livrables de la plateforme SaaS
+  multi-tenant Kairn (TypeScript/Next.js, monorepo pnpm + Turborepo, Prisma + PostgreSQL).
+  Couvre : Plan de Recette contractuel, critères d'acceptance Gherkin, jeux de tests
+  (unitaires Vitest, intégration, E2E Playwright, performance Lighthouse CI, sécurité
+  OWASP, accessibilité WCAG), conduite de campagnes UAT, Procès-Verbal de Recette (PVR)
+  et Rapport de Validation Finale (RVF) opposables. Déclencher dès qu'une question touche
+  à : recette, PVR, RVF, validation client, critères d'acceptance, UAT, couverture de
+  tests, anomalie bloquante, levée de réserve, bon de livraison, "définition of Done",
+  "plan de recette", "rapport de recette", "Recettix". Lit la note de cadrage et la SFD
+  depuis Google Drive. Produit les livrables (.docx, .xlsx) via present_files.
 compatibility:
   recommends:
     - projetix # Pour accéder aux spécifications fonctionnelles et critères d'acceptation source
     - anomalix # Pour le diagnostic et la gestion des anomalies détectées en recette
-    - databasix # Pour les tests de la couche données (intégrité, RLS, performance requêtes)
+    - databasix # Pour les tests de la couche données (intégrité, isolation siteId, performance requêtes)
     - testix # Pour l'écriture effective des tests (unitaires, intégration, E2E) issus du plan de recette
     - apix # Pour les tests de contrat API et les tests d'intégration des endpoints
 ---
@@ -111,18 +109,18 @@ Lecture de la SFD pour en extraire les critères d'acceptation...
 
 ## 2. Périmètre de compétence
 
-| Domaine                        | Couverture                                             |
-| ------------------------------ | ------------------------------------------------------ |
-| **Documents contractuels**     | Plan de Recette, PVR, RVF, Fiche d'anomalie            |
-| **Tests fonctionnels**         | Cas de test basés sur SFD + Gherkin BDD                |
-| **Tests unitaires TypeScript** | Vitest / Jest — couverture ≥ 80 % (branches, lignes)   |
-| **Tests d'intégration**        | API REST/GraphQL, couche repository, events            |
-| **Tests E2E**                  | Playwright — parcours critiques, smoke tests           |
-| **Tests de performance**       | Lighthouse CI, k6, seuils Core Web Vitals              |
-| **Tests de sécurité**          | OWASP Top 10, validation des entrées, RLS Supabase     |
-| **Tests d'accessibilité**      | WCAG 2.1 AA — axe-core, Playwright a11y                |
-| **Tests de régression**        | Suite de non-régression à chaque sprint                |
-| **Revue de code**              | Checklist TypeScript strict, patterns, dette technique |
+| Domaine                        | Couverture                                                             |
+| ------------------------------ | ---------------------------------------------------------------------- |
+| **Documents contractuels**     | Plan de Recette, PVR, RVF, Fiche d'anomalie                            |
+| **Tests fonctionnels**         | Cas de test basés sur SFD + Gherkin BDD                                |
+| **Tests unitaires TypeScript** | Vitest — couverture ≥ 60 % (statements/functions/lines), 50 % branches |
+| **Tests d'intégration**        | API REST/GraphQL, couche repository, events                            |
+| **Tests E2E**                  | Playwright — parcours critiques, smoke tests                           |
+| **Tests de performance**       | Lighthouse CI, k6, seuils Core Web Vitals                              |
+| **Tests de sécurité**          | OWASP Top 10, validation des entrées, isolation siteId                 |
+| **Tests d'accessibilité**      | WCAG 2.1 AA — axe-core, Playwright a11y                                |
+| **Tests de régression**        | Suite de non-régression à chaque sprint                                |
+| **Revue de code**              | Checklist TypeScript strict, patterns, dette technique                 |
 
 ---
 
@@ -212,7 +210,8 @@ Produire les deux documents finaux opposables :
 
 ## 4. Standards TypeScript & qualité du code
 
-Seuils minimaux : couverture ≥ 80% (lignes, fonctions, statements), branches ≥ 75%.
+Seuils minimaux Kairn : couverture ≥ 60% (lignes, fonctions, statements), branches ≥ 50%.
+Couverture ciblée sur `packages/core/src` et `packages/api/src`.
 Core Web Vitals : LCP < 2.5s, CLS < 0.1, INP < 200ms, TTFB < 800ms.
 
 Pour la config vitest, la checklist de revue de code et les seuils detailles,
@@ -311,7 +310,7 @@ Pour le workflow YAML complet, consulter `references/execution-recette.md`.
     critères d'acceptation à valider
   - **anomalix** : diagnostic et correction des anomalies
     détectées en campagne de recette
-  - **databasix** : tests d'intégrité des données, RLS, et
+  - **databasix** : tests d'intégrité des données, isolation siteId, et
     performance des requêtes
 
 ---

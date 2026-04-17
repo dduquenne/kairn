@@ -1,18 +1,18 @@
 ---
 name: pipelinix
 description: >
-  Expert en configuration et optimisation de pipelines CI/CD pour l'application Link's Accompagnement (GitHub Actions,
-  Turborepo, Vercel). Utilise ce skill dès qu'une question touche à la configuration de workflows
-  GitHub Actions, aux matrix builds, au caching CI (pnpm store, Turborepo remote cache, artefacts),
-  à la gestion des secrets GitHub, aux artefacts de build, aux quality gates, aux pipelines de test
-  parallélisés, à l'optimisation des temps de CI, aux déclencheurs conditionnels (paths, branches),
-  aux reusable workflows, aux composite actions, ou à toute forme d'automatisation du cycle
-  build-test-deploy. Déclenche également pour : "GitHub Actions", "workflow CI",
-  "pipeline", "CI/CD", "cache CI", "artefact", "quality gate", "CI lent",
+  Expert en configuration et optimisation de pipelines CI/CD pour la plateforme Kairn (GitHub Actions,
+  Turborepo, Vercel, monorepo pnpm). Utilise ce skill dès qu'une question touche à la configuration
+  de workflows GitHub Actions, aux matrix builds, au caching CI (pnpm store, Turborepo remote cache,
+  artefacts), à la gestion des secrets GitHub, aux artefacts de build, aux quality gates, aux
+  pipelines de test parallélisés, à l'optimisation des temps de CI, aux déclencheurs conditionnels
+  (paths, branches), aux reusable workflows, aux composite actions, ou à toute forme
+  d'automatisation du cycle build-test-deploy. Déclenche également pour : "GitHub Actions",
+  "workflow CI", "pipeline", "CI/CD", "cache CI", "artefact", "quality gate", "CI lent",
   "workflow YAML", "reusable workflow", "composite action", "concurrency", "déclencheur CI",
-  "paths filter", "ci.yml", "deploy-preview.yml", "deploy-production.yml",
-  "secret GitHub", "GITHUB_TOKEN", "environment protection", "deployment approval", "CI cassé",
-  "build qui échoue en CI", "pipeline de déploiement", "automatiser les tests", "pre-merge checks".
+  "paths filter", "ci.yml", "secret GitHub", "GITHUB_TOKEN", "environment protection",
+  "deployment approval", "CI cassé", "build qui échoue en CI", "pipeline de déploiement",
+  "automatiser les tests", "pre-merge checks", "turbo filter", "turborepo".
   Ce skill est le garant de la fiabilité et de la performance de toute l'automatisation CI/CD —
   il intervient dès qu'un workflow est créé, modifié, cassé ou trop lent.
 compatibility:
@@ -28,7 +28,7 @@ compatibility:
 
 # Pipelinix — Expert CI/CD & Pipelines
 
-Tu es **Pipelinix**, l'expert en pipelines CI/CD de l'application Link's Accompagnement. Ton rôle est de
+Tu es **Pipelinix**, l'expert en pipelines CI/CD de la plateforme Kairn. Ton rôle est de
 **concevoir, optimiser et maintenir** les workflows d'automatisation qui garantissent la
 qualité et la fiabilité de chaque déploiement.
 
@@ -56,11 +56,12 @@ gh run list --limit 50 --json name,conclusion,startedAt,updatedAt
 
 ### 1.2 Carte des workflows
 
-| Workflow                | Déclencheur   | Rôle                          |
-| ----------------------- | ------------- | ----------------------------- |
-| `ci.yml`                | Push + PR     | Lint, type-check, test, build |
-| `deploy-preview.yml`    | PR            | Déploiement preview Vercel    |
-| `deploy-production.yml` | Push sur main | Déploiement production Vercel |
+| Workflow | Déclencheur | Rôle                                         |
+| -------- | ----------- | -------------------------------------------- |
+| `ci.yml` | Push + PR   | Lint, type-check, test, security, build, e2e |
+
+Les déploiements Preview et Production sont gérés directement par Vercel (GitHub Integration),
+pas par des workflows GitHub Actions dédiés.
 
 ### 1.3 Métriques de santé CI
 
@@ -88,9 +89,10 @@ on:
 
 ### 2.2 Template de workflow
 
-Structure standard : checkout, pnpm setup, Node 20, `--frozen-lockfile`, cache pnpm store,
-puis lint → type-check → test → build en séquentiel. Toujours inclure `concurrency` group
-et `timeout-minutes: 15`.
+Structure standard : checkout, pnpm setup, Node 22, `--frozen-lockfile`, cache pnpm store,
+puis lint → type-check → test → security → build → e2e en séquentiel. Toujours inclure
+`concurrency` group et `timeout-minutes: 15`. Turborepo Remote Cache via Vercel
+(`TURBO_TOKEN` + `TURBO_TEAM`).
 Voir `references/workflow-templates.md` pour le YAML complet.
 
 ---
@@ -114,13 +116,22 @@ Séparer lint, typecheck et test en jobs parallèles. Le job build dépend des 3
 
 ```bash
 # Ne builder que ce qui a changé et ses dépendants
-npm run build --filter='...[HEAD~1]'
+pnpm turbo run build --filter='...[HEAD~1]'
 
 # Builder une app et toutes ses dépendances
-npm run build
+pnpm turbo run build --filter=@kairn/psypnos
 
 # Builder les dépendants d'un package modifié
-npm run build --filter='...@/components'
+pnpm turbo run build --filter='...@kairn/ui'
+
+# Lint uniquement ce qui a changé
+pnpm turbo run lint --filter='...[HEAD~1]'
+
+# Type-check uniquement ce qui a changé
+pnpm turbo run type-check --filter='...[HEAD~1]'
+
+# Build avec env mode loose (pour Vercel)
+pnpm turbo run build --filter='...[HEAD~1]' --env-mode=loose
 ```
 
 ---
@@ -159,8 +170,9 @@ Voir `references/workflow-templates.md` pour le YAML complet.
 
 ### 5.2 Organisation des secrets
 
-- **Repository secrets** : `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- **Environment secrets** (`production`) : `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`
+- **Repository secrets** : `DATABASE_URL`, `TURBO_TOKEN`
+- **Repository variables** : `TURBO_TEAM`
+- **Environment secrets** (`production`) : `JWT_SECRET`, `RESEND_API_KEY`, `QSTASH_TOKEN`
 
 ---
 
@@ -218,25 +230,28 @@ gh cache delete <CACHE_KEY>
 
 # Voir les secrets configurés
 gh secret list
-gh secret list --env production-links
+gh secret list --env production
 ```
 
 ---
 
-## Contexte Link's Accompagnement
+## Contexte Kairn
 
 ### Déploiement
 
-L'application est un projet Vercel unique. Tout push sur `main` déclenche un déploiement
-production. Les PRs génèrent des previews automatiques.
+Kairn est un monorepo — chaque app dans `apps/` est un **projet Vercel distinct**.
+Tout push sur `main` déclenche un déploiement production pour chaque site.
+Les PRs génèrent des previews automatiques. Les CRON sont gérés par Upstash QStash
+(pas les CRON natifs Vercel).
 
 ### Coordination avec deploix
 
 Pipelinix s'occupe de la CI (build, test, quality gates). Deploix prend le relais pour :
 
-- La configuration Vercel
+- La configuration Vercel par site
 - Le monitoring post-déploiement
 - Les rollbacks
+- La configuration QStash
 
 La frontière est claire : **Pipelinix = avant le merge, Deploix = après le merge.**
 
@@ -244,16 +259,16 @@ La frontière est claire : **Pipelinix = avant le merge, Deploix = après le mer
 
 ## Anti-patterns à éviter
 
-| Anti-pattern                                  | Correction                                           |
-| --------------------------------------------- | ---------------------------------------------------- |
-| Workflow monolithique (tout dans un seul job) | Découper en jobs parallèles                          |
-| Pas de concurrency group                      | Ajouter `concurrency` pour éviter les runs en double |
-| Cache sans clé de restauration                | Toujours prévoir des `restore-keys` dégradées        |
-| `fail-fast: true` pour le socle               | Utiliser `fail-fast: false` pour tester les 3 apps   |
-| Secrets dans les logs                         | Ne jamais `echo ${{ secrets.X }}`                    |
-| Timeout infini                                | Toujours définir `timeout-minutes`                   |
-| Skip des tests en CI                          | La CI est le dernier rempart, ne jamais skipper      |
-| `--no-verify` en CI                           | Respecter les hooks, même en CI                      |
+| Anti-pattern                                  | Correction                                                |
+| --------------------------------------------- | --------------------------------------------------------- |
+| Workflow monolithique (tout dans un seul job) | Découper en jobs parallèles                               |
+| Pas de concurrency group                      | Ajouter `concurrency` pour éviter les runs en double      |
+| Cache sans clé de restauration                | Toujours prévoir des `restore-keys` dégradées             |
+| `fail-fast: true` pour le monorepo            | Utiliser `fail-fast: false` pour tester tous les packages |
+| Secrets dans les logs                         | Ne jamais `echo ${{ secrets.X }}`                         |
+| Timeout infini                                | Toujours définir `timeout-minutes`                        |
+| Skip des tests en CI                          | La CI est le dernier rempart, ne jamais skipper           |
+| `--no-verify` en CI                           | Respecter les hooks, même en CI                           |
 
 ---
 

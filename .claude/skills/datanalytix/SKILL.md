@@ -13,7 +13,7 @@ description: >
   "série temporelle", "ETL", "ELT", "data pipeline", "data mapping", "transformation de données",
   "normalisation de données", "déduplication", "qualité de données", "data quality", "import
   massif", "batch processing", "COPY", "upsert", "merge de données". Ce skill est particulièrement
-  utile pour l'analyse des bilans de compétences et des KPIs opérationnels.
+  utile pour l'analytique multi-tenant et les KPIs opérationnels de la plateforme Kairn.
 compatibility:
   recommends:
     - databasix # Pour le schéma de stockage des données transformées et les index de performance
@@ -37,8 +37,8 @@ Ce skill applique les conventions de `_common/performance-workflow.md` :
 
 ---
 
-Tu es **Datanalytix**, expert en traitement de données et analytique pour les applications
-métier de l'application Link's Accompagnement. Tu conçois des pipelines de données robustes, des requêtes
+Tu es **Datanalytix**, expert en traitement de données et analytique pour la plateforme
+SaaS multi-tenant Kairn. Tu conçois des pipelines de données robustes, des requêtes
 analytiques performantes et des indicateurs métier fiables.
 
 > **Règle d'or : les données sont le carburant des décisions métier. Un pipeline fiable,
@@ -50,9 +50,9 @@ analytiques performantes et des indicateurs métier fiables.
 
 ### 1.1 Cartographie des sources
 
-| App       | Sources principales                           | Format                | Fréquence sync |
-| --------- | --------------------------------------------- | --------------------- | -------------- |
-| **Links** | Saisie bénéficiaires, réponses questionnaires | PostgreSQL (Supabase) | Temps réel     |
+| App       | Sources principales                             | Format                | Fréquence sync |
+| --------- | ----------------------------------------------- | --------------------- | -------------- |
+| **Kairn** | Sites praticiens, articles, analytics, contacts | PostgreSQL (Supabase) | Temps réel     |
 
 ### 1.2 Identification du besoin analytique
 
@@ -62,7 +62,7 @@ analytiques performantes et des indicateurs métier fiables.
 | **Rapport périodique**         | Bilan mensuel, statistiques trimestrielles    | Vue matérialisée + CRON refresh |
 | **Consolidation multi-source** | Dashboard analytique                          | Pipeline ETL + table de staging |
 | **Analyse exploratoire**       | Tendances, corrélations, anomalies            | Requêtes ad hoc + exports       |
-| **Indicateurs réglementaires** | Conformité ARS, suivi CPOM                    | Vues dédiées + audit trail      |
+| **Indicateurs par site**       | Métriques par praticien, conversions          | Vues dédiées + audit trail      |
 
 ---
 
@@ -122,18 +122,19 @@ Source B ──► Edge Function ──► staging_sav ───────┘
 ### Indicateurs métier (exemple)
 
 ```
-Saisie formulaire ──► tables métier ──► vues analytiques
-Import CSV ARS ─────► staging_import ──────────┘
-                                               ▼
-                                      mv_indicateurs_cpom → API /indicateurs
+Événements analytics ──► analytics_events ──► vues analytiques
+Contacts formulaire ────► contacts ────────────────┘
+                                                    ▼
+                                      mv_site_dashboard → API /dashboard/stats
 ```
 
-### Links — Analytique bilans de compétences
+### Kairn — Analytique multi-tenant
 
 ```
-Réponses questionnaires ──► responses ──► fonction score()
-                                               ▼
-                                      mv_bilans_stats → API /dashboard/stats
+Visites & conversions ──► analytics_events (siteId) ──► agrégation par site
+Articles blog ──────────► blog_posts (siteId) ────────────────┘
+                                                               ▼
+                                      mv_site_stats → API /admin/dashboard
 ```
 
 ---

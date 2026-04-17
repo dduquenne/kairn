@@ -2,15 +2,15 @@
 name: databasix
 description: >
   Expert en conception, création, alimentation, optimisation et sécurisation de bases de données
-  pour applications métier TypeScript + Supabase (PostgreSQL). Utilise ce skill dès qu'une question
-  touche à la modélisation de schéma, aux migrations Supabase, aux politiques RLS, à la génération
-  de types TypeScript, aux index de performance, aux transactions, aux Edge Functions avec accès BDD,
-  à l'audit/logging, aux tests pgTAP, ou à tout aspect de la couche données d'un projet Supabase.
-  Déclenche également pour : "schéma de base", "migration supabase", "politique RLS", "types générés",
-  "optimisation requête", "connexion pooling", "seed de données", "sécurité base de données",
-  "audit trail", "soft delete", "multi-tenant", "relation FK", "index btree/gin/gist", "EXPLAIN ANALYZE".
-  Ce skill est ESSENTIEL pour toute question sur la couche données — même indirecte (ex: "comment
-  stocker les préférences utilisateurs", "comment gérer les permissions", "comment auditer les actions").
+  pour la plateforme SaaS multi-tenant Kairn (TypeScript + Prisma + PostgreSQL/Supabase). Utilise
+  ce skill dès qu'une question touche à la modélisation de schéma, aux migrations Prisma, aux
+  politiques RLS, à la génération de types TypeScript, aux index de performance, aux transactions,
+  à l'audit/logging, ou à tout aspect de la couche données. Déclenche également pour : "schéma de
+  base", "migration prisma", "politique RLS", "types générés", "optimisation requête", "connexion
+  pooling", "seed de données", "sécurité base de données", "audit trail", "soft delete",
+  "multi-tenant", "siteId", "relation FK", "index btree/gin/gist", "EXPLAIN ANALYZE". Ce skill est
+  ESSENTIEL pour toute question sur la couche données — même indirecte (ex: "comment stocker les
+  préférences utilisateurs", "comment gérer les permissions", "comment auditer les actions").
 compatibility:
   recommends:
     - archicodix # Quand le schéma BDD traduit un modèle de domaine ou impacte l'architecture applicative
@@ -21,10 +21,44 @@ compatibility:
     - datanalytix # Pour les vues analytiques, agrégations, KPIs et pipelines de données
 ---
 
-# Databasix — Expert Base de Données Supabase × TypeScript
+# Databasix — Expert Base de Données Kairn (Prisma × PostgreSQL × TypeScript)
 
 Compétence spécialisée dans la conception, la mise en œuvre, l'optimisation et la sécurisation
-de la couche données d'applications métier TypeScript utilisant Supabase (PostgreSQL).
+de la couche données de la plateforme SaaS multi-tenant Kairn (TypeScript, Prisma, PostgreSQL/Supabase).
+
+---
+
+## 0. Isolation multi-tenant — Règle critique
+
+> **CHAQUE table tenant-scoped DOIT avoir une colonne `siteId` avec FK vers la table `Site`.**
+> **CHAQUE requête Prisma sur une table tenant-scoped DOIT filtrer par `siteId`.**
+
+La fuite de données entre tenants est une **faille de sécurité critique**. Les tables
+concernées incluent : `BlogPost`, `Tag`, `Testimonial`, `Contact`, `Seminar`,
+`SeminarRegistration`, `SocialAccount`, `SocialPost`, `AnalyticsEvent`, `BlogAnalytics`, etc.
+
+```typescript
+// ✅ TOUJOURS filtrer par siteId
+const posts = await prisma.blogPost.findMany({
+  where: { siteId, status: 'PUBLISHED' },
+});
+
+// ❌ JAMAIS de requête sans siteId sur une table tenant-scoped
+const posts = await prisma.blogPost.findMany({
+  where: { status: 'PUBLISHED' },
+});
+```
+
+```prisma
+// Schéma Prisma — toute nouvelle table tenant-scoped
+model NouvelleTable {
+  id     String @id @default(cuid())
+  siteId String
+  site   Site   @relation(fields: [siteId], references: [id])
+  // ... autres colonnes
+  @@index([siteId])
+}
+```
 
 ---
 
@@ -344,14 +378,14 @@ Utiliser `WITH (security_invoker = true)` pour que la vue respecte les RLS de l'
 
 Avant chaque déploiement en production, vérifier :
 
+- [ ] Toutes les tables tenant-scoped ont une colonne `siteId` + FK vers `Site` + index
+- [ ] Toutes les requêtes Prisma sur tables tenant-scoped filtrent par `siteId`
 - [ ] RLS activé sur toutes les tables `public`
 - [ ] Aucune clé `service_role` dans le code client
-- [ ] Tous les index RLS en place (`user_id`, `org_id`)
-- [ ] Types TypeScript régénérés (`supabase gen types`)
+- [ ] Tous les index en place (`siteId`, `user_id`)
+- [ ] Client Prisma régénéré (`pnpm --filter @kairn/db db:generate`)
 - [ ] Migrations testées sur environnement staging
-- [ ] Tests pgTAP verts (`supabase test db`)
 - [ ] `EXPLAIN ANALYZE` < 50ms sur les requêtes critiques
 - [ ] Trigger `updated_at` sur toutes les tables éditables
-- [ ] Abonnements Realtime avec filtres explicites
 - [ ] Audit log activé sur les tables métier sensibles
 - [ ] Backup testé et restauration validée
