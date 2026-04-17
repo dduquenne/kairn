@@ -8,6 +8,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import { CLAUDE_DEFAULT_MODEL } from '@kairn/ai';
 import { NextRequest, NextResponse } from 'next/server';
 
 import { withAdminAuth } from '@/app/api/auth/middleware';
@@ -37,7 +38,7 @@ import type {
 // ===========================================
 
 const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-const MODEL = 'claude-sonnet-4-6';
+const MODEL = CLAUDE_DEFAULT_MODEL;
 const MAX_TOKENS = 2048;
 
 // ===========================================

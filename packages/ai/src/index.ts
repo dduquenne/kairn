@@ -57,6 +57,11 @@
 // ============================================
 
 export {
+  // Model constants
+  CLAUDE_DEFAULT_MODEL,
+  OPENAI_DEFAULT_TEXT_MODEL,
+  OPENAI_DEFAULT_IMAGE_MODEL,
+
   // Types
   type AIProvider,
   type GenerateTextOptions,

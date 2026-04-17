@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { CLAUDE_DEFAULT_MODEL } from '@kairn/ai';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
@@ -124,7 +125,7 @@ Améliore ce texte en suivant ces instructions. Conserve le même format et assu
 Retourne uniquement le texte amélioré, sans balises additionnelles, sans préambule, sans explication.`;
 
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
+      model: CLAUDE_DEFAULT_MODEL,
       max_tokens: 8000,
       temperature: 0.7,
       ...(payload.useAvvStyle && { system: AVV_STYLE_SYSTEM_PROMPT }),

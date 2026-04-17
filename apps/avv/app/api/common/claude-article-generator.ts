@@ -3,6 +3,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import { CLAUDE_DEFAULT_MODEL } from '@kairn/ai';
 
 import { parseJsonFromText, validateXmlCompletion, withRetryAndTimeout } from './ai-utils';
 import {
@@ -533,7 +534,7 @@ Génère maintenant l'article complet.`;
     const message = await withRetryAndTimeout(
       () =>
         anthropic.messages.create({
-          model: 'claude-sonnet-4-6',
+          model: CLAUDE_DEFAULT_MODEL,
           max_tokens: maxTokensByLength[targetLength],
           temperature: 0.7,
           // ✨ Utiliser le system prompt AVV si activé
@@ -777,7 +778,7 @@ Retourne uniquement le contenu amélioré en Markdown, sans balises additionnell
     const message = await withRetryAndTimeout(
       () =>
         anthropic.messages.create({
-          model: 'claude-sonnet-4-6',
+          model: CLAUDE_DEFAULT_MODEL,
           max_tokens: 6000, // Même limite que la génération
           temperature: 0.7,
           // ✨ Utiliser le system prompt AVV si activé

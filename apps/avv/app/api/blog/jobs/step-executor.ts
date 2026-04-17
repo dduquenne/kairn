@@ -14,6 +14,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import { CLAUDE_DEFAULT_MODEL } from '@kairn/ai';
 
 import { prisma } from '@/lib/db/prisma';
 import { getSiteId } from '@/lib/db/site';
@@ -530,7 +531,7 @@ Réponds UNIQUEMENT avec le JSON`;
       const message = await withRetryAndTimeout(
         () =>
           anthropic.messages.create({
-            model: 'claude-sonnet-4-6',
+            model: CLAUDE_DEFAULT_MODEL,
             max_tokens: 5000,
             temperature: 0.7,
             ...(AVV_STYLE_SYSTEM_PROMPT && { system: AVV_STYLE_SYSTEM_PROMPT }),
@@ -582,7 +583,7 @@ IMPORTANT: Rédige UNIQUEMENT l'introduction en Markdown.`;
       const message = await withRetryAndTimeout(
         () =>
           anthropic.messages.create({
-            model: 'claude-sonnet-4-6',
+            model: CLAUDE_DEFAULT_MODEL,
             max_tokens: 1000,
             temperature: 0.7,
             ...(AVV_STYLE_SYSTEM_PROMPT && { system: AVV_STYLE_SYSTEM_PROMPT }),
@@ -645,7 +646,7 @@ IMPORTANT: Rédige UNIQUEMENT cette section en Markdown (titre H2 inclus).`;
         const message = await withRetryAndTimeout(
           () =>
             anthropic.messages.create({
-              model: 'claude-sonnet-4-6',
+              model: CLAUDE_DEFAULT_MODEL,
               max_tokens: lengthConfig.maxTokensPerSection,
               temperature: 0.7,
               ...(AVV_STYLE_SYSTEM_PROMPT && { system: AVV_STYLE_SYSTEM_PROMPT }),
@@ -702,7 +703,7 @@ IMPORTANT: Rédige UNIQUEMENT la conclusion en Markdown (titre H2 inclus).`;
       const message = await withRetryAndTimeout(
         () =>
           anthropic.messages.create({
-            model: 'claude-sonnet-4-6',
+            model: CLAUDE_DEFAULT_MODEL,
             max_tokens: 1000,
             temperature: 0.7,
             ...(AVV_STYLE_SYSTEM_PROMPT && { system: AVV_STYLE_SYSTEM_PROMPT }),
@@ -752,7 +753,7 @@ ${fullContent}
         const message = await withRetryAndTimeout(
           () =>
             anthropic.messages.create({
-              model: 'claude-sonnet-4-6',
+              model: CLAUDE_DEFAULT_MODEL,
               max_tokens: 8000,
               temperature: 0.3,
               ...(AVV_STYLE_SYSTEM_PROMPT && { system: AVV_STYLE_SYSTEM_PROMPT }),
@@ -810,7 +811,7 @@ Réponds UNIQUEMENT avec le JSON.`;
       const message = await withRetryAndTimeout(
         () =>
           anthropic.messages.create({
-            model: 'claude-sonnet-4-6',
+            model: CLAUDE_DEFAULT_MODEL,
             max_tokens: 500,
             temperature: 0.7,
             ...(AVV_STYLE_SYSTEM_PROMPT && { system: AVV_STYLE_SYSTEM_PROMPT }),
@@ -869,7 +870,7 @@ Réponds UNIQUEMENT avec le JSON.`;
       const message = await withRetryAndTimeout(
         () =>
           anthropic.messages.create({
-            model: 'claude-sonnet-4-6',
+            model: CLAUDE_DEFAULT_MODEL,
             max_tokens: 300,
             temperature: 0.7,
             messages: [{ role: 'user', content: prompt }],
@@ -926,7 +927,7 @@ Réponds UNIQUEMENT avec le JSON.`;
       const message = await withRetryAndTimeout(
         () =>
           anthropic.messages.create({
-            model: 'claude-sonnet-4-6',
+            model: CLAUDE_DEFAULT_MODEL,
             max_tokens: 1500,
             temperature: 0.7,
             ...(AVV_STYLE_SYSTEM_PROMPT && { system: AVV_STYLE_SYSTEM_PROMPT }),
@@ -986,7 +987,7 @@ Réponds UNIQUEMENT avec le prompt image.`;
       const message = await withRetryAndTimeout(
         () =>
           anthropic.messages.create({
-            model: 'claude-sonnet-4-6',
+            model: CLAUDE_DEFAULT_MODEL,
             max_tokens: 1000,
             temperature: 0.7,
             system: AVV_IMAGE_GENERATION_PROMPT,

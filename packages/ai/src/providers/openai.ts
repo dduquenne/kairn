@@ -6,6 +6,8 @@
 import type OpenAI from 'openai';
 import type { ChatCompletion, ChatCompletionMessageParam } from 'openai/resources/chat/completions';
 
+import { OPENAI_DEFAULT_TEXT_MODEL, OPENAI_DEFAULT_IMAGE_MODEL } from '../models.js';
+
 import {
   AIProvider,
   OpenAIProviderConfig,
@@ -19,8 +21,6 @@ import {
   AIAuthenticationError,
 } from './types.js';
 
-const DEFAULT_TEXT_MODEL = 'gpt-4o';
-const DEFAULT_IMAGE_MODEL = 'dall-e-3';
 const DEFAULT_MAX_TOKENS = 4096;
 const DEFAULT_TIMEOUT_MS = 120000; // 2 minutes
 
@@ -33,8 +33,8 @@ export class OpenAIProvider implements AIProvider {
 
   constructor(config: OpenAIProviderConfig) {
     this.config = config;
-    this.defaultTextModel = config.textModel || DEFAULT_TEXT_MODEL;
-    this.defaultImageModel = config.imageModel || DEFAULT_IMAGE_MODEL;
+    this.defaultTextModel = config.textModel || OPENAI_DEFAULT_TEXT_MODEL;
+    this.defaultImageModel = config.imageModel || OPENAI_DEFAULT_IMAGE_MODEL;
   }
 
   /**

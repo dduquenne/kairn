@@ -6,6 +6,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import { CLAUDE_DEFAULT_MODEL } from '@kairn/ai';
 import { NextRequest, NextResponse } from 'next/server';
 
 import { withRetryAndTimeout } from '@/app/api/common/ai-utils';
@@ -169,7 +170,7 @@ Génère un prompt image ACCUEILLANT et CHALEUREUX qui est **CLAIREMENT REPRÉSE
     const message = await withRetryAndTimeout(
       () =>
         anthropic.messages.create({
-          model: 'claude-sonnet-4-6',
+          model: CLAUDE_DEFAULT_MODEL,
           max_tokens: 1000,
           system: PSYPNOS_IMAGE_GENERATION_PROMPT,
           messages: [
@@ -229,7 +230,7 @@ IMPORTANT: L'image doit transmettre CHALEUR, ACCUEIL et ESPOIR pour des personne
         const correctionMessage = await withRetryAndTimeout(
           () =>
             anthropic.messages.create({
-              model: 'claude-sonnet-4-6',
+              model: CLAUDE_DEFAULT_MODEL,
               max_tokens: 1000,
               system: PSYPNOS_IMAGE_GENERATION_PROMPT,
               messages: [

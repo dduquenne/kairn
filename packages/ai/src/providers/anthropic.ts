@@ -10,6 +10,8 @@ import type {
   TextBlock,
 } from '@anthropic-ai/sdk/resources/messages';
 
+import { CLAUDE_DEFAULT_MODEL } from '../models.js';
+
 import {
   AIProvider,
   AnthropicProviderConfig,
@@ -20,8 +22,6 @@ import {
   AIRateLimitError,
   AIAuthenticationError,
 } from './types.js';
-
-const DEFAULT_MODEL = 'claude-sonnet-4-6';
 const DEFAULT_MAX_TOKENS = 8192;
 const DEFAULT_TIMEOUT_MS = 120000; // 2 minutes
 
@@ -33,7 +33,7 @@ export class AnthropicProvider implements AIProvider {
 
   constructor(config: AnthropicProviderConfig) {
     this.config = config;
-    this.defaultTextModel = config.model || DEFAULT_MODEL;
+    this.defaultTextModel = config.model || CLAUDE_DEFAULT_MODEL;
   }
 
   /**
