@@ -127,12 +127,30 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Erreur lors de la génération des images:', error);
-    return NextResponse.json(
-      {
-        message: 'Une erreur est survenue lors de la génération. Veuillez réessayer.',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+    const errMsg = error instanceof Error ? error.message : String(error);
+    const lowerMsg = errMsg.toLowerCase();
+    let userMessage: string;
+    if (
+      lowerMsg.includes('billing') ||
+      lowerMsg.includes('quota') ||
+      lowerMsg.includes('insufficient')
+    ) {
+      userMessage =
+        "Le quota de génération d'images OpenAI est épuisé. Contactez l'administrateur.";
+    } else if (lowerMsg.includes('content_policy') || lowerMsg.includes('safety')) {
+      userMessage =
+        "Le prompt image a été bloqué par le filtre de sécurité d'OpenAI. Modifiez le prompt et réessayez.";
+    } else if (
+      lowerMsg.includes('api key') ||
+      lowerMsg.includes('401') ||
+      lowerMsg.includes('unauthorized')
+    ) {
+      userMessage = "La clé API OpenAI est invalide ou expirée. Contactez l'administrateur.";
+    } else if (lowerMsg.includes('rate limit') || lowerMsg.includes('429')) {
+      userMessage = 'Limite de requêtes OpenAI atteinte. Réessayez dans quelques minutes.';
+    } else {
+      userMessage = `Erreur lors de la génération d'images : ${errMsg.slice(0, 200)}`;
+    }
+    return NextResponse.json({ message: userMessage }, { status: 500 });
   }
 }

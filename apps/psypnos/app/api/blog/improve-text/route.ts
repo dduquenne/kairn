@@ -3,6 +3,7 @@ import { CLAUDE_DEFAULT_MODEL } from '@kairn/ai';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
+import { formatAIErrorResponse } from '../../common/ai-error-handler';
 import { validateCSRFMiddleware } from '../../common/csrf-middleware';
 import { PSYPNOS_STYLE_SYSTEM_PROMPT } from '../../common/psypnos-system-prompt';
 import { recordAttemptAsync, getClientIP } from '../../common/rate-limiter';
@@ -150,11 +151,7 @@ Retourne uniquement le texte amélioré, sans balises additionnelles, sans préa
     });
   } catch (error) {
     console.error("Erreur lors de l'amélioration du texte:", error);
-    return NextResponse.json(
-      {
-        message: "Une erreur est survenue lors de l'amélioration. Veuillez réessayer.",
-      },
-      { status: 500 }
-    );
+    const { body, status } = formatAIErrorResponse(error);
+    return NextResponse.json(body, { status });
   }
 }

@@ -9,6 +9,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { CLAUDE_DEFAULT_MODEL } from '@kairn/ai';
 import { NextRequest, NextResponse } from 'next/server';
 
+import { formatAIErrorResponse } from '@/app/api/common/ai-error-handler';
 import { withRetryAndTimeout } from '@/app/api/common/ai-utils';
 import {
   PSYPNOS_IMAGE_GENERATION_PROMPT,
@@ -294,33 +295,10 @@ IMPORTANT: L'image doit transmettre CHALEUR, ACCUEIL et ESPOIR pour des personne
       );
     }
 
-    // Détecter les erreurs de surcharge API (529)
-    const errorString = String(error).toLowerCase();
-    const errorMessage = error instanceof Error ? error.message.toLowerCase() : '';
-    const isOverloaded =
-      errorString.includes('overloaded') ||
-      errorString.includes('529') ||
-      errorMessage.includes('overloaded') ||
-      errorMessage.includes('529');
-
-    if (isOverloaded) {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "L'API IA est temporairement surchargée. Veuillez réessayer dans quelques minutes.",
-          errorType: 'overloaded',
-        },
-        { status: 503 }
-      );
-    }
-
+    const { body, status } = formatAIErrorResponse(error);
     return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Erreur interne lors de la génération',
-      },
-      { status: 500 }
+      { success: false, error: body.message, errorType: body.errorType },
+      { status }
     );
   }
 }

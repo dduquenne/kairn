@@ -16,6 +16,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { CLAUDE_DEFAULT_MODEL } from '@kairn/ai';
 
+import { classifyAIError } from '@/app/api/common/ai-error-handler';
 import { prisma } from '@/lib/db/prisma';
 import { getSiteId } from '@/lib/db/site';
 
@@ -252,10 +253,10 @@ export async function executeNextStep(jobId: string): Promise<StepExecutionResul
       totalSteps: TOTAL_STEPS,
     };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+    const aiError = classifyAIError(error);
     console.error(`[BlogJob:${jobId}] Erreur étape ${stepIndex + 1}:`, error);
 
-    await markJobAsFailed(jobId, errorMessage);
+    await markJobAsFailed(jobId, aiError.userMessage);
 
     return {
       jobId,
@@ -264,7 +265,9 @@ export async function executeNextStep(jobId: string): Promise<StepExecutionResul
       progress: Math.round((stepIndex / TOTAL_STEPS) * 100),
       currentStep: `Échec: ${STEP_NAMES[stepIndex] || 'Étape inconnue'}`,
       totalSteps: TOTAL_STEPS,
-      error: errorMessage,
+      error: aiError.userMessage,
+      errorType: aiError.type,
+      retryable: aiError.retryable,
     };
   }
 }
