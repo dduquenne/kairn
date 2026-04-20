@@ -14,6 +14,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { withAdminAuth } from '../../auth/middleware';
+import { formatAIErrorResponse } from '../../common/ai-error-handler';
 import {
   generateArticleWithClaude,
   type ArticleGenerationOptions,
@@ -173,12 +174,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("Erreur lors de la génération de l'article:", error);
-    return NextResponse.json(
-      {
-        message: 'Une erreur est survenue lors de la génération. Veuillez réessayer.',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
+    const { body, status } = formatAIErrorResponse(error);
+    return NextResponse.json(body, { status });
   }
 }

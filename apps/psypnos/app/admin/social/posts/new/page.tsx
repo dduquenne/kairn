@@ -289,7 +289,7 @@ export default function NewSocialPostPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Erreur lors de la génération');
+        throw new Error(data.message || data.error || 'Erreur lors de la génération');
       }
 
       setGeneration({

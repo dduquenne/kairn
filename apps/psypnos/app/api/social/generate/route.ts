@@ -13,6 +13,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { withAdminAuth } from '@/app/api/auth/middleware';
+import { formatAIErrorResponse } from '@/app/api/common/ai-error-handler';
 import { getPostBySlugAsync } from '@/lib/blog';
 import {
   generateForMultiplePlatforms,
@@ -214,7 +215,14 @@ export async function POST(request: NextRequest) {
   // Vérifier la configuration
   const configCheck = checkGenerationConfig();
   if (!configCheck.valid) {
-    return NextResponse.json({ error: configCheck.error }, { status: 500 });
+    return NextResponse.json(
+      {
+        message:
+          "Le service IA n'est pas configuré. Contactez l'administrateur pour vérifier la clé API Anthropic.",
+        error: configCheck.error,
+      },
+      { status: 500 }
+    );
   }
 
   try {
@@ -283,8 +291,12 @@ export async function POST(request: NextRequest) {
     const result = await generateForMultiplePlatforms(articleInput, platforms, options);
 
     if (!result.success) {
+      const detailMessage = result.errors?.length
+        ? result.errors.join(' | ')
+        : 'Aucun détail disponible';
       return NextResponse.json(
         {
+          message: `Échec de la génération de contenu social : ${detailMessage}`,
           error: 'Échec de la génération',
           details: result.errors,
         },
@@ -304,10 +316,8 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('[Social Generate API] Error:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Erreur interne' },
-      { status: 500 }
-    );
+    const { body, status } = formatAIErrorResponse(error);
+    return NextResponse.json(body, { status });
   }
 }
 

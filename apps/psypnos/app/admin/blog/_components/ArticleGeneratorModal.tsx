@@ -61,6 +61,8 @@ interface StepResponse {
     error?: string;
   };
   error?: string;
+  errorType?: string;
+  retryable?: boolean;
 }
 
 export function ArticleGeneratorModal({
@@ -81,6 +83,7 @@ export function ArticleGeneratorModal({
   const [usePsypnosStyle, setUsePsypnosStyle] = useState(true);
 
   const [error, setError] = useState<string | null>(null);
+  const [errorRetryable, setErrorRetryable] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState(0);
   const [generationStage, setGenerationStage] = useState<string>('');
@@ -207,12 +210,15 @@ export function ArticleGeneratorModal({
               onClose();
             }, 500);
           } else if (stepResult.status === 'FAILED') {
-            throw new Error(stepResult.error || "Erreur lors de la génération de l'article");
+            const errorMsg = stepResult.error || "Erreur lors de la génération de l'article";
+            const retryable = stepResult.retryable ?? false;
+            setErrorRetryable(retryable);
+            throw new Error(errorMsg);
           }
           // Si PROCESSING, la boucle continue automatiquement
         }
       } catch (err) {
-        if (controller.signal.aborted) return; // Annulation volontaire
+        if (controller.signal.aborted) return;
         console.error('Error in step-by-step generation:', err);
         setError(err instanceof Error ? err.message : 'Une erreur est survenue');
         setIsGenerating(false);
@@ -281,6 +287,7 @@ export function ArticleGeneratorModal({
     } catch (err) {
       console.error('Error creating generation job:', err);
       setError(err instanceof Error ? err.message : 'Une erreur est survenue');
+      setErrorRetryable(true);
       setIsGenerating(false);
       setCurrentJobId(null);
     }
@@ -297,6 +304,7 @@ export function ArticleGeneratorModal({
     setReaderPersona('');
     setUsePsypnosStyle(true);
     setError(null);
+    setErrorRetryable(false);
     setIsGenerating(false);
     setGenerationProgress(0);
     setGenerationStage('');
@@ -357,7 +365,16 @@ export function ArticleGeneratorModal({
                 className="border-gold/20 bg-night/50 text-ivory placeholder-ivory/40 focus:border-gold w-full rounded-lg border px-4 py-3 transition focus:outline-none disabled:opacity-50"
                 placeholder="Ex: Comment l'hypnose ericksonienne peut aider à surmonter l'anxiété..."
               />
-              {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
+              {error && (
+                <div className="mt-3 rounded-lg border border-red-500/30 bg-red-500/10 p-3">
+                  <p className="text-sm font-medium text-red-400">{error}</p>
+                  {errorRetryable && (
+                    <p className="mt-1 text-xs text-red-400/70">
+                      Vous pouvez réessayer la génération.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Suggested topics */}
