@@ -8,6 +8,7 @@
 export type AIErrorType =
   | 'auth'
   | 'rate_limit'
+  | 'credit_exhausted'
   | 'model_not_found'
   | 'overloaded'
   | 'timeout'
@@ -57,6 +58,26 @@ export function classifyAIError(error: unknown): AIErrorInfo {
       technicalDetail: message,
       retryable: false,
       httpStatus: 401,
+    };
+  }
+
+  if (
+    lowerMessage.includes('credit balance') ||
+    lowerMessage.includes('credit_balance') ||
+    lowerMessage.includes('insufficient_quota') ||
+    lowerMessage.includes('insufficient credits') ||
+    lowerMessage.includes('billing') ||
+    lowerMessage.includes('plans & billing') ||
+    lowerMessage.includes('payment required') ||
+    statusCode === 402
+  ) {
+    return {
+      type: 'credit_exhausted',
+      userMessage:
+        "Le crédit du service IA est épuisé. Contactez l'administrateur pour recharger le compte (Plans & Billing).",
+      technicalDetail: message,
+      retryable: false,
+      httpStatus: 402,
     };
   }
 

@@ -16,10 +16,10 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { CLAUDE_DEFAULT_MODEL } from '@kairn/ai';
 
-import { classifyAIError } from '@/app/api/common/ai-error-handler';
 import { prisma } from '@/lib/db/prisma';
 import { getSiteId } from '@/lib/db/site';
 
+import { classifyAIError } from '../../common/ai-error-handler';
 import {
   generateArticleSectional,
   type SectionalGenerationOptions,
@@ -254,7 +254,15 @@ export async function executeNextStep(jobId: string): Promise<StepExecutionResul
     };
   } catch (error) {
     const aiError = classifyAIError(error);
-    console.error(`[BlogJob:${jobId}] Erreur étape ${stepIndex + 1}:`, error);
+    console.error(`[BlogJob:${jobId}] Erreur étape ${stepIndex + 1}:`, {
+      step: STEP_NAMES[stepIndex],
+      errorType: aiError.type,
+      userMessage: aiError.userMessage,
+      technicalDetail: aiError.technicalDetail,
+      retryable: aiError.retryable,
+      httpStatus: aiError.httpStatus,
+      raw: error instanceof Error ? error.message : String(error),
+    });
 
     await markJobAsFailed(jobId, aiError.userMessage);
 
