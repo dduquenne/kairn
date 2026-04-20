@@ -468,11 +468,24 @@ export async function POST(request: NextRequest) {
       placesRemaining,
     } = validation.data;
 
-    // Récupérer le séminaire depuis la base de données
+    // Récupérer le séminaire depuis la base de données (filtré par siteId)
     const seminar = await getSeminarById(seminarId);
 
     if (!seminar) {
       return NextResponse.json({ error: `Séminaire non trouvé: ${seminarId}` }, { status: 404 });
+    }
+
+    // Un post social séminaire exige obligatoirement une image (Instagram en particulier
+    // ne publie pas sans média). On bloque en 422 avec un code explicite que le modal
+    // pourra traduire en message UX.
+    if (!seminar.thumbnail || seminar.thumbnail.trim() === '') {
+      return NextResponse.json(
+        {
+          error: 'SEMINAR_THUMBNAIL_REQUIRED',
+          message: 'Le séminaire doit avoir une image avant de générer un post social.',
+        },
+        { status: 422 }
+      );
     }
 
     const seminarInput = toSeminarInput(seminar);

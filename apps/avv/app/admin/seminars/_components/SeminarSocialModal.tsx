@@ -327,7 +327,15 @@ export function SeminarSocialModal({ seminar, open, onClose }: SeminarSocialModa
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Erreur lors de la génération');
+        // Erreurs métier explicites (ex: SEMINAR_THUMBNAIL_REQUIRED en 422) : on
+        // préfère afficher le message humain plutôt que le code machine.
+        const humanMessage =
+          typeof data?.message === 'string' && data.message.length > 0
+            ? data.message
+            : typeof data?.error === 'string'
+              ? data.error
+              : 'Erreur lors de la génération';
+        throw new Error(humanMessage);
       }
 
       setGenerations(
