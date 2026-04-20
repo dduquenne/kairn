@@ -173,8 +173,15 @@ export async function POST(request: Request) {
       tone: singleTone,
     });
   } catch (error) {
-    console.error("Erreur lors de la génération de l'article:", error);
     const { body, status } = formatAIErrorResponse(error);
+    console.error("[BlogGenerate] Erreur lors de la génération de l'article:", {
+      errorType: body.errorType,
+      status,
+      userMessage: body.message,
+      technicalDetail: body.technicalDetail,
+      retryable: body.retryable,
+      raw: error instanceof Error ? error.message : String(error),
+    });
     return NextResponse.json(body, { status });
   }
 }
