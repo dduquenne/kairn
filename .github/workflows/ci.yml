@@ -118,6 +118,13 @@ jobs:
       - name: Generate Prisma client
         run: pnpm --filter @kairn/db db:generate
 
+      - name: Build workspace packages
+        # Vitest résout les imports `@kairn/*` via leurs entry points compilés
+        # (ex: @kairn/ai → ./dist/index.js). On doit donc builder les packages
+        # avant de lancer les tests, sinon Vitest échoue avec
+        # "Failed to resolve entry for package @kairn/ai".
+        run: pnpm turbo run build --filter='./packages/*'
+
       - name: Run unit tests with coverage
         run: pnpm test:coverage
 
