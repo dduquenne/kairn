@@ -2,6 +2,9 @@
 node_modules/
 .pnpm-store/
 
+# Claude Code workspace (skill scratchpad — screenshots, runs, caches)
+.claude/tmp/
+
 # Build outputs
 dist/
 .next/
@@ -41,3 +44,5 @@ coverage/
 *.tsbuildinfo
 .vercel
 .env*.local
+.aidesigner/*
+!.aidesigner/.gitkeep
